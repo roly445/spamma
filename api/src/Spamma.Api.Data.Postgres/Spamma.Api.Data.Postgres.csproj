@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Fluxera.StronglyTypedId.EntityFrameworkCore" Version="7.1.7" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.13">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Spamma.Api.Data\Spamma.Api.Data.csproj" />
+      <ProjectReference Include="..\Spamma.Api.Domain\Spamma.Api.Domain.csproj" />
+    </ItemGroup>
+
+</Project>
