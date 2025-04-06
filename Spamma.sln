@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96 d17.13
+VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		LICENSE = LICENSE
+		nuget.config = nuget.config
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -14,14 +15,49 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{61FE63
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Spamma.Shared", "shared\Spamma.Shared\Spamma.Shared.shproj", "{32A2AD16-4150-40BB-BD6F-58695BAC45E6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DAB271AB-FEF2-441B-836F-2ECE0F129A74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Web", "src\Spamma.Web\Spamma.Web\Spamma.Web.csproj", "{8C1FEA7B-CFED-44AF-BFCC-178BDDB41995}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Web.Client", "src\Spamma.Web\Spamma.Web.Client\Spamma.Web.Client.csproj", "{89F4E38E-110C-4BF3-A83D-232863C68958}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{9075C2E7-C56D-4AE5-97B7-D55BEF178F85}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{C6B30C68-7AC3-42E3-AC89-4E8EC7D0234F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8C1FEA7B-CFED-44AF-BFCC-178BDDB41995}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C1FEA7B-CFED-44AF-BFCC-178BDDB41995}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C1FEA7B-CFED-44AF-BFCC-178BDDB41995}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C1FEA7B-CFED-44AF-BFCC-178BDDB41995}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89F4E38E-110C-4BF3-A83D-232863C68958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89F4E38E-110C-4BF3-A83D-232863C68958}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89F4E38E-110C-4BF3-A83D-232863C68958}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89F4E38E-110C-4BF3-A83D-232863C68958}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{32A2AD16-4150-40BB-BD6F-58695BAC45E6} = {61FE6323-C374-4F5B-88C0-428B93B7E1C6}
+		{8C1FEA7B-CFED-44AF-BFCC-178BDDB41995} = {DAB271AB-FEF2-441B-836F-2ECE0F129A74}
+		{89F4E38E-110C-4BF3-A83D-232863C68958} = {DAB271AB-FEF2-441B-836F-2ECE0F129A74}
+		{C6B30C68-7AC3-42E3-AC89-4E8EC7D0234F} = {9075C2E7-C56D-4AE5-97B7-D55BEF178F85}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E8FA3926-4016-4AF6-A695-EE860818BF4F}
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{32A2AD16-4150-40BB-BD6F-58695BAC45E6} = {61FE6323-C374-4F5B-88C0-428B93B7E1C6}
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		shared\Spamma.Shared\Spamma.Shared.projitems*{32a2ad16-4150-40bb-bd6f-58695bac45e6}*SharedItemsImports = 13
+		shared\Spamma.Shared\Spamma.Shared.projitems*{89f4e38e-110c-4bf3-a83d-232863c68958}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{8c1fea7b-cfed-44af-bfcc-178bddb41995}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
