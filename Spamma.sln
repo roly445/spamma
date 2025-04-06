@@ -10,11 +10,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{02EA681E-C7D8-
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{61FE6323-C374-4F5B-88C0-428B93B7E1C6}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Spamma.Shared", "shared\Spamma.Shared\Spamma.Shared.shproj", "{32A2AD16-4150-40BB-BD6F-58695BAC45E6}"
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E8FA3926-4016-4AF6-A695-EE860818BF4F}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{32A2AD16-4150-40BB-BD6F-58695BAC45E6} = {61FE6323-C374-4F5B-88C0-428B93B7E1C6}
 	EndGlobalSection
 EndGlobal
