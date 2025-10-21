@@ -1,0 +1,20 @@
+﻿<div class="notification-toast @GetTypeClass() @(IsVisible ? "notification-visible" : "notification-hidden")"
+     @onclick="HandleClick">
+    <div class="notification-content">
+        <div class="notification-icon">
+            @GetIcon()
+        </div>
+        <div class="notification-message">
+            @Notification.Message
+        </div>
+        <button class="notification-close" @onclick="HandleClose" @onclick:stopPropagation="true">
+            ×
+        </button>
+    </div>
+    @if (Notification.AutoHide && ShowProgressBar)
+    {
+        <div class="notification-progress">
+            <div class="notification-progress-bar" style="animation-duration: @(Notification.DurationMs)ms;"></div>
+        </div>
+    }
+</div>

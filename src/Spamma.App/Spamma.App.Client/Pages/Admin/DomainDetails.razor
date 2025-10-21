@@ -1,0 +1,228 @@
+﻿@page "/admin/domains/{id:guid}"
+@using Spamma.App.Client.Components.UserControls
+@using Spamma.App.Client.Components.UserControls.Domain
+@using Spamma.App.Client.Layout
+@using Spamma.Modules.DomainManagement.Client.Contracts
+@layout AppLayout
+@attribute [Authorize]
+
+
+<PageTitle>Domain Details - Spamma Admin</PageTitle>
+
+<div class="min-h-screen bg-gray-50">
+
+    <AdminHeader Title="Domain Details">
+        <Controls>
+            <button @onclick="GoBack" class="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 flex flex-row gap-1.5" title="Back">
+                <svg class="w-5 h-5 fill-none"  stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Domains
+            </button>
+        </Controls>
+
+    </AdminHeader>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        @if (_isLoading)
+        {
+            <div class="flex items-center justify-center py-16">
+                <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+            </div>
+        }
+        else if (domain == null)
+        {
+            <div class="text-center py-16">
+                <h3 class="text-lg font-medium text-gray-900">Domain not found</h3>
+                <p class="mt-2 text-sm text-gray-500">It may have been removed or you don’t have access.</p>
+            </div>
+        }
+        else
+        {
+            @* Suspended Banner *@
+            if (domain.Status == DomainStatus.Suspended)
+            {
+                <div class="mb-6 rounded-md bg-red-50 border border-red-200 p-4">
+                    <div class="flex">
+                        <svg class="h-5 w-5 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-2.636-2.636M5.636 5.636L3 3l2.636 2.636"></path>
+                        </svg>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">This domain is suspended</h3>
+                            <p class="mt-1 text-sm text-red-700">
+                                Management actions and automations are disabled until the domain is unsuspended.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Overview -->
+                <div class="lg:col-span-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div class="px-6 py-5 border-b border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-lg font-medium text-gray-900">@domain.DomainName</h2>
+                                <p class="text-sm text-gray-500">Verification: @("—")</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="@StatusBadge(domain.Status)">@domain.Status</span>
+                                <div class="mt-1 flex items-center justify-end">
+                                    @if (domain.IsVerified)
+                                    {
+                                        <svg class="h-5 w-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                        <span class="text-sm text-green-700 font-medium">Verified</span>
+                                    }
+                                    else
+                                    {
+                                        <svg class="h-5 w-5 text-amber-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"/>
+                                        </svg>
+                                        <span class="text-sm text-amber-700 font-medium">Unverified</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 py-5 space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase">Created</div>
+                                <div class="text-sm text-gray-900">@domain.CreatedAt.ToString("MMM dd, yyyy")</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase">Verified</div>
+                                <div class="text-sm text-gray-900">@((domain.VerifiedAt?.ToString("MMM dd, yyyy")) ?? "—")</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase">Subdomains</div>
+                                <div class="text-sm text-gray-900">@(domain.SubdomainCount)</div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500 uppercase">Assigned Users</div>
+                                <div class="text-sm text-gray-900">@(domain.AssignedUserCount)</div>
+                            </div>
+                        </div>
+
+                        @if (!domain.IsVerified)
+                        {
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h3 class="text-sm font-medium text-yellow-800 mb-2">Verify domain to enable subdomains</h3>
+                                <p class="text-sm text-yellow-700 mb-3">Add this DNS TXT record and then click "Check Verification".</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <div class="text-xs text-gray-500 uppercase">Type</div>
+                                        <code class="px-2 py-1 text-sm bg-white border rounded">TXT</code>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500 uppercase">Name</div>
+                                        <code class="px-2 py-1 text-sm bg-white border rounded">@@</code>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-gray-500 uppercase">TTL</div>
+                                        <code class="px-2 py-1 text-sm bg-white border rounded">3600</code>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="text-xs text-gray-500 uppercase mb-1">Value</div>
+                                    <div class="flex items-center">
+                                        <code class="block w-full px-3 py-2 text-sm bg-white border rounded break-all">
+                                            @($"spamma-verification={domain.VerificationToken}")
+                                        </code>
+                                        <button @onclick="@(() => CopyToClipboard($"spamma-verification={domain.VerificationToken}"))"
+                                                class="ml-2 p-2 text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                                                title="Copy verification token">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button @onclick="CheckVerification" disabled="@_isCheckingVerification" class="px-3 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50">
+                                        @(_isCheckingVerification ? "Checking..." : "Check Verification")
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        <div class="mt-6">
+                            <div class="border-b border-gray-200">
+                                <nav class="-mb-px flex space-x-8">
+                                    <button @onclick="() => SetActiveTab(0)" 
+                                            class="@(_activeTab == 0 ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300") whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                        Subdomains
+                                    </button>
+                                    <button @onclick="() => SetActiveTab(1)"
+                                            class="@(_activeTab == 1 ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300") whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                        Moderators
+                                    </button>
+                                </nav>
+                            </div>
+    
+                            <div class="py-4">
+                                @if (_activeTab == 0)
+                                {
+                                    <Subdomains @ref="_subdomains" DomainId="Id" IsUsedAsComponent="true"></Subdomains>
+                                }
+                                else if (_activeTab == 1)
+                                {
+                                    <UserAssignment EntityId="Id" EntityUsage="UserAssignment.Usage.DomainModeration" Name="@domain.DomainName"></UserAssignment>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Side Panel -->
+                <div class="space-y-6">
+                    <!-- Actions -->
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <div class="px-5 py-4 border-b border-gray-200">
+                            <h3 class="text-sm font-medium text-gray-900">Actions</h3>
+                        </div>
+                        <div class="px-5 py-4 space-y-2">
+                            <button @onclick="OpenEditPanel"
+                                    class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
+                                Edit Domain
+                            </button>
+                            <button @onclick="OpenAddSubdomainModal" disabled="@(!domain.IsVerified)" class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
+                                Add Subdomain
+                            </button>
+                            <button @onclick="OpenAssignUserModal" disabled="@(!domain.IsVerified)" class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
+                                Add Moderator
+                            </button>
+                            @if (domain.Status != DomainStatus.Suspended)
+                            {
+                                <button @onclick="OpenSuspendDomain"
+                                        class="block w-full text-left px-3 py-2 text-sm rounded-md text-white bg-red-600 hover:bg-red-700">
+                                    Suspend Domain
+                                </button>
+                            }
+                            else
+                            {
+                                <button @onclick="OpenUnsuspendDomain"
+                                        class="block w-full text-left px-3 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700">
+                                    Unsuspend Domain
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </div>
+            <AddUser @ref="_addModerator" EntityName="@domain.DomainName" EntityUsage="AddUser.Usage.Domain" OnAdded="HandleModeratorAdded" EntityId="@domain.Id" />
+            <EditDomain @ref="_editDomain" OnSaved="HandleDomainSaved"></EditDomain>
+            <AddSubdomain @ref="_addSubdomain" OnSubdomainCreated="HandleSubdomainCreated" />
+            <SuspendDomain @ref="_suspendDomain" OnSuspended="HandleSubdomainSuspended"></SuspendDomain>
+            <UnsuspendDomain @ref="_unsuspendDomain" OnUnsuspended="HandleDomainUnsuspended"></UnsuspendDomain>
+        }
+    </div>
+</div>
+

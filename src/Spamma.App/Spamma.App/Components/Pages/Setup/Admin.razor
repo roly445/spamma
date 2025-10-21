@@ -1,0 +1,242 @@
+@page "/setup/admin"
+@using Spamma.App.Components.Layout
+@layout SetupLayout
+@inject NavigationManager Navigation
+
+@attribute [ExcludeFromInteractiveRouting]
+
+<PageTitle>Setup - Create Admin User</PageTitle>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Create Admin User</h2>
+    <p class="text-gray-600 mb-6">Create the first administrator account for your Spamma instance.</p>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <!-- Success Message -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+                <svg class="h-6 w-6 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                    <h3 class="text-sm font-medium text-green-800">Admin user created successfully!</h3>
+                    <p class="text-sm text-green-700 mt-1">Welcome email sent to @Model.AdminEmail</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="/setup/complete" class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors" data-enhance-nav="false">
+                Complete Setup
+                <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    }
+    else if (hasExistingAdminUser)
+    {
+        <!-- Existing Admin User Detected -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+            <div class="flex items-start space-x-3">
+                <svg class="h-6 w-6 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-sm font-medium text-yellow-800 mb-2">Admin User Already Exists</h3>
+                    <div class="text-sm text-yellow-700 space-y-2">
+                        <p>An administrator account has already been created for this Spamma instance.</p>
+                        <p>You can either skip this step or create an additional admin user.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/setup/complete"  class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors" data-enhance-nav="false">
+                <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                Skip - Complete Setup
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Magic Link Authentication Info -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div class="flex items-start space-x-3">
+                <svg class="h-6 w-6 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+                <div>
+                    <h4 class="text-sm font-medium text-green-800 mb-2">Secure Magic Link Authentication</h4>
+                    <div class="text-sm text-green-700 space-y-2">
+                        <p>Spamma uses <strong>passwordless authentication</strong> for enhanced security:</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1">
+                            <li><strong>No passwords to remember</strong> - More secure and user-friendly</li>
+                            <li><strong>Magic links via email</strong> - One-click authentication</li>
+                            <li><strong>Temporary tokens</strong> - Links expire after 15 minutes</li>
+                            <li><strong>Email verification</strong> - Ensures valid email ownership</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin User Form -->
+        <div id="admin-form-section">
+            @if (Model != null)
+            {
+                <EditForm Model="@Model" OnValidSubmit="@HandleCreateAdminUser" FormName="AdminForm" data-disable-form>
+                    <DataAnnotationsValidator/>
+
+                    <div class="space-y-6">
+                        <!-- Admin User Details -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Administrator Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Full Name Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Full Name <span class="text-red-500">*</span>
+                                    </label>
+                                    <InputText @bind-Value="Model.AdminName" id="admin-name"
+                                               class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                               placeholder="John Smith"/>
+                                    <ValidationMessage For="@(() => Model.AdminName)" class="mt-1 text-sm text-red-600"/>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        Display name for the administrator account
+                                    </p>
+                                    <div class="mt-2">
+                                        <span class="text-xs text-gray-400">Examples:</span>
+                                        <span class="inline-flex space-x-2 mt-1">
+                                            <button type="button" onclick="setExample('admin-name', 'John Smith')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">John Smith</button>
+                                            <button type="button" onclick="setExample('admin-name', 'System Administrator')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">System Administrator</button>
+                                            <button type="button" onclick="setExample('admin-name', 'IT Admin')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">IT Admin</button>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Email Address Field -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Email Address <span class="text-red-500">*</span>
+                                    </label>
+                                    <InputText @bind-Value="Model.AdminEmail" id="admin-email"
+                                               class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                               placeholder="admin@yourcompany.com"/>
+                                    <ValidationMessage For="@(() => Model.AdminEmail)" class="mt-1 text-sm text-red-600"/>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        Primary email for authentication and notifications
+                                    </p>
+                                    <div class="mt-2">
+                                        <span class="text-xs text-gray-400">Examples:</span>
+                                        <span class="inline-flex space-x-2 mt-1">
+                                            <button type="button" onclick="setExample('admin-email', 'admin@spamma.dev')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">admin@spamma.dev</button>
+                                            <button type="button" onclick="setExample('admin-email', 'admin@yourcompany.com')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">admin@yourcompany.com</button>
+                                            <button type="button" onclick="setExample('admin-email', 'it@yourcompany.com')" class="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">it@yourcompany.com</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- What Happens Next -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <div class="flex items-start space-x-3">
+                                <svg class="h-6 w-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="text-sm font-medium text-blue-800 mb-2">What happens when you complete setup</h4>
+                                    <div class="text-sm text-blue-700 space-y-2">
+                                        <ol class="list-decimal list-inside space-y-1">
+                                            <li>Your admin user account will be created with the provided name and email</li>
+                                            <li>All configuration will be saved to your application settings</li>
+                                            <li>A welcome email with login instructions will be sent</li>
+                                            <li>Setup mode will be disabled</li>
+                                            <li>You'll be able to access your Spamma dashboard immediately</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Privileges -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Administrator Privileges</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-gray-900">User Management</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-gray-900">Domain Management</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-gray-900">Email Capture Settings</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-gray-900">System Configuration</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-gray-900">Audit Logs & Monitoring</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-gray-900">Team & Access Control</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-3 pt-6">
+                        <a href="/setup/email" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors" data-enhance-nav="false">
+                            <svg class="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Back
+                        </a>
+                        <button type="submit" class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors">
+                            <div class="disabled-show flex">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Creating Admin User...</span>
+                            </div>
+                            <div class="disabled-hide flex">
+                                <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Create Admin User</span>
+                            </div>
+                        </button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    }
+</div>

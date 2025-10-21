@@ -1,0 +1,131 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.App", "src\Spamma.App\Spamma.App\Spamma.App.csproj", "{09C769CC-9FEE-495C-816C-32017D026EE1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.App.Client", "src\Spamma.App\Spamma.App.Client\Spamma.App.Client.csproj", "{E36C5A94-5FD6-455F-A58B-E28A46DF2391}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{06771D14-352D-482E-9C6D-C6A21ED56C05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.UserManagement", "src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj", "{CE405A94-8331-4FAC-BD76-05D03B6FA09D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.UserManagement.Client", "src\modules\Spamma.Modules.UserManagement.Client\Spamma.Modules.UserManagement.Client.csproj", "{FC4DABFB-589E-4588-95C7-16F4182603A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.Common", "src\modules\Spamma.Modules.Common\Spamma.Modules.Common.csproj", "{B38D204B-AA88-404B-813C-A06E60C514E7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{59E975D7-F11F-41EE-8DFA-2625101584B2}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		docker-compose.yml = docker-compose.yml
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.DomainManagement", "src\modules\Spamma.Modules.DomainManagement\Spamma.Modules.DomainManagement.csproj", "{1AD58275-0403-4D8F-804E-1F641951ECE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.DomainManagement.Client", "src\modules\Spamma.Modules.DomainManagement.Client\Spamma.Modules.DomainManagement.Client.csproj", "{5A30F765-8CB4-4424-B802-FF9936D2BCFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.EmailInbox", "src\modules\Spamma.Modules.EmailInbox\Spamma.Modules.EmailInbox.csproj", "{6C8803A8-4ECC-4189-AF8F-0260D50D044C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.EmailInbox.Client", "src\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj", "{6B2AD300-8F56-411E-B9A5-EDD360E6356A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F128D48A-7715-45CB-8F42-8188608933D7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{0E29D30B-835E-4E3E-BAE7-E978CD68BE65}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Spamma.Shared", "shared\Spamma.Shared\Spamma.Shared.shproj", "{32A2AD16-4150-40BB-BD6F-58695BAC45E6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".resources", ".resources", "{E2064A68-B9CE-4677-97E0-6283B1AB3EA4}"
+	ProjectSection(SolutionItems) = preProject
+		.resources\cert-gen.ps1 = .resources\cert-gen.ps1
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.Common.Client", "src\modules\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj", "{A7E643DF-8ECF-405C-B632-94058B93B1E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{37094BC4-52A9-4424-A022-299F5395FC7F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{FDEFAF11-650C-417C-95B2-3F9BE6CC8E65}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build.yml = .github\workflows\build.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{09C769CC-9FEE-495C-816C-32017D026EE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09C769CC-9FEE-495C-816C-32017D026EE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09C769CC-9FEE-495C-816C-32017D026EE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09C769CC-9FEE-495C-816C-32017D026EE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E36C5A94-5FD6-455F-A58B-E28A46DF2391}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E36C5A94-5FD6-455F-A58B-E28A46DF2391}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E36C5A94-5FD6-455F-A58B-E28A46DF2391}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E36C5A94-5FD6-455F-A58B-E28A46DF2391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE405A94-8331-4FAC-BD76-05D03B6FA09D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE405A94-8331-4FAC-BD76-05D03B6FA09D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE405A94-8331-4FAC-BD76-05D03B6FA09D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE405A94-8331-4FAC-BD76-05D03B6FA09D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC4DABFB-589E-4588-95C7-16F4182603A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC4DABFB-589E-4588-95C7-16F4182603A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC4DABFB-589E-4588-95C7-16F4182603A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC4DABFB-589E-4588-95C7-16F4182603A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B38D204B-AA88-404B-813C-A06E60C514E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B38D204B-AA88-404B-813C-A06E60C514E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B38D204B-AA88-404B-813C-A06E60C514E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B38D204B-AA88-404B-813C-A06E60C514E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AD58275-0403-4D8F-804E-1F641951ECE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AD58275-0403-4D8F-804E-1F641951ECE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AD58275-0403-4D8F-804E-1F641951ECE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AD58275-0403-4D8F-804E-1F641951ECE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A30F765-8CB4-4424-B802-FF9936D2BCFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A30F765-8CB4-4424-B802-FF9936D2BCFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A30F765-8CB4-4424-B802-FF9936D2BCFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A30F765-8CB4-4424-B802-FF9936D2BCFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C8803A8-4ECC-4189-AF8F-0260D50D044C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C8803A8-4ECC-4189-AF8F-0260D50D044C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C8803A8-4ECC-4189-AF8F-0260D50D044C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C8803A8-4ECC-4189-AF8F-0260D50D044C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B2AD300-8F56-411E-B9A5-EDD360E6356A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B2AD300-8F56-411E-B9A5-EDD360E6356A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B2AD300-8F56-411E-B9A5-EDD360E6356A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B2AD300-8F56-411E-B9A5-EDD360E6356A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{09C769CC-9FEE-495C-816C-32017D026EE1} = {F128D48A-7715-45CB-8F42-8188608933D7}
+		{E36C5A94-5FD6-455F-A58B-E28A46DF2391} = {F128D48A-7715-45CB-8F42-8188608933D7}
+		{06771D14-352D-482E-9C6D-C6A21ED56C05} = {F128D48A-7715-45CB-8F42-8188608933D7}
+		{CE405A94-8331-4FAC-BD76-05D03B6FA09D} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{FC4DABFB-589E-4588-95C7-16F4182603A0} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{B38D204B-AA88-404B-813C-A06E60C514E7} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{1AD58275-0403-4D8F-804E-1F641951ECE7} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{5A30F765-8CB4-4424-B802-FF9936D2BCFC} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{6C8803A8-4ECC-4189-AF8F-0260D50D044C} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{6B2AD300-8F56-411E-B9A5-EDD360E6356A} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{32A2AD16-4150-40BB-BD6F-58695BAC45E6} = {0E29D30B-835E-4E3E-BAE7-E978CD68BE65}
+		{A7E643DF-8ECF-405C-B632-94058B93B1E3} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
+		{FDEFAF11-650C-417C-95B2-3F9BE6CC8E65} = {37094BC4-52A9-4424-A022-299F5395FC7F}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		shared\Spamma.Shared\Spamma.Shared.projitems*{09c769cc-9fee-495c-816c-32017d026ee1}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{1ad58275-0403-4d8f-804e-1f641951ece7}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{32a2ad16-4150-40bb-bd6f-58695bac45e6}*SharedItemsImports = 13
+		shared\Spamma.Shared\Spamma.Shared.projitems*{5a30f765-8cb4-4424-b802-ff9936d2bcfc}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{6b2ad300-8f56-411e-b9a5-edd360e6356a}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{6c8803a8-4ecc-4189-af8f-0260d50d044c}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{a7e643df-8ecf-405c-b632-94058b93b1e3}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{b38d204b-aa88-404b-813c-a06e60c514e7}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{ce405a94-8331-4fac-bd76-05d03b6fa09d}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{e36c5a94-5fd6-455f-a58b-e28a46df2391}*SharedItemsImports = 5
+		shared\Spamma.Shared\Spamma.Shared.projitems*{fc4dabfb-589e-4588-95c7-16f4182603a0}*SharedItemsImports = 5
+	EndGlobalSection
+EndGlobal

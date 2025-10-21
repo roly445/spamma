@@ -1,0 +1,125 @@
+@page "/logging-in"
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@inject ILogger<VerifyLogin> Logger
+
+@attribute [ExcludeFromInteractiveRouting]
+
+<PageTitle>Verifying Login - Spamma</PageTitle>
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center">
+                <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                Verifying your login...
+            </h2>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="rounded-md bg-red-50 p-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">@errorMessage</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Static verification content -->
+            <div class="bg-white py-8 px-6 shadow-lg rounded-lg">
+                <div class="text-center space-y-6">
+                
+                
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <p class="text-sm text-blue-700">
+                                Please try logging in again using the magic link sent to your email, or click the button below to return to the login page.
+                            </p>
+                        </div>
+                        <div class="space-y-3 mt-4">
+                            <a href="/login" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700" data-enhance-nav="false">
+                                Go to Login
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Static verification content -->
+            <div class="bg-white py-8 px-6 shadow-lg rounded-lg">
+                <div class="text-center space-y-6">
+                    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
+                        <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">Verifying your magic link</h3>
+                        <p class="mt-2 text-sm text-gray-600">
+                            Please wait while we authenticate your account and redirect you...
+                        </p>
+                    </div>
+                
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    If you're not redirected automatically, you may need to check your browser settings or try the link again.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <EditForm Model="Model" FormName="VerifyLoginForm" OnValidSubmit="HandleVerification" data-disable-form>
+                        <InputText type="hidden" @bind-Value="Model.Token" />
+                    </EditForm>
+                
+                </div>
+            </div>
+        }
+
+        
+    </div>
+</div>
+
+<script>
+(function () {
+  const submittedFlag = '__verifyLoginAutoSubmitted';
+  if (window[submittedFlag]) return;
+  function submitOnce() {
+    const form = document.getElementById('verifyLoginForm') || document.querySelector('form[data-disable-form]');
+    if (!form) return;
+    // Optional: check for a token value before submitting
+    const token = form.querySelector('input[type="hidden"][name$="Token"], input[type="hidden"][name="Token"]');
+    if (token && !token.value) return; // don't submit if token is empty
+    window[submittedFlag] = true;
+    // small timeout to ensure Blazor/DOM finishes rendering hidden fields
+    setTimeout(() => form.submit(), 50);
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    submitOnce();
+  } else {
+    document.addEventListener('DOMContentLoaded', submitOnce, { once: true });
+  }
+})();
+</script>

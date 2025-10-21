@@ -1,0 +1,199 @@
+﻿@page "/setup/keys"
+@using Microsoft.AspNetCore.Components.Sections
+@using Spamma.App.Components.Layout
+@layout SetupLayout
+@attribute [ExcludeFromInteractiveRouting]
+
+<PageTitle>Setup - Generate Security Keys</PageTitle>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Generate Security Keys</h2>
+    <p class="text-gray-600 mb-6">Generate secure cryptographic keys for your application's authentication system.</p>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <!-- Success Message -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div class="flex items-center">
+                <svg class="h-6 w-6 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                    <h3 class="text-sm font-medium text-green-800">Security keys saved successfully!</h3>
+                    <p class="text-sm text-green-700 mt-1">Your keys have been securely generated and saved. They will not be displayed for security reasons.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="/setup/hosting" class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors" data-enhance-nav="false">
+                Continue to Hosting Configuration
+                <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+    }
+    else
+    {
+
+        if (hasExistingKeys)
+        {
+            <!-- Existing Keys Detected (Server-side rendered) -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+                <div class="flex items-start space-x-3">
+                    <svg class="h-6 w-6 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <h3 class="text-sm font-medium text-yellow-800 mb-2">Existing Security Keys Found</h3>
+                        <div class="text-sm text-yellow-700 space-y-2">
+                            <p>Security keys have already been generated and configured for this Spamma instance.</p>
+                            <ul class="list-disc list-inside ml-4 space-y-1">
+                                <li><strong>Signing Key:</strong> Already configured for data signing and verification</li>
+                                <li><strong>JWT Key:</strong> Already configured for authentication token generation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <div class="flex items-start space-x-3">
+                    <svg class="h-6 w-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <h4 class="text-sm font-medium text-blue-800 mb-2">What would you like to do?</h4>
+                        <div class="text-sm text-blue-700 space-y-2">
+                            <p><strong>Skip Key Generation:</strong> Continue with your existing keys (recommended for most users)</p>
+                            <p><strong>Regenerate Keys:</strong> Create new keys (this will invalidate existing user sessions and tokens)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons for Existing Keys -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center" id="existing-keys-actions">
+                <a href="/setup/hosting" class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors" data-enhance-nav="false">
+                    <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                    Skip - Use Existing Keys
+                </a>
+                <button id="regenerate-keys-btn" type="button" class="inline-flex items-center px-6 py-3 bg-yellow-600 text-white font-medium rounded-lg hover:bg-yellow-700 transition-colors">
+                    <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Regenerate New Keys
+                </button>
+            </div>
+
+            <!-- Warning for Key Regeneration (hidden by default) -->
+            <div id="regeneration-warning" class="mt-6 bg-red-50 border border-red-200 rounded-lg p-6 hidden">
+                <div class="flex items-start space-x-3">
+                    <svg class="h-6 w-6 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div>
+                        <h4 class="text-sm font-medium text-red-800 mb-2">⚠️ Warning: Key Regeneration Impact</h4>
+                        <div class="text-sm text-red-700 space-y-2">
+                            <p><strong>Regenerating keys will:</strong></p>
+                            <ul class="list-disc list-inside ml-4 space-y-1">
+                                <li>Invalidate all existing user sessions (users will need to log in again)</li>
+                                <li>Invalidate all existing JWT tokens</li>
+                                <li>Require all users to authenticate again</li>
+                                <li>Reset all signed data verification</li>
+                            </ul>
+                            <p class="font-medium">Only regenerate keys if you understand these consequences.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex space-x-3">
+                    <button id="proceed-regeneration-btn" type="button" class="inline-flex items-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors">
+                        I Understand - Regenerate Keys
+                    </button>
+                    <button id="cancel-regeneration-btn" type="button" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        }
+        
+            <!-- No Existing Keys - Normal Generation Flow -->
+            <div id="key-generation-section" class="@(hasExistingKeys ? "hidden" : "")">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <div class="flex items-start space-x-3">
+                        <svg class="h-6 w-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-medium text-blue-800 mb-2">How it works</h3>
+                            <p class="text-sm text-blue-700">
+                                Move your mouse randomly around the area below to generate cryptographic randomness.
+                                Your mouse movements create unpredictable data that makes your keys more secure.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entropy Collection Area -->
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                     id="entropy-area" style="min-height: 300px; cursor: crosshair;">
+                    <div class="space-y-4">
+                        <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">Move your mouse around this area</h3>
+                        <p class="text-gray-600">Generating randomness from your mouse movements...</p>
+
+                        <!-- Progress Bar -->
+                        <div class="max-w-md mx-auto">
+                            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                <span>Entropy collected</span>
+                                <span id="entropy-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div id="entropy-progress" class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Entropy dots visualization -->
+                        <div id="entropy-dots" class="flex justify-center space-x-1 mt-4"></div>
+                    </div>
+                </div>
+
+                <!-- Hidden Form for Key Submission -->
+                @if (Model != null)
+                {
+                    <EditForm id="keys-form" method="post" OnValidSubmit="@HandleSaveKeys" FormName="KeysForm" Model="Model">
+                        <InputText type="hidden" @bind-Value="@Model.SigningKey" id="signing-key-input"/>
+                        <InputText type="hidden" @bind-Value="@Model.JwtKey" id="jwt-key-input"/>
+                    </EditForm>
+                }
+
+                <!-- Generate Button (initially disabled) -->
+                <div class="text-center mt-4">
+                    <button id="generate-btn"
+                            type="submit"
+                            form="keys-form"
+                            class="inline-flex items-center px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed transition-all duration-300"
+                            disabled>
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"></path>
+                        </svg>
+                        <span id="generate-btn-text">Generate & Save Keys</span>
+                    </button>
+                </div>
+            </div>
+        
+    }
+</div>
+
+
+<SectionContent SectionName="Scripts">
+    <script src="@Assets["setup-keys.js"]"></script>
+</SectionContent>
