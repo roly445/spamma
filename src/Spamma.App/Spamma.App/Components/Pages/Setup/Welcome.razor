@@ -1,0 +1,123 @@
+@page "/setup"
+@page "/setup/welcome"
+@using Microsoft.AspNetCore.Components.Sections
+@using Spamma.App.Components.Layout
+@layout SetupLayout
+
+@attribute [ExcludeFromInteractiveRouting]
+
+<PageTitle>Welcome to Spamma Setup</PageTitle>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4">
+            <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome to Spamma Setup</h1>
+        <p class="text-lg text-gray-600">Let's configure your email testing application</p>
+    </div>
+
+    <!-- Overview -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">What you'll configure</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100">
+                        <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900">Security Keys</h3>
+                    <p class="text-sm text-gray-600">Generate secure authentication keys for your application</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-purple-100">
+                        <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900">Hosting Configuration</h3>
+                    <p class="text-sm text-gray-600">Set up configuration to add with hosting the application</p>
+                </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-purple-100">
+                        <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900">Email Configuration</h3>
+                    <p class="text-sm text-gray-600">Set up SMTP settings for email delivery</p>
+                </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-orange-100">
+                        <svg class="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900">Admin Account</h3>
+                    <p class="text-sm text-gray-600">Create your administrator user account</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time and Requirements -->
+    <div class="bg-gray-50 rounded-lg p-6 mb-8">
+        <div class="flex items-start space-x-3">
+            <svg class="h-6 w-6 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h3 class="text-sm font-medium text-gray-900 mb-2">Before you start</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• <strong>Time needed:</strong> Approximately 5-10 minutes</li>
+                    <li>• <strong>Email provider details:</strong> SMTP host, port, and credentials (if required)</li>
+                    <li>• <strong>Admin email:</strong> Email address for your administrator account</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Get Started Button -->
+    <div class="text-center">
+        <a href="/setup/keys" class="inline-flex items-center px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors" data-enhance-nav="false">
+            Get Started
+            <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+        </a>
+    </div>
+</div>
+
+@code{
+    // Gets a reference to the MainLayout component
+    [CascadingParameter]
+    public SetupLayout Layout { get; set; } 
+
+    protected override void OnInitialized()
+    {
+        Layout.CurrentStep = "0";
+    
+    }
+}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": false,
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "removeComments": false,
+    "sourceMap": false,
+    "target": "ES6",
+    "module": "NodeNext",
+    "outDir": "wwwroot",
+    "moduleResolution": "nodenext"
+  },
+  "include": [
+    "Assets/scripts/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

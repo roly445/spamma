@@ -1,0 +1,47 @@
+﻿@if (showAssignUserModal)
+{
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 flex items-center justify-center p-4" @onclick="Close">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md" @onclick:stopPropagation="true">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Assign @UserTypeName to @EntityName</h3>
+            </div>
+            <div class="px-6 py-4">
+                <EditForm Model="@assignUserModel" OnValidSubmit="@HandleAssignUser" FormName="AssignUserForm">
+                    <DataAnnotationsValidator />
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select User</label>
+                            <UserTypeahead @bind-Value="assignUserModel.UserId"
+                                           Placeholder="Search by name or email"
+                                           OnUserSelected="HandleUserSelected" />
+                            <ValidationMessage For="@(() => assignUserModel.UserId)" class="mt-1 text-sm text-red-600" />
+                            <p class="mt-1 text-xs text-gray-500">Search and select an existing user</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" @onclick="Close"
+                                class="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" disabled="@isAssigningUser"
+                                class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+                            @if (isAssigningUser)
+                            {
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <span>Assigning…</span>
+                            }
+                            else
+                            {
+                                <span>Assign User</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}

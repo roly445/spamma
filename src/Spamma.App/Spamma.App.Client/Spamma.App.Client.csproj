@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+        <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <MinVerTagPrefix>v</MinVerTagPrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.9" />
+        <PackageReference Include="BluQube" Version="1.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.9" />
+        <PackageReference Include="MimeKitLite" Version="4.14.0" />
+        <PackageReference Include="Nager.PublicSuffix" Version="3.6.0" />
+        <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="MinVer" Version="6.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Pages\Admin\Users.Add.razor.cs">
+        <DependentUpon>Users.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Users.Suspend.razor.cs">
+        <DependentUpon>Users.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Users.Unsuspend.razor.cs">
+        <DependentUpon>Users.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Users.Edit.razor.cs">
+        <DependentUpon>Users.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Domains.Add.razor.cs">
+        <DependentUpon>Domains.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\DomainDetails.Subdomains.razor.cs">
+        <DependentUpon>DomainDetails.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Subdomains.Add.razor.cs">
+        <DependentUpon>Subdomains.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Subdomains.Suspend.razor.cs">
+        <DependentUpon>Subdomains.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Subdomains.Unsuspend.razor.cs">
+        <DependentUpon>Subdomains.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\Subdomains.Edit.razor.cs">
+        <DependentUpon>Subdomains.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\DomainDetails.Users.razor.cs">
+        <DependentUpon>DomainDetails.razor</DependentUpon>
+      </Compile>
+      <Compile Update="Pages\Admin\DomainDetails.Mutation.razor.cs">
+        <DependentUpon>DomainDetails.razor</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\modules\Spamma.Modules.DomainManagement.Client\Spamma.Modules.DomainManagement.Client.csproj" />
+      <ProjectReference Include="..\..\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj" />
+      <ProjectReference Include="..\..\modules\Spamma.Modules.UserManagement.Client\Spamma.Modules.UserManagement.Client.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="IUserManagementService.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Shared\Components\" />
+    </ItemGroup>
+
+    <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
+
+</Project>

@@ -1,0 +1,41 @@
+@using Microsoft.AspNetCore.Components.Sections
+@inherits LayoutComponentBase
+
+<CascadingValue Value="this">
+    <div class="min-h-screen bg-gray-50">
+        <!-- Setup Header -->
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex">
+                        <div class="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h1 class="ml-3 text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors duration-200">
+                            Spamma
+                        </h1>
+                    </div>
+                
+                    <div class="text-sm text-gray-500">
+                        Initial Configuration
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex">
+            <!-- Sidebar Navigation -->
+            <div class="w-80 bg-white shadow-sm border-r border-gray-200 min-h-screen">
+                <SetupNavigation />
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 p-8">
+                @Body
+            </div>
+        </div>
+    </div>
+</CascadingValue>

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: marten-postgres
+    environment:
+      POSTGRES_DB: martendb
+      POSTGRES_USER: marten_user
+      POSTGRES_PASSWORD: marten_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.dockertemp/postgres/data:/var/lib/postgresql/data
+      #- ./.dockertemp/postgres/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marten_user -d martendb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    container_name: spamma-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./.dockertemp/redis/data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
+
