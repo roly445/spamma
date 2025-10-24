@@ -2,6 +2,7 @@
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
@@ -9,7 +10,7 @@ namespace Spamma.App.Client.Pages;
 /// <summary>
 /// Backing code for the home page.
 /// </summary>
-public partial class Home(IQuerier querier)
+public partial class Home(IQuerier querier, ISignalRService signalRService)
 {
     private const int DefaultPageSize = 25;
     private IReadOnlyList<SearchEmailsQueryResult.EmailSummary> emails = new List<SearchEmailsQueryResult.EmailSummary>();
@@ -22,12 +23,20 @@ public partial class Home(IQuerier querier)
 
     public void Dispose()
     {
+        signalRService.OnNewEmailReceived -= this.OnNewEmailReceived;
+        signalRService.OnEmailDeleted -= this.OnEmailDeleted;
+        signalRService.OnEmailUpdated -= this.OnEmailUpdated;
         this._searchTimer?.Dispose();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await this.LoadEmails();
+
+        // Set up SignalR event handlers
+        signalRService.OnNewEmailReceived += this.OnNewEmailReceived;
+        signalRService.OnEmailDeleted += this.OnEmailDeleted;
+        signalRService.OnEmailUpdated += this.OnEmailUpdated;
     }
 
     private static MarkupString HighlightSearchTerm(string text, string searchTerm)
@@ -218,5 +227,32 @@ public partial class Home(IQuerier querier)
         }
 
         return baseClasses;
+    }
+
+    private async Task OnNewEmailReceived()
+    {
+        await this.InvokeAsync(async () =>
+        {
+            await this.LoadEmails();
+            this.StateHasChanged();
+        });
+    }
+
+    private async Task OnEmailDeleted()
+    {
+        await this.InvokeAsync(async () =>
+        {
+            await this.LoadEmails();
+            this.StateHasChanged();
+        });
+    }
+
+    private async Task OnEmailUpdated()
+    {
+        await this.InvokeAsync(async () =>
+        {
+            await this.LoadEmails();
+            this.StateHasChanged();
+        });
     }
 }

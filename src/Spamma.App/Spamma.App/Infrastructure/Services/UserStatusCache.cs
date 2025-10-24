@@ -15,12 +15,12 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
     private readonly TimeSpan _ttl = TimeSpan.FromMinutes(1);
 
-    public async Task<Maybe<CachedUser>> GetUserLookupAsync(Guid userId)
+    public async Task<Maybe<CachedUser>> GetUserLookupAsync(Guid userId, bool forceRefresh = false)
     {
         var key = Prefix + userId;
         var value = await this._redis.StringGetAsync(key);
 
-        if (!value.HasValue)
+        if (!value.HasValue || forceRefresh)
         {
             var query = new GetUserByIdQuery(userId);
             tempObjectStore.AddReferenceForObject(query);
@@ -32,8 +32,9 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
                     UserId = result.Data.Id,
                     IsSuspended = result.Data.IsSuspended,
                     SystemRole = result.Data.SystemRole,
-                    Domains = result.Data.ModeratedDomains.ToList(),
-                    Subdomains = result.Data.ModeratedSubdomains.ToList(),
+                    ModeratedDomains = result.Data.ModeratedDomains.ToList(),
+                    ModeratedSubdomains = result.Data.ModeratedSubdomains.ToList(),
+                    ViewableSubdomains = result.Data.ViewableSubdomains.ToList(),
                     EmailAddress = result.Data.EmailAddress,
                     Name = result.Data.Name,
                 };
@@ -74,9 +75,11 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
 
         public SystemRole SystemRole { get; set; }
 
-        public List<Guid> Domains { get; set; } = new();
+        public List<Guid> ModeratedDomains { get; set; } = new();
 
-        public List<Guid> Subdomains { get; set; } = new();
+        public List<Guid> ModeratedSubdomains { get; set; } = new();
+
+        public List<Guid> ViewableSubdomains { get; set; } = new();
 
         public string EmailAddress { get; set; } = string.Empty;
 

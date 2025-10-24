@@ -90,6 +90,7 @@ public partial class Email(IAppConfigurationService appConfigurationService)
             Password = this.Model.Password,
             FromEmail = this.Model.FromEmail,
             FromName = this.Model.FromName,
+            UseTls = this.Model.UseSsl,
         };
 
         await appConfigurationService.SaveEmailSettingsAsync(emailSettings);

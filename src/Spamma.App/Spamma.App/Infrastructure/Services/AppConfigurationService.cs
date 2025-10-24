@@ -15,6 +15,7 @@ public class AppConfigurationService(IConfiguration configuration, ILogger<AppCo
         await this.SetValueAsync("smtp.port", emailSettings.SmtpPort.ToString());
         await this.SetValueAsync("from.email", emailSettings.FromEmail);
         await this.SetValueAsync("from.name", emailSettings.FromName);
+        await this.SetValueAsync("smtp.useTls", emailSettings.UseTls ? "true" : "false");
 
         if (!string.IsNullOrEmpty(emailSettings.Username))
         {
@@ -37,6 +38,7 @@ public class AppConfigurationService(IConfiguration configuration, ILogger<AppCo
             Password = await this.GetValueAsync("smtp.password"),
             FromEmail = await this.GetValueAsync("from.email") ?? string.Empty,
             FromName = await this.GetValueAsync("from.name") ?? string.Empty,
+            UseTls = (await this.GetValueAsync("smtp.useTls"))?.ToLower() == "true",
         };
     }
 

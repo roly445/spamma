@@ -22,6 +22,11 @@ public partial class DomainDetails
 
     private void OpenAddSubdomainModal()
     {
-        this._addSubdomain?.Open(new AddSubdomain.DataModel(this.domain?.Id, null));
+        if (this.domain == null || this._addSubdomain == null)
+        {
+            return;
+        }
+
+        this._addSubdomain?.Open(new AddSubdomain.DataModel(this.domain.Id, this.domain.DomainName, null));
     }
 }

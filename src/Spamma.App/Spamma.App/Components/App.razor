@@ -9,13 +9,25 @@
     <link href="@Assets["app.css"]" rel="stylesheet" />
     @* <script src="https://cdn.jsdelivr.net/npm/@@tailwindcss/browser@4"></script> *@
     <ImportMap/>
-    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
     <HeadOutlet @rendermode="PageRenderMode"/>
+    
 </head>
 
 <body>
 <Routes @rendermode="PageRenderMode"/>
-<script src="_framework/blazor.web.js"></script>
+
+
+
+<script src="_framework/blazor.web.js" autostart="false"></script>
+<script>
+    Blazor.start({
+        webAssembly: {}
+    });
+</script>
 
 <!-- Load your compiled TypeScript -->
     <script type="module" src="@Assets["app.js"]"></script>
@@ -29,7 +41,42 @@
             }
         });
     };
+
+    window.hideSplash = () => {
+        const progress = document.getElementById('blazor-wasm-loading');
+        if (!progress) return;
+
+        // Ensure there's a transition for opacity
+        if (!progress.style.transition) {
+            progress.style.transition = 'opacity 300ms ease';
+        }
+
+        // Ensure starting opacity is 1
+        progress.style.opacity = progress.style.opacity || '1';
+
+        // Force reflow so the transition will run
+        void progress.offsetWidth;
+
+        const removeElement = () => {
+            progress.removeEventListener('transitionend', onTransitionEnd);
+            if (progress.parentNode) progress.parentNode.removeChild(progress);
+        };
+
+        const onTransitionEnd = (e) => {
+            if (e.propertyName === 'opacity') removeElement();
+        };
+
+        progress.addEventListener('transitionend', onTransitionEnd);
+
+        // Fallback in case transitionend doesn't fire
+        const fallbackMs = 400;
+        setTimeout(removeElement, fallbackMs);
+
+        // Start fade
+        progress.style.opacity = '0';
+    }
 </script>
+
 
 </body>
 

@@ -154,14 +154,84 @@
                 </nav>
             </div>
 
+            <!-- Responsive Toolbar (only show for HTML tab) -->
+            @if (_activeTab?.Type == TabType.Html && !string.IsNullOrEmpty(_activeTab.Content))
+            {
+                <div class="border-b border-gray-200 bg-gray-50 px-6 py-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-gray-700">Responsive Preview:</span>
+                            
+                            <!-- Quick Size Buttons -->
+                            <div class="flex items-center space-x-2">
+                                <button class="@GetViewportButtonClasses("mobile")" 
+                                        @onclick="@(() => SetViewportSize(320, "Mobile"))">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M12 18h.01M8 21h8a1 1 0 001-1V4a1 1 0 00-1-1H8a1 1 0 00-1 1v16a1 1 0 001 1z"></path>
+                                    </svg>
+                                    Mobile
+                                </button>
+                                
+                                <button class="@GetViewportButtonClasses("tablet")" 
+                                        @onclick="@(() => SetViewportSize(768, "Tablet"))">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                                    </svg>
+                                    Tablet
+                                </button>
+                                
+                                <button class="@GetViewportButtonClasses("desktop")" 
+                                        @onclick="@(() => SetViewportSize(1024, "Desktop"))">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Desktop
+                                </button>
+                                
+                                <button class="@GetViewportButtonClasses("full")" 
+                                        @onclick="@(() => SetViewportSize(null, "Full Width"))">
+                                                                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                                    </svg>
+                                    Full
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Width Input -->
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-500">Custom:</span>
+                            <input type="number" 
+                                   @bind="_customWidth" 
+                                   @onblur="ApplyCustomWidth"
+                                   @onkeypress="@(async (e) => { if (e.Key == "Enter") await ApplyCustomWidth(); })"
+                                   placeholder="Width" 
+                                   min="240" 
+                                   max="2000"
+                                   class="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <span class="text-sm text-gray-500">px</span>
+                            <span class="text-sm font-medium text-gray-700">(@_currentViewportName)</span>
+                        </div>
+                    </div>
+                </div>
+            }
+
             <!-- Tab Content -->
             <div class="flex-1 overflow-hidden">
                 @if (_activeTab?.Type == TabType.Html && !string.IsNullOrEmpty(_activeTab.Content))
                 {
-                    <iframe srcdoc="@_activeTab.Content"
-                            class="w-full h-full border-0"
-                            sandbox="allow-same-origin">
-                    </iframe>
+                    <div class="h-full flex justify-center overflow-x-auto bg-gray-100 p-4">
+                        <div class="@GetIframeContainerClasses()" style="@GetIframeContainerStyle()">
+                            <iframe srcdoc="@_activeTab.Content"
+                                    class="w-full h-full border border-gray-300 bg-white shadow-lg rounded"
+                                    sandbox="allow-same-origin">
+                            </iframe>
+                        </div>
+                    </div>
                 }
                 else if (_activeTab?.Type == TabType.Text)
                 {
