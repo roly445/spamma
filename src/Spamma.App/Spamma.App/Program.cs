@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 using BluQube.Commands;
@@ -8,7 +10,10 @@ using Marten;
 using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Spamma.App.Client.Infrastructure.Auth;
@@ -17,6 +22,7 @@ using Spamma.App.Infrastructure;
 using Spamma.App.Infrastructure.Configuration;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
+using Spamma.App.Infrastructure.Hubs;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
@@ -81,7 +87,9 @@ builder.Services.AddMarten(options =>
     options.ConfigureUserManagement()
         .ConfigureDomainManagement()
         .ConfigureEmailInbox();
-});
+
+    options.Logger(new ConsoleMartenLogger());
+}).ApplyAllDatabaseChangesOnStartup();
 
 builder.Services.AddMediatorAuthorization(typeof(MustBeAuthenticatedRequirement).Assembly);
 builder.Services.AddAuthorizersFromAssembly(typeof(MustBeAuthenticatedRequirement).Assembly);
@@ -103,9 +111,34 @@ builder.Services
         builder.Configuration["Settings:FromEmailAddress"] ?? "noreply@example.com",
         builder.Configuration["Settings:FromName"] ?? "Spamma")
     .AddRazorRenderer()
-    .AddSmtpSender(
-        builder.Configuration["Settings:EmailSmtpHost"] ?? "localhost",
-        int.Parse(builder.Configuration["Settings:EmailSmtpPort"] ?? "587"));
+    .AddSmtpSender(() =>
+    {
+        var client = new SmtpClient();
+        client.Host = builder.Configuration["Settings:EmailSmtpHost"] ?? "localhost";
+        client.Port = int.Parse(builder.Configuration["Settings:EmailSmtpPort"] ?? "587");
+        var username = builder.Configuration["Settings:EmailSmtpUsername"];
+        if (username != null)
+        {
+            client.Credentials = new NetworkCredential
+            {
+                UserName = username,
+                Password = builder.Configuration["Settings:EmailSmtpPassword"] ?? string.Empty,
+            };
+        }
+
+        if (bool.TryParse(builder.Configuration["Settings:EmailSmtpUseSsl"], out var useSsl))
+        {
+            client.EnableSsl = useSsl;
+        }
+
+        return client;
+    });
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Register the notification service
+builder.Services.AddScoped<IClientNotifierService, ClientNotifierService>();
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddTransient<IAuthTokenProvider, AuthTokenProvider>();
@@ -139,6 +172,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
+        options.SessionStore = new RedisCacheTicketStore(new RedisCacheOptions
+        {
+            Configuration = builder.Configuration.GetConnectionString("Redis"),
+        });
         options.LoginPath = "/login";
         options.LogoutPath = "/logout";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
@@ -184,8 +221,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 await userStatusCache.SetUserLookupAsync(new UserStatusCache.CachedUser
                 {
                     IsSuspended = user.Data.IsSuspended,
-                    Domains = user.Data.ModeratedDomains.ToList(),
-                    Subdomains = user.Data.ModeratedSubdomains.ToList(),
+                    ModeratedDomains = user.Data.ModeratedDomains.ToList(),
+                    ModeratedSubdomains = user.Data.ModeratedSubdomains.ToList(),
                     SystemRole = user.Data.SystemRole,
                     EmailAddress = user.Data.EmailAddress,
                     Name = user.Data.Name,
@@ -239,6 +276,7 @@ builder.Services.AddSingleton<ITempObjectStore, TempObjectStore>();
 builder.Host.ApplyJasperFxExtensions();
 
 var app = builder.Build();
+
 app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
@@ -275,5 +313,67 @@ app.MapGet("dynamicsettings.json",   (IOptions<Settings> settings) => Results.Js
         settings.Value.MxPriority,
     },
 }));
+app.MapGet("current-user", async (HttpContext httpContext, UserStatusCache userStatusCache) =>
+{
+    var userIdRaw = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (userIdRaw == null || !Guid.TryParse(userIdRaw, out var userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var userResult = await userStatusCache.GetUserLookupAsync(userId);
+    if (userResult.HasNoValue)
+    {
+        return Results.Unauthorized();
+    }
+
+    var claims = new List<Claim>
+    {
+        new(ClaimTypes.NameIdentifier, userResult.Value.UserId.ToString()),
+        new(ClaimTypes.Email, userResult.Value.EmailAddress),
+        new(ClaimTypes.Name, userResult.Value.Name),
+        new(ClaimTypes.Role, userResult.Value.SystemRole.ToString()),
+        new("auth_method", "magic_link"),
+        new("login_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
+    };
+    foreach (var domain in userResult.Value.ModeratedDomains)
+    {
+        claims.Add(new Claim("moderated_domain", domain.ToString()));
+    }
+
+    foreach (var subdomain in userResult.Value.ModeratedSubdomains)
+    {
+        claims.Add(new Claim("moderated_subdomain", subdomain.ToString()));
+    }
+
+    foreach (var viewableSubdomain in userResult.Value.ViewableSubdomains)
+    {
+        claims.Add(new Claim("viewable_subdomain", viewableSubdomain.ToString()));
+    }
+
+    // Create claims identity
+    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+    // Create authentication properties
+    var authProperties = new AuthenticationProperties
+    {
+        IsPersistent = true, // Remember user across browser sessions
+        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30), // 30-day expiration
+        AllowRefresh = true,
+    };
+
+    await httpContext.SignOutAsync();
+
+    // Sign in the user (this creates the authentication cookie)
+    await httpContext.SignInAsync(
+        CookieAuthenticationDefaults.AuthenticationScheme,
+        claimsPrincipal,
+        authProperties);
+
+    return Results.Json(userResult);
+});
+
+app.MapHub<NotifierHub>("/emailhub");
 
 return await app.RunJasperFxCommands(args);

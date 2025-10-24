@@ -1,5 +1,7 @@
-﻿using ResultMonad;
+﻿using BluQube.Commands;
+using ResultMonad;
 using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
@@ -26,26 +28,26 @@ public partial class Email : AggregateRoot
 
     internal IReadOnlyList<EmailAddress> EmailAddresses => this._emailAddresses;
 
-    internal static Result<Email> Create(
+    internal static Result<Email, BluQubeErrorData> Create(
         Guid emailId, Guid domainId, Guid subdomainId, string subject, DateTime whenSent, IReadOnlyList<EmailReceived.EmailAddress> emailAddresses)
     {
         var email = new Email();
         var @event = new EmailReceived(emailId, domainId, subdomainId, subject, whenSent, emailAddresses);
         email.RaiseEvent(@event);
 
-        return Result.Ok(email);
+        return Result.Ok<Email, BluQubeErrorData>(email);
     }
 
-    internal Result Delete(DateTime whenDeleted)
+    internal ResultWithError<BluQubeErrorData> Delete(DateTime whenDeleted)
     {
         if (this.WhenDeleted.HasValue)
         {
-            return Result.Fail();
+            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(EmailInboxErrorCodes.EmailAlreadyDeleted, $"Email with ID '{this.Id}' has already been deleted."));
         }
 
         var @event = new EmailDeleted(whenDeleted);
         this.RaiseEvent(@event);
 
-        return Result.Ok();
+        return ResultWithError.Ok<BluQubeErrorData>();
     }
 }

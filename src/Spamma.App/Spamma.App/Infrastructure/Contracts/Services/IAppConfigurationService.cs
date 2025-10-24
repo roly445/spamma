@@ -35,6 +35,8 @@ public interface IAppConfigurationService
         public string FromEmail { get; init; } = string.Empty;
 
         public string FromName { get; init; } = string.Empty;
+
+        public bool UseTls { get; init; }
     }
 
     public record KeySettings

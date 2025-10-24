@@ -127,8 +127,8 @@ public partial class VerifyLogin(
         await userStatusCache.SetUserLookupAsync(new UserStatusCache.CachedUser
         {
             IsSuspended = userResult.Data.IsSuspended,
-            Domains = userResult.Data.ModeratedDomains.ToList(),
-            Subdomains = userResult.Data.ModeratedSubdomains.ToList(),
+            ModeratedDomains = userResult.Data.ModeratedDomains.ToList(),
+            ModeratedSubdomains = userResult.Data.ModeratedSubdomains.ToList(),
             SystemRole = userResult.Data.SystemRole,
             EmailAddress = userResult.Data.EmailAddress,
             Name = userResult.Data.Name,

@@ -109,15 +109,15 @@ public partial class Domain : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal Result RemoveModerationUser(Guid userId, DateTime whenRemoved)
+    internal ResultWithError<BluQubeErrorData> RemoveModerationUser(Guid userId, DateTime whenRemoved)
     {
         if (!this._moderationUsers.Any(x => x.UserId == userId && x.WhenRemoved == null))
         {
-            return Result.Fail();
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.UserNotModerator, $"User with ID {userId} is not a moderator for domain {this.Id}"));
         }
 
         var @event = new ModerationUserRemoved(userId, whenRemoved);
         this.RaiseEvent(@event);
-        return Result.Ok();
+        return ResultWithError.Ok<BluQubeErrorData>();
     }
 }

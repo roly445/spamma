@@ -38,5 +38,6 @@ RUN dotnet publish "./Spamma.App.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 
 FROM base AS final
 WORKDIR /app
+LABEL org.opencontainers.image.version=$BUILD_VERSION
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Spamma.App.dll"]

@@ -28,6 +28,7 @@ public partial class AddSubdomain(ICommander commander, INotificationService not
         if (this._dataModel.DomainId.HasValue)
         {
             this.model.DomainId = this._dataModel.DomainId.Value;
+            this.domainName = this._dataModel.DomainName;
         }
 
         this.isVisible = true;
@@ -130,5 +131,5 @@ public partial class AddSubdomain(ICommander commander, INotificationService not
         public string? Description { get; set; }
     }
 
-    public record DataModel(Guid? DomainId, IReadOnlyList<DomainOption>? AvailableDomains);
+    public record DataModel(Guid? DomainId, string? DomainName, IReadOnlyList<DomainOption>? AvailableDomains);
 }

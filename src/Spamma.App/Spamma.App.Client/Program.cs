@@ -2,6 +2,7 @@ using BluQube.Commands;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.JSInterop;
 using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Client.Infrastructure.Contracts;
@@ -52,6 +53,8 @@ builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+builder.Services.AddScoped<ISignalRService, SignalRService>();
 
 var host = builder.Build();
 

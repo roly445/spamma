@@ -24,6 +24,10 @@ public partial class EmailViewer(
     private string _rawSource = string.Empty;
     private bool _showSaveDropdown;
     private bool _isDeleting;
+    
+    private int? _currentViewportWidth = null;
+    private string _currentViewportName = "Full Width";
+    private int _customWidth = 600;
 
     private enum TabType
     {
@@ -106,6 +110,68 @@ public partial class EmailViewer(
 
         return "?";
     }
+    
+    private void SetViewportSize(int? width, string name)
+    {
+        _currentViewportWidth = width;
+        _currentViewportName = name;
+        if (width.HasValue)
+        {
+            _customWidth = width.Value;
+        }
+        StateHasChanged();
+    }
+
+    private async Task ApplyCustomWidth()
+    {
+        if (_customWidth >= 240 && _customWidth <= 2000)
+        {
+            _currentViewportWidth = _customWidth;
+            _currentViewportName = $"{_customWidth}px";
+            StateHasChanged();
+        }
+    }
+
+    private string GetViewportButtonClasses(string viewportType)
+    {
+        var isActive = viewportType switch
+        {
+            "mobile" => _currentViewportWidth == 320,
+            "tablet" => _currentViewportWidth == 768,
+            "desktop" => _currentViewportWidth == 1024,
+            "full" => _currentViewportWidth == null,
+            _ => false
+        };
+
+        var baseClasses = "inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border transition-colors";
+    
+        if (isActive)
+        {
+            return $"{baseClasses} bg-blue-600 text-white border-blue-600";
+        }
+        else
+        {
+            return $"{baseClasses} bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400";
+        }
+    }
+
+    private string GetIframeContainerClasses()
+    {
+        if (_currentViewportWidth.HasValue)
+        {
+            return "transition-all duration-300 ease-in-out";
+        }
+        return "w-full transition-all duration-300 ease-in-out";
+    }
+
+    private string GetIframeContainerStyle()
+    {
+        if (_currentViewportWidth.HasValue)
+        {
+            return $"width: {_currentViewportWidth}px; min-height: 100%;";
+        }
+        return "width: 100%; min-height: 100%;";
+    }
 
     private static string GetSafeFileName(string subject)
     {
@@ -185,25 +251,30 @@ public partial class EmailViewer(
 
     private void ProcessMimeMessage()
     {
-        if (this._mimeMessage == null)
-        {
-            return;
-        }
-
         this._tabs.Clear();
         this._attachments.Clear();
+        this._activeTab = null;
 
-        this.ProcessMimeEntity(this._mimeMessage.Body);
-
-        this._tabs.Add(new EmailTab
+        if (this._mimeMessage?.Body != null)
         {
-            Name = "Raw Source",
-            Type = TabType.Raw,
-            Content = this._rawSource,
-        });
+            // Process the MIME structure
+            this.ProcessMimeEntity(this._mimeMessage.Body);
 
-        this._activeTab = this._tabs.FirstOrDefault();
-        this.StateHasChanged();
+            // Order tabs: HTML first (if available), then Text, then Raw
+            this._tabs = this._tabs.OrderBy(tab => tab.Type switch
+            {
+                TabType.Html => 0,  // HTML gets priority 0 (first)
+                TabType.Text => 1,  // Text gets priority 1 (second)
+                TabType.Raw => 2,   // Raw gets priority 2 (third)
+                _ => 3, // Any other types come last
+            }).ToList();
+
+            // Set the first available tab as active
+            this._activeTab = this._tabs.FirstOrDefault();
+
+            // Add raw source tab
+            this._tabs.Add(new EmailTab { Name = "Raw", Type = TabType.Raw, Content = string.Empty });
+        }
     }
 
     private void ProcessMimeEntity(MimeEntity entity)

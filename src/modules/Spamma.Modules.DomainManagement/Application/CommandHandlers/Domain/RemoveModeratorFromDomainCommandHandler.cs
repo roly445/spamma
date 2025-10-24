@@ -3,6 +3,8 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
 
@@ -11,7 +13,8 @@ namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 public class RemoveModeratorFromDomainCommandHandler(
     IDomainRepository repository, TimeProvider timeProvider,
     IEnumerable<IValidator<RemoveModeratorFromDomainCommand>> validators,
-    ILogger<RemoveModeratorFromDomainCommandHandler> logger)
+    ILogger<RemoveModeratorFromDomainCommandHandler> logger,
+    IIntegrationEventPublisher eventPublisher)
     : CommandHandler<RemoveModeratorFromDomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(RemoveModeratorFromDomainCommand request, CancellationToken cancellationToken)
@@ -26,10 +29,16 @@ public class RemoveModeratorFromDomainCommandHandler(
         var removeResult = domain.RemoveModerationUser(request.UserId, timeProvider.GetUtcNow().UtcDateTime);
         if (removeResult.IsFailure)
         {
-            return CommandResult.Failed(new BluQubeErrorData("SAVING_CHANGE"));
+            return CommandResult.Failed(removeResult.Error);
         }
 
         var saveResult = await repository.SaveAsync(domain, cancellationToken);
-        return !saveResult.IsSuccess ? CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed)) : CommandResult.Succeeded();
+        if (saveResult.IsFailure)
+        {
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
+        }
+
+        await eventPublisher.PublishAsync(new UserRemovedFromBeingDomainModeratorIntegrationEvent(request.UserId, request.DomainId), cancellationToken);
+        return CommandResult.Succeeded();
     }
 }

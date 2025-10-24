@@ -19,6 +19,6 @@ public partial class Subdomains
             return;
         }
 
-        this.addSubdomain.Open(new AddSubdomain.DataModel(null, this.availableDomains));
+        this.addSubdomain.Open(new AddSubdomain.DataModel(null, null, this.availableDomains));
     }
 }

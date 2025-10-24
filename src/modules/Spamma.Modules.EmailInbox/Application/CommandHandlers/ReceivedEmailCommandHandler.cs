@@ -1,6 +1,9 @@
 ﻿using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
@@ -9,7 +12,8 @@ using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers;
 
 public class ReceivedEmailCommandHandler(
-    IEnumerable<IValidator<ReceivedEmailCommand>> validators, ILogger<ReceivedEmailCommandHandler> logger, IEmailRepository repository)
+    IEnumerable<IValidator<ReceivedEmailCommand>> validators, ILogger<ReceivedEmailCommandHandler> logger, IEmailRepository repository,
+    IIntegrationEventPublisher eventPublisher)
     : CommandHandler<ReceivedEmailCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(ReceivedEmailCommand request, CancellationToken cancellationToken)
@@ -19,13 +23,17 @@ public class ReceivedEmailCommandHandler(
 
         if (emailResult.IsFailure)
         {
-            return CommandResult.Failed(new BluQubeErrorData("SAVING_CHANGE"));
+            return CommandResult.Failed(emailResult.Error);
         }
 
         var domain = emailResult.Value;
         var saveResult = await repository.SaveAsync(domain, cancellationToken);
-        return !saveResult.IsSuccess ?
-            CommandResult.Failed(new BluQubeErrorData("SAVING_CHANGES")) :
-            CommandResult.Succeeded();
+        if (saveResult.IsFailure)
+        {
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
+        }
+
+        await eventPublisher.PublishAsync(new EmailReceivedIntegrationEvent(request.EmailId, request.DomainId, request.SubdomainId), cancellationToken);
+        return CommandResult.Succeeded();
     }
 }

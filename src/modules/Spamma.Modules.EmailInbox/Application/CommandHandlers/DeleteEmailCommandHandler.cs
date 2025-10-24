@@ -1,6 +1,7 @@
 ﻿using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.Repositories;
@@ -18,20 +19,20 @@ public class DeleteEmailCommandHandler(
 
         if (emailMaybe.HasNoValue)
         {
-            return CommandResult.Failed(new BluQubeErrorData("EMAIL_NOT_FOUND", "The user with the provided email address does not exist."));
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Email with ID {request.EmailId} not found"));
         }
 
         var email = emailMaybe.Value;
         var result = email.Delete(timeProvider.GetUtcNow().DateTime);
         if (!result.IsSuccess)
         {
-            return CommandResult.Failed(new BluQubeErrorData("EMAIL_DELETION_FAILED"));
+            return CommandResult.Failed(result.Error);
         }
 
         var saveResult = await repository.SaveAsync(email, cancellationToken);
         if (saveResult.IsFailure)
         {
-            return CommandResult.Failed(new BluQubeErrorData("SAVING_CHANGES"));
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
         }
 
         await eventPublisher.PublishAsync(new EmailDeletedIntegrationEvent(email.Id), cancellationToken);

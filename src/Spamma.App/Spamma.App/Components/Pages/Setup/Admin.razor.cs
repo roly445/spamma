@@ -1,14 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
+using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
+using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using StackExchange.Redis;
 
 namespace Spamma.App.Components.Pages.Setup;
 
 public partial class Admin(
     IAppConfigurationService appConfigurationService,
+    ITempObjectStore tempObjectStore,
     ILogger<Admin> logger, ICommander commander)
 {
     private string? successMessage;
@@ -47,7 +51,9 @@ public partial class Admin(
 
         var userId = Guid.NewGuid();
         logger.LogInformation("Creating admin user with email: {Email}", this.Model.AdminEmail);
-        await commander.Send(new CreateUserCommand(userId, this.Model.AdminName, this.Model.AdminEmail, false, 0));
+        var cmd = new CreateUserCommand(userId, this.Model.AdminName, this.Model.AdminEmail, false, 0);
+        tempObjectStore.AddReferenceForObject(cmd);
+        await commander.Send(cmd);
 
         this.successMessage = "Admin user created successfully!";
         logger.LogInformation("Setup completed successfully for admin user: {Email}", this.Model.AdminEmail);
