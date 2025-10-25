@@ -50,6 +50,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\build.yml = .github\workflows\build.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.UserManagement.Tests", "tests\Spamma.Modules.UserManagement.Tests\Spamma.Modules.UserManagement.Tests.csproj", "{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.DomainManagement.Tests", "tests\Spamma.Modules.DomainManagement.Tests\Spamma.Modules.DomainManagement.Tests.csproj", "{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.EmailInbox.Tests", "tests\Spamma.Modules.EmailInbox.Tests\Spamma.Modules.EmailInbox.Tests.csproj", "{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +104,18 @@ Global
 		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7E643DF-8ECF-405C-B632-94058B93B1E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -114,6 +134,9 @@ Global
 		{32A2AD16-4150-40BB-BD6F-58695BAC45E6} = {0E29D30B-835E-4E3E-BAE7-E978CD68BE65}
 		{A7E643DF-8ECF-405C-B632-94058B93B1E3} = {06771D14-352D-482E-9C6D-C6A21ED56C05}
 		{FDEFAF11-650C-417C-95B2-3F9BE6CC8E65} = {37094BC4-52A9-4424-A022-299F5395FC7F}
+		{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
+		{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
+		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		shared\Spamma.Shared\Spamma.Shared.projitems*{09c769cc-9fee-495c-816c-32017d026ee1}*SharedItemsImports = 5
