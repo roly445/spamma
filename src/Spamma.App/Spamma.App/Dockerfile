@@ -15,6 +15,9 @@ RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG BUILD_VERSION=0.1.0
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
 WORKDIR /src
 COPY ["src/Spamma.App/Spamma.App/Spamma.App.csproj", "src/Spamma.App/Spamma.App/"]
 COPY ["src/modules/Spamma.Modules.DomainManagement/Spamma.Modules.DomainManagement.csproj", "src/modules/Spamma.Modules.DomainManagement/"]
@@ -37,7 +40,12 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Spamma.App.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+ARG BUILD_VERSION=0.1.0
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
 WORKDIR /app
-LABEL org.opencontainers.image.version=$BUILD_VERSION
+LABEL org.opencontainers.image.version=$BUILD_VERSION \
+      org.opencontainers.image.created=$BUILD_DATE \
+      org.opencontainers.image.revision=$VCS_REF
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Spamma.App.dll"]
