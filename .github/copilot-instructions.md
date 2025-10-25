@@ -239,6 +239,53 @@ tests/
 - **Session tokens**: After clicking link, JWT tokens issued for API access
 - **Future**: Passkey/WebAuthn support planned for passwordless auth
 
+### Initial Configuration & Setup Wizards
+- **Frontend entry point**: Statically rendered Razor pages under `src/Spamma.App/Spamma.App/Components/Pages/Setup/`
+- **Setup pages** (all static HTML/CSS with TypeScript interactivity):
+  - `Welcome.razor` - Initial setup introduction and overview
+  - `Keys.razor` - Generate security keys (with entropy collection via mouse movement)
+  - `Email.razor` - Configure SMTP settings (includes provider presets: localhost, Gmail, SendGrid, Mailgun)
+  - `Admin.razor` - Create initial admin user
+  - `Hosting.razor` - Configure hosting details
+  - `Complete.razor` - Setup completion confirmation
+  - `Login.razor` - Authentication page
+- **Attribute**: `[ExcludeFromInteractiveRouting]` marks pages as static (not interactive Blazor components)
+- **Layout**: Uses `SetupLayout` for consistent styling
+- **TypeScript interaction**: Setup scripts in `Assets/Scripts/setup-*.ts` handle UI logic (preset selection, entropy collection, form submission)
+- **Configuration persistence**: Form data submitted via HTTP POST to backend commands
+- **Storage**: Commands persist configuration to Marten event store via respective modules (UserManagement, DomainManagement, EmailInbox)
+
+### Setup Mode Detection & Authorization
+**Setup mode is controlled by three key services:**
+
+- **SetupDetectionService** (`Infrastructure/Services/SetupDetectionService.cs`):
+  - Checks if `SetupSettings.Completed` has a value
+  - If null/not set, setup mode is enabled
+  - Caches result for performance
+  - Enables/disables setup mode based on configuration
+
+- **InMemorySetupAuthService** (`Infrastructure/Services/InMemorySetupAuthService.cs`):
+  - Generates random setup password on application startup
+  - Logs password prominently when setup mode enabled (CRITICAL level)
+  - Validates setup access attempts
+  - Disables setup mode when wizard completes
+  - Password format: Two random words + hyphen (e.g., "QuickTiger-123")
+
+- **SetupModeMiddleware** (`Infrastructure/Middleware/SetupModeMiddleware.cs`):
+  - Routes all requests through setup authentication
+  - Allows static assets (CSS, JS, images) regardless of setup mode
+  - If setup mode enabled: redirects non-setup paths to `/setup-login`
+  - If setup mode disabled: blocks all `/setup` paths
+  - Requires session authentication for access to setup pages
+
+**Setup Flow:**
+1. Application starts → SetupDetectionService checks configuration
+2. If not configured → InMemorySetupAuthService generates random password (logged to console)
+3. User accesses app → SetupModeMiddleware redirects to `/setup-login`
+4. User enters setup password → Session marked as authenticated
+5. User completes setup wizard → Complete.razor disables setup mode
+6. Subsequent starts → Setup mode disabled, normal app flow
+
 ### Key File Locations
 - **Program.cs**: `src/Spamma.App/Spamma.App/Program.cs` - Main entry point, module registration
 - **Module registration**: Each module's `Module.cs` class with extension methods
