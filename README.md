@@ -123,6 +123,48 @@ npm run build
 
 The application will be available at `https://localhost:7181` (adjust port as needed).
 
+### Frontend Assets
+
+The Spamma frontend uses a modern asset pipeline:
+
+**Asset Structure:**
+
+- **`Assets/Styles/`** - SCSS stylesheets for Tailwind CSS customization
+  - `app.scss` - Main stylesheet import
+  - Compiled to CSS via webpack
+  - Tailwind CSS v4 processes utility classes
+- **`Assets/Scripts/`** - TypeScript application files
+  - `app.ts` - Main application initialization
+  - `setup-*.ts` - Setup wizards for admin, email, hosting, API keys
+  - Compiled to JavaScript via webpack and ts-loader
+- **`Assets/Images/`** - Static image assets (logos, icons, etc.)
+  - Copied to wwwroot during build via copy-webpack-plugin
+
+**Build Pipeline:**
+
+1. **webpack** orchestrates the build process
+2. **PostCSS + Tailwind CSS** processes styles
+3. **ts-loader** transpiles TypeScript to JavaScript
+4. **sass-loader** compiles SCSS to CSS
+5. **MiniCssExtractPlugin** extracts CSS to separate files
+6. **copy-webpack-plugin** copies static assets
+
+**Output:**
+
+- All assets compiled to `wwwroot/` directory
+- Served by Blazor WebAssembly at runtime
+- Includes CSS, JavaScript, and images
+
+**Development:**
+
+```bash
+# Build once
+npm run build
+
+# Rebuild on file changes
+npm run watch
+```
+
 ### Configuration
 
 Connection strings and settings are configured in `appsettings.json` and `appsettings.Development.json`. Docker services are accessible at:
