@@ -44,7 +44,7 @@
 - [x] **build.yml** - Preserved (original workflow)
 
 ### ✅ Documentation Files (6 comprehensive)
-- [x] **README.md** (7.2 KB)
+- [x] **WORKFLOWS_GUIDE.md** (7.2 KB)
   - ✅ Entry point with navigation
   - ✅ Quick start section
   - ✅ Workflow overview table
@@ -378,7 +378,7 @@ All requirements have been fully implemented, tested, documented, and verified:
 
 ## 📞 How to Get Started
 
-1. **Read:** `.github/README.md` (2 minutes)
+1. **Read:** `.github/WORKFLOWS_GUIDE.md` (2 minutes)
 2. **Choose Path:**
    - Use immediately: Push code → view workflows
    - Setup deployment: Follow IMPLEMENTATION_CHECKLIST.md

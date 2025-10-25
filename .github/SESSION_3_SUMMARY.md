@@ -28,7 +28,7 @@
 
 ### Documentation Files (.github/)
 ```
-✅ README.md                           (7.2 KB)  - Entry point, quick guide
+✅ WORKFLOWS_GUIDE.md                  (7.2 KB)  - Entry point, quick guide
 ✅ DELIVERY_SUMMARY.md                (10.6 KB) - Complete overview
 ✅ IMPLEMENTATION_CHECKLIST.md        (14.0 KB) - Step-by-step setup
 ✅ CI_CD_DOCUMENTATION.md             (12.1 KB) - Complete reference
@@ -122,7 +122,7 @@ Step 6: Optional SonarQube integration
 ### Documentation
 | File | Lines | Purpose |
 |------|-------|---------|
-| README.md | 200+ | Entry point & quick start |
+| WORKFLOWS_GUIDE.md | 200+ | Entry point & quick start |
 | DELIVERY_SUMMARY.md | 350+ | Complete overview |
 | IMPLEMENTATION_CHECKLIST.md | 500+ | Step-by-step setup |
 | CI_CD_DOCUMENTATION.md | 400+ | Complete reference |
@@ -174,7 +174,7 @@ Step 6: Optional SonarQube integration
 ## 🎓 Documentation Roadmap
 
 ### First Time Reading Order:
-1. **README.md** (2 min) - Overview & quick links
+1. **WORKFLOWS_GUIDE.md** (2 min) - Overview & quick links
 2. **DELIVERY_SUMMARY.md** (5 min) - What's been built
 3. **CICD_QUICK_REFERENCE.md** (5 min) - Common tasks
 
@@ -228,7 +228,7 @@ Step 6: Optional SonarQube integration
 ## 📞 Support & Resources
 
 ### Quick Start
-- **README.md** - Start here
+- **WORKFLOWS_GUIDE.md** - Start here
 - **CICD_QUICK_REFERENCE.md** - Common tasks
 
 ### Detailed Setup
@@ -319,7 +319,7 @@ All workflows created, tested, and documented. Ready for immediate use.
 
 The CI/CD pipeline is fully implemented, documented, and ready for immediate use. 
 
-Start by reading **README.md** in `.github/` directory.
+Start by reading **WORKFLOWS_GUIDE.md** in `.github/` directory.
 
 ---
 
