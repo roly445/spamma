@@ -18,6 +18,14 @@ Each module follows the pattern: `Module/Module.Client` where `.Client` contains
 - **Messaging**: CAP framework with Redis for integration events
 - **Infrastructure**: Docker Compose with PostgreSQL, Redis, MailHog
 
+**Frontend Assets**:
+- Located in `src/Spamma.App/Spamma.App/Assets/`
+- **Styles**: SCSS files compiled by webpack + Tailwind CSS v4
+- **Scripts**: TypeScript files (app.ts, setup wizards) compiled to JavaScript
+- **Images**: Static assets (logos, icons) copied to wwwroot during build
+- Build output goes to `wwwroot/` directory, served by Blazor WebAssembly
+- Use `npm run build` to compile assets (or `npm run watch` for development)
+
 ## Key Patterns
 
 ### Module Structure
@@ -214,3 +222,83 @@ tests/
 - **Module-specific builders**: Keep builders in test project that uses them (has internal access)
 - **Internal type mocking**: Add `[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]` for Moq to proxy internal interfaces
 - **Empty validators**: Pass `Array.Empty<IValidator<T>>()` to handlers since validation testing belongs in separate layer
+
+## Implementation Notes
+
+### SMTP & Email Capture
+- **SMTP Server**: Runs on port 1025 by default (configurable)
+- **Email capture**: `Spamma.Modules.EmailInbox` handles incoming SMTP connections
+- **Marten event store**: All email metadata stored as events
+- **Direct SMTP**: Applications connect directly to port 1025
+- **MX Records**: Domain configured in UI, emails to that domain routed to Spamma
+
+### User Authentication
+- **No passwords**: Users authenticate via magic links sent to their email
+- **Magic links**: `Spamma.Modules.UserManagement` generates time-limited tokens
+- **Email required**: Must have working email service (SMTP) to send magic links
+- **Session tokens**: After clicking link, JWT tokens issued for API access
+- **Future**: Passkey/WebAuthn support planned for passwordless auth
+
+### Key File Locations
+- **Program.cs**: `src/Spamma.App/Spamma.App/Program.cs` - Main entry point, module registration
+- **Module registration**: Each module's `Module.cs` class with extension methods
+- **Common error codes**: `src/modules/Spamma.Modules.Common/Application/CommonErrorCodes.cs`
+- **Integration events**: `src/modules/Spamma.Modules.Common/IntegrationEvents/` directory
+- **Docker setup**: `docker-compose.yml` at repository root
+- **Tests**: `tests/` directory with module-specific test projects
+- **CI/CD workflows**: `.github/workflows/` directory
+
+### Database & Event Store
+- **Marten**: PostgreSQL-based event sourcing framework
+- **Connection string**: Configured in `appsettings.json`, defaults to Docker Compose PostgreSQL
+- **Event tables**: Marten auto-creates event and snapshot tables
+- **Projections**: Each module registers projections in `Infrastructure/Projections/`
+- **Event stream**: All domain events persisted, replayed for state reconstruction
+- **Query performance**: Projections generate read models for efficient queries
+
+### Common Tasks
+
+**Add a new feature to a module:**
+1. Create domain aggregate method (Domain/)
+2. Create command handler (Application/CommandHandlers/)
+3. Add FluentValidation rules (Application/Validators/)
+4. Create integration event if cross-module (Spamma.Modules.Common.IntegrationEvents)
+5. Add unit tests for domain logic
+6. Add handler tests with mocking
+
+**Add a new query/API endpoint:**
+1. Create query class (Application/Queries/)
+2. Create query processor (Application/QueryProcessors/)
+3. Add query validation (Application/Validators/)
+4. Create API controller endpoint
+5. Add integration tests
+
+**Cross-module communication:**
+1. Define integration event in `Spamma.Modules.Common.IntegrationEvents`
+2. Publish via `IIntegrationEventPublisher.PublishAsync()`
+3. Subscribe handler with `[CapSubscribe("EventName")]`
+4. CAP framework handles message routing via Redis
+
+### Debugging Tips
+- **Docker logs**: `docker-compose logs -f <service-name>` to view service logs
+- **PostgreSQL**: Connect with `psql postgresql://postgres:password@localhost:5432/spamma`
+- **Redis**: Use `redis-cli` or watch events with `redis-cli MONITOR`
+- **Webpack errors**: Clear cache: `rm -rf node_modules && npm ci && npm run build`
+- **Port conflicts**: Verify ports 1025, 5432, 6379, 7181 are available
+- **Test failures**: Check test logs for `AssertionFailedError` or verification failures
+- **Event sourcing issues**: Verify projections by querying event tables directly
+
+### Performance Considerations
+- **Event store growth**: Monitor PostgreSQL disk usage, consider event archival for old emails
+- **Projection performance**: Keep projection logic simple, avoid loading entire event history
+- **Redis memory**: Set appropriate eviction policies for CAP message queues
+- **Email ingestion**: SMTP server can handle concurrent connections, monitor CPU/memory
+- **Blazor WebAssembly**: Large assets may impact initial load time, consider gzip compression
+
+### Security Implementation Notes
+- **Magic link tokens**: Generated with random GUID, time-limited (check `StartAuthenticationCommand`)
+- **JWT tokens**: Issued after magic link validation, used for API authentication
+- **Role-based access**: Each module can define custom authorization policies
+- **Password hashing**: Not applicable (no passwords), but future passkey implementation will use Web Crypto API
+- **HTTPS**: Required for production, self-signed certs for development
+- **SMTP security**: Currently unencrypted, runs on private network or behind firewall in production
