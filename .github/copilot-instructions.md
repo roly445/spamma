@@ -349,3 +349,405 @@ tests/
 - **Password hashing**: Not applicable (no passwords), but future passkey implementation will use Web Crypto API
 - **HTTPS**: Required for production, self-signed certs for development
 - **SMTP security**: Currently unencrypted, runs on private network or behind firewall in production
+
+## SMTP Email Capture Testing Strategy
+
+### Email Reception Flow
+**End-to-end**: `SmtpHostedService` (background service) → `SmtpServer` receives email → `SpammaMessageStore.SaveAsync` processes
+
+**Key Components to Test:**
+
+1. **SmtpHostedService** (`Infrastructure/Services/SmtpHostedService.cs`)
+   - Background service wrapper for SmtpServer
+   - Minimal logic: delegates to SmtpServer.StartAsync
+   - **Test Type**: Lifecycle tests (startup/shutdown, CancellationToken handling)
+
+2. **SpammaMessageStore** (`Infrastructure/Services/SpammaMessageStore.cs`)
+   - SMTP MessageStore implementation receiving raw email bytes
+   - **Responsibilities**:
+     - Parse MIME message from byte buffer
+     - Extract recipient domains (To/Cc/Bcc)
+     - Validate domain via SearchSubdomainsQuery (must be Active status)
+     - Store message content via IMessageStoreProvider
+     - Create ReceivedEmailCommand with parsed metadata
+     - Handle failures (rollback: delete content if command fails)
+   - **Test Type**: Integration tests with mocked dependencies
+
+3. **IMessageStoreProvider** (`Infrastructure/Services/IMessageStoreProvider.cs`)
+   - Abstract storage interface (3 methods):
+     - `StoreMessageContentAsync(messageId, MimeMessage)` → Result
+     - `DeleteMessageContentAsync(messageId)` → Result
+     - `LoadMessageContentAsync(messageId)` → Maybe<MimeMessage>
+   - **Test Type**: Unit tests for LocalMessageStoreProvider (file I/O wrapper abstraction)
+
+### Test Scenarios
+
+#### SmtpHostedService Tests (2-3 tests)
+```csharp
+// Test 1: Service starts and stops cleanly
+[Fact]
+public async Task ExecuteAsync_StartsSmtpServer_WhenStarted()
+{
+    // Arrange
+    var smtpServerMock = new Mock<SmtpServer.SmtpServer>(MockBehavior.Strict);
+    smtpServerMock
+        .Setup(x => x.StartAsync(It.IsAny<CancellationToken>()))
+        .Returns(Task.CompletedTask);
+    
+    var service = new SmtpHostedService(smtpServerMock.Object);
+    
+    // Act
+    var cts = new CancellationTokenSource();
+    _ = service.StartAsync(cts.Token);
+    await Task.Delay(100); // Allow startup
+    cts.Cancel();
+    
+    // Verify
+    smtpServerMock.Verify(x => x.StartAsync(It.IsAny<CancellationToken>()), Times.Once);
+}
+
+// Test 2: Service honors CancellationToken
+[Fact]
+public async Task ExecuteAsync_PropagatesCancellationToken_ToSmtpServer()
+{
+    var smtpServerMock = new Mock<SmtpServer.SmtpServer>(MockBehavior.Strict);
+    CancellationToken capturedToken = default;
+    
+    smtpServerMock
+        .Setup(x => x.StartAsync(It.IsAny<CancellationToken>()))
+        .Callback<CancellationToken>(t => capturedToken = t)
+        .Returns(Task.CompletedTask);
+    
+    var service = new SmtpHostedService(smtpServerMock.Object);
+    var cts = new CancellationTokenSource();
+    
+    // Act
+    _ = service.StartAsync(cts.Token);
+    await Task.Delay(100);
+    
+    // Verify
+    capturedToken.Should().NotBe(default);
+}
+```
+
+#### SpammaMessageStore Tests (8-10 tests)
+
+**Happy Path:**
+```csharp
+// Test 1: Valid email with matching subdomain stored successfully
+[Fact]
+public async Task SaveAsync_ValidEmail_WithActiveSubdomain_StoresMessageAndReturnsOk()
+{
+    // Arrange
+    var mimeMessage = new MimeMessage
+    {
+        Subject = "Test Email",
+        Date = DateTimeOffset.UtcNow,
+        From = { new MailboxAddress("sender", "sender@example.com") },
+        To = { new MailboxAddress("recipient", "test@spamma.io") }
+    };
+    
+    var buffer = SerializeMimeMessage(mimeMessage);
+    
+    var messageStoreProviderMock = new Mock<IMessageStoreProvider>(MockBehavior.Strict);
+    messageStoreProviderMock
+        .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(Result.Ok());
+    
+    var querierMock = new Mock<IQuerier>(MockBehavior.Strict);
+    querierMock
+        .Setup(x => x.Send(It.IsAny<SearchSubdomainsQuery>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new QueryResult<SearchSubdomainsQueryResult>
+        {
+            Status = QueryResultStatus.Succeeded,
+            Data = new SearchSubdomainsQueryResult(
+                TotalCount: 1,
+                Items: new[] { new SearchSubdomainsQueryResult.SubdomainSummary(Guid.NewGuid(), Guid.NewGuid(), "spamma.io", SubdomainStatus.Active) },
+                PageNumber: 1,
+                PageSize: 1,
+                TotalPages: 1)
+        });
+    
+    var commanderMock = new Mock<ICommander>(MockBehavior.Strict);
+    commanderMock
+        .Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new CommandResult { Status = CommandResultStatus.Succeeded });
+    
+    // Setup DI for SpammaMessageStore
+    // Act
+    var result = await messageStore.SaveAsync(context, transaction, buffer, CancellationToken.None);
+    
+    // Verify
+    result.Should().Be(SmtpResponse.Ok);
+    messageStoreProviderMock.Verify(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    commanderMock.Verify(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+}
+```
+
+**Error Paths:**
+```csharp
+// Test 2: Email with no matching subdomain rejected
+[Fact]
+public async Task SaveAsync_NoMatchingSubdomain_ReturnsMailboxNameNotAllowed()
+{
+    // Arrange: Email to unknown domain
+    var mimeMessage = new MimeMessage
+    {
+        To = { new MailboxAddress("user", "user@unknown.com") }
+    };
+    
+    var querierMock = new Mock<IQuerier>(MockBehavior.Strict);
+    querierMock
+        .Setup(x => x.Send(It.IsAny<SearchSubdomainsQuery>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new QueryResult<SearchSubdomainsQueryResult>
+        {
+            Status = QueryResultStatus.Succeeded,
+            Data = new SearchSubdomainsQueryResult(TotalCount: 0, Items: Array.Empty<SubdomainSummary>(), ...)
+        });
+    
+    // Act
+    var result = await messageStore.SaveAsync(context, transaction, buffer, CancellationToken.None);
+    
+    // Verify
+    result.Should().Be(SmtpResponse.MailboxNameNotAllowed);
+    messageStoreProviderMock.Verify(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+}
+
+// Test 3: Message storage failure triggers rollback
+[Fact]
+public async Task SaveAsync_StorageFailure_DeletesContentAndReturnsFailed()
+{
+    // Arrange: Provider succeeds for store, but fails for delete
+    messageStoreProviderMock
+        .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(Result.Fail()); // Storage fails
+    
+    // Act
+    var result = await messageStore.SaveAsync(context, transaction, buffer, CancellationToken.None);
+    
+    // Verify
+    result.Should().Be(SmtpResponse.TransactionFailed);
+    messageStoreProviderMock.Verify(x => x.StoreMessageContentAsync(...), Times.Once);
+    messageStoreProviderMock.Verify(x => x.DeleteMessageContentAsync(...), Times.Never); // Never got to store
+}
+
+// Test 4: Command handler failure triggers cleanup
+[Fact]
+public async Task SaveAsync_CommandHandlerFails_DeletesStoredContent()
+{
+    // Arrange: Store succeeds, but command fails
+    commanderMock
+        .Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new CommandResult { Status = CommandResultStatus.Failed });
+    
+    messageStoreProviderMock
+        .Setup(x => x.DeleteMessageContentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(Result.Ok());
+    
+    // Act
+    var result = await messageStore.SaveAsync(context, transaction, buffer, CancellationToken.None);
+    
+    // Verify
+    result.Should().Be(SmtpResponse.TransactionFailed);
+    messageStoreProviderMock.Verify(x => x.DeleteMessageContentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once);
+}
+
+// Test 5: Query failure (non-matching status) rejected
+[Fact]
+public async Task SaveAsync_InactiveSubdomain_Rejected()
+{
+    // Arrange: Subdomain found but not Active
+    querierMock
+        .Setup(x => x.Send(It.IsAny<SearchSubdomainsQuery>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new QueryResult<SearchSubdomainsQueryResult>
+        {
+            Status = QueryResultStatus.Succeeded,
+            Data = new SearchSubdomainsQueryResult(
+                TotalCount: 1,
+                Items: new[] { new SearchSubdomainsQueryResult.SubdomainSummary(..., SubdomainStatus.Suspended) },
+                ...)
+        });
+    
+    // Act
+    var result = await messageStore.SaveAsync(context, transaction, buffer, CancellationToken.None);
+    
+    // Verify - Note: Current implementation doesn't check status, just searches with status filter in query
+    // This test verifies query-level filtering works (query returns empty if status not Active)
+}
+
+// Test 6: Multiple recipient domains extracts first matching
+[Fact]
+public async Task SaveAsync_MultipleRecipientDomains_UsesFirstMatchingActive()
+{
+    // Email to multiple domains: unknown.com (no match), spamma.io (match), example.com (no match)
+    // Should use spamma.io and proceed
+    
+    // ... setup mocks to verify all domains queried in order ...
+}
+```
+
+#### LocalMessageStoreProvider Tests (4-5 tests)
+```csharp
+// Test 1: Store message creates directory and saves .eml file
+[Fact]
+public async Task StoreMessageContentAsync_CreatesDirectoryAndWritesFile()
+{
+    var directoryWrapperMock = new Mock<IDirectoryWrapper>();
+    directoryWrapperMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+    directoryWrapperMock.Setup(x => x.CreateDirectory(It.IsAny<string>()));
+    
+    var fileWrapperMock = new Mock<IFileWrapper>();
+    var hostEnvMock = new Mock<IHostEnvironment>();
+    hostEnvMock.Setup(x => x.ContentRootPath).Returns("/app");
+    
+    var provider = new LocalMessageStoreProvider(hostEnvMock.Object, loggerMock.Object, directoryWrapperMock.Object, fileWrapperMock.Object);
+    var message = new MimeMessage { Subject = "Test" };
+    
+    // Act
+    var result = await provider.StoreMessageContentAsync(Guid.NewGuid(), message);
+    
+    // Verify
+    result.IsSuccess.Should().BeTrue();
+    directoryWrapperMock.Verify(x => x.CreateDirectory(Path.Combine("/app", "messages")), Times.Once);
+}
+
+// Test 2: Load message returns stored .eml file
+[Fact]
+public async Task LoadMessageContentAsync_ReturnsStoredMessage()
+{
+    // Arrange
+    var messageId = Guid.NewGuid();
+    var originalMessage = new MimeMessage { Subject = "Test" };
+    
+    // Act
+    var result = await provider.LoadMessageContentAsync(messageId);
+    
+    // Verify
+    result.ShouldBeSome(loadedMessage =>
+    {
+        loadedMessage.Subject.Should().Be("Test");
+    });
+}
+
+// Test 3: Delete removes message file
+[Fact]
+public async Task DeleteMessageContentAsync_RemovesFile()
+{
+    var messageId = Guid.NewGuid();
+    var filePath = Path.Combine("/app", "messages", $"{messageId}.eml");
+    
+    // Act
+    var result = await provider.DeleteMessageContentAsync(messageId);
+    
+    // Verify
+    fileWrapperMock.Verify(x => x.Delete(filePath), Times.Once);
+    result.IsSuccess.Should().BeTrue();
+}
+
+// Test 4: Directory creation failure returns Result.Fail()
+[Fact]
+public async Task StoreMessageContentAsync_DirectoryCreationFails_ReturnsFail()
+{
+    directoryWrapperMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+    directoryWrapperMock
+        .Setup(x => x.CreateDirectory(It.IsAny<string>()))
+        .Throws<UnauthorizedAccessException>();
+    
+    // Act
+    var result = await provider.StoreMessageContentAsync(Guid.NewGuid(), message);
+    
+    // Verify
+    result.IsSuccess.Should().BeFalse();
+}
+
+// Test 5: Load from non-existent file returns Maybe.Nothing
+[Fact]
+public async Task LoadMessageContentAsync_FileNotFound_ReturnsNothing()
+{
+    directoryWrapperMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+    
+    // Act
+    var result = await provider.LoadMessageContentAsync(Guid.NewGuid());
+    
+    // Verify
+    result.ShouldBeNone();
+}
+```
+
+### Integration Test Scenarios (3-4 tests)
+Test the full flow with real SmtpServer and mocked handlers:
+
+```csharp
+// Test 1: Complete email reception to command flow
+[Fact]
+public async Task EmailReception_CompleteFlow_ReceivedEmailCommandFired()
+{
+    // Setup: Real SMTP server on temp port, mocked command handler
+    // Send test email to SMTP server
+    // Verify ReceivedEmailCommand executed with correct data
+}
+
+// Test 2: Concurrent email reception
+[Fact]
+public async Task EmailReception_ConcurrentEmails_AllProcessedSuccessfully()
+{
+    // Send multiple emails simultaneously
+    // Verify all stored and commands executed
+}
+
+// Test 3: Large email handling
+[Fact]
+public async Task EmailReception_LargeAttachment_ProcessedSuccessfully()
+{
+    // Send email with large attachment (10MB+)
+    // Verify stored without truncation
+}
+```
+
+### Test Wrappers & Infrastructure
+
+**IDirectoryWrapper & IFileWrapper** (`Infrastructure/Services/`)
+- Abstractions for file system operations (mockable in tests)
+- Enable LocalMessageStoreProvider testing without real I/O
+- Should support:
+  - `Exists(path)` → bool
+  - `CreateDirectory(path)` → void
+  - `Delete(path)` → void
+
+**Stub Data Builders**
+- `MimeMessageBuilder` - Fluent builder for test emails
+- `SubdomainSummaryBuilder` - Fluent builder for domain queries
+
+### Total SMTP Test Count: 12-15 tests
+
+**Breakdown:**
+- SmtpHostedService: 2-3 tests
+- SpammaMessageStore: 8-10 tests (6 happy path + error paths)
+- LocalMessageStoreProvider: 4-5 tests
+- Integration: 3-4 tests
+
+### Key Testing Patterns
+
+1. **Moq with Strict behavior**: Catch unmocked dependencies
+2. **Result monad verification**: Use `.IsSuccess` property
+3. **Maybe monad verification**: Use custom `.ShouldBeSome()` / `.ShouldBeNone()` helpers
+4. **File I/O abstraction**: Test via IDirectoryWrapper / IFileWrapper mocks
+5. **Domain validation mocking**: Query returns SearchSubdomainsQueryResult with status filtering
+6. **Transaction rollback verification**: Test deletes content if command fails
+7. **No real SMTP server in unit tests**: Mock SmtpServer for lifecycle tests, use integration tests for real SMTP
+
+### Recommended Test File Structure
+```
+tests/
+  Spamma.Modules.EmailInbox.Tests/
+    Infrastructure/
+      Services/
+        SpammaMessageStoreTests.cs       # 8-10 tests
+        LocalMessageStoreProviderTests.cs # 4-5 tests
+        SmtpHostedServiceTests.cs         # 2-3 tests
+    Integration/
+      SmtpEmailReceptionTests.cs          # 3-4 integration tests
+    Builders/
+      MimeMessageBuilder.cs
+      SubdomainSummaryBuilder.cs
+```
