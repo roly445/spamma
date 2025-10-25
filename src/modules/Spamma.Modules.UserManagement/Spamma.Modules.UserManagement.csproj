@@ -11,6 +11,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Spamma.Modules.UserManagement.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Folder Include="Contracts\" />
       <Folder Include="Infrastructure\Services\" />
     </ItemGroup>
