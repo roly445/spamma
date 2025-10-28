@@ -2,6 +2,20 @@
 @using Spamma.App.Client.Components
 @inherits LayoutComponentBase
 
+<style>
+    #blazor-error-ui {
+        display: none;
+    }
+
+    #blazor-error-ui.show {
+        display: flex;
+    }
+
+    .dismiss {
+        cursor: pointer;
+    }
+</style>
+
     <NotificationContainer/>
     <div class="h-screen flex flex-col bg-gray-100">
         <!-- Top Navigation -->
@@ -103,8 +117,40 @@
 
  }
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+<div id="blazor-error-ui" data-nosnippet class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div class="bg-white rounded-lg shadow-2xl max-w-md w-full">
+        <!-- Error Header -->
+        <div class="px-6 py-4 border-b border-red-200 bg-red-50">
+            <div class="flex items-center">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M7.08 6.06A9 9 0 110 12a9 9 0 0110.08-5.94z"></path>
+                </svg>
+                <h2 class="ml-3 text-lg font-medium text-red-900">Application Error</h2>
+            </div>
+        </div>
+
+        <!-- Error Content -->
+        <div class="px-6 py-4">
+            <p class="text-gray-700 mb-4">An unhandled error has occurred. Please try to reload the page.</p>
+            <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+                <p class="text-sm text-red-700 mb-2">If the problem persists, please report it on GitHub:</p>
+                <a href="https://github.com/roly445/spamma/issues" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:text-blue-800 underline">github.com/roly445/spamma/issues</a>
+            </div>
+        </div>
+
+        <!-- Error Actions -->
+        <div class="px-6 py-3 border-t border-gray-200 bg-gray-50 flex gap-3">
+            <a href="." class="reload flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Reload
+            </a>
+            <button class="dismiss inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
 </div>
