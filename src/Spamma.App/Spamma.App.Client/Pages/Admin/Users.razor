@@ -159,6 +159,7 @@
                                             @if (!user.IsReadOnly)
                                             {
                                                 <button @onclick="() => OpenEditUser(user)" class="text-blue-600 hover:text-blue-900">Edit</button>
+                                                <button @onclick="() => OpenManagePasskeysModal(user)" class="text-purple-600 hover:text-purple-900">Passkeys</button>
                                                 @if (user.Status != UserStatus.Suspended)
                                                 {
                                                     <button @onclick="() => OpenSuspendUser(user)" class="text-red-600 hover:text-red-900">Suspend</button>
@@ -690,6 +691,140 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+}
+
+<!-- Manage Passkeys Modal -->
+@if (showPasskeysModal && selectedUserForPasskeys != null)
+{
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="ClosePasskeysModal">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto" @onclick:stopPropagation="true">
+            <!-- Modal Header -->
+            <div class="sticky top-0 px-6 py-4 border-b border-gray-200 bg-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">Manage Passkeys</h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            User: <span class="font-medium">@(selectedUserForPasskeys.DisplayName ?? selectedUserForPasskeys.Email)</span>
+                        </p>
+                    </div>
+                    <button @onclick="ClosePasskeysModal" class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <svg class="h-6 w-6 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-4">
+                @if (isLoadingPasskeys)
+                {
+                    <div class="flex items-center justify-center py-8">
+                        <svg class="animate-spin h-8 w-8 text-blue-600 fill-none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                }
+                else if (userPasskeys.Count == 0)
+                {
+                    <div class="text-center py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">No passkeys</h3>
+                        <p class="mt-1 text-sm text-gray-500">This user hasn't registered any passkeys yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="space-y-3">
+                        <!-- Select All Checkbox -->
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <input type="checkbox" 
+                                   @onchange="@(_ => ToggleSelectAll())"
+                                   checked="@(selectedPasskeyIds.Count == userPasskeys.Count(p => !p.IsRevoked) && userPasskeys.Any(p => !p.IsRevoked && selectedPasskeyIds.Contains(p.Id)))"
+                                   class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300" />
+                            <span class="ml-3 text-sm font-medium text-gray-700">Select All Active Passkeys</span>
+                        </div>
+
+                        <!-- Passkeys List -->
+                        <div class="space-y-2 max-h-64 overflow-y-auto">
+                            @foreach (var passkey in userPasskeys)
+                            {
+                                <div class="flex items-start p-3 bg-gray-50 rounded-lg border @(passkey.IsRevoked ? "border-red-200 opacity-60" : "border-gray-200")">
+                                    @if (!passkey.IsRevoked)
+                                    {
+                                        <input type="checkbox" 
+                                               @onchange="@(_ => TogglePasskeySelection(passkey.Id))"
+                                               checked="@selectedPasskeyIds.Contains(passkey.Id)"
+                                               class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500 border-gray-300 mt-1" />
+                                    }
+                                    else
+                                    {
+                                        <div class="h-4 w-4 mt-1"></div>
+                                    }
+                                    
+                                    <div class="ml-3 flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <p class="text-sm font-medium text-gray-900">@passkey.DisplayName</p>
+                                            @if (passkey.IsRevoked)
+                                            {
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Revoked</span>
+                                            }
+                                        </div>
+                                        <div class="mt-1 text-xs text-gray-500 space-y-1">
+                                            <p><strong>Algorithm:</strong> @passkey.Algorithm</p>
+                                            <p><strong>Registered:</strong> @passkey.RegisteredAt.ToString("MMM dd, yyyy HH:mm")</p>
+                                            @if (passkey.LastUsedAt.HasValue)
+                                            {
+                                                <p><strong>Last Used:</strong> @passkey.LastUsedAt.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                                            }
+                                            else
+                                            {
+                                                <p><strong>Last Used:</strong> Never</p>
+                                            }
+                                            @if (passkey.RevokedAt.HasValue)
+                                            {
+                                                <p><strong>Revoked:</strong> @passkey.RevokedAt.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Modal Footer -->
+            @if (userPasskeys.Count > 0)
+            {
+                <div class="sticky bottom-0 px-6 py-4 border-t border-gray-200 bg-white flex justify-end space-x-3">
+                    <button type="button" @onclick="ClosePasskeysModal"
+                           class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="button" @onclick="HandleRevokeSelectedPasskeys"
+                           disabled="@(selectedPasskeyIds.Count == 0 || isRevokingPasskeys || userPasskeys.All(p => p.IsRevoked))"
+                           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        @if (isRevokingPasskeys)
+                        {
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Revoking...</span>
+                        }
+                        else
+                        {
+                            <span>Revoke Selected (@selectedPasskeyIds.Count)</span>
+                        }
+                    </button>
+                </div>
+            }
         </div>
     </div>
 }
