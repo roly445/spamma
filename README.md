@@ -267,6 +267,141 @@ To capture emails sent to your domain:
 - **Search emails** by sender, recipient, subject, or content
 - **View full email details** including headers, body, and attachments
 
+### SMTP TLS Support (Port 587)
+
+Spamma supports SMTP over TLS on port 587 for secure email transmission when a valid SSL/TLS certificate is provided.
+
+#### Port Configuration
+
+- **Port 25** - Plain SMTP (always available)
+- **Port 587** - SMTP with TLS/STARTTLS (available only when certificate is present)
+
+#### Setting Up TLS Certificates
+
+##### Local Development
+
+1. **Generate a self-signed certificate** (if testing locally):
+
+```bash
+# Create certs directory
+mkdir -p certs
+
+# Generate a self-signed .pfx certificate (valid for 365 days)
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
+openssl pkcs12 -export -in cert.pem -inkey key.pem -out certs/smtp-cert.pfx -name "Spamma SMTP"
+```
+
+2. **Place certificate in `certs/` directory:**
+
+```bash
+# Application will auto-detect any .pfx file in the certs/ directory
+ls certs/
+# smtp-cert.pfx
+```
+
+3. **Restart Spamma** - Port 587 will be automatically enabled
+
+##### Docker Deployment
+
+Mount your certificate directory as a volume:
+
+```yaml
+services:
+  spamma:
+    image: ghcr.io/roly445/spamma:latest
+    ports:
+      - "25:25"      # Plain SMTP
+      - "587:587"    # SMTP with TLS (only if cert present)
+    volumes:
+      - ./certs:/app/certs  # Mount certificate directory
+      - ./messages:/app/messages  # Mount message storage
+    environment:
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+```
+
+Then place your `.pfx` certificate in the local `./certs` directory before starting.
+
+##### Production (Let's Encrypt)
+
+For production deployments, obtain a certificate from Let's Encrypt:
+
+```bash
+# Example with Certbot
+sudo certbot certonly --standalone -d mail.example.com
+
+# Convert to PKCS12 (.pfx) format
+sudo openssl pkcs12 -export \
+  -in /etc/letsencrypt/live/mail.example.com/fullchain.pem \
+  -inkey /etc/letsencrypt/live/mail.example.com/privkey.pem \
+  -out certs/smtp-cert.pfx \
+  -name "mail.example.com"
+
+# Set permissions for Docker (if using Docker)
+sudo chown -R 999:999 certs/
+```
+
+Then mount the certificate directory in your Docker container or Kubernetes volume.
+
+#### Connecting via TLS
+
+**SMTP Client Configuration (Port 587):**
+
+```text
+SMTP Host: mail.example.com
+SMTP Port: 587
+Authentication: Not required (Spamma accepts all emails)
+Encryption: STARTTLS
+```
+
+**.NET Example:**
+
+```csharp
+var smtpClient = new SmtpClient("mail.example.com")
+{
+    Port = 587,
+    EnableSsl = true,  // Enable TLS/STARTTLS
+    DeliveryMethod = SmtpDeliveryMethod.Network,
+    UseDefaultCredentials = false
+};
+
+using var message = new MailMessage("from@example.com", "to@example.com")
+{
+    Subject = "Secure Email",
+    Body = "Sent via SMTP with TLS"
+};
+
+smtpClient.Send(message);
+```
+
+**Nodemailer Example:**
+
+```javascript
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  host: 'mail.example.com',
+  port: 587,
+  secure: false,  // false for port 587 (STARTTLS)
+  requireTLS: true
+});
+
+await transporter.sendMail({
+  from: 'sender@example.com',
+  to: 'recipient@example.com',
+  subject: 'Secure Email',
+  text: 'Sent via SMTP with TLS'
+});
+```
+
+#### Certificate Auto-Detection
+
+Spamma automatically scans the `certs/` directory for `.pfx` files:
+
+- The first valid certificate found is used
+- If no certificate is found or loading fails, only port 25 (plain SMTP) is available
+- Port 587 is automatically enabled when a valid certificate is loaded
+- Invalid certificates are logged with warnings but don't prevent startup
+
 ## 📐 Key Architectural Patterns
 
 ### CQRS (Command Query Responsibility Segregation)
