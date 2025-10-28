@@ -4,6 +4,7 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 EXPOSE 25
+EXPOSE 587
 
 # Node.js build stage
 FROM node:20-alpine AS node-build
@@ -62,5 +63,8 @@ COPY --from=publish /app/publish .
 
 # Create messages directory for email storage (volume mount point)
 RUN mkdir -p /app/messages && chown -R $APP_UID:$APP_UID /app/messages
+
+# Create certs directory for SMTP TLS certificates (volume mount point)
+RUN mkdir -p /app/certs && chown -R $APP_UID:$APP_UID /app/certs
 
 ENTRYPOINT ["dotnet", "Spamma.App.dll"]
