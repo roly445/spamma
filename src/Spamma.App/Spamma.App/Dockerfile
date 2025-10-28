@@ -59,4 +59,8 @@ LABEL org.opencontainers.image.version=$BUILD_VERSION \
       org.opencontainers.image.created=$BUILD_DATE \
       org.opencontainers.image.revision=$VCS_REF
 COPY --from=publish /app/publish .
+
+# Create messages directory for email storage (volume mount point)
+RUN mkdir -p /app/messages && chown -R $APP_UID:$APP_UID /app/messages
+
 ENTRYPOINT ["dotnet", "Spamma.App.dll"]
