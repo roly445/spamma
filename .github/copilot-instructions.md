@@ -18,13 +18,25 @@ Each module follows the pattern: `Module/Module.Client` where `.Client` contains
 - **Messaging**: CAP framework with Redis for integration events
 - **Infrastructure**: Docker Compose with PostgreSQL, Redis, MailHog
 
-**Frontend Assets**:
-- Located in `src/Spamma.App/Spamma.App/Assets/`
-- **Styles**: SCSS files compiled by webpack + Tailwind CSS v4
-- **Scripts**: TypeScript files (app.ts, setup wizards) compiled to JavaScript
-- **Images**: Static assets (logos, icons) copied to wwwroot during build
-- Build output goes to `wwwroot/` directory, served by Blazor WebAssembly
-- Use `npm run build` to compile assets (or `npm run watch` for development)
+**Blazor Frontend Architecture**:
+- **Server Project**: `Spamma.App/Spamma.App` (Server-side Blazor)
+  - Only renders **static pages**: Login, Logout, Setup wizard, Error pages
+  - Pages marked with `@attribute [ExcludeFromInteractiveRouting]` to prevent interactive routing
+  - No UI interactivity - server-side only for authentication flow and initial setup
+  
+- **Client Project**: `Spamma.App/Spamma.App.Client` (Blazor WebAssembly)
+  - **All interactive UI** runs here on the client
+  - Components in `Components/` folder (e.g., Passkey manager, domain list, etc.)
+  - Full access to `ICommander` and `IQuerier` for CQRS
+  - Can access browser APIs via `IJSRuntime`
+  
+- **Frontend Assets** (Server project):
+  - Located in `src/Spamma.App/Spamma.App/Assets/`
+  - **Styles**: SCSS files compiled by webpack + Tailwind CSS v4
+  - **Scripts**: TypeScript files (app.ts, setup wizards) compiled to JavaScript
+  - **Images**: Static assets (logos, icons) copied to wwwroot during build
+  - Build output goes to `wwwroot/` directory, served by Blazor
+  - Use `npm run build` to compile assets (or `npm run watch` for development)
 
 ## Key Patterns
 
@@ -86,6 +98,218 @@ npm run build  # or npm run watch
 - Server modules reference `Spamma.Modules.Common` for shared services
 - Shared project `Spamma.Shared` contains StyleCop configuration
 
+## Frontend Component Architecture
+
+**Component Location Rules**:
+- **Server Components** (`Spamma.App/Spamma.App/Components/`):
+  - ONLY static pages: Login, Logout, Setup wizard, Error pages
+  - Mark all with `@attribute [ExcludeFromInteractiveRouting]` to prevent interactive routing
+  - Example: `Pages/Auth/Login.razor`, `Pages/Setup/Admin.razor`
+  
+- **Client Components** (`Spamma.App/Spamma.App.Client/Components/`):
+  - ALL interactive UI functionality
+  - All user dashboards, management pages, settings
+  - Components that use CQRS commands/queries
+  - Components that access browser APIs (WebAuthn, LocalStorage, etc.)
+  - Example: `Passkey/PasskeyManager.razor`, `Pages/Admin/Domains.razor`
+
+**Component Usage Pattern**:
+```razor
+@* Client-side component - runs in WebAssembly *@
+@page "/account/security"
+@inject ICommander Commander
+@inject IJSRuntime JsRuntime
+
+<PasskeyManager />
+
+@code {
+    // Interactive code runs on client in WebAssembly
+}
+```
+
+**TypeScript/JavaScript Assets**:
+- Located in `src/Spamma.App/Spamma.App/Assets/Scripts/`
+- Examples: `webauthn-utils.ts`, `setup-email.ts`
+- Used by both server (setup) and client (interactive) components
+- Compiled to `wwwroot/` via webpack
+
+## Code Quality & Style Standards
+
+All code must comply with **StyleCop Analyzers** and **SonarQube** code quality rules. The project is configured with strict analysis to maintain clean, readable code.
+
+### StyleCop Key Rules (SA)
+
+**File Organization (SA1649, SA1650)**:
+- **One type per file**: Each public type (class, record, interface) must be in its own file
+- **File naming**: File name must match the first type declared
+- **Examples**:
+  - ✅ `GetMyPasskeysQuery.cs` contains only `GetMyPasskeysQuery` record
+  - ✅ `PasskeySummary.cs` contains only `PasskeySummary` record
+  - ❌ `PasskeyQueries.cs` with multiple types (split into separate files)
+
+**XML Documentation (SA1600, SA1601, SA1602)**:
+- **All public members require XML documentation**
+- **Summary tag required**: `/// <summary>Description.</summary>`
+- **Must end with period**: Documentation text must end with a period (`.`)
+- **Examples**:
+  - ✅ `/// <summary>Query to retrieve authenticated user's passkeys.</summary>`
+  - ❌ `/// <summary>Query to retrieve passkeys</summary>` (missing period)
+
+**File Header & Spacing**:
+- **File footer newline**: All files must end with a newline character (SA1518 may warn on incomplete lines)
+- **Blank line spacing**: Sections should have appropriate spacing
+- **Blank line after namespace**: One blank line after `namespace` declaration
+
+**Member Ordering (SA1201-SA1212)**:
+- Order within class/record:
+  1. Constants and static fields
+  2. Constructors
+  3. Properties and events
+  4. Methods (static first, then instance)
+- **Example**:
+  ```csharp
+  public class User
+  {
+      public const string DefaultRole = "User";
+      private static readonly ILogger Logger;
+      private readonly string _name;
+      
+      public Guid Id { get; }
+      public string Email { get; }
+      public string Name => _name;
+      
+      public User(Guid id, string email, string name) { }
+      public static User Create(string email) { }
+      public void UpdateName(string name) { }
+  }
+  ```
+
+### Query/Command File Structure (One Type Per File)
+
+**CQRS Split into Separate Files** (per SA1649):
+
+Each query/command pair requires 3-5 files. **Important**: Queries used in Blazor WebAssembly context (`.Client` projects) must be decorated with the `BluQubeQuery` attribute to specify the API endpoint path for code generation.
+
+1. **Query Definition** (`GetMyPasskeysQuery.cs`):
+   ```csharp
+   using BluQube.Attributes;
+   using BluQube.Queries;
+   
+   namespace Spamma.Modules.UserManagement.Client.Application.Queries;
+   
+   /// <summary>
+   /// Query to retrieve authenticated user's passkeys.
+   /// </summary>
+   [BluQubeQuery(Path = "api/users/passkeys/my")]
+   public record GetMyPasskeysQuery : IQuery<GetMyPasskeysQueryResult>;
+   ```
+   
+   **Note**: The `[BluQubeQuery(Path = "...")]` attribute is **required for WASM queries**. The path will be code-generated into an API endpoint. Naming convention:
+   - User queries: `api/users/*`
+   - Domain queries: `api/domains/*`
+   - Email queries: `email-inbox/*`
+
+2. **Query Result** (`GetMyPasskeysQueryResult.cs`):
+   ```csharp
+   using BluQube.Queries;
+   
+   namespace Spamma.Modules.UserManagement.Client.Application.Queries;
+   
+   /// <summary>
+   /// Result containing authenticated user's passkeys.
+   /// </summary>
+   public record GetMyPasskeysQueryResult(IEnumerable<PasskeySummary> Passkeys) : IQueryResult;
+   ```
+
+3. **Data Models** (`PasskeySummary.cs`):
+   ```csharp
+   namespace Spamma.Modules.UserManagement.Client.Application.Queries;
+   
+   /// <summary>
+   /// Summary information about a passkey.
+   /// </summary>
+   public record PasskeySummary(
+       Guid Id,
+       string DisplayName,
+       string Algorithm,
+       DateTime RegisteredAt,
+       DateTime? LastUsedAt,
+       bool IsRevoked,
+       DateTime? RevokedAt);
+   ```
+
+### Command File Structure (One Type Per File)
+
+**Commands also require separate files per type** (per SA1649):
+
+Commands must be decorated with the `BluQubeCommand` attribute to specify the API endpoint path for code generation.
+
+1. **Command Definition** (`RegisterPasskeyCommand.cs`):
+   ```csharp
+   using BluQube.Attributes;
+   using BluQube.Commands;
+   
+   namespace Spamma.Modules.UserManagement.Client.Application.Commands;
+   
+   /// <summary>
+   /// Command to register a new passkey for the authenticated user.
+   /// </summary>
+   [BluQubeCommand(Path = "api/user-management/register-passkey")]
+   public record RegisterPasskeyCommand(
+       byte[] CredentialId,
+       byte[] PublicKey,
+       uint SignCount,
+       string DisplayName,
+       string Algorithm) : ICommand;
+   ```
+   
+   **Note**: The `[BluQubeCommand(Path = "...")]` attribute is **required for WASM commands**. The path will be code-generated into an API endpoint. Naming convention:
+   - User commands: `api/user-management/*`
+   - Domain commands: `api/domain-management/*`
+   - Subdomain commands: `api/subdomain-management/*`
+   - Email commands: `email-inbox/*`
+
+### SonarQube Key Rules
+
+**Complexity**:
+- Keep methods focused and under 20 lines when possible
+- Extract complex logic into private helpers
+- Avoid deep nesting (max 3-4 levels)
+
+**Naming Conventions**:
+- **Clear intent**: Use clear, descriptive names (not `temp`, `x`, `data`)
+- **Prefix private fields**: Use underscore prefix: `_fieldName`
+- **Parameter names match intent**: Avoid single letters except in loops
+- **Example**:
+  - ✅ `_userRepository`, `_commandHandler`, `authenticateUserCommand`
+  - ❌ `_r`, `_ch`, `cmd`
+
+**Type Safety**:
+- Use nullable reference types: `string?` instead of `string` (nullable)
+- Use `IReadOnlyList<T>` instead of `IEnumerable<T>` for fixed collections
+- Use `Maybe<T>` for optional values, `Result<T, TError>` for operations that can fail
+
+### Validation Checklist Before Committing
+
+**Always run before committing**:
+```powershell
+# Build and check for errors
+dotnet build Spamma.sln --no-restore
+
+# Run tests
+dotnet test tests/ --no-restore
+```
+
+**Common violations to check**:
+- ❌ Multiple types in one file → **Split into separate files**
+- ❌ Missing XML documentation → **Add `/// <summary>` to all public members**
+- ❌ Documentation without period → **Add trailing period to summary**
+- ❌ File-end issues → **Ensure newline at EOF**
+- ❌ Magic numbers → **Extract to named constants**
+- ❌ Single-letter names → **Use descriptive names** (`user` not `u`)
+- ❌ Deep nesting → **Refactor into smaller methods**
+- ❌ Unused imports → **Remove `using` statements**
+
 ## Common Conventions
 
 - **Authorization**: Use `MustBeAuthenticatedRequirement` for secured endpoints
@@ -93,6 +317,8 @@ npm run build  # or npm run watch
 - **Entity IDs**: Use strongly-typed ID classes (e.g., `UserId`, `DomainId`)
 - **Time**: Inject `TimeProvider` for testable time operations
 - **Validation**: FluentValidation rules registered per module, validated in command handlers
+- **Client Components**: Always use `ICommander` and `IQuerier` for CQRS operations
+- **Server Components**: Only for authentication and setup - no business logic
 
 ## Testing Strategy
 
@@ -233,11 +459,37 @@ tests/
 - **MX Records**: Domain configured in UI, emails to that domain routed to Spamma
 
 ### User Authentication
-- **No passwords**: Users authenticate via magic links sent to their email
-- **Magic links**: `Spamma.Modules.UserManagement` generates time-limited tokens
-- **Email required**: Must have working email service (SMTP) to send magic links
-- **Session tokens**: After clicking link, JWT tokens issued for API access
-- **Future**: Passkey/WebAuthn support planned for passwordless auth
+
+**Core Authentication Flow (Server-side Cookie-based)**:
+- **Server-side only**: All authentication happens on the ASP.NET Core server via cookies, NOT in Blazor WebAssembly
+- **Authentication scheme**: Uses `CookieAuthenticationDefaults.AuthenticationScheme`
+- **Cookie details**:
+  - Name: `SpammaAuth`
+  - HttpOnly: true (not accessible to JavaScript)
+  - SecurePolicy: SameAsRequest (secure in HTTPS, insecure in HTTP for local dev)
+  - Issued from server in `Program.cs` after successful authentication
+- **Authentication methods**:
+  - **Magic links** (primary): Users authenticate via time-limited email magic links
+  - **Passkeys** (WebAuthn): Alternative passwordless authentication using device/security keys
+- **Flow**:
+  1. User submits email (magic link) or WebAuthn credential (passkey) to server
+  2. Server validates via `ICommander` (CQRS handler)
+  3. If valid: Server issues `SpammaAuth` cookie with claims (UserId, email, roles)
+  4. Cookie persists across requests, accessible to server-side rendering and APIs
+  5. Client-side Blazor components cannot directly read cookie (HttpOnly) but can access claims via `AuthenticationStateProvider`
+
+**Magic Link Authentication**:
+- `Spamma.Modules.UserManagement` generates time-limited tokens
+- Email required with working SMTP service to send magic links
+- Token used in magic link URL, validated to issue authentication cookie
+
+**Passkey Authentication** (WebAuthn):
+- Handled by `AuthenticateWithPasskeyCommandHandler` in UserManagement module
+- WebAuthn assertion performed in browser via `webauthn-utils.ts` TypeScript library
+- Assertion response sent to `/login/passkey` endpoint
+- Server validates credential and user status (suspension check)
+- Issues authentication cookie on success
+- Audit trail recorded in `UserLookup` projection via `PasskeyAuthenticated` event
 
 ### Initial Configuration & Setup Wizards
 - **Frontend entry point**: Statically rendered Razor pages under `src/Spamma.App/Spamma.App/Components/Pages/Setup/`

@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
@@ -21,7 +22,7 @@ public class MustBeModeratorToAtLeastOneDomainRequirement : IAuthorizationRequir
                   return Task.FromResult(AuthorizationResult.Succeed());
              }
 
-             return Task.FromResult(context.User.HasClaim(c => c.Type == "moderated_domain") ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
+             return Task.FromResult(context.User.HasClaim(c => c.Type == Lookups.ModeratedDomainClaim) ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
         }
     }
 }

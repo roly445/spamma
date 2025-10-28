@@ -83,6 +83,30 @@
                                 </div>
                             </button>
                         </div>
+
+                        <div id="passkeyContainer" class="hidden">
+                            <div>
+                                <div class="relative">
+                                    <div class="absolute inset-0 flex items-center">
+                                        <div class="w-full border-t border-gray-300"></div>
+                                    </div>
+                                    <div class="relative flex justify-center text-sm">
+                                        <span class="px-2 bg-white text-gray-500">or</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <button type="button"
+                                        id="passkeyLoginBtn"
+                                        class="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                                    </svg>
+                                    <span>Sign in with Security Key</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </EditForm>
             }
@@ -163,3 +187,8 @@
         </div>
     </div>
 </div>
+
+@* Load passkey authentication scripts *@
+<SectionContent SectionName="Scripts">
+    <script src="@Assets["login.js"]"></script>
+</SectionContent>

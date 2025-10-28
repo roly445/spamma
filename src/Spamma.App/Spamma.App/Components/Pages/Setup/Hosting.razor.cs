@@ -11,11 +11,11 @@ public partial class Hosting(IAppConfigurationService appConfigurationService, I
     private bool hasExistingApplicationConfig;
     private IAppConfigurationService.ApplicationSettings? existingApplicationConfig;
 
-    [SupplyParameterFromForm(FormName = "HostingSettingsForm")]
-    private HostingConfigurationModel? Model { get; set; }
-
     [CascadingParameter]
     public SetupLayout Layout { get; set; } = null!;
+
+    [SupplyParameterFromForm(FormName = "HostingSettingsForm")]
+    private HostingConfigurationModel? Model { get; set; }
 
     protected override async Task OnInitializedAsync()
     {

@@ -19,12 +19,19 @@ public class UserAuthInfo
     }
 
     public string? UserId { get; private set; }
+
     public string? Name { get; private set; }
+
     public string? EmailAddress { get; private set; }
-    public SystemRole SystemRole { get; private set; } 
+
+    public SystemRole SystemRole { get; private set; }
+
     public IReadOnlyList<Guid> ModeratedDomains { get; private set; }
+
     public IReadOnlyList<Guid> ModeratedSubdomains { get; private set; }
+
     public IReadOnlyList<Guid> ViewableSubdomains { get; private set; }
+
     public bool IsAuthenticated { get; private set; }
 
     public static UserAuthInfo Authenticated(string userId, string name, string emailAddress, SystemRole systemRole,
@@ -33,7 +40,7 @@ public class UserAuthInfo
     {
         return new UserAuthInfo(userId, name, emailAddress, systemRole, moderatedDomains, moderatedSubdomains, viewableSubdomains, true);
     }
-    
+
     public static UserAuthInfo Unauthenticated()
     {
         return new UserAuthInfo(null, null, null, 0, [], [], [], false);

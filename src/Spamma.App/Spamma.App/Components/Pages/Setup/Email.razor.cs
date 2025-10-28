@@ -82,6 +82,7 @@ public partial class Email(IAppConfigurationService appConfigurationService)
         {
             return;
         }
+
         var emailSettings = new IAppConfigurationService.EmailSettings
         {
             SmtpHost = this.Model.SmtpHost,

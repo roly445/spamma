@@ -17,7 +17,7 @@ public class AccountSuspensionAudit
 
     public DateTime WhenHappened { get; private set; }
 
-    public string Notes => this.Type == AccountSuspensionAuditType.Unsuspend ? throw new InvalidOperationException("Notw is not applicable for unsuspension.") : this._notes!;
+    public string Notes => this.Type == AccountSuspensionAuditType.Unsuspend ? throw new InvalidOperationException("Notes are not applicable for unsuspension.") : this._notes!;
 
     public AccountSuspensionReason Reason => this.Type == AccountSuspensionAuditType.Unsuspend ? throw new InvalidOperationException("Reason is not applicable for unsuspension.") : this._reason!;
 

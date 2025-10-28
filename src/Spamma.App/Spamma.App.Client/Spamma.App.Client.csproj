@@ -73,6 +73,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\modules\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
       <ProjectReference Include="..\..\modules\Spamma.Modules.DomainManagement.Client\Spamma.Modules.DomainManagement.Client.csproj" />
       <ProjectReference Include="..\..\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj" />
       <ProjectReference Include="..\..\modules\Spamma.Modules.UserManagement.Client\Spamma.Modules.UserManagement.Client.csproj" />
@@ -84,6 +85,10 @@
 
     <ItemGroup>
       <Folder Include="Shared\Components\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Pages\Auth\PasskeyLogin.razor" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />

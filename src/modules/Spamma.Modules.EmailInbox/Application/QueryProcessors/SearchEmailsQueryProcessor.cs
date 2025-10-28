@@ -1,6 +1,7 @@
 ﻿using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
@@ -11,7 +12,7 @@ public class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpC
 {
     public async Task<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
-        var domainClaims = accessor.HttpContext?.User.FindAll("viewable_subdomain").Select(x =>
+        var domainClaims = accessor.HttpContext?.User.FindAll(Lookups.ViewableSubdomainClaim).Select(x =>
         {
             if (Guid.TryParse(x.Value, out var d))
             {

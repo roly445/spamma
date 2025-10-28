@@ -110,14 +110,3 @@
     </div>
 </div>
 
-@code{
-    // Gets a reference to the MainLayout component
-    [CascadingParameter]
-    public SetupLayout Layout { get; set; } 
-
-    protected override void OnInitialized()
-    {
-        Layout.CurrentStep = "0";
-    
-    }
-}

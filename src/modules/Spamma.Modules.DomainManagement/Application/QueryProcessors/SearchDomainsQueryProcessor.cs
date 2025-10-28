@@ -3,6 +3,7 @@ using System.Security.Claims;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
@@ -50,7 +51,7 @@ public class SearchDomainsQueryProcessor(IDocumentSession session, IHttpContextA
 
         if (!skipDomains)
         {
-            var domainClaims = accessor.HttpContext?.User?.FindAll("moderated_domain").Select(x =>
+            var domainClaims = accessor.HttpContext?.User?.FindAll(Lookups.ModeratedDomainClaim).Select(x =>
             {
                 if (Guid.TryParse(x.Value, out var d))
                 {
@@ -59,7 +60,7 @@ public class SearchDomainsQueryProcessor(IDocumentSession session, IHttpContextA
 
                 return (Guid?)null;
             }).Where(x => x.HasValue).Select(x => x!.Value).ToList();
-            var subdomainClaims = accessor.HttpContext?.User?.FindAll("moderated_subdomain").Select(x =>
+            var subdomainClaims = accessor.HttpContext?.User?.FindAll(Lookups.ModeratedSubdomainClaim).Select(x =>
             {
                 if (Guid.TryParse(x.Value, out var d))
                 {

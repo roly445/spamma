@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Marten;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.UserManagement.Client.Contracts;
 
@@ -26,7 +27,7 @@ public class MustBeModeratorToSubdomainRequirement : IAuthorizationRequirement
             }
 
             // Check for any assigned domain claim, e.g., "AssignedDomain"
-            var subdomainClaims = context?.User?.FindAll("moderated_subdomain").Select(x =>
+            var subdomainClaims = context?.User?.FindAll(Lookups.ModeratedSubdomainClaim).Select(x =>
             {
                 if (Guid.TryParse(x.Value, out var d))
                 {
@@ -40,7 +41,7 @@ public class MustBeModeratorToSubdomainRequirement : IAuthorizationRequirement
                 return AuthorizationResult.Succeed();
             }
 
-            var domainClaims = context?.User?.FindAll("moderated_domain").Select(x =>
+            var domainClaims = context?.User?.FindAll(Lookups.ModeratedDomainClaim).Select(x =>
             {
                 if (Guid.TryParse(x.Value, out var d))
                 {

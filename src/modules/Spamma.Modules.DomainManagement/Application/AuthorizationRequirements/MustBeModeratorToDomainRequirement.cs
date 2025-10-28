@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
@@ -24,7 +25,7 @@ public class MustBeModeratorToDomainRequirement : IAuthorizationRequirement
             }
 
             // Check for any assigned domain claim, e.g., "AssignedDomain"
-            var domainClaims = context.User.FindAll("moderated_domain").Select(x =>
+            var domainClaims = context.User.FindAll(Lookups.ModeratedDomainClaim).Select(x =>
             {
                 if (Guid.TryParse(x.Value, out var d))
                 {

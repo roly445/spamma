@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
+using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.App.Client.Infrastructure.Services;
 
-public class SignalRService(
+public sealed class SignalRService(
     NavigationManager navigationManager,
     AuthenticationStateProvider authStateProvider,
     ILogger<SignalRService> logger)
@@ -33,7 +35,7 @@ public class SignalRService(
         }
 
         this._hubConnection = new HubConnectionBuilder()
-            .WithUrl(navigationManager.ToAbsoluteUri("/emailhub"))
+            .WithUrl(navigationManager.ToAbsoluteUri($"/{Lookups.NotificationHubName}"))
             .WithAutomaticReconnect(
             [TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)])
             .Build();
@@ -92,7 +94,6 @@ public class SignalRService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to start SignalR connection");
-            throw;
         }
     }
 
@@ -104,6 +105,11 @@ public class SignalRService(
             await this._hubConnection.DisposeAsync();
             this._hubConnection = null;
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await this.StopAsync();
     }
 
     private async Task JoinUserGroup()
@@ -134,10 +140,5 @@ public class SignalRService(
         }
 
         return null;
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await this.StopAsync();
     }
 }
