@@ -5,7 +5,6 @@ using Marten;
 using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmtpServer;
 using SmtpServer.Storage;
@@ -29,16 +28,28 @@ public static class Module
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
-        services.AddSingleton(
-            provider =>
-            {
-                var options = new SmtpServerOptionsBuilder()
-                    .ServerName("Spamma SMTP Server")
-                    .Port(25)
-                    .Build();
+        // SMTP certificate service
+        services.AddSingleton<SmtpCertificateService>();
 
-                return new SmtpServer.SmtpServer(options, provider.GetRequiredService<IServiceProvider>());
-            });
+        // Configure SMTP server with optional TLS port
+        services.AddSingleton(provider =>
+        {
+            var certService = provider.GetRequiredService<SmtpCertificateService>();
+
+            var optionsBuilder = new SmtpServerOptionsBuilder()
+                .ServerName("Spamma SMTP Server")
+                .Port(25);
+
+            // Add port 587 (STARTTLS) if certificate exists
+            var certificate = certService.FindCertificate();
+            if (certificate.HasValue)
+            {
+                optionsBuilder.Port(587);
+            }
+
+            return new SmtpServer.SmtpServer(optionsBuilder.Build(), provider.GetRequiredService<IServiceProvider>());
+        });
+
         services.AddHostedService<SmtpHostedService>();
         services.AddSingleton<IMessageStoreProvider, LocalMessageStoreProvider>();
         return services;
