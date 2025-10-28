@@ -2,17 +2,19 @@
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
+using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Account;
 
 /// <summary>
-/// Backing code for the Security keys management page
+/// Backing code for the Security keys management page.
 /// </summary>
-public partial class Security(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Security> logger, AuthenticationStateProvider authenticationStateProvider)
+public partial class Security(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Security> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
 {
     private const string WebAuthnUtilsWindowHandle = "WebAuthnUtils";
     private List<PasskeySummary> passkeys = new();
@@ -20,8 +22,9 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
     private bool isRegistering = false;
     private bool isRevoking = false;
     private Guid revokingPasskeyId = Guid.Empty;
-    private string? errorMessage;
-    private string? successMessage;
+    private bool showRevoked;
+    private bool showNameModal;
+    private string customPasskeyName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -33,7 +36,6 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
         try
         {
             this.isLoading = true;
-            this.errorMessage = null;
 
             var result = await querier.Send(new GetMyPasskeysQuery());
 
@@ -44,13 +46,13 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
             else
             {
                 logger.LogWarning("Query failed with status: {Status}", result?.Status);
-                this.errorMessage = "Failed to load your security keys. Please try again.";
+                notificationService.ShowError("Failed to load your security keys. Please try again.");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error loading passkeys");
-            this.errorMessage = "An error occurred while loading your security keys.";
+            notificationService.ShowError("An error occurred while loading your security keys.");
         }
         finally
         {
@@ -58,12 +60,41 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
         }
     }
 
+    private List<PasskeySummary> GetFilteredPasskeys()
+    {
+        return this.showRevoked
+            ? this.passkeys
+            : this.passkeys.Where(p => !p.IsRevoked).ToList();
+    }
+
+    private void OpenNameModal()
+    {
+        this.customPasskeyName = string.Empty;
+        this.showNameModal = true;
+    }
+
+    private void CloseNameModal()
+    {
+        this.showNameModal = false;
+        this.customPasskeyName = string.Empty;
+    }
+
+    private async Task ConfirmAndRegisterPasskey()
+    {
+        await this.RegisterNewPasskeyWithName(this.customPasskeyName.Trim());
+        this.CloseNameModal();
+    }
+
     private async Task RegisterNewPasskey()
+    {
+        this.OpenNameModal();
+    }
+
+    private async Task RegisterNewPasskeyWithName(string displayName)
     {
         try
         {
             this.isRegistering = true;
-            this.errorMessage = null;
 
             // Get authenticated user information
             var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
@@ -71,7 +102,7 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                this.errorMessage = "You must be logged in to register a security key.";
+                notificationService.ShowError("You must be logged in to register a security key.");
                 return;
             }
 
@@ -80,7 +111,7 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
 
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userEmail))
             {
-                this.errorMessage = "Unable to retrieve user information. Please try logging in again.";
+                notificationService.ShowError("Unable to retrieve user information. Please try logging in again.");
                 return;
             }
 
@@ -88,16 +119,14 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
             var isSupported = await jsRuntime.InvokeAsync<bool>($"{WebAuthnUtilsWindowHandle}.isWebAuthnSupported");
             if (!isSupported)
             {
-                this.errorMessage = "Your browser does not support security keys. Please use a modern browser with WebAuthn support.";
+                notificationService.ShowError("Your browser does not support security keys. Please use a modern browser with WebAuthn support.");
                 return;
             }
-
-            var displayName = "My Security Key";
 
             // Get current domain for rpId (e.g., localhost, example.com)
             var currentDomain = await jsRuntime.InvokeAsync<string>($"{WebAuthnUtilsWindowHandle}.currentHostname");
 
-            // Register the credential using WebAuthn utilities with actual user email
+            // Register the credential using WebAuthn utilities with actual user email and custom display name
             var registrationResponse = await jsRuntime.InvokeAsync<dynamic>(
                 $"{WebAuthnUtilsWindowHandle}.registerCredential",
                 userEmail,
@@ -120,7 +149,7 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
 
             if (isCancelled)
             {
-                this.errorMessage = "Security key registration was cancelled.";
+                notificationService.ShowWarning("Security key registration was cancelled.");
                 return;
             }
 
@@ -159,20 +188,20 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
 
                 if (string.IsNullOrEmpty(rawId))
                 {
-                    this.errorMessage = "Failed to register security key: Invalid credential ID.";
+                    notificationService.ShowError("Failed to register security key: Invalid credential ID.");
                     return;
                 }
 
                 if (string.IsNullOrEmpty(attestationObjectBase64))
                 {
-                    this.errorMessage = "Failed to register security key: Invalid attestation object.";
+                    notificationService.ShowError("Failed to register security key: Invalid attestation object.");
                     return;
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error extracting credential data");
-                this.errorMessage = "Failed to register security key: Invalid response from authenticator.";
+                notificationService.ShowError("Failed to register security key: Invalid response from authenticator.");
                 return;
             }
 
@@ -189,25 +218,18 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
 
             if (commandResult?.Status == CommandResultStatus.Succeeded)
             {
-                this.successMessage = "Security key registered successfully!";
+                notificationService.ShowSuccess("Security key registered successfully!");
                 await this.LoadPasskeys();
-
-                // Clear success message after 5 seconds
-                _ = Task.Delay(5000).ContinueWith(_ =>
-                {
-                    this.successMessage = null;
-                    this.StateHasChanged();
-                });
             }
             else
             {
-                this.errorMessage = "Failed to register security key. Please try again.";
+                notificationService.ShowError("Failed to register security key. Please try again.");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error registering passkey");
-            this.errorMessage = "An error occurred while registering your security key.";
+            notificationService.ShowError("An error occurred while registering your security key.");
         }
         finally
         {
@@ -221,33 +243,24 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
         {
             this.isRevoking = true;
             this.revokingPasskeyId = passkeyId;
-            this.errorMessage = null;
-            this.successMessage = null;
 
             var command = new RevokePasskeyCommand(PasskeyId: passkeyId);
             var result = await commander.Send(command);
 
             if (result?.Status == CommandResultStatus.Succeeded)
             {
-                this.successMessage = "Security key revoked successfully.";
+                notificationService.ShowSuccess("Security key revoked successfully.");
                 await this.LoadPasskeys();
-
-                // Clear success message after 5 seconds
-                _ = Task.Delay(5000).ContinueWith(_ =>
-                {
-                    this.successMessage = null;
-                    this.StateHasChanged();
-                });
             }
             else
             {
-                this.errorMessage = "Failed to revoke security key. Please try again.";
+                notificationService.ShowError("Failed to revoke security key. Please try again.");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error revoking passkey");
-            this.errorMessage = "An error occurred while revoking your security key.";
+            notificationService.ShowError("An error occurred while revoking your security key.");
         }
         finally
         {
