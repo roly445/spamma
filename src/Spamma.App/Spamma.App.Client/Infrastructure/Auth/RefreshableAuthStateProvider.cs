@@ -2,9 +2,9 @@
 using System.Security.Claims;
 using MaybeMonad;
 using Microsoft.AspNetCore.Components.Authorization;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.App.Client.Infrastructure.Auth;
-
 
 public interface IRefreshableAuthenticationStateProvider
 {
@@ -62,10 +62,13 @@ public class RefreshableAuthenticationStateProvider(
         };
 
         claims.AddRange(userInfo.ModeratedDomains.Select(domainId =>
-            new Claim("moderated_domain", domainId.ToString())));
+            new Claim(Lookups.ModeratedDomainClaim, domainId.ToString())));
 
         claims.AddRange(userInfo.ModeratedSubdomains.Select(subdomainId =>
-            new Claim("moderated_subdomain", subdomainId.ToString())));
+            new Claim(Lookups.ModeratedSubdomainClaim, subdomainId.ToString())));
+
+        claims.AddRange(userInfo.ViewableSubdomains.Select(subdomainId =>
+            new Claim(Lookups.ViewableSubdomainClaim, subdomainId.ToString())));
 
         return new ClaimsIdentity(claims, "ServerAuth");
     }

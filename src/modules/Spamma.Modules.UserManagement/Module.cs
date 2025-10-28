@@ -1,4 +1,5 @@
 ﻿using BluQube.Attributes;
+using Fido2NetLib;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;
@@ -23,6 +24,16 @@ public static class Module
         services.AddMediatorAuthorization(typeof(Module).Assembly);
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPasskeyRepository, PasskeyRepository>();
+
+        // Register Fido2 for FIDO2/WebAuthn verification
+        services.AddFido2(options =>
+        {
+            options.ServerDomain = "localhost";
+            options.ServerName = "Spamma";
+            options.Origins = new HashSet<string> { "http://localhost:5173", "https://localhost:7181" };
+        });
+
         return services;
     }
 
@@ -40,6 +51,7 @@ public static class Module
     public static StoreOptions ConfigureUserManagement(this StoreOptions options)
     {
         options.Projections.Add<UserLookupProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<PasskeyProjection>(ProjectionLifecycle.Inline);
         return options;
     }
 }

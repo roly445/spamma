@@ -8,7 +8,8 @@ module.exports = {
         'setup-keys': ['./Assets/Scripts/setup-keys.ts'],
         'setup-email': ['./Assets/Scripts/setup-email.ts'],
         'setup-hosting': ['./Assets/Scripts/setup-hosting.ts'],
-        'setup-admin': ['./Assets/Scripts/setup-admin.ts']
+        'setup-admin': ['./Assets/Scripts/setup-admin.ts'],
+        'login': ['./Assets/Scripts/login.ts']
     },
     output: {
         path: path.join(__dirname, 'wwwroot/'),

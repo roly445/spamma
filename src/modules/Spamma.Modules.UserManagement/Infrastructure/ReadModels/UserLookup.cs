@@ -14,6 +14,8 @@ public class UserLookup
 
     public DateTime? LastLoginAt { get; set; }
 
+    public DateTime? LastPasskeyAuthenticationAt { get; set; }
+
     public bool IsSuspended { get; set; }
 
     public DateTime? WhenSuspended { get; set; }

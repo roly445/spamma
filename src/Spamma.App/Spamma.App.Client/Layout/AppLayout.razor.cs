@@ -17,11 +17,25 @@ public partial class AppLayout(
         this.StateHasChanged();
     }
 
+    public async void Dispose()
+    {
+        await signalRService.StopAsync();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         signalRService.OnPermissionsUpdated += this.SignalRServiceOnOnPermissionsUpdated;
         await signalRService.StartAsync();
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("addClickOutsideListener", DotNetObjectReference.Create(this));
+            await jsRuntime.InvokeVoidAsync("window.hideSplash");
+        }
     }
 
     private Task SignalRServiceOnOnPermissionsUpdated()
@@ -34,22 +48,8 @@ public partial class AppLayout(
         return Task.CompletedTask;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await jsRuntime.InvokeVoidAsync("addClickOutsideListener", DotNetObjectReference.Create(this));
-            await jsRuntime.InvokeVoidAsync("window.hideSplash");
-        }
-    }
-
     private void ToggleSettingsDropdown()
     {
         this.showSettingsDropdown = !this.showSettingsDropdown;
-    }
-
-    public async void Dispose()
-    {
-        await signalRService.StopAsync();
     }
 }

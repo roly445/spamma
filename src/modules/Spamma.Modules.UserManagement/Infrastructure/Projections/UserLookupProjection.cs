@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Marten;
 using Marten.Events.Projections;
 using Marten.Patching;
+using Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Events;
 using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
@@ -53,5 +54,12 @@ public class UserLookupProjection : EventProjection
         ops.Patch<UserLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, false)
             .Set(x => x.WhenSuspended, null);
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<PasskeyAuthenticated> @event, IDocumentOperations ops)
+    {
+        ops.Patch<UserLookup>(@event.StreamId)
+            .Set(x => x.LastPasskeyAuthenticationAt, @event.Data.UsedAt);
     }
 }

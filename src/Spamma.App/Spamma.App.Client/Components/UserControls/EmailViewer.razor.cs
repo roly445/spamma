@@ -24,7 +24,7 @@ public partial class EmailViewer(
     private string _rawSource = string.Empty;
     private bool _showSaveDropdown;
     private bool _isDeleting;
-    
+
     private int? _currentViewportWidth = null;
     private string _currentViewportName = "Full Width";
     private int _customWidth = 600;
@@ -110,68 +110,6 @@ public partial class EmailViewer(
 
         return "?";
     }
-    
-    private void SetViewportSize(int? width, string name)
-    {
-        _currentViewportWidth = width;
-        _currentViewportName = name;
-        if (width.HasValue)
-        {
-            _customWidth = width.Value;
-        }
-        StateHasChanged();
-    }
-
-    private async Task ApplyCustomWidth()
-    {
-        if (_customWidth >= 240 && _customWidth <= 2000)
-        {
-            _currentViewportWidth = _customWidth;
-            _currentViewportName = $"{_customWidth}px";
-            StateHasChanged();
-        }
-    }
-
-    private string GetViewportButtonClasses(string viewportType)
-    {
-        var isActive = viewportType switch
-        {
-            "mobile" => _currentViewportWidth == 320,
-            "tablet" => _currentViewportWidth == 768,
-            "desktop" => _currentViewportWidth == 1024,
-            "full" => _currentViewportWidth == null,
-            _ => false
-        };
-
-        var baseClasses = "inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border transition-colors";
-    
-        if (isActive)
-        {
-            return $"{baseClasses} bg-blue-600 text-white border-blue-600";
-        }
-        else
-        {
-            return $"{baseClasses} bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400";
-        }
-    }
-
-    private string GetIframeContainerClasses()
-    {
-        if (_currentViewportWidth.HasValue)
-        {
-            return "transition-all duration-300 ease-in-out";
-        }
-        return "w-full transition-all duration-300 ease-in-out";
-    }
-
-    private string GetIframeContainerStyle()
-    {
-        if (_currentViewportWidth.HasValue)
-        {
-            return $"width: {_currentViewportWidth}px; min-height: 100%;";
-        }
-        return "width: 100%; min-height: 100%;";
-    }
 
     private static string GetSafeFileName(string subject)
     {
@@ -222,6 +160,73 @@ public partial class EmailViewer(
         }
 
         return 0;
+    }
+
+    private void SetViewportSize(int? width, string name)
+    {
+        this._currentViewportWidth = width;
+        this._currentViewportName = name;
+        if (width.HasValue)
+        {
+            this._customWidth = width.Value;
+        }
+
+        this.StateHasChanged();
+    }
+
+    private Task ApplyCustomWidth()
+    {
+        if (this._customWidth is >= 240 and <= 2000)
+        {
+            this._currentViewportWidth = this._customWidth;
+            this._currentViewportName = $"{this._customWidth}px";
+            this.StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private string GetViewportButtonClasses(string viewportType)
+    {
+        var isActive = viewportType switch
+        {
+            "mobile" => this._currentViewportWidth == 320,
+            "tablet" => this._currentViewportWidth == 768,
+            "desktop" => this._currentViewportWidth == 1024,
+            "full" => this._currentViewportWidth == null,
+            _ => false,
+        };
+
+        var baseClasses = "inline-flex items-center px-3 py-1.5 text-xs font-medium rounded border transition-colors";
+
+        if (isActive)
+        {
+            return $"{baseClasses} bg-blue-600 text-white border-blue-600";
+        }
+        else
+        {
+            return $"{baseClasses} bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400";
+        }
+    }
+
+    private string GetIframeContainerClasses()
+    {
+        if (this._currentViewportWidth.HasValue)
+        {
+            return "transition-all duration-300 ease-in-out";
+        }
+
+        return "w-full transition-all duration-300 ease-in-out";
+    }
+
+    private string GetIframeContainerStyle()
+    {
+        if (this._currentViewportWidth.HasValue)
+        {
+            return $"width: {this._currentViewportWidth}px; min-height: 100%;";
+        }
+
+        return "width: 100%; min-height: 100%;";
     }
 
     private async Task DeleteEmail()

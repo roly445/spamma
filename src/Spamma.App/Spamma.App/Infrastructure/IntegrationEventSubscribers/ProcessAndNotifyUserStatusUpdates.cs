@@ -58,7 +58,7 @@ public class ProcessAndNotifyUserStatusUpdates(ILogger<ProcessAndNotifyUserStatu
     {
         return this.DiscoverAndUpdateCache(ev.UserId);
     }
-    
+
     [CapSubscribe(IntegrationEventNames.UserDetailsUpdated)]
     public Task Process(UserDetailsUpdatedIntegrationEvent ev)
     {

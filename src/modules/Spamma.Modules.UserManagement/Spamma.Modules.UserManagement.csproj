@@ -28,6 +28,8 @@
     <ItemGroup>
       <PackageReference Include="BluQube" Version="1.0.1" />
       <PackageReference Include="DotNetCore.CAP" Version="8.4.0" />
+      <PackageReference Include="Fido2" Version="4.0.0" />
+      <PackageReference Include="Fido2.AspNet" Version="4.0.0" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
       <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
         <PrivateAssets>all</PrivateAssets>
@@ -52,6 +54,9 @@
     <ItemGroup>
       <Compile Update="Domain\UserAggregate\User.Events.cs">
         <DependentUpon>User.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Domain\PasskeyAggregate\Passkey.Events.cs">
+        <DependentUpon>Passkey.cs</DependentUpon>
       </Compile>
     </ItemGroup>
 

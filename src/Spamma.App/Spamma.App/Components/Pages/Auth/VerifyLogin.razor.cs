@@ -88,29 +88,14 @@ public partial class VerifyLogin(
         var query = new GetUserByIdQuery(userId);
         tempObjectStore.AddReferenceForObject(query);
         var userResult = await querier.Send(query);
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, userResult.Data.Id.ToString()),
-            new(ClaimTypes.Email, userResult.Data.EmailAddress),
-            new(ClaimTypes.Name, userResult.Data.Name),
-            new(ClaimTypes.Role, userResult.Data.SystemRole.ToString()),
-            new("auth_method", "magic_link"),
-            new("login_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-        };
-        foreach (var domain in userResult.Data.ModeratedDomains)
-        {
-            claims.Add(new Claim("moderated_domain", domain.ToString()));
-        }
-
-        foreach (var subdomain in userResult.Data.ModeratedSubdomains)
-        {
-            claims.Add(new Claim("moderated_subdomain", subdomain.ToString()));
-        }
-
-        foreach (var viewableSubdomain in userResult.Data.ViewableSubdomains)
-        {
-            claims.Add(new Claim("viewable_subdomain", viewableSubdomain.ToString()));
-        }
+        var claims = ClaimsBuilder.BuildClaims(
+            userResult.Data.Id,
+            userResult.Data.EmailAddress,
+            userResult.Data.Name,
+            userResult.Data.SystemRole,
+            userResult.Data.ModeratedDomains,
+            userResult.Data.ModeratedSubdomains,
+            userResult.Data.ViewableSubdomains);
 
         // Create claims identity
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

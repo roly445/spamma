@@ -5,6 +5,8 @@ using System.Text;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
+using Fido2NetLib;
+using Fido2NetLib.Objects;
 using JasperFx;
 using Marten;
 using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
@@ -17,9 +19,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Spamma.App.Client.Infrastructure.Auth;
+using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Components;
 using Spamma.App.Infrastructure;
+using Spamma.App.Infrastructure.Endpoints;
 using Spamma.App.Infrastructure.Configuration;
+using Spamma.App.Infrastructure.Contracts;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
 using Spamma.App.Infrastructure.Hubs;
@@ -28,10 +33,12 @@ using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.Common.Application.Contracts;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.DomainManagement;
 using Spamma.Modules.EmailInbox;
 using Spamma.Modules.UserManagement;
+using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Client.Contracts;
 using StackExchange.Redis;
@@ -305,75 +312,10 @@ app.AddUserManagementApi()
     .AddDomainManagementApi()
     .AddEmailInboxApi();
 
-app.MapGet("dynamicsettings.json",   (IOptions<Settings> settings) => Results.Json(new
-{
-    Settings = new
-    {
-        settings.Value.MailServerHostname,
-        settings.Value.MxPriority,
-    },
-}));
-app.MapGet("current-user", async (HttpContext httpContext, UserStatusCache userStatusCache) =>
-{
-    var userIdRaw = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-    if (userIdRaw == null || !Guid.TryParse(userIdRaw, out var userId))
-    {
-        return Results.Unauthorized();
-    }
+// Map API endpoints organized by feature
+app.MapGeneralApiEndpoints();
+app.MapAuthenticationEndpoints();
 
-    var userResult = await userStatusCache.GetUserLookupAsync(userId);
-    if (userResult.HasNoValue)
-    {
-        return Results.Unauthorized();
-    }
-
-    var claims = new List<Claim>
-    {
-        new(ClaimTypes.NameIdentifier, userResult.Value.UserId.ToString()),
-        new(ClaimTypes.Email, userResult.Value.EmailAddress),
-        new(ClaimTypes.Name, userResult.Value.Name),
-        new(ClaimTypes.Role, userResult.Value.SystemRole.ToString()),
-        new("auth_method", "magic_link"),
-        new("login_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()),
-    };
-    foreach (var domain in userResult.Value.ModeratedDomains)
-    {
-        claims.Add(new Claim("moderated_domain", domain.ToString()));
-    }
-
-    foreach (var subdomain in userResult.Value.ModeratedSubdomains)
-    {
-        claims.Add(new Claim("moderated_subdomain", subdomain.ToString()));
-    }
-
-    foreach (var viewableSubdomain in userResult.Value.ViewableSubdomains)
-    {
-        claims.Add(new Claim("viewable_subdomain", viewableSubdomain.ToString()));
-    }
-
-    // Create claims identity
-    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-    var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-    // Create authentication properties
-    var authProperties = new AuthenticationProperties
-    {
-        IsPersistent = true, // Remember user across browser sessions
-        ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30), // 30-day expiration
-        AllowRefresh = true,
-    };
-
-    await httpContext.SignOutAsync();
-
-    // Sign in the user (this creates the authentication cookie)
-    await httpContext.SignInAsync(
-        CookieAuthenticationDefaults.AuthenticationScheme,
-        claimsPrincipal,
-        authProperties);
-
-    return Results.Json(userResult);
-});
-
-app.MapHub<NotifierHub>("/emailhub");
+app.MapHub<NotifierHub>($"/{Lookups.NotificationHubName}");
 
 return await app.RunJasperFxCommands(args);
