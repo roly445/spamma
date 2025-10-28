@@ -2,6 +2,7 @@
 @layout AppLayout
 @attribute [Authorize]
 @using Spamma.App.Client.Components.Passkey
+@using Spamma.App.Client.Components
 @using Microsoft.AspNetCore.Components.Sections
 @using Spamma.App.Client.Layout
 
@@ -31,12 +32,6 @@
         </div>
 
         <div class="px-6 py-6">
-            <div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-semibold text-gray-900">Security Keys</h2>
-        <p class="text-sm text-gray-600 mt-1">Manage your passkeys for passwordless authentication</p>
-    </div>
-
     <div class="divide-y divide-gray-200">
         @if (isLoading)
         {
@@ -71,27 +66,36 @@
         }
         else
         {
-            <div class="px-6 py-4">
-                <button
-                    @onclick="RegisterNewPasskey"
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    disabled="@isRegistering">
-                    @if (isRegistering)
-                    {
-                        <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700 mr-2"></span>
-                    }
-                    else
-                    {
-                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                    }
-                    Add Another Security Key
-                </button>
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <button
+                        @onclick="RegisterNewPasskey"
+                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                        disabled="@isRegistering">
+                        @if (isRegistering)
+                        {
+                            <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700 mr-2"></span>
+                        }
+                        else
+                        {
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        }
+                        Add Another Security Key
+                    </button>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            @bind="showRevoked"
+                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" />
+                        <span class="text-sm text-gray-700">Show revoked keys</span>
+                    </label>
+                </div>
             </div>
 
             <ul class="divide-y divide-gray-200">
-                @foreach (var passkey in passkeys)
+                @foreach (var passkey in GetFilteredPasskeys())
                 {
                     <li class="px-6 py-4 hover:bg-gray-50">
                         <div class="flex items-start justify-between">
@@ -135,37 +139,6 @@
         }
     </div>
 
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="px-6 py-4 bg-red-50 border-t border-red-200">
-            <div class="flex">
-                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                </svg>
-                <div class="ml-3">
-                    <p class="text-sm text-red-700">@errorMessage</p>
-                </div>
-            </div>
-        </div>
-    }
-
-    @if (!string.IsNullOrEmpty(successMessage))
-    {
-        <div class="px-6 py-4 bg-green-50 border-t border-green-200">
-            <div class="flex">
-                <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                </svg>
-                <div class="ml-3">
-                    <p class="text-sm text-green-700">@successMessage</p>
-                </div>
-            </div>
-        </div>
-    }
-</div>
-        </div>
-    </div>
-
     <!-- Additional Security Info -->
     <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div class="flex">
@@ -179,4 +152,52 @@
             </div>
         </div>
     </div>
+        </div>
+    </div>
 </div>
+
+<!-- Security Key Name Modal -->
+@if (showNameModal)
+{
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseNameModal">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">Name Your Security Key</h3>
+                    <button @onclick="CloseNameModal" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-4">
+                <p class="text-sm text-gray-600 mb-4">Choose a memorable name to identify this security key (e.g., "My YubiKey", "MacBook Pro", "iPhone").</p>
+                <input 
+                    type="text" 
+                    @bind="customPasskeyName"
+                    placeholder="e.g., My YubiKey"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3 border-t border-gray-200 bg-gray-50 flex gap-3 justify-end">
+                <button
+                    type="button"
+                    @onclick="CloseNameModal"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    @onclick="ConfirmAndRegisterPasskey"
+                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Register
+                </button>
+            </div>
+        </div>
+    </div>
+}
