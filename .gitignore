@@ -1797,30 +1797,8 @@ FodyWeavers.xsd
 /.dockertemp/postgres/data/global/6100
 /.dockertemp/postgres/data/global/6114
 /.dockertemp/postgres/data/global/6115
-/.dockertemp/postgres/data/global/6243
-/.dockertemp/postgres/data/global/6244
-/.dockertemp/postgres/data/global/6245
-/.dockertemp/postgres/data/global/6246
-/.dockertemp/postgres/data/global/6247
-/.dockertemp/postgres/data/global/6302
-/.dockertemp/postgres/data/global/6303
-/.dockertemp/postgres/data/global/pg_control
-/.dockertemp/postgres/data/global/pg_filenode.map
-/.dockertemp/postgres/data/global/pg_internal.init
-/.dockertemp/postgres/data/pg_logical/replorigin_checkpoint
-/.dockertemp/postgres/data/pg_multixact/members/0000
-/.dockertemp/postgres/data/pg_multixact/offsets/0000
-/.dockertemp/postgres/data/pg_subtrans/0000
-/.dockertemp/postgres/data/pg_wal/000000010000000000000001
-/.dockertemp/postgres/data/pg_xact/0000
-/.dockertemp/postgres/data/pg_hba.conf
-/.dockertemp/postgres/data/pg_ident.conf
-/.dockertemp/postgres/data/PG_VERSION
-/.dockertemp/postgres/data/postgresql.auto.conf
-/.dockertemp/postgres/data/postgresql.conf
-/.dockertemp/postgres/data/postmaster.opts
-/.dockertemp/postgres/data/postmaster.pid
-/.dockertemp/redis/data/dump.rdb
+# Docker temporary data
+.dockertemp/
 
 src/Spamma.App/Spamma.App/messages/
 
