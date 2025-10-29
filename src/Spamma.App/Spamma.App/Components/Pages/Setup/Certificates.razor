@@ -1,0 +1,95 @@
+@page "/setup/certificates"
+@using Spamma.App.Components.Layout
+@using Microsoft.AspNetCore.Components.Sections
+@using Microsoft.AspNetCore.Components.Forms
+@using Spamma.App.Infrastructure.Contracts.Services
+@layout SetupLayout
+
+
+@attribute [ExcludeFromInteractiveRouting]
+
+<PageTitle>Setup - Certificate Configuration</PageTitle>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">SSL/TLS Certificates</h2>
+    <p class="text-gray-600 mb-6">Configure SSL/TLS certificates for secure mail server connections.</p>
+
+    <EditForm Model="@Model" FormName="CertificateForm" method="post">
+        <div class="space-y-6">
+                <!-- Certificate Options -->
+                <div class="space-y-3">
+                    <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors border-gray-200 hover:border-gray-300" id="skip-label">
+                        <input type="radio" id="opt-skip" name="option" class="w-4 h-4" @onchange="@((ChangeEventArgs e) => { Model!.Option = e.Value?.ToString() ?? "skip"; })" checked />
+                        <div class="ml-3">
+                            <p class="font-medium text-gray-900">Skip for Now</p>
+                            <p class="text-sm text-gray-600">Configure certificates later manually</p>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors border-gray-200 hover:border-gray-300" id="letsencrypt-label">
+                        <input type="radio" id="opt-letsencrypt" name="option" class="w-4 h-4" @onchange="@((ChangeEventArgs e) => { Model!.Option = e.Value?.ToString() ?? "letsencrypt"; })" />
+                        <div class="ml-3">
+                            <p class="font-medium text-gray-900">Generate with Let's Encrypt</p>
+                            <p class="text-sm text-gray-600">Automatic HTTP-01 challenge (requires port 80 access)</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Let's Encrypt Configuration -->
+                <div id="letsencrypt-config" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-6 space-y-4">
+                    <h3 class="font-semibold text-gray-900">Let's Encrypt Configuration</h3>
+                    
+                    <!-- Error Message -->
+                    <div id="error-message" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex">
+                            <svg class="h-5 w-5 text-red-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                            </svg>
+                            <div class="flex-1">
+                                <h4 class="text-sm font-medium text-red-800">Certificate Generation Failed</h4>
+                                <p id="error-text" class="text-sm text-red-700 mt-1"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mail Server Hostname</label>
+                        <input type="text" id="domain" @bind="Model!.Domain" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700 cursor-not-allowed" />
+                        <p class="text-xs text-gray-500 mt-1">This is your configured mail server hostname</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address <span class="text-red-500">*</span></label>
+                        <InputText id="email" @bind-Value="Model!.Email" placeholder="admin@example.com" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        <ValidationMessage For="@(() => Model!.Email)" class="text-red-600 text-sm mt-1" />
+                    </div>
+
+                    <div id="generating-progress" class="hidden bg-white rounded p-4">
+                        <p class="text-sm text-gray-600 mb-3">Generating certificate...</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full w-1/3 animate-pulse"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="generate-btn" class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                        Generate Certificate
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="action-buttons" class="flex gap-4">
+                    <a href="/setup/email" class="flex-1 px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors text-center">
+                        Back
+                    </a>
+                    <a href="/setup/admin" class="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-center">
+                        Continue
+                    </a>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+
+
+<SectionContent SectionName="Scripts">
+<script type="module" src="@Assets["setup-certificates.js"]"></script>
+</SectionContent>

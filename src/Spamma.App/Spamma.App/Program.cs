@@ -22,11 +22,11 @@ using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Components;
 using Spamma.App.Infrastructure;
-using Spamma.App.Infrastructure.Endpoints;
 using Spamma.App.Infrastructure.Configuration;
 using Spamma.App.Infrastructure.Contracts;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
+using Spamma.App.Infrastructure.Endpoints;
 using Spamma.App.Infrastructure.Hubs;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
@@ -35,6 +35,7 @@ using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.Common.Application.Contracts;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.DomainManagement;
 using Spamma.Modules.EmailInbox;
 using Spamma.Modules.UserManagement;
@@ -280,6 +281,11 @@ builder.Services.AddSingleton<IInMemorySetupAuthService, InMemorySetupAuthServic
 builder.Services.AddScoped<UserStatusCache>();
 builder.Services.AddSingleton<ITempObjectStore, TempObjectStore>();
 
+// Register ACME certificate services
+builder.Services.AddSingleton<AcmeChallengeServer>();
+builder.Services.AddSingleton<IAcmeChallengeResponder>(sp => sp.GetRequiredService<AcmeChallengeServer>());
+builder.Services.AddHostedService<CertificateRenewalBackgroundService>();
+
 builder.Host.ApplyJasperFxExtensions();
 
 var app = builder.Build();
@@ -294,13 +300,12 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
 }
 
 app.UseAuthorization();
-app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.UseSession();
+app.UseAcmeChallenge();
 app.UseMiddleware<SetupModeMiddleware>();
 
 app.MapStaticAssets();

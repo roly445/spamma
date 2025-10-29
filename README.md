@@ -278,6 +278,24 @@ Spamma supports SMTP over TLS on port 587 for secure email transmission when a v
 
 #### Setting Up TLS Certificates
 
+##### Certificate Storage & Password Policy
+
+Spamma supports two types of certificates in the `certs/` directory:
+
+1. **Generated Certificates** (via Setup Wizard):
+   - Filename pattern: `certificate_*.pfx`
+   - Password: `letmein` (auto-set during generation)
+   - Auto-renewal: ✅ Managed by CertificateRenewalBackgroundService (renews 30 days before expiration)
+   - Usage: SMTP TLS (port 587) and HTTPS configuration
+
+2. **Manually Added Certificates** (user-provided):
+   - Filename: Any `*.pfx` file (e.g., `smtp-cert.pfx`, `mail.example.com.pfx`)
+   - Password: **Must have no password** (export without password protection)
+   - Auto-renewal: ❌ Not managed by Spamma - user responsible for renewal
+   - Usage: SMTP TLS (port 587) only
+
+**Important:** When manually adding certificates, ensure they are exported **without a password**. Spamma will automatically attempt to load with the generated certificate password first, then fall back to loading without a password.
+
 ##### Local Development
 
 1. **Generate a self-signed certificate** (if testing locally):
@@ -286,9 +304,9 @@ Spamma supports SMTP over TLS on port 587 for secure email transmission when a v
 # Create certs directory
 mkdir -p certs
 
-# Generate a self-signed .pfx certificate (valid for 365 days)
+# Generate a self-signed .pfx certificate (valid for 365 days, no password)
 openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
-openssl pkcs12 -export -in cert.pem -inkey key.pem -out certs/smtp-cert.pfx -name "Spamma SMTP"
+openssl pkcs12 -export -in cert.pem -inkey key.pem -out certs/smtp-cert.pfx -name "Spamma SMTP" -passout pass:
 ```
 
 2. **Place certificate in `certs/` directory:**
@@ -300,6 +318,8 @@ ls certs/
 ```
 
 3. **Restart Spamma** - Port 587 will be automatically enabled
+
+**Tip:** Use the Setup Wizard to generate Let's Encrypt certificates automatically instead of manual setup.
 
 ##### Docker Deployment
 
@@ -321,26 +341,44 @@ services:
 
 Then place your `.pfx` certificate in the local `./certs` directory before starting.
 
+**For manually added certificates:** Ensure the `.pfx` file has **no password** before placing in the volume.
+
 ##### Production (Let's Encrypt)
 
-For production deployments, obtain a certificate from Let's Encrypt:
+**Option 1: Use the Setup Wizard (Recommended)**
+
+1. Start Spamma in setup mode
+2. Navigate to "TLS Certificates" in the setup wizard
+3. Select "Generate with Let's Encrypt"
+4. Enter your domain name and email
+5. Spamma will automatically:
+   - Generate a certificate from Let's Encrypt
+   - Save it to `certs/certificate_{timestamp}.pfx` with password protection
+   - Configure automatic renewal (checks daily, renews when 30 days before expiration)
+
+**Option 2: Manual Certificate Conversion**
+
+If you have an existing Let's Encrypt certificate:
 
 ```bash
 # Example with Certbot
 sudo certbot certonly --standalone -d mail.example.com
 
-# Convert to PKCS12 (.pfx) format
+# Convert to PKCS12 (.pfx) format WITHOUT password
 sudo openssl pkcs12 -export \
   -in /etc/letsencrypt/live/mail.example.com/fullchain.pem \
   -inkey /etc/letsencrypt/live/mail.example.com/privkey.pem \
   -out certs/smtp-cert.pfx \
-  -name "mail.example.com"
+  -name "mail.example.com" \
+  -passout pass:
 
 # Set permissions for Docker (if using Docker)
 sudo chown -R 999:999 certs/
 ```
 
 Then mount the certificate directory in your Docker container or Kubernetes volume.
+
+**Important:** Use `-passout pass:` to export **without a password** for manually added certificates.
 
 #### Connecting via TLS
 

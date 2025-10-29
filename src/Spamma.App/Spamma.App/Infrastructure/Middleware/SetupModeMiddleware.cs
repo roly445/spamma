@@ -86,6 +86,9 @@ public class SetupModeMiddleware(RequestDelegate next, ILogger<SetupModeMiddlewa
             // API endpoints (if you have any)
             "/api/",
 
+            // ACME challenge validation (for Let's Encrypt)
+            "/.well-known/acme-challenge/",
+
             // Health checks and monitoring
             "/health",
             "/ping",

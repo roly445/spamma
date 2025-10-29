@@ -27,12 +27,13 @@ public partial class Admin(
 
     protected override async Task OnInitializedAsync()
     {
-        this.Layout.CurrentStep = "5";
+        this.Layout.CurrentStep = "6";
         this.Layout.CompletedSteps.Add("0");
         this.Layout.CompletedSteps.Add("1");
         this.Layout.CompletedSteps.Add("2");
         this.Layout.CompletedSteps.Add("3");
         this.Layout.CompletedSteps.Add("4");
+        this.Layout.CompletedSteps.Add("5");
 
         if (this.Model == null)
         {

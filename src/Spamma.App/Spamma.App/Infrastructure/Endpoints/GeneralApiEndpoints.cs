@@ -3,6 +3,7 @@ using MaybeMonad;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using Spamma.App.Infrastructure.Endpoints.Setup;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
 
@@ -28,6 +29,9 @@ internal static class GeneralApiEndpoints
             .WithName("GetCurrentUser")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized);
+
+        app.MapGenerateCertificateEndpoint();
+        app.MapGenerateCertificateStreamEndpoint();
     }
 
     /// <summary>
