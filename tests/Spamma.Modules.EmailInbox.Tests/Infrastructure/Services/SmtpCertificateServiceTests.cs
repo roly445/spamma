@@ -200,4 +200,102 @@ public class SmtpCertificateServiceTests
             Directory.Delete(tempDir, true);
         }
     }
+
+    /// <summary>
+    /// Test: Certificate with password "letmein" loads successfully (generated certs).
+    /// </summary>
+    [Fact]
+    public void FindCertificate_CertificateWithPassword_LoadsWithPassword()
+    {
+        // Arrange
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            // Create a certificate with password "letmein"
+            using var rsa = RSA.Create(2048);
+            var request = new CertificateRequest("cn=localhost", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(365));
+
+            var certPath = Path.Combine(tempDir, "cert-with-password.pfx");
+            byte[] pfxData = certificate.Export(X509ContentType.Pfx, "letmein");
+            File.WriteAllBytes(certPath, pfxData);
+
+            var loggerMock = new Mock<ILogger<SmtpCertificateService>>();
+            var service = new SmtpCertificateService(loggerMock.Object);
+
+            // Manually set the certificate path
+            var fieldInfo = typeof(SmtpCertificateService).GetField("_certificatePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            fieldInfo?.SetValue(service, tempDir);
+
+            // Act
+            var result = service.FindCertificate();
+
+            // Verify - should load successfully with password
+            result.HasValue.Should().BeTrue();
+            result.Value.Subject.Should().Contain("localhost");
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("with password")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    /// <summary>
+    /// Test: Certificate without password loads with fallback (manually added certs).
+    /// </summary>
+    [Fact]
+    public void FindCertificate_CertificateWithoutPassword_LoadsWithoutPassword()
+    {
+        // Arrange
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            // Create a certificate WITHOUT password (manually added cert)
+            using var rsa = RSA.Create(2048);
+            var request = new CertificateRequest("cn=localhost", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(365));
+
+            var certPath = Path.Combine(tempDir, "cert-no-password.pfx");
+            byte[] pfxData = certificate.Export(X509ContentType.Pfx);  // No password
+            File.WriteAllBytes(certPath, pfxData);
+
+            var loggerMock = new Mock<ILogger<SmtpCertificateService>>();
+            var service = new SmtpCertificateService(loggerMock.Object);
+
+            // Manually set the certificate path
+            var fieldInfo = typeof(SmtpCertificateService).GetField("_certificatePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            fieldInfo?.SetValue(service, tempDir);
+
+            // Act
+            var result = service.FindCertificate();
+
+            // Verify - should fall back to loading without password
+            result.HasValue.Should().BeTrue();
+            result.Value.Subject.Should().Contain("localhost");
+            loggerMock.Verify(
+                x => x.Log(
+                    LogLevel.Information,
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("no password")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                Times.Once);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
 }

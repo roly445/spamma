@@ -7,6 +7,7 @@ module.exports = {
         app: ['./Assets/Styles/app.scss', './Assets/Scripts/app.ts'],
         'setup-keys': ['./Assets/Scripts/setup-keys.ts'],
         'setup-email': ['./Assets/Scripts/setup-email.ts'],
+        'setup-certificates': ['./Assets/Scripts/setup-certificates.ts'],
         'setup-hosting': ['./Assets/Scripts/setup-hosting.ts'],
         'setup-admin': ['./Assets/Scripts/setup-admin.ts'],
         'login': ['./Assets/Scripts/login.ts']

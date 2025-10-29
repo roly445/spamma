@@ -28,6 +28,9 @@ public static class Module
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
+        // Certificate generation service
+        services.AddScoped<ICertesLetsEncryptService, CertesLetsEncryptService>();
+
         // SMTP certificate service
         services.AddSingleton<SmtpCertificateService>();
 
@@ -35,16 +38,24 @@ public static class Module
         services.AddSingleton(provider =>
         {
             var certService = provider.GetRequiredService<SmtpCertificateService>();
+            var certificate = certService.FindCertificate();
 
             var optionsBuilder = new SmtpServerOptionsBuilder()
                 .ServerName("Spamma SMTP Server")
-                .Port(25);
+                .Endpoint(builder =>
+                {
+                    builder.Port(25, false);
+                });
 
-            // Add port 587 (STARTTLS) if certificate exists
-            var certificate = certService.FindCertificate();
+            // Add port 587 (STARTTLS) with certificate if available
             if (certificate.HasValue)
             {
-                optionsBuilder.Port(587);
+                optionsBuilder.Endpoint(builder =>
+                {
+                    builder
+                        .Port(587, true)
+                        .Certificate(certificate.Value);
+                });
             }
 
             return new SmtpServer.SmtpServer(optionsBuilder.Build(), provider.GetRequiredService<IServiceProvider>());

@@ -23,7 +23,7 @@
     <!-- Overview -->
     <div class="mb-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">What you'll configure</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0">
                     <div class="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100">
@@ -40,15 +40,15 @@
             
             <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0">
-                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-purple-100">
-                        <svg class="h-4 w-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-green-100">
+                        <svg class="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-sm font-medium text-gray-900">Hosting Configuration</h3>
-                    <p class="text-sm text-gray-600">Set up configuration to add with hosting the application</p>
+                    <h3 class="text-sm font-medium text-gray-900">TLS Certificates</h3>
+                    <p class="text-sm text-gray-600">Generate or configure SSL/TLS certificates for secure connections</p>
                 </div>
             </div>
 
@@ -63,6 +63,20 @@
                 <div>
                     <h3 class="text-sm font-medium text-gray-900">Email Configuration</h3>
                     <p class="text-sm text-gray-600">Set up SMTP settings for email delivery</p>
+                </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center justify-center h-8 w-8 rounded-full bg-indigo-100">
+                        <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-900">Hosting Configuration</h3>
+                    <p class="text-sm text-gray-600">Set up configuration to add with hosting the application</p>
                 </div>
             </div>
 
@@ -94,6 +108,7 @@
                     <li>• <strong>Time needed:</strong> Approximately 5-10 minutes</li>
                     <li>• <strong>Email provider details:</strong> SMTP host, port, and credentials (if required)</li>
                     <li>• <strong>Admin email:</strong> Email address for your administrator account</li>
+                    <li>• <strong>For TLS certificates (optional):</strong> Port 80 must be accessible for Let's Encrypt HTTP-01 challenge validation, or skip and configure manually later</li>
                 </ul>
             </div>
         </div>

@@ -5,8 +5,11 @@ using Spamma.App.Infrastructure.Contracts.Services;
 namespace Spamma.App.Components.Pages.Setup;
 
 public partial class Complete(
-    IInMemorySetupAuthService setupAuthService, IAppConfigurationService appConfigurationService,
-    IConfiguration configuration, ILogger<Complete> logger, NavigationManager navigationManager)
+    IInMemorySetupAuthService setupAuthService, 
+    IAppConfigurationService appConfigurationService,
+    IConfiguration configuration, 
+    ILogger<Complete> logger, 
+    NavigationManager navigationManager)
 {
     private readonly SetupStatusInfo setupStatus = new();
     private readonly List<MissingStep> missingSteps = new();
@@ -26,7 +29,8 @@ public partial class Complete(
         this.Layout.CompletedSteps.Add("3");
         this.Layout.CompletedSteps.Add("4");
         this.Layout.CompletedSteps.Add("5");
-        this.Layout.CurrentStep = "6";
+        this.Layout.CompletedSteps.Add("6");
+        this.Layout.CurrentStep = "7";
         await this.ValidateSetupCompletion();
     }
 
@@ -48,7 +52,10 @@ public partial class Complete(
             var primaryUserSettings = await appConfigurationService.GetPrimaryUserSettingsAsync();
             this.setupStatus.HasAdminUser = primaryUserSettings.PrimaryUserId != Guid.Empty;
 
-            // Determine overall completion status
+            // TLS certificates are optional - always considered configured for completion
+            this.setupStatus.HasTlsCertificate = true;
+
+            // Determine overall completion status - certificates are NOT required
             this.isSetupComplete = this.setupStatus.HasSecurityKeys &&
                              this.setupStatus.HasEmailConfiguration &&
                              this.setupStatus.HasAdminUser;
@@ -136,6 +143,8 @@ public partial class Complete(
         public bool HasEmailConfiguration { get; set; }
 
         public bool HasAdminUser { get; set; }
+
+        public bool HasTlsCertificate { get; set; }
     }
 
     private sealed class MissingStep

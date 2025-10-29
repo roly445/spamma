@@ -1,5 +1,15 @@
 {
   "profiles": {
+    "http-local": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      "applicationUrl": "http://192.168.1.234:50055"
+    },
     "http": {
       "commandName": "Project",
       "launchBrowser": true,

@@ -9,7 +9,8 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 /// </summary>
 public class SmtpCertificateService(ILogger<SmtpCertificateService> logger)
 {
-    private readonly string _certificatePath = Path.Combine(AppContext.BaseDirectory, "certs");
+    private const string CertificatePassword = "letmein";
+    private readonly string _certificatePath = Path.Combine(Directory.GetCurrentDirectory(), "certs");
 
     /// <summary>
     /// Attempts to find and load a certificate from the certs directory.
@@ -33,20 +34,30 @@ public class SmtpCertificateService(ILogger<SmtpCertificateService> logger)
 
         try
         {
-            // Load the first certificate found
+            // Try loading the first certificate with password (generated certs)
 #pragma warning disable SYSLIB0057 // Type or member is obsolete
-            var certificate = new X509Certificate2(certFiles[0]);
+            try
+            {
+                var certificate = new X509Certificate2(certFiles[0], CertificatePassword);
+                logger.LogInformation("Found valid SMTP certificate at {Path} (with password)", certFiles[0]);
+                return Maybe.From(certificate);
+            }
+            catch (Exception passwordEx)
+            {
+                // Fall back to loading without password (manually added certs)
+                logger.LogDebug(passwordEx, "Failed to load certificate with password, trying without password");
+                var certificate = new X509Certificate2(certFiles[0]);
+                logger.LogInformation("Found valid SMTP certificate at {Path} (no password)", certFiles[0]);
+                return Maybe.From(certificate);
+            }
 #pragma warning restore SYSLIB0057 // Type or member is obsolete
-            logger.LogInformation("Found valid SMTP certificate at {Path}", certFiles[0]);
-            return Maybe.From(certificate);
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Certificate exists at {Path} but failed to load", certFiles[0]);
+            logger.LogWarning(ex, "Certificate exists at {Path} but failed to load with or without password", certFiles[0]);
             return Maybe<X509Certificate2>.Nothing;
         }
     }
 }
-
 
 
