@@ -44,8 +44,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=nightly-${{ steps.date.outputs.tag }},enable={{is_schedule}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=nightly-${{ steps.date.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
