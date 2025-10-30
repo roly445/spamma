@@ -73,7 +73,7 @@ jobs:
       - name: Run tests (${{ matrix.arch }})
         run: |
           dotnet test Spamma.sln \
-            -r ${{ matrix.rid }} \
+            -r linux-x64 \
             --configuration Release \
             --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
             --collect:"XPlat Code Coverage" \
