@@ -59,13 +59,9 @@ jobs:
       - name: Restore NuGet packages
         run: dotnet restore
 
-      - name: Build solution (${{ matrix.arch }})
-        run: dotnet build --no-restore --configuration Release -r ${{ matrix.rid }}
-
       - name: Run tests (${{ matrix.arch }})
         run: |
           dotnet test \
-            --no-build \
             --configuration Release \
             --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
             --collect:"XPlat Code Coverage" \
