@@ -35,11 +35,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and test
+      - name: Build and test (AMD64)
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: src/Spamma.App/Spamma.App/Dockerfile
+          file: src/Spamma.App/Spamma.App/Dockerfile.amd64
           target: test
           build-args: |
             BUILD_VERSION=${{ github.event.inputs.tag }}
@@ -47,17 +47,33 @@ jobs:
             VCS_REF=${{ github.sha }}
           cache-from: type=gha
 
-      - name: Build and push
+      - name: Build and push (AMD64)
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: src/Spamma.App/Spamma.App/Dockerfile
+          file: src/Spamma.App/Spamma.App/Dockerfile.amd64
           push: true
-          platforms: linux/amd64,linux/arm/v7
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
-            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-${{ steps.timestamp.outputs.ts }}
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-amd64-${{ steps.timestamp.outputs.ts }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}-amd64
+          build-args: |
+            BUILD_VERSION=${{ github.event.inputs.tag }}
+            BUILD_DATE=${{ steps.timestamp.outputs.ts }}
+            VCS_REF=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push (ARM)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Spamma.App/Spamma.App/Dockerfile.arm
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-arm
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-arm-${{ steps.timestamp.outputs.ts }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}-arm
           build-args: |
             BUILD_VERSION=${{ github.event.inputs.tag }}
             BUILD_DATE=${{ steps.timestamp.outputs.ts }}
