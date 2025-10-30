@@ -13,37 +13,77 @@ permissions:
 
 jobs:
   publish:
-    name: Publish artifacts for multiple RIDs
-    runs-on: ubuntu-latest
+    name: Build & Test & Publish artifacts for multiple RIDs
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            rid: linux-x64
+            runs-on: ubuntu-latest
+          - arch: arm64
+            rid: linux-arm64
+            runs-on: [self-hosted, linux, arm64]
     outputs:
       ts: ${{ steps.ts.outputs.ts }}
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate timestamp
-        id: ts
-        run: echo "ts=$(date +'%Y%m%d-%H%M%S')" > $GITHUB_OUTPUT
+      - name: Setup Node.js
+        if: matrix.arch == 'amd64'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'src/Spamma.App/Spamma.App/package-lock.json'
+
+      - name: Install frontend dependencies
+        working-directory: src/Spamma.App/Spamma.App
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: src/Spamma.App/Spamma.App
+        run: npm run build
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        if: matrix.arch == 'amd64'
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '9.x'
 
-      - name: Publish for linux-x64 (amd64)
-        run: |
-          mkdir -p publish/linux/amd64
-          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r linux-x64 --self-contained false -o publish/linux/amd64 /p:UseAppHost=false
+      - name: Clear NuGet cache
+        run: dotnet nuget locals all --clear
 
-      - name: Publish for linux-arm64
+      - name: Restore NuGet packages
+        run: dotnet restore
+
+      - name: Run tests (${{ matrix.arch }})
         run: |
-          mkdir -p publish/linux/arm64
-          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r linux-arm64 --self-contained false -o publish/linux/arm64 /p:UseAppHost=false
+          dotnet test \
+            -r ${{ matrix.rid }} \
+            --configuration Release \
+            --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory test-results
+
+      - name: Publish test results (${{ matrix.arch }})
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: test-results/**/*.trx
+          check_name: Test Results (${{ matrix.arch }})
+
+      - name: Publish for ${{ matrix.arch }}
+        run: |
+          mkdir -p publish
+          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r ${{ matrix.rid }} --self-contained false -o publish /p:UseAppHost=false
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: publish
+          name: publish-${{ matrix.arch }}
           path: publish
 
   docker:
@@ -57,8 +97,13 @@ jobs:
       - name: Download publish artifacts
         uses: actions/download-artifact@v4
         with:
-          name: publish
-          path: publish
+          path: artifacts
+
+      - name: Organize artifacts for multi-arch build
+        run: |
+          mkdir -p publish/linux/amd64 publish/linux/arm64
+          cp -r artifacts/publish-amd64/* publish/linux/amd64/
+          cp -r artifacts/publish-arm64/* publish/linux/arm64/
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
