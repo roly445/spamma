@@ -20,6 +20,7 @@ ARG BUILD_VERSION=0.1.0
 ARG BUILD_DATE=unknown
 ARG VCS_REF=unknown
 WORKDIR /src
+COPY [".git", "."]
 COPY ["src/Spamma.App/Spamma.App/Spamma.App.csproj", "src/Spamma.App/Spamma.App/"]
 COPY ["src/modules/Spamma.Modules.DomainManagement/Spamma.Modules.DomainManagement.csproj", "src/modules/Spamma.Modules.DomainManagement/"]
 COPY ["src/modules/Spamma.Modules.Common/Spamma.Modules.Common.csproj", "src/modules/Spamma.Modules.Common/"]
@@ -38,16 +39,16 @@ RUN dotnet build "./Spamma.App.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS test
 WORKDIR "/src"
-COPY [".git", "/src/.git"]
 COPY ["tests/Spamma.Tests.Common/Spamma.Tests.Common.csproj", "tests/Spamma.Tests.Common/"]
 COPY ["tests/Spamma.Modules.UserManagement.Tests/Spamma.Modules.UserManagement.Tests.csproj", "tests/Spamma.Modules.UserManagement.Tests/"]
 COPY ["tests/Spamma.Modules.DomainManagement.Tests/Spamma.Modules.DomainManagement.Tests.csproj", "tests/Spamma.Modules.DomainManagement.Tests/"]
 COPY ["tests/Spamma.Modules.EmailInbox.Tests/Spamma.Modules.EmailInbox.Tests.csproj", "tests/Spamma.Modules.EmailInbox.Tests/"]
 COPY tests/ tests/
-RUN mkdir -p /test-results
-RUN dotnet test "tests/Spamma.Modules.UserManagement.Tests/Spamma.Modules.UserManagement.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/UserManagement.trx" || exit 1
-RUN dotnet test "tests/Spamma.Modules.DomainManagement.Tests/Spamma.Modules.DomainManagement.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/DomainManagement.trx" || exit 1
-RUN dotnet test "tests/Spamma.Modules.EmailInbox.Tests/Spamma.Modules.EmailInbox.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/EmailInbox.trx" || exit 1
+RUN mkdir -p /test-results && chmod 777 /test-results
+RUN dotnet test "tests/Spamma.Modules.UserManagement.Tests/Spamma.Modules.UserManagement.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/UserManagement.trx" --logger "console;verbosity=minimal" || exit 1
+RUN dotnet test "tests/Spamma.Modules.DomainManagement.Tests/Spamma.Modules.DomainManagement.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/DomainManagement.trx" --logger "console;verbosity=minimal" || exit 1
+RUN dotnet test "tests/Spamma.Modules.EmailInbox.Tests/Spamma.Modules.EmailInbox.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/EmailInbox.trx" --logger "console;verbosity=minimal" || exit 1
+RUN ls -la /test-results/ || echo "No test results directory"
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release

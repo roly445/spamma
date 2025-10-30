@@ -80,16 +80,18 @@ jobs:
       - name: Extract test results from Docker
         run: |
           mkdir -p test-results
+          echo "Extracting test results from Docker image..."
           docker run --rm -v $(pwd)/test-results:/tmp/out spamma:test-extract \
-            sh -c 'if [ -d /test-results ] && [ "$(ls -A /test-results)" ]; then cp /test-results/* /tmp/out/ 2>/dev/null; fi; echo "Test results extraction complete"' || true
+            sh -c 'echo "Contents of /test-results:"; ls -la /test-results/ 2>/dev/null || echo "Directory not found"; if [ -d /test-results ] && [ "$(ls -A /test-results 2>/dev/null)" ]; then echo "Copying test results..."; cp /test-results/* /tmp/out/ 2>/dev/null && echo "Copy successful" || echo "Copy failed"; else echo "No test results found"; fi' || true
+          echo "Local test-results directory:"
+          ls -la test-results/ 2>/dev/null || echo "test-results directory not found"
         shell: bash
 
-      - name: Check for test results
+      - name: Debug - List all files in test-results
+        if: always()
         run: |
-          if [ ! -d test-results ] || [ -z "$(ls -A test-results 2>/dev/null)" ]; then
-            echo "WARNING: No test results found in test-results directory"
-            mkdir -p test-results
-          fi
+          echo "Final test-results contents:"
+          find test-results -type f -name "*.trx" 2>/dev/null | head -20 || echo "No .trx files found"
         shell: bash
 
       - name: Publish test results
@@ -99,3 +101,4 @@ jobs:
           files: 'test-results/**/*.trx'
           check_name: Docker Build Test Results
           compare_to_earlier_commit: false
+          fail_on: 'nothing'
