@@ -2,13 +2,14 @@ using Microsoft.Extensions.Options;
 
 namespace Spamma.Modules.UserManagement.Tests.Fixtures;
 
-public class MockOptionsBuilder<T> where T : class, new()
+public class MockOptionsBuilder<T>
+    where T : class, new()
 {
     private Guid _primaryUserId = Guid.Empty;
 
     public MockOptionsBuilder<T> WithPrimaryUserId(Guid userId)
     {
-        _primaryUserId = userId;
+        this._primaryUserId = userId;
         return this;
     }
 
@@ -19,7 +20,7 @@ public class MockOptionsBuilder<T> where T : class, new()
         {
             var settings = new Spamma.Modules.Common.Settings
             {
-                PrimaryUserId = _primaryUserId
+                PrimaryUserId = this._primaryUserId,
             };
             return Options.Create(settings as T ?? new T());
         }
@@ -27,5 +28,3 @@ public class MockOptionsBuilder<T> where T : class, new()
         return Options.Create(new T());
     }
 }
-
-
