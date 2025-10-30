@@ -1803,3 +1803,11 @@ FodyWeavers.xsd
 src/Spamma.App/Spamma.App/messages/
 
 src/Spamma.App/Spamma.App/wwwroot/
+
+# Sensitive certificate data - never commit certificates, keys, or credentials
+certs/
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
