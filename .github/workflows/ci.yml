@@ -14,16 +14,15 @@ on:
 jobs:
   build:
     name: Build & Test (${{ matrix.arch }})
-    runs-on: ${{ matrix.runs-on }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
+        arch: [amd64, arm64]
         include:
           - arch: amd64
             rid: linux-x64
-            runs-on: ubuntu-latest
           - arch: arm64
             rid: linux-arm64
-            runs-on: ubuntu-24.04-arm64
     
     permissions:
       contents: read
@@ -33,6 +32,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        if: matrix.arch == 'arm64'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
