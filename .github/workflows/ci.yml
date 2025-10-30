@@ -13,8 +13,16 @@ on:
 
 jobs:
   build:
-    name: Build & Test
+    name: Build & Test (${{ matrix.arch }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            rid: linux-x64
+          - arch: arm64
+            rid: linux-arm64
     
     permissions:
       contents: read
@@ -41,28 +49,31 @@ jobs:
         run: npm run build
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
+
+      - name: Clear NuGet cache
+        run: dotnet nuget locals all --clear
 
       - name: Restore NuGet packages
         run: dotnet restore
 
-      - name: Build solution
-        run: dotnet build --no-restore --configuration Release
+      - name: Build solution (${{ matrix.arch }})
+        run: dotnet build --no-restore --configuration Release -r ${{ matrix.rid }}
 
-      - name: Run tests
+      - name: Run tests (${{ matrix.arch }})
         run: |
           dotnet test \
             --no-build \
             --configuration Release \
-            --logger "trx;LogFileName=test-results.trx" \
+            --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
             --collect:"XPlat Code Coverage" \
             --results-directory test-results
 
-      - name: Publish test results
+      - name: Publish test results (${{ matrix.arch }})
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: test-results/**/*.trx
-          check_name: Test Results
+          check_name: Test Results (${{ matrix.arch }})
