@@ -35,34 +35,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build test image for extraction
+      - name: Build and test
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile
-          load: true
           target: test
           build-args: |
             BUILD_VERSION=${{ github.event.inputs.tag }}
             BUILD_DATE=${{ steps.timestamp.outputs.ts }}
             VCS_REF=${{ github.sha }}
-          tags: spamma:test-extract
           cache-from: type=gha
-
-      - name: Extract test results from Docker
-        run: |
-          mkdir -p test-results
-          docker run --rm -v $(pwd)/test-results:/tmp/out spamma:test-extract \
-            sh -c 'if [ -d /test-results ]; then cp -r /test-results/* /tmp/out/; fi' || true
-        shell: bash
-
-      - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: 'test-results/**/*.trx'
-          check_name: Docker Build Test Results
-          compare_to_earlier_commit: false
 
       - name: Build and push
         uses: docker/build-push-action@v5
