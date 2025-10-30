@@ -15,6 +15,7 @@ public partial class UserTypeahead(IQuerier querier) : IDisposable
     private bool isLoading;
     private List<SearchUsersQueryResult.UserSummary> suggestions = new();
     private Timer? _debounceTimer;
+    private bool _disposed;
 
     [Parameter]
     public string? Placeholder { get; set; } = "Search users...";
@@ -65,7 +66,23 @@ public partial class UserTypeahead(IQuerier querier) : IDisposable
 
     public void Dispose()
     {
-        this._debounceTimer?.Dispose();
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this._disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            this._debounceTimer?.Dispose();
+        }
+
+        this._disposed = true;
     }
 
     private async Task SearchUsers()

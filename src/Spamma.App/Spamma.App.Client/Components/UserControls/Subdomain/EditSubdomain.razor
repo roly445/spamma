@@ -35,8 +35,8 @@
                                                 </svg>
                                             </div>
                                             <div>
-                                                <div class="text-sm font-medium text-gray-900">@_dataModel.FullDomainName</div>
-                                                <div class="text-sm text-gray-500">Created @_dataModel.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                                <div class="text-sm font-medium text-gray-900">@(_dataModel?.FullDomainName ?? "Unknown Domain")</div>
+                                                <div class="text-sm text-gray-500">Created @(_dataModel?.CreatedAt.ToString("MMM dd, yyyy") ?? "Unknown Date")</div>
                                             </div>
                                         </div>
                                     </div>
@@ -48,7 +48,7 @@
                                     </label>
                                     <div class="flex items-center">
                                         <input type="text"
-                                            value="@(_dataModel.SubdomainName)"
+                                            value="@(_dataModel?.SubdomainName)"
                                             disabled
                                             class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-gray-500 focus:outline-none" />
                                         <span class="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-500">

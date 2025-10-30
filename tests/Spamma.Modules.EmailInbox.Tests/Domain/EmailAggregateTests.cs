@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client;
-using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Tests.Common.Verification;
@@ -21,7 +20,7 @@ public class EmailAggregateTests
         var emailAddresses = new List<EmailReceived.EmailAddress>
         {
             new("test@example.com", "Test User", EmailAddressType.To),
-            new("cc@example.com", "CC User", EmailAddressType.Cc)
+            new("cc@example.com", "CC User", EmailAddressType.Cc),
         };
 
         // Act
@@ -52,7 +51,7 @@ public class EmailAggregateTests
             DateTime.UtcNow,
             new List<EmailReceived.EmailAddress>
             {
-                new("test@example.com", "Test", EmailAddressType.To)
+                new("test@example.com", "Test", EmailAddressType.To),
             }).Value;
 
         var now = DateTime.UtcNow.AddSeconds(1);
@@ -80,7 +79,7 @@ public class EmailAggregateTests
             DateTime.UtcNow,
             new List<EmailReceived.EmailAddress>
             {
-                new("test@example.com", "Test", EmailAddressType.To)
+                new("test@example.com", "Test", EmailAddressType.To),
             }).Value;
 
         email.Delete(DateTime.UtcNow);
@@ -101,7 +100,7 @@ public class EmailAggregateTests
             new("to@example.com", "To User", EmailAddressType.To),
             new("cc@example.com", "CC User", EmailAddressType.Cc),
             new("bcc@example.com", "BCC User", EmailAddressType.Bcc),
-            new("from@example.com", "From User", EmailAddressType.From)
+            new("from@example.com", "From User", EmailAddressType.From),
         };
 
         // Act
@@ -136,7 +135,7 @@ public class EmailAggregateTests
 
         var emailAddresses = new List<EmailReceived.EmailAddress>
         {
-            new("test@example.com", "Test", EmailAddressType.To)
+            new("test@example.com", "Test", EmailAddressType.To),
         };
 
         // Act

@@ -20,7 +20,6 @@ public sealed class CertificateRenewalBackgroundService : BackgroundService
     private readonly ILogger<CertificateRenewalBackgroundService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly string _certificatesPath;
-    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CertificateRenewalBackgroundService"/> class.
@@ -28,46 +27,14 @@ public sealed class CertificateRenewalBackgroundService : BackgroundService
     /// <param name="logger">Logger for diagnostic information.</param>
     /// <param name="serviceProvider">Service provider for resolving dependencies.</param>
     /// <param name="hostEnvironment">Host environment for content root path.</param>
-    /// <param name="configuration">Configuration for reading appsettings.</param>
     public CertificateRenewalBackgroundService(
         ILogger<CertificateRenewalBackgroundService> logger,
         IServiceProvider serviceProvider,
-        IHostEnvironment hostEnvironment,
-        IConfiguration configuration)
+        IHostEnvironment hostEnvironment)
     {
         this._logger = logger;
         this._serviceProvider = serviceProvider;
-        this._configuration = configuration;
         this._certificatesPath = Path.Combine(hostEnvironment.ContentRootPath, "certs");
-    }
-
-    /// <summary>
-    /// Calculates the time until the next renewal check (2 AM UTC).
-    /// </summary>
-    /// <param name="currentTime">Current time.</param>
-    /// <returns>TimeSpan until next renewal check.</returns>
-    private static TimeSpan CalculateTimeUntilRenewal(TimeOnly currentTime)
-    {
-        var timeUntilRenewal = RenewalTime - currentTime;
-
-        if (timeUntilRenewal.TotalSeconds <= 0)
-        {
-            // Renewal time already passed today, schedule for tomorrow
-            timeUntilRenewal = timeUntilRenewal.Add(TimeSpan.FromHours(24));
-        }
-
-        // Cap at CheckInterval to perform checks periodically
-        return timeUntilRenewal > CheckInterval ? CheckInterval : timeUntilRenewal;
-    }
-
-    /// <summary>
-    /// Generates a timestamped certificate filename.
-    /// </summary>
-    /// <returns>Certificate filename with timestamp.</returns>
-    private static string GenerateCertificateFileName()
-    {
-        var timestamp = DateTime.UtcNow.ToString("yyyy_MM_dd_HH_mm_ss", CultureInfo.InvariantCulture);
-        return $"certificate_{timestamp}.pfx";
     }
 
     /// <summary>
@@ -105,14 +72,13 @@ public sealed class CertificateRenewalBackgroundService : BackgroundService
 
                     await this.PerformCertificateRenewalAsync(stoppingToken);
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException)
                 {
-                    this._logger.LogInformation(ex, "Certificate renewal service cancelled");
                     throw;
                 }
                 catch (Exception ex)
                 {
-                    this._logger.LogError(ex, "Error during certificate renewal check");
+                    this._logger.LogError(ex, "Error during certificate renewal check. The renewal process will retry on the next scheduled check");
                 }
             }
         }
@@ -120,6 +86,35 @@ public sealed class CertificateRenewalBackgroundService : BackgroundService
         {
             this._logger.LogInformation("Certificate renewal background service stopped");
         }
+    }
+
+    /// <summary>
+    /// Calculates the time until the next renewal check (2 AM UTC).
+    /// </summary>
+    /// <param name="currentTime">Current time.</param>
+    /// <returns>TimeSpan until next renewal check.</returns>
+    private static TimeSpan CalculateTimeUntilRenewal(TimeOnly currentTime)
+    {
+        var timeUntilRenewal = RenewalTime - currentTime;
+
+        if (timeUntilRenewal.TotalSeconds <= 0)
+        {
+            // Renewal time already passed today, schedule for tomorrow
+            timeUntilRenewal = timeUntilRenewal.Add(TimeSpan.FromHours(24));
+        }
+
+        // Cap at CheckInterval to perform checks periodically
+        return timeUntilRenewal > CheckInterval ? CheckInterval : timeUntilRenewal;
+    }
+
+    /// <summary>
+    /// Generates a timestamped certificate filename.
+    /// </summary>
+    /// <returns>Certificate filename with timestamp.</returns>
+    private static string GenerateCertificateFileName()
+    {
+        var timestamp = DateTime.UtcNow.ToString("yyyy_MM_dd_HH_mm_ss", CultureInfo.InvariantCulture);
+        return $"certificate_{timestamp}.pfx";
     }
 
     /// <summary>
@@ -294,5 +289,3 @@ public sealed class CertificateRenewalBackgroundService : BackgroundService
         }
     }
 }
-
-

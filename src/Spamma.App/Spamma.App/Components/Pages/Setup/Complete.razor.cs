@@ -5,10 +5,10 @@ using Spamma.App.Infrastructure.Contracts.Services;
 namespace Spamma.App.Components.Pages.Setup;
 
 public partial class Complete(
-    IInMemorySetupAuthService setupAuthService, 
+    IInMemorySetupAuthService setupAuthService,
     IAppConfigurationService appConfigurationService,
-    IConfiguration configuration, 
-    ILogger<Complete> logger, 
+    IConfiguration configuration,
+    ILogger<Complete> logger,
     NavigationManager navigationManager)
 {
     private readonly SetupStatusInfo setupStatus = new();

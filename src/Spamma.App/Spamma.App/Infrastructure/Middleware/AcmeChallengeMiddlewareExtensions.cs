@@ -15,4 +15,3 @@ public static class AcmeChallengeMiddlewareExtensions
         return app.UseMiddleware<AcmeChallengeMiddleware>();
     }
 }
-

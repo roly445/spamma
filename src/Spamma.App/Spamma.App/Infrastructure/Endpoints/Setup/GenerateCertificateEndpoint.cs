@@ -107,6 +107,3 @@ public static class GenerateCertificateEndpoint
         }
     }
 }
-
-
-

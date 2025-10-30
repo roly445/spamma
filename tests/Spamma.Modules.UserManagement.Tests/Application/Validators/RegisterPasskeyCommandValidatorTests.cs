@@ -1,29 +1,15 @@
 using FluentValidation.TestHelper;
+using MaybeMonad;
 using Moq;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Application.Validators;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
-using Xunit;
-using MaybeMonad;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Validators;
 
-/// <summary>
-/// Tests for RegisterPasskeyCommandValidator to ensure credential uniqueness validation.
-/// </summary>
 public class RegisterPasskeyCommandValidatorTests
 {
-    private static RegisterPasskeyCommand CreateValidCommand()
-    {
-        return new RegisterPasskeyCommand(
-            CredentialId: new byte[] { 1, 2, 3, 4, 5 },
-            PublicKey: new byte[] { 6, 7, 8, 9, 10 },
-            SignCount: 0,
-            DisplayName: "My Security Key",
-            Algorithm: "ES256");
-    }
-
     [Fact]
     public async Task ValidateAsync_ValidCommand_IsValid()
     {
@@ -201,5 +187,15 @@ public class RegisterPasskeyCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.PublicKey);
         result.ShouldHaveValidationErrorFor(x => x.DisplayName);
         result.ShouldHaveValidationErrorFor(x => x.Algorithm);
+    }
+
+    private static RegisterPasskeyCommand CreateValidCommand()
+    {
+        return new RegisterPasskeyCommand(
+            CredentialId: new byte[] { 1, 2, 3, 4, 5 },
+            PublicKey: new byte[] { 6, 7, 8, 9, 10 },
+            SignCount: 0,
+            DisplayName: "My Security Key",
+            Algorithm: "ES256");
     }
 }

@@ -61,5 +61,3 @@ public sealed class AcmeChallengeMiddleware
         await this._next(context);
     }
 }
-
-

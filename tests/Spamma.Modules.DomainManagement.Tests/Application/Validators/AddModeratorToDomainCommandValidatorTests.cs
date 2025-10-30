@@ -10,22 +10,6 @@ namespace Spamma.Modules.DomainManagement.Tests.Application.Validators;
 /// </summary>
 public class AddModeratorToDomainCommandValidatorTests
 {
-    private static IValidator<AddModeratorToDomainCommand> CreateValidator()
-    {
-        // Inline validator for testing purposes
-        var validator = new InlineValidator<AddModeratorToDomainCommand>();
-        
-        validator.RuleFor(x => x.DomainId)
-            .NotEmpty()
-            .WithMessage("Domain ID is required.");
-
-        validator.RuleFor(x => x.UserId)
-            .NotEmpty()
-            .WithMessage("User ID is required.");
-
-        return validator;
-    }
-
     [Fact]
     public void Validate_WithValidCommand_ShouldNotHaveErrors()
     {
@@ -92,5 +76,21 @@ public class AddModeratorToDomainCommandValidatorTests
         // Verify
         result.IsValid.Should().BeFalse();
         result.Errors.Should().HaveCount(2);
+    }
+
+    private static IValidator<AddModeratorToDomainCommand> CreateValidator()
+    {
+        // Inline validator for testing purposes
+        var validator = new InlineValidator<AddModeratorToDomainCommand>();
+
+        validator.RuleFor(x => x.DomainId)
+            .NotEmpty()
+            .WithMessage("Domain ID is required.");
+
+        validator.RuleFor(x => x.UserId)
+            .NotEmpty()
+            .WithMessage("User ID is required.");
+
+        return validator;
     }
 }

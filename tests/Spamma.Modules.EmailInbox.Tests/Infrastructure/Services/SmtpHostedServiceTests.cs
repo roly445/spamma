@@ -3,16 +3,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 
-/// <summary>
-/// Tests for SmtpHostedService
-/// 
-/// Note: SmtpHostedService is a thin wrapper around SmtpServer.SmtpServer.
-/// Since SmtpServer uses sealed classes and non-virtual methods, comprehensive
-/// mocking is not feasible. These tests verify the service can be instantiated
-/// and delegates properly to the underlying SmtpServer.
-/// 
-/// For full integration testing, see SmtpEmailReceptionTests in the Integration folder.
-/// </summary>
 public class SmtpHostedServiceTests
 {
     [Fact]

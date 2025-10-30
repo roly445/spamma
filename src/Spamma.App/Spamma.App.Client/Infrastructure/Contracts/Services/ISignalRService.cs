@@ -11,7 +11,7 @@ public interface ISignalRService
     event Func<Task>? OnPermissionsUpdated;
 
     bool IsConnected { get; }
-   
+
     Task StartAsync();
 
     Task StopAsync();

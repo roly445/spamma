@@ -7,9 +7,11 @@ using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Nager.PublicSuffix;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
 using Spamma.Modules.DomainManagement.Infrastructure.Repositories;
+using Spamma.Modules.DomainManagement.Infrastructure.Services;
 
 namespace Spamma.Modules.DomainManagement;
 
@@ -26,6 +28,11 @@ public static class Module
         services.AddScoped<IDomainRepository, DomainRepository>();
         services.AddScoped<ISubdomainRepository, SubdomainRepository>();
         services.AddScoped<ILookupClient, LookupClient>();
+
+        // Register domain parser service - will be initialized by hosted service
+        services.AddSingleton<IDomainParserService, DomainParserService>();
+        services.AddHostedService<DomainParserInitializationService>();
+
         return services;
     }
 

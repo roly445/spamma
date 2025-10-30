@@ -21,4 +21,3 @@ public interface IAcmeChallengeResponder
     /// <returns>A task representing the asynchronous operation.</returns>
     Task ClearChallengesAsync(CancellationToken cancellationToken);
 }
-

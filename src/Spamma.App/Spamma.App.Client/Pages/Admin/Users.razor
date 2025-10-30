@@ -319,7 +319,7 @@
                                                         <div class="flex items-center">
                                                             <input type="checkbox"
                                                                    checked="@IsRoleSelected(role, _editUserModel.Roles)"
-                                                                   @onchange="(e) => ToggleRole(role, _editUserModel, e.Value)"
+                                                                   @onchange="(e) => ToggleRole(role, _editUserModel, e.Value ?? false)"
                                                                    class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                                                             <label class="ml-2 text-sm text-gray-700">@role.GetDescription()</label>
                                                         </div>
@@ -432,7 +432,7 @@
                                     <div class="flex items-center">
                                         <input type="checkbox"
                                                checked="@IsRoleSelected(role, _addUserModel.Roles)"
-                                               @onchange="(e) => ToggleRole(role, _addUserModel, e.Value)"
+                                               @onchange="(e) => ToggleRole(role, _addUserModel, e.Value ?? false)"
                                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
                                         <label class="ml-2 text-sm text-gray-700">@role.GetDescription()</label>
                                     </div>

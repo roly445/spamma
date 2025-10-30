@@ -26,9 +26,9 @@ public class CompleteAuthenticationCommandHandlerTests
 
     public CompleteAuthenticationCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<CompleteAuthenticationCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<CompleteAuthenticationCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var settings = new Settings
         {
@@ -37,18 +37,18 @@ public class CompleteAuthenticationCommandHandlerTests
             JwtKey = "test-jwt-key",
             JwtIssuer = "test-issuer",
             AuthenticationTimeInMinutes = 15,
-            MailServerHostname = "localhost"
+            MailServerHostname = "localhost",
         };
-        _settingsOptions = Options.Create(settings);
+        this._settingsOptions = Options.Create(settings);
 
         var validators = Array.Empty<IValidator<CompleteAuthenticationCommand>>();
 
-        _handler = new CompleteAuthenticationCommandHandler(
-            _repositoryMock.Object,
-            _timeProvider,
-            _settingsOptions,
+        this._handler = new CompleteAuthenticationCommandHandler(
+            this._repositoryMock.Object,
+            this._timeProvider,
+            this._settingsOptions,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
 
     [Fact]
@@ -63,21 +63,21 @@ public class CompleteAuthenticationCommandHandlerTests
 
         var userMaybe = Maybe<UserAggregate>.Nothing;
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.VerifyNoOtherCalls();
+        this._repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class CompleteAuthenticationCommandHandlerTests
     {
         // Arrange
         var user = new UserBuilder().Build();
-        var authResult = user.StartAuthentication(_fixedUtcNow);
+        _ = user.StartAuthentication(this._fixedUtcNow);
 
         var userId = user.Id;
         var command = new CompleteAuthenticationCommand(
@@ -95,21 +95,21 @@ public class CompleteAuthenticationCommandHandlerTests
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify - should fail due to invalid/expired attempt
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.VerifyNoOtherCalls();
+        this._repositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class CompleteAuthenticationCommandHandlerTests
     {
         // Arrange
         var user = new UserBuilder().Build();
-        var authResult = user.StartAuthentication(_fixedUtcNow);
+        var authResult = user.StartAuthentication(this._fixedUtcNow);
         var authAttempt = authResult.Value;
 
         var userId = user.Id;
@@ -128,25 +128,25 @@ public class CompleteAuthenticationCommandHandlerTests
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
     }
@@ -156,7 +156,7 @@ public class CompleteAuthenticationCommandHandlerTests
     {
         // Arrange
         var user = new UserBuilder().Build();
-        var authResult = user.StartAuthentication(_fixedUtcNow);
+        var authResult = user.StartAuthentication(this._fixedUtcNow);
         var authAttempt = authResult.Value;
 
         var userId = user.Id;
@@ -167,25 +167,25 @@ public class CompleteAuthenticationCommandHandlerTests
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
     }
@@ -195,7 +195,7 @@ public class CompleteAuthenticationCommandHandlerTests
     {
         // Arrange - Verify same command can be retried if needed
         var user = new UserBuilder().Build();
-        var authResult = user.StartAuthentication(_fixedUtcNow);
+        var authResult = user.StartAuthentication(this._fixedUtcNow);
         var authAttempt = authResult.Value;
 
         var userId = user.Id;
@@ -206,21 +206,21 @@ public class CompleteAuthenticationCommandHandlerTests
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act - Call handler multiple times with same command
-        var result1 = await _handler.Handle(command, CancellationToken.None);
+        var result1 = await this._handler.Handle(command, CancellationToken.None);
         result1.Should().NotBeNull();
 
         // For second call, create new user state since user reference changed
         var user2 = new UserBuilder().Build();
-        var authResult2 = user2.StartAuthentication(_fixedUtcNow);
+        var authResult2 = user2.StartAuthentication(this._fixedUtcNow);
         var authAttempt2 = authResult2.Value;
         var command2 = new CompleteAuthenticationCommand(
             user2.Id,
@@ -228,15 +228,15 @@ public class CompleteAuthenticationCommandHandlerTests
             authAttempt2.AuthenticationAttemptId);
 
         var userMaybe2 = Maybe.From(user2);
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(user2.Id, CancellationToken.None))
             .ReturnsAsync(userMaybe2);
 
-        var result2 = await _handler.Handle(command2, CancellationToken.None);
+        var result2 = await this._handler.Handle(command2, CancellationToken.None);
         result2.Should().NotBeNull();
 
         // Verify repository was called twice (once per command)
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Exactly(2));
     }

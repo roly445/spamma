@@ -25,19 +25,19 @@ public class CreateUserCommandHandlerTests
 
     public CreateUserCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        _eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<CreateUserCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
+        this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<CreateUserCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<CreateUserCommand>>();
 
-        _handler = new CreateUserCommandHandler(
-            _repositoryMock.Object,
-            _eventPublisherMock.Object,
-            _timeProvider,
+        this._handler = new CreateUserCommandHandler(
+            this._repositoryMock.Object,
+            this._eventPublisherMock.Object,
+            this._timeProvider,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
 
     [Fact]
@@ -52,23 +52,23 @@ public class CreateUserCommandHandlerTests
             true,
             SystemRole.UserManagement);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<UserCreatedIntegrationEvent>(),
                 CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<UserAggregate>(u =>
                     u.Id == userId &&
@@ -77,7 +77,7 @@ public class CreateUserCommandHandlerTests
                 CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(
                 It.Is<UserCreatedIntegrationEvent>(e =>
                     e.UserId == userId &&
@@ -100,21 +100,21 @@ public class CreateUserCommandHandlerTests
             false,
             SystemRole.DomainManagement);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -129,12 +129,12 @@ public class CreateUserCommandHandlerTests
             true,
             SystemRole.UserManagement);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         UserCreatedIntegrationEvent? capturedEvent = null;
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<UserCreatedIntegrationEvent>(),
                 CancellationToken.None))
@@ -145,12 +145,12 @@ public class CreateUserCommandHandlerTests
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
         capturedEvent.Should().NotBeNull();
-        capturedEvent!.WhenHappened.Should().Be(_fixedUtcNow);
+        capturedEvent!.WhenHappened.Should().Be(this._fixedUtcNow);
     }
 
     [Fact]
@@ -174,28 +174,28 @@ public class CreateUserCommandHandlerTests
             false,
             SystemRole.DomainManagement);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<UserCreatedIntegrationEvent>(),
                 CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act & Verify
-        var result1 = await _handler.Handle(commandAdmin, CancellationToken.None);
+        var result1 = await this._handler.Handle(commandAdmin, CancellationToken.None);
         result1.Should().NotBeNull();
 
-        var result2 = await _handler.Handle(commandMod, CancellationToken.None);
+        var result2 = await this._handler.Handle(commandMod, CancellationToken.None);
         result2.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Exactly(2));
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<UserCreatedIntegrationEvent>(), CancellationToken.None),
             Times.Exactly(2));
     }

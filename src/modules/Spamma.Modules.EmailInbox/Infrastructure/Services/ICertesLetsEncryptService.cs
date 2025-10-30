@@ -25,5 +25,3 @@ public interface ICertesLetsEncryptService
         IProgress<string>? progressPublisher = null,
         CancellationToken cancellationToken = default);
 }
-
-

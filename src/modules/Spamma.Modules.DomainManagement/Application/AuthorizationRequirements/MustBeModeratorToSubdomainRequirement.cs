@@ -4,6 +4,7 @@ using Marten;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.UserManagement.Client.Contracts;
 

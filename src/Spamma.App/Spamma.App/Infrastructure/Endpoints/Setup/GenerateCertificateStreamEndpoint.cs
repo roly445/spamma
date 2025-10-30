@@ -62,8 +62,8 @@ public static class GenerateCertificateStreamEndpoint
 
         // Set up SSE response
         httpContext.Response.ContentType = "text/event-stream";
-        httpContext.Response.Headers.Add("Cache-Control", "no-cache");
-        httpContext.Response.Headers.Add("Connection", "keep-alive");
+        httpContext.Response.Headers.Append("Cache-Control", "no-cache");
+        httpContext.Response.Headers.Append("Connection", "keep-alive");
 
         // Create a progress reporter that writes SSE events
         var progress = new Progress<string>(message =>

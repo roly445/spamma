@@ -21,7 +21,7 @@
                 </svg>
                 <div>
                     <h3 class="text-sm font-medium text-green-800">Admin user created successfully!</h3>
-                    <p class="text-sm text-green-700 mt-1">Welcome email sent to @Model.AdminEmail</p>
+                    <p class="text-sm text-green-700 mt-1">Welcome email sent to @(Model?.AdminEmail ?? "the admin email address")</p>
                 </div>
             </div>
         </div>

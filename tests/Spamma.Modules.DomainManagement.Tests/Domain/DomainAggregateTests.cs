@@ -104,7 +104,7 @@ public class DomainAggregateTests
         {
             DomainSuspensionReason.PolicyViolation,
             DomainSuspensionReason.NonPayment,
-            DomainSuspensionReason.ViolationOfTermsOfService
+            DomainSuspensionReason.ViolationOfTermsOfService,
         };
 
         foreach (var reason in reasons)
@@ -194,7 +194,7 @@ public class DomainAggregateTests
             DomainSuspensionReason.SecurityConcern,
             DomainSuspensionReason.AbuseSpam,
             DomainSuspensionReason.BillingContract,
-            DomainSuspensionReason.Administrative
+            DomainSuspensionReason.Administrative,
         };
 
         allReasons.Should().HaveCount(8);

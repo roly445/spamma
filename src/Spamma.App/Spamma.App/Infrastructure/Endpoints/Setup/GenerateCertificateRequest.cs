@@ -15,4 +15,3 @@ public record GenerateCertificateRequest
     /// </summary>
     public required string Email { get; init; }
 }
-

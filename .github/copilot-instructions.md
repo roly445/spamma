@@ -147,17 +147,14 @@ All code must comply with **StyleCop Analyzers** and **SonarQube** code quality 
   - ✅ `PasskeySummary.cs` contains only `PasskeySummary` record
   - ❌ `PasskeyQueries.cs` with multiple types (split into separate files)
 
-**XML Documentation (SA1600, SA1601, SA1602)**:
-- **All public members require XML documentation**
-- **Summary tag required**: `/// <summary>Description.</summary>`
-- **Must end with period**: Documentation text must end with a period (`.`)
-- **Examples**:
-  - ✅ `/// <summary>Query to retrieve authenticated user's passkeys.</summary>`
-  - ❌ `/// <summary>Query to retrieve passkeys</summary>` (missing period)
+**XML Documentation (SA1600 - SUPPRESSED)**:
+- ❌ **NOT REQUIRED** - SA1600 is suppressed in `GlobalSuppressions.cs`
+- Justification: Clear intent should be shown when naming
+- Code should be self-documenting through good naming conventions
+- **DO NOT add** `/// <summary>` comments for public members
 
-**File Header & Spacing**:
-- **File footer newline**: All files must end with a newline character (SA1518 may warn on incomplete lines)
-- **Blank line spacing**: Sections should have appropriate spacing
+**File Header & Spacing (SA1028)**:
+- **No trailing whitespace**: SA1028 - Remove trailing whitespace on any line
 - **Blank line after namespace**: One blank line after `namespace` declaration
 
 **Member Ordering (SA1201-SA1212)**:
@@ -268,6 +265,23 @@ Commands must be decorated with the `BluQubeCommand` attribute to specify the AP
    - Domain commands: `api/domain-management/*`
    - Subdomain commands: `api/subdomain-management/*`
    - Email commands: `email-inbox/*`
+
+### Suppressed StyleCop Rules (from GlobalSuppressions.cs)
+
+These rules are **intentionally suppressed** and should NOT be enforced:
+
+**SA0001** - XML Comment Analysis Disabled (Not currently required)
+**SA1600** - Elements Must Be Documented (Clear intent shown through naming)
+**SA1602** - Enumeration Items Must Be Documented (Suppressed initially)
+**SA1518** - Use line endings correctly at end of file (Not enforcing strict line ending requirements)
+**SA1652** - Enable XML Documentation Output (Not currently required)
+**SA1117** - Parameters Must Be On Same Line Or Separate Lines (Not currently required)
+**SA1118** - Parameter Must Not Span Multiple Lines (Not currently required)
+**SA1309** - Field Names Must Not Begin With Underscore (Using underscore notation for private fields)
+**SA1206** - Declaration Keywords Must Follow Order (Breaks new 'required' modifier best practices)
+**SA1633** - File Must Have Header (Not required)
+
+**Key Takeaway**: Code should be self-documenting through clear naming. DO NOT add XML documentation comments. File endings are not strictly enforced.
 
 ### SonarQube Key Rules
 

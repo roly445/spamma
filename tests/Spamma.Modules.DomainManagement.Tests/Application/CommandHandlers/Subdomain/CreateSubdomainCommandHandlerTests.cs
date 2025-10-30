@@ -1,18 +1,11 @@
-using Moq;
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
-using ResultMonad;
-using MaybeMonad;
-using Spamma.Modules.Common.Client;
-using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.Common.Domain.Contracts;
+using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
-using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
-using BluQube.Commands;
-using FluentValidation;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Subdomain;
 
@@ -26,17 +19,17 @@ public class CreateSubdomainCommandHandlerTests
 
     public CreateSubdomainCommandHandlerTests()
     {
-        _repositoryMock = new Mock<ISubdomainRepository>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<CreateSubdomainCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._repositoryMock = new Mock<ISubdomainRepository>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<CreateSubdomainCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<CreateSubdomainCommand>>();
 
-        _handler = new CreateSubdomainCommandHandler(
-            _repositoryMock.Object,
+        this._handler = new CreateSubdomainCommandHandler(
+            this._repositoryMock.Object,
             validators,
-            _loggerMock.Object,
-            _timeProvider);
+            this._loggerMock.Object,
+            this._timeProvider);
     }
 
     [Fact]
@@ -47,17 +40,17 @@ public class CreateSubdomainCommandHandlerTests
         var domainId = Guid.NewGuid();
         var command = new CreateSubdomainCommand(subdomainId, domainId, "mail", "Mail subdomain");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(s => s.Id == subdomainId),
                 CancellationToken.None),
@@ -72,12 +65,12 @@ public class CreateSubdomainCommandHandlerTests
         var domainId = Guid.NewGuid();
         var command = new CreateSubdomainCommand(subdomainId, domainId, "mail", "Mail subdomain");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
@@ -94,19 +87,19 @@ public class CreateSubdomainCommandHandlerTests
         var command1 = new CreateSubdomainCommand(subdomain1Id, domainId, "mail", "Mail subdomain");
         var command2 = new CreateSubdomainCommand(subdomain2Id, domainId, "ftp", "FTP subdomain");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result1 = await _handler.Handle(command1, CancellationToken.None);
-        var result2 = await _handler.Handle(command2, CancellationToken.None);
+        var result1 = await this._handler.Handle(command1, CancellationToken.None);
+        var result2 = await this._handler.Handle(command2, CancellationToken.None);
 
         // Verify
         result1.Should().NotBeNull();
         result2.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(), CancellationToken.None),
             Times.Exactly(2));
     }

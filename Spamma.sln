@@ -58,6 +58,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.DomainManage
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Modules.EmailInbox.Tests", "tests\Spamma.Modules.EmailInbox.Tests\Spamma.Modules.EmailInbox.Tests.csproj", "{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Analyzers", "src\Spamma.Analyzers\Spamma.Analyzers.csproj", "{7A8B9C0D-1E2F-4A3B-5C6D-7E8F9A0B1C2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -116,6 +118,10 @@ Global
 		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A8B9C0D-1E2F-4A3B-5C6D-7E8F9A0B1C2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A8B9C0D-1E2F-4A3B-5C6D-7E8F9A0B1C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A8B9C0D-1E2F-4A3B-5C6D-7E8F9A0B1C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A8B9C0D-1E2F-4A3B-5C6D-7E8F9A0B1C2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -137,6 +143,7 @@ Global
 		{9F4E2C1A-5D7B-4C3E-8A9F-2B1D6C5E3A7F} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
 		{4B8D7A2F-1E5C-4D3A-7B9E-6C2F4A5B8D1E} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
 		{5C9E8B3F-2D6A-4E1B-8C7F-3A2E5D4C6B9F} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
+		{7A8B9C0D-1E2F-4A3B-5C6D-7E8F9A0B1C2D} = {F128D48A-7715-45CB-8F42-8188608933D7}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		shared\Spamma.Shared\Spamma.Shared.projitems*{09c769cc-9fee-495c-816c-32017d026ee1}*SharedItemsImports = 5

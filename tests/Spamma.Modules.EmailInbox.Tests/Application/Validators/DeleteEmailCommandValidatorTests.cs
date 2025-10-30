@@ -10,18 +10,6 @@ namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 /// </summary>
 public class DeleteEmailCommandValidatorTests
 {
-    private static IValidator<DeleteEmailCommand> CreateValidator()
-    {
-        // Inline validator for testing purposes
-        var validator = new InlineValidator<DeleteEmailCommand>();
-        
-        validator.RuleFor(x => x.EmailId)
-            .NotEmpty()
-            .WithMessage("Email ID is required.");
-
-        return validator;
-    }
-
     [Fact]
     public void Validate_WithValidCommand_ShouldNotHaveErrors()
     {
@@ -51,5 +39,16 @@ public class DeleteEmailCommandValidatorTests
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "EmailId" && e.ErrorMessage.Contains("required"));
     }
-}
 
+    private static IValidator<DeleteEmailCommand> CreateValidator()
+    {
+        // Inline validator for testing purposes
+        var validator = new InlineValidator<DeleteEmailCommand>();
+
+        validator.RuleFor(x => x.EmailId)
+            .NotEmpty()
+            .WithMessage("Email ID is required.");
+
+        return validator;
+    }
+}

@@ -1,18 +1,14 @@
-using Moq;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using ResultMonad;
+using FluentValidation;
 using MaybeMonad;
-using Spamma.Modules.Common.Client;
-using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
-using BluQube.Commands;
-using FluentValidation;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Domain;
 
@@ -26,17 +22,17 @@ public class SuspendDomainCommandHandlerTests
 
     public SuspendDomainCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<SuspendDomainCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._repositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<SuspendDomainCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<SuspendDomainCommand>>();
 
-        _handler = new SuspendDomainCommandHandler(
-            _repositoryMock.Object,
-            _timeProvider,
+        this._handler = new SuspendDomainCommandHandler(
+            this._repositoryMock.Object,
+            this._timeProvider,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
 
     [Fact]
@@ -54,25 +50,25 @@ public class SuspendDomainCommandHandlerTests
             DomainSuspensionReason.PolicyViolation,
             "Violated terms of service");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(domainId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(d => d.Id == domainId),
                 CancellationToken.None),
@@ -89,17 +85,17 @@ public class SuspendDomainCommandHandlerTests
             DomainSuspensionReason.PolicyViolation,
             "Violated terms");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>.Nothing);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Never);
     }
@@ -119,21 +115,21 @@ public class SuspendDomainCommandHandlerTests
             DomainSuspensionReason.NonPayment,
             "User requested suspension");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Once);
     }
@@ -153,21 +149,21 @@ public class SuspendDomainCommandHandlerTests
             DomainSuspensionReason.PolicyViolation,
             "Violated terms");
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Once);
     }

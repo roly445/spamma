@@ -27,22 +27,20 @@ public class RegisterPasskeyCommandHandlerTests
 
     public RegisterPasskeyCommandHandlerTests()
     {
-        _passkeyRepositoryMock = new Mock<IPasskeyRepository>(MockBehavior.Strict);
-        _httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<RegisterPasskeyCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._passkeyRepositoryMock = new Mock<IPasskeyRepository>(MockBehavior.Strict);
+        this._httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<RegisterPasskeyCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<RegisterPasskeyCommand>>();
 
-        _handler = new RegisterPasskeyCommandHandler(
-            _passkeyRepositoryMock.Object,
-            _timeProvider,
-            _httpContextAccessorMock.Object,
+        this._handler = new RegisterPasskeyCommandHandler(
+            this._passkeyRepositoryMock.Object,
+            this._timeProvider,
+            this._httpContextAccessorMock.Object,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
-
-    #region Happy Path Tests
 
     [Fact]
     public async Task Handle_ValidPasskeyRegistration_SavesPasskeySuccessfully()
@@ -65,23 +63,23 @@ public class RegisterPasskeyCommandHandlerTests
         var principal = new ClaimsPrincipal(identity);
         httpContext.User = principal;
 
-        _httpContextAccessorMock
+        this._httpContextAccessorMock
             .Setup(x => x.HttpContext)
             .Returns(httpContext);
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.SaveAsync(
                 It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(),
                 CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
-        _passkeyRepositoryMock.Verify(
+        this._httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
+        this._passkeyRepositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(p =>
                     p.UserId == userId &&
@@ -90,10 +88,6 @@ public class RegisterPasskeyCommandHandlerTests
                 CancellationToken.None),
             Times.Once);
     }
-
-    #endregion
-
-    #region Error Path Tests
 
     [Fact]
     public async Task Handle_NoAuthenticationClaim_ReturnsInvalidAuthenticationAttemptError()
@@ -112,17 +106,17 @@ public class RegisterPasskeyCommandHandlerTests
         var httpContext = new DefaultHttpContext();
         httpContext.User = new ClaimsPrincipal(); // No claims
 
-        _httpContextAccessorMock
+        this._httpContextAccessorMock
             .Setup(x => x.HttpContext)
             .Returns(httpContext);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
-        _passkeyRepositoryMock.VerifyNoOtherCalls();
+        this._httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
+        this._passkeyRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -145,17 +139,17 @@ public class RegisterPasskeyCommandHandlerTests
         var principal = new ClaimsPrincipal(identity);
         httpContext.User = principal;
 
-        _httpContextAccessorMock
+        this._httpContextAccessorMock
             .Setup(x => x.HttpContext)
             .Returns(httpContext);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
-        _passkeyRepositoryMock.VerifyNoOtherCalls();
+        this._httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
+        this._passkeyRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -179,23 +173,23 @@ public class RegisterPasskeyCommandHandlerTests
         var principal = new ClaimsPrincipal(identity);
         httpContext.User = principal;
 
-        _httpContextAccessorMock
+        this._httpContextAccessorMock
             .Setup(x => x.HttpContext)
             .Returns(httpContext);
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.SaveAsync(
                 It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(),
                 CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
-        _passkeyRepositoryMock.Verify(
+        this._httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
+        this._passkeyRepositoryMock.Verify(
             x => x.SaveAsync(
                 It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(),
                 CancellationToken.None),
@@ -216,18 +210,16 @@ public class RegisterPasskeyCommandHandlerTests
             DisplayName: "My Security Key",
             Algorithm: "RS256");
 
-        _httpContextAccessorMock
+        this._httpContextAccessorMock
             .Setup(x => x.HttpContext)
             .Returns((HttpContext?)null);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
-        _passkeyRepositoryMock.VerifyNoOtherCalls();
+        this._httpContextAccessorMock.Verify(x => x.HttpContext, Times.AtLeastOnce());
+        this._passkeyRepositoryMock.VerifyNoOtherCalls();
     }
-
-    #endregion
 }

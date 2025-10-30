@@ -10,7 +10,7 @@ namespace Spamma.App.Client.Pages;
 /// <summary>
 /// Backing code for the home page.
 /// </summary>
-public partial class Home(IQuerier querier, ISignalRService signalRService)
+public partial class Home(IQuerier querier, ISignalRService signalRService) : IDisposable
 {
     private const int DefaultPageSize = 25;
     private IReadOnlyList<SearchEmailsQueryResult.EmailSummary> emails = new List<SearchEmailsQueryResult.EmailSummary>();
@@ -20,13 +20,30 @@ public partial class Home(IQuerier querier, ISignalRService signalRService)
     private bool _isSearching = false;
     private System.Timers.Timer? _searchTimer;
     private SearchEmailsQueryResult? _searchResult;
+    private bool _disposed;
 
     public void Dispose()
     {
-        signalRService.OnNewEmailReceived -= this.OnNewEmailReceived;
-        signalRService.OnEmailDeleted -= this.OnEmailDeleted;
-        signalRService.OnEmailUpdated -= this.OnEmailUpdated;
-        this._searchTimer?.Dispose();
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this._disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            signalRService.OnNewEmailReceived -= this.OnNewEmailReceived;
+            signalRService.OnEmailDeleted -= this.OnEmailDeleted;
+            signalRService.OnEmailUpdated -= this.OnEmailUpdated;
+            this._searchTimer?.Dispose();
+        }
+
+        this._disposed = true;
     }
 
     protected override async Task OnInitializedAsync()
@@ -121,13 +138,21 @@ public partial class Home(IQuerier querier, ISignalRService signalRService)
         {
             // Show pages 1-5 and last page
             visiblePages.AddRange(Enumerable.Range(2, 4));
-            if (totalPages > 6) visiblePages.Add(-1); // -1 represents ellipsis
+            if (totalPages > 6)
+            {
+                visiblePages.Add(-1); // -1 represents ellipsis
+            }
+
             visiblePages.Add(totalPages);
         }
         else if (currentPage >= totalPages - 3)
         {
             // Show first page, ellipsis, and last 5 pages
-            if (totalPages > 6) visiblePages.Add(-1);
+            if (totalPages > 6)
+            {
+                visiblePages.Add(-1);
+            }
+
             visiblePages.AddRange(Enumerable.Range(totalPages - 4, 4));
             visiblePages.Add(totalPages);
         }
