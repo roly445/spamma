@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
   packages: write
-  checks: write
 
 jobs:
   build:
@@ -63,60 +62,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Prepare test-results directory
-        run: mkdir -p test-results
-
-      - name: Build test stage as loadable image
+      - name: Build and test
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile
           target: test
-          load: true
-          tags: spamma:test
           build-args: |
             BUILD_VERSION=${{ steps.meta.outputs.version }}
             BUILD_DATE=${{ steps.date.outputs.tag }}
             VCS_REF=${{ github.sha }}
           cache-from: type=gha
-
-      - name: Extract test results from Docker image
-        run: |
-          echo "Running container to extract test results..."
-          # Create a temporary container and copy files
-          CONTAINER_ID=$(docker create spamma:test)
-          echo "Container ID: $CONTAINER_ID"
-          
-          echo "Listing /test-results in container:"
-          docker cp $CONTAINER_ID:/test-results . 2>/dev/null || echo "Failed to copy from /test-results"
-          
-          # Clean up
-          docker rm $CONTAINER_ID
-          
-          echo "Contents of local test-results:"
-          ls -la test-results/ 2>/dev/null || echo "No test-results directory"
-          
-          echo "Looking for .trx files:"
-          find test-results -name "*.trx" -type f -exec ls -lh {} \; 2>/dev/null || echo "No .trx files found"
-        shell: bash
-
-      - name: Debug - Verify test results exist
-        if: always()
-        run: |
-          echo "=== Test Results Directory Contents ==="
-          if [ -d test-results ]; then
-            find test-results -type f | head -20
-            find test-results -name "*.trx" | wc -l
-          else
-            echo "test-results directory does not exist"
-          fi
-        shell: bash
-
-      - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: 'test-results/**/*.trx'
-          check_name: Docker Build Test Results
-          compare_to_earlier_commit: false
-          fail_on: 'nothing'
