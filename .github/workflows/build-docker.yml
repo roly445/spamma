@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   packages: write
+  checks: write
 
 jobs:
   build:
@@ -80,7 +81,15 @@ jobs:
         run: |
           mkdir -p test-results
           docker run --rm -v $(pwd)/test-results:/tmp/out spamma:test-extract \
-            sh -c 'if [ -d /test-results ]; then cp -r /test-results/* /tmp/out/; fi' || true
+            sh -c 'if [ -d /test-results ] && [ "$(ls -A /test-results)" ]; then cp /test-results/* /tmp/out/ 2>/dev/null; fi; echo "Test results extraction complete"' || true
+        shell: bash
+
+      - name: Check for test results
+        run: |
+          if [ ! -d test-results ] || [ -z "$(ls -A test-results 2>/dev/null)" ]; then
+            echo "WARNING: No test results found in test-results directory"
+            mkdir -p test-results
+          fi
         shell: bash
 
       - name: Publish test results
