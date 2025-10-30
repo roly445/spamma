@@ -1,0 +1,86 @@
+name: Publish & Build Multi-Arch
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag'
+        required: true
+        default: 'latest'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publish artifacts for multiple RIDs
+    runs-on: ubuntu-latest
+    outputs:
+      ts: ${{ steps.ts.outputs.ts }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate timestamp
+        id: ts
+        run: echo "ts=$(date +'%Y%m%d-%H%M%S')" > $GITHUB_OUTPUT
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish for linux-x64 (amd64)
+        run: |
+          mkdir -p publish/linux/amd64
+          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r linux-x64 --self-contained false -o publish/linux/amd64 /p:UseAppHost=false
+
+      - name: Publish for linux-arm64
+        run: |
+          mkdir -p publish/linux/arm64
+          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r linux-arm64 --self-contained false -o publish/linux/arm64 /p:UseAppHost=false
+
+      - name: Upload publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: publish
+
+  docker:
+    name: Build and push multi-arch image
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download publish artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: publish
+          path: publish
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Spamma.App/Spamma.App/Dockerfile.runtime
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-amd64
+            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-arm
