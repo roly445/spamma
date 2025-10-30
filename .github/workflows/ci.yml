@@ -18,12 +18,7 @@ jobs:
     strategy:
       matrix:
         arch: [amd64, arm64]
-        include:
-          - arch: amd64
-            rid: linux-x64
-          - arch: arm64
-            rid: linux-arm64
-    
+        
     permissions:
       contents: read
       checks: write
@@ -32,10 +27,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        if: matrix.arch == 'arm64'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -52,16 +43,32 @@ jobs:
         working-directory: src/Spamma.App/Spamma.App
         run: npm run build
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        if: matrix.arch == 'arm64'
+
+      - name: Build & Test inside ARM64 container
+        if: matrix.arch == 'arm64'
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v "${{ github.workspace }}":/workspace \
+            -w /workspace \
+            mcr.microsoft.com/dotnet/sdk:9.0 \
+            bash -lc "dotnet restore && dotnet build --configuration Release && dotnet test --logger:\"trx;LogFileName=test-results-${{ matrix.arch }}.trx\" --verbosity minimal"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
+        if: matrix.arch == 'amd64'
         with:
           dotnet-version: '9.x'
 
       - name: Clear NuGet cache
         run: dotnet nuget locals all --clear
-
+        if: matrix.arch == 'amd64'
+        
       - name: Restore NuGet packages
         run: dotnet restore
+        if: matrix.arch == 'amd64'
 
       - name: Run tests (${{ matrix.arch }})
         run: |
@@ -71,6 +78,7 @@ jobs:
             --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
             --collect:"XPlat Code Coverage" \
             --results-directory test-results
+        if: matrix.arch == 'amd64'
 
       - name: Publish test results (${{ matrix.arch }})
         if: always()
