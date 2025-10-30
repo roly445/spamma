@@ -14,15 +14,16 @@ on:
 jobs:
   build:
     name: Build & Test (${{ matrix.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
-        arch: [amd64, arm64]
         include:
           - arch: amd64
             rid: linux-x64
+            runs-on: ubuntu-latest
           - arch: arm64
             rid: linux-arm64
+            runs-on: ubuntu-24.04-arm64
     
     permissions:
       contents: read
