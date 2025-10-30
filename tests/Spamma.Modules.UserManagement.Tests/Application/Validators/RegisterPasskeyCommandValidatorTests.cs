@@ -34,6 +34,10 @@ public class RegisterPasskeyCommandValidatorTests
     {
         // Arrange
         var repositoryMock = new Mock<IPasskeyRepository>(MockBehavior.Strict);
+        repositoryMock
+            .Setup(x => x.GetByCredentialIdAsync(It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe<Passkey>.Nothing);
+
         var validator = new RegisterPasskeyCommandValidator(repositoryMock.Object);
 
         var command = CreateValidCommand() with { CredentialId = Array.Empty<byte>() };
