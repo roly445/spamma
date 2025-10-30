@@ -47,13 +47,12 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=nightly-${{ steps.date.outputs.tag }},enable=${{ github.event_name == 'schedule' }}
 
-      - name: Build and push
+      - name: Build and push (AMD64)
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: src/Spamma.App/Spamma.App/Dockerfile
+          file: src/Spamma.App/Spamma.App/Dockerfile.amd64
           push: true
-          platforms: linux/amd64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -63,11 +62,26 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build and test
+      - name: Build and push (ARM)
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: src/Spamma.App/Spamma.App/Dockerfile
+          file: src/Spamma.App/Spamma.App/Dockerfile.arm
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ steps.date.outputs.tag }}
+            VCS_REF=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and test (AMD64)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Spamma.App/Spamma.App/Dockerfile.amd64
           target: test
           build-args: |
             BUILD_VERSION=${{ steps.meta.outputs.version }}
