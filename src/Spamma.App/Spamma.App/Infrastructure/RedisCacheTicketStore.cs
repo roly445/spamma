@@ -7,13 +7,13 @@ namespace Spamma.App.Infrastructure;
 
 public class RedisCacheTicketStore(RedisCacheOptions options) : ITicketStore
 {
-    private const string KeyPrefix = "AuthSessionStore-";
     private readonly IDistributedCache _cache = new RedisCache(options);
 
     public async Task<string> StoreAsync(AuthenticationTicket ticket)
     {
         var guid = Guid.NewGuid();
-        var key = KeyPrefix + guid.ToString();
+        var rawKey = "AuthSessionStore-" + guid.ToString();
+        var key = RedisKeys.WithPrefix(rawKey);
         await this.RenewAsync(key, ticket);
         return key;
     }

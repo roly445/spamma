@@ -17,7 +17,7 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
 
     public async Task<Maybe<CachedUser>> GetUserLookupAsync(Guid userId, bool forceRefresh = false)
     {
-        var key = Prefix + userId;
+        var key = RedisKeys.WithPrefix(Prefix + userId);
         var value = await this._redis.StringGetAsync(key);
 
         if (!value.HasValue || forceRefresh)
@@ -38,6 +38,7 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
                     EmailAddress = result.Data.EmailAddress,
                     Name = result.Data.Name,
                 };
+
                 await this.SetUserLookupAsync(user);
                 return Maybe.From(user);
             }
@@ -56,15 +57,16 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
 
     public async Task SetUserLookupAsync(CachedUser user)
     {
-        var key = Prefix + user.UserId;
+        var key = RedisKeys.WithPrefix(Prefix + user.UserId);
         var json = JsonSerializer.Serialize(user);
+
         await this._redis.StringSetAsync(key, json, this._ttl);
     }
 
     public async Task InvalidateAsync(Guid userId)
     {
-        var key = Prefix + userId;
-        await this._redis.KeyDeleteAsync(key);
+    var key = RedisKeys.WithPrefix(Prefix + userId);
+    await this._redis.KeyDeleteAsync(key);
     }
 
     public class CachedUser
