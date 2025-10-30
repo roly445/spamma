@@ -2,6 +2,7 @@
 using Marten;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;

@@ -13,8 +13,6 @@ namespace Spamma.Modules.UserManagement.Tests.Domain;
 /// </summary>
 public class UserAggregateTests
 {
-    #region StartAuthentication Tests
-
     [Fact]
     public void StartAuthentication_WhenUserNotSuspended_RaisesAuthenticationStartedEvent()
     {
@@ -50,10 +48,6 @@ public class UserAggregateTests
         result.ShouldBeFailed();
     }
 
-    #endregion
-
-    #region Suspend/Unsuspend Tests
-
     [Fact]
     public void Suspend_WhenUserNotSuspended_RaisesAccountSuspendedEvent()
     {
@@ -68,8 +62,6 @@ public class UserAggregateTests
 
         // Verify
         result.ShouldBeOk();
-        // Verify the event was raised with correct data by checking the aggregate state
-        // (The IsSuspended flag should be set after applying the event)
     }
 
     [Fact]
@@ -114,10 +106,6 @@ public class UserAggregateTests
         result.ShouldBeFailed();
     }
 
-    #endregion
-
-    #region ChangeDetails Tests
-
     [Fact]
     public void ChangeDetails_AlwaysRaisesDetailsChangedEvent()
     {
@@ -137,6 +125,4 @@ public class UserAggregateTests
         // Verify
         result.ShouldBeOk();
     }
-
-    #endregion
 }

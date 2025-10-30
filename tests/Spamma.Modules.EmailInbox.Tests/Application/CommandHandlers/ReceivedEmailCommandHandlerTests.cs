@@ -1,19 +1,15 @@
-using Moq;
 using FluentAssertions;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.Common.Client;
-using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Moq;
+using ResultMonad;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers;
 using Spamma.Modules.EmailInbox.Application.Repositories;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Client;
+using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
-using BluQube.Commands;
-using FluentValidation;
-using ResultMonad;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers;
 
@@ -26,17 +22,17 @@ public class ReceivedEmailCommandHandlerTests
 
     public ReceivedEmailCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IEmailRepository>(MockBehavior.Strict);
-        _eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<ReceivedEmailCommandHandler>>();
+        this._repositoryMock = new Mock<IEmailRepository>(MockBehavior.Strict);
+        this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<ReceivedEmailCommandHandler>>();
 
         var validators = Array.Empty<IValidator<ReceivedEmailCommand>>();
 
-        _handler = new ReceivedEmailCommandHandler(
+        this._handler = new ReceivedEmailCommandHandler(
             validators,
-            _loggerMock.Object,
-            _repositoryMock.Object,
-            _eventPublisherMock.Object);
+            this._loggerMock.Object,
+            this._repositoryMock.Object,
+            this._eventPublisherMock.Object);
     }
 
     [Fact]
@@ -51,7 +47,7 @@ public class ReceivedEmailCommandHandlerTests
         var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
         {
             new("test@example.com", "Test User", EmailAddressType.To),
-            new("cc@example.com", "CC User", EmailAddressType.Cc)
+            new("cc@example.com", "CC User", EmailAddressType.Cc),
         };
 
         var command = new ReceivedEmailCommand(
@@ -62,29 +58,29 @@ public class ReceivedEmailCommandHandlerTests
             now,
             emailAddresses);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<EmailReceivedIntegrationEvent>(),
                 CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<Email>(e => e.Id == emailId),
                 CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(
                 It.Is<EmailReceivedIntegrationEvent>(e =>
                     e.EmailId == emailId &&
@@ -106,24 +102,24 @@ public class ReceivedEmailCommandHandlerTests
             DateTime.UtcNow,
             new List<ReceivedEmailCommand.EmailAddress>
             {
-                new("test@example.com", "Test", EmailAddressType.To)
+                new("test@example.com", "Test", EmailAddressType.To),
             });
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -139,7 +135,7 @@ public class ReceivedEmailCommandHandlerTests
             new("to@example.com", "To User", EmailAddressType.To),
             new("cc@example.com", "CC User", EmailAddressType.Cc),
             new("bcc@example.com", "BCC User", EmailAddressType.Bcc),
-            new("from@example.com", "From User", EmailAddressType.From)
+            new("from@example.com", "From User", EmailAddressType.From),
         };
 
         var command = new ReceivedEmailCommand(
@@ -150,25 +146,25 @@ public class ReceivedEmailCommandHandlerTests
             DateTime.UtcNow,
             emailAddresses);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None),
             Times.Once);
     }
@@ -188,7 +184,7 @@ public class ReceivedEmailCommandHandlerTests
             DateTime.UtcNow,
             new List<ReceivedEmailCommand.EmailAddress>
             {
-                new("test1@example.com", "Test 1", EmailAddressType.To)
+                new("test1@example.com", "Test 1", EmailAddressType.To),
             });
 
         var command2 = new ReceivedEmailCommand(
@@ -199,30 +195,30 @@ public class ReceivedEmailCommandHandlerTests
             DateTime.UtcNow,
             new List<ReceivedEmailCommand.EmailAddress>
             {
-                new("test2@example.com", "Test 2", EmailAddressType.To)
+                new("test2@example.com", "Test 2", EmailAddressType.To),
             });
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result1 = await _handler.Handle(command1, CancellationToken.None);
-        var result2 = await _handler.Handle(command2, CancellationToken.None);
+        var result1 = await this._handler.Handle(command1, CancellationToken.None);
+        var result2 = await this._handler.Handle(command2, CancellationToken.None);
 
         // Verify
         result1.Should().NotBeNull();
         result2.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
             Times.Exactly(2));
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None),
             Times.Exactly(2));
     }

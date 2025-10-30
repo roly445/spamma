@@ -9,6 +9,7 @@ public partial class AppLayout(
     IJSRuntime jsRuntime, ISignalRService signalRService, AuthenticationStateProvider authenticationStateProvider) : IDisposable
 {
     private bool showSettingsDropdown;
+    private bool _disposed;
 
     [JSInvokable]
     public void CloseDropdown()
@@ -17,9 +18,25 @@ public partial class AppLayout(
         this.StateHasChanged();
     }
 
-    public async void Dispose()
+    public void Dispose()
     {
-        await signalRService.StopAsync();
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this._disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            signalRService.StopAsync().Wait();
+        }
+
+        this._disposed = true;
     }
 
     protected override async Task OnInitializedAsync()

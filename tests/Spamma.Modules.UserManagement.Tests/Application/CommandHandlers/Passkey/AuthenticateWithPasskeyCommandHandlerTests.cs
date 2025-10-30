@@ -28,22 +28,20 @@ public class AuthenticateWithPasskeyCommandHandlerTests
 
     public AuthenticateWithPasskeyCommandHandlerTests()
     {
-        _passkeyRepositoryMock = new Mock<IPasskeyRepository>(MockBehavior.Loose);
-        _userRepositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<AuthenticateWithPasskeyCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._passkeyRepositoryMock = new Mock<IPasskeyRepository>(MockBehavior.Loose);
+        this._userRepositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<AuthenticateWithPasskeyCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<AuthenticateWithPasskeyCommand>>();
 
-        _handler = new AuthenticateWithPasskeyCommandHandler(
-            _passkeyRepositoryMock.Object,
-            _userRepositoryMock.Object,
-            _timeProvider,
+        this._handler = new AuthenticateWithPasskeyCommandHandler(
+            this._passkeyRepositoryMock.Object,
+            this._userRepositoryMock.Object,
+            this._timeProvider,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
-
-    #region Happy Path Tests
 
     [Fact]
     public async Task Handle_ValidPasskeyWithValidSignCount_AuthenticatesSuccessfully()
@@ -67,37 +65,33 @@ public class AuthenticateWithPasskeyCommandHandlerTests
 
         var command = new AuthenticateWithPasskeyCommand(credentialId, 6); // sign count incremented
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(passkey));
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(user));
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None),
             Times.Once);
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(), CancellationToken.None),
             Times.Once);
     }
-
-    #endregion
-
-    #region Error Path Tests
 
     [Fact]
     public async Task Handle_PasskeyNotFound_ReturnsPasskeyNotFoundError()
@@ -106,20 +100,20 @@ public class AuthenticateWithPasskeyCommandHandlerTests
         var credentialId = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
         var command = new AuthenticateWithPasskeyCommand(credentialId, 1);
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
             .ReturnsAsync(Maybe<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>.Nothing);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None),
             Times.Once);
-        _userRepositoryMock.VerifyNoOtherCalls();
-        _passkeyRepositoryMock.VerifyNoOtherCalls();
+        this._userRepositoryMock.VerifyNoOtherCalls();
+        this._passkeyRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -137,26 +131,26 @@ public class AuthenticateWithPasskeyCommandHandlerTests
 
         var command = new AuthenticateWithPasskeyCommand(credentialId, 6);
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(passkey));
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(Maybe<Spamma.Modules.UserManagement.Domain.UserAggregate.User>.Nothing);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None),
             Times.Once);
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
-        _passkeyRepositoryMock.VerifyNoOtherCalls();
+        this._passkeyRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -176,30 +170,30 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .WithId(userId)
             .WithEmail("suspended@example.com")
             .Build();
-        suspendedUser.Suspend(AccountSuspensionReason.Administrative, "Test suspension", _fixedUtcNow);
+        suspendedUser.Suspend(AccountSuspensionReason.Administrative, "Test suspension", this._fixedUtcNow);
 
         var command = new AuthenticateWithPasskeyCommand(credentialId, 6);
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(passkey));
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(suspendedUser));
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None),
             Times.Once);
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
-        _passkeyRepositoryMock.VerifyNoOtherCalls();
+        this._passkeyRepositoryMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -222,23 +216,23 @@ public class AuthenticateWithPasskeyCommandHandlerTests
 
         var command = new AuthenticateWithPasskeyCommand(credentialId, 5); // sign count NOT incremented (potential cloning attack)
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
             .ReturnsAsync(MaybeMonad.Maybe.From(passkey));
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(MaybeMonad.Maybe.From(user));
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify - should fail during sign count validation
         result.Should().NotBeNull();
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None),
             Times.Once);
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
     }
@@ -263,33 +257,31 @@ public class AuthenticateWithPasskeyCommandHandlerTests
 
         var command = new AuthenticateWithPasskeyCommand(credentialId, 6);
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
             .ReturnsAsync(MaybeMonad.Maybe.From(passkey));
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(MaybeMonad.Maybe.From(user));
 
-        _passkeyRepositoryMock
+        this._passkeyRepositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None),
             Times.Once);
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
-        _passkeyRepositoryMock.Verify(
+        this._passkeyRepositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(), CancellationToken.None),
             Times.Once);
     }
-
-    #endregion
 }

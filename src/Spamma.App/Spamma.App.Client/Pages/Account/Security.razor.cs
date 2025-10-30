@@ -85,7 +85,7 @@ public partial class Security(ICommander commander, IQuerier querier, IJSRuntime
         this.CloseNameModal();
     }
 
-    private async Task RegisterNewPasskey()
+    private void RegisterNewPasskey()
     {
         this.OpenNameModal();
     }

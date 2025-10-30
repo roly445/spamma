@@ -4,6 +4,7 @@ using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;

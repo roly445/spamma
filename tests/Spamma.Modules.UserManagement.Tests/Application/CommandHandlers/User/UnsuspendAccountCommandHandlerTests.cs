@@ -27,19 +27,19 @@ public class UnsuspendAccountCommandHandlerTests
 
     public UnsuspendAccountCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        _eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<UnsuspendAccountCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
+        this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<UnsuspendAccountCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<UnsuspendAccountCommand>>();
 
-        _handler = new UnsuspendAccountCommandHandler(
-            _repositoryMock.Object,
-            _timeProvider,
-            _eventPublisherMock.Object,
+        this._handler = new UnsuspendAccountCommandHandler(
+            this._repositoryMock.Object,
+            this._timeProvider,
+            this._eventPublisherMock.Object,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
 
     [Fact]
@@ -51,22 +51,22 @@ public class UnsuspendAccountCommandHandlerTests
 
         var userMaybe = Maybe<UserAggregate>.Nothing;
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.VerifyNoOtherCalls();
-        _eventPublisherMock.VerifyNoOtherCalls();
+        this._repositoryMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -79,22 +79,22 @@ public class UnsuspendAccountCommandHandlerTests
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.VerifyNoOtherCalls();
-        _eventPublisherMock.VerifyNoOtherCalls();
+        this._repositoryMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -102,46 +102,46 @@ public class UnsuspendAccountCommandHandlerTests
     {
         // Arrange
         var user = new UserBuilder().Build();
-        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", _fixedUtcNow);
+        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", this._fixedUtcNow);
 
         var userId = user.Id;
         var command = new UnsuspendAccountCommand(userId);
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<UserUnsuspendedIntegrationEvent>(),
                 CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(
                 It.Is<UserUnsuspendedIntegrationEvent>(e =>
                     e.UserId == userId &&
-                    e.WhenHappened == _fixedUtcNow),
+                    e.WhenHappened == this._fixedUtcNow),
                 CancellationToken.None),
             Times.Once);
     }
@@ -151,36 +151,36 @@ public class UnsuspendAccountCommandHandlerTests
     {
         // Arrange
         var user = new UserBuilder().Build();
-        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", _fixedUtcNow);
+        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", this._fixedUtcNow);
 
         var userId = user.Id;
         var command = new UnsuspendAccountCommand(userId);
 
         var userMaybe = Maybe.From(user);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(userId, CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -190,42 +190,42 @@ public class UnsuspendAccountCommandHandlerTests
         var user1 = new UserBuilder().WithEmail("user1@example.com").Build();
         var user2 = new UserBuilder().WithEmail("user2@example.com").Build();
 
-        user1.Suspend(AccountSuspensionReason.Administrative, "Suspended 1", _fixedUtcNow);
-        user2.Suspend(AccountSuspensionReason.PolicyViolation, "Suspended 2", _fixedUtcNow);
+        user1.Suspend(AccountSuspensionReason.Administrative, "Suspended 1", this._fixedUtcNow);
+        user2.Suspend(AccountSuspensionReason.PolicyViolation, "Suspended 2", this._fixedUtcNow);
 
         var command1 = new UnsuspendAccountCommand(user1.Id);
         var command2 = new UnsuspendAccountCommand(user2.Id);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(user1.Id, CancellationToken.None))
             .ReturnsAsync(Maybe.From(user1));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(user2.Id, CancellationToken.None))
             .ReturnsAsync(Maybe.From(user2));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<UserUnsuspendedIntegrationEvent>(),
                 CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act & Verify
-        var result1 = await _handler.Handle(command1, CancellationToken.None);
+        var result1 = await this._handler.Handle(command1, CancellationToken.None);
         result1.Should().NotBeNull();
 
-        var result2 = await _handler.Handle(command2, CancellationToken.None);
+        var result2 = await this._handler.Handle(command2, CancellationToken.None);
         result2.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Exactly(2));
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<UserUnsuspendedIntegrationEvent>(), CancellationToken.None),
             Times.Exactly(2));
     }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 
 namespace Spamma.App.Client.Infrastructure.Services;
 
@@ -62,6 +63,14 @@ public sealed class SignalRService(
             if (this.OnEmailUpdated is not null)
             {
                 await this.OnEmailUpdated.Invoke();
+            }
+        });
+
+        this._hubConnection.On("PermissionsUpdated", async () =>
+        {
+            if (this.OnPermissionsUpdated is not null)
+            {
+                await this.OnPermissionsUpdated.Invoke();
             }
         });
 

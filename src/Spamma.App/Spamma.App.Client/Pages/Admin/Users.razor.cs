@@ -18,6 +18,12 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
     private SearchUsersQueryResult pagedResult = new(new List<SearchUsersQueryResult.UserSummary>(), 0, 0, 0, 0);
     private GetUserStatsQueryResult? userStats;
     private bool isLoading = true;
+    private bool showPasskeysModal;
+    private SearchUsersQueryResult.UserSummary? selectedUserForPasskeys;
+    private List<PasskeyInfo> userPasskeys = new();
+    private HashSet<Guid> selectedPasskeyIds = new();
+    private bool isLoadingPasskeys;
+    private bool isRevokingPasskeys;
 
     protected override async Task OnInitializedAsync()
     {
@@ -108,33 +114,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         this.isLoading = false;
         this.StateHasChanged();
     }
-
-    public class UserSearchRequest
-    {
-        public string? SearchTerm { get; set; }
-
-        public UserStatus? Status { get; set; }
-
-        public int Page { get; set; } = 1;
-
-        public int PageSize { get; set; } = 20;
-
-        public string SortBy { get; set; } = "CreatedAt";
-
-        public bool SortDescending { get; set; } = true;
-    }
-
-    public abstract class BaseUserModel
-    {
-        public SystemRole Roles { get; set; } = 0;
-    }
-
-    private bool showPasskeysModal;
-    private SearchUsersQueryResult.UserSummary? selectedUserForPasskeys;
-    private List<PasskeyInfo> userPasskeys = new();
-    private HashSet<Guid> selectedPasskeyIds = new();
-    private bool isLoadingPasskeys;
-    private bool isRevokingPasskeys;
 
     /// <summary>
     /// Opens the passkeys management modal for a specific user.
@@ -284,6 +263,53 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         this.userPasskeys.Clear();
         this.selectedPasskeyIds.Clear();
         this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Request parameters for searching users.
+    /// </summary>
+    public class UserSearchRequest
+    {
+        /// <summary>
+        /// Gets or sets the search term to filter users.
+        /// </summary>
+        public string? SearchTerm { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user status filter.
+        /// </summary>
+        public UserStatus? Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets the page number.
+        /// </summary>
+        public int Page { get; set; } = 1;
+
+        /// <summary>
+        /// Gets or sets the page size.
+        /// </summary>
+        public int PageSize { get; set; } = 20;
+
+        /// <summary>
+        /// Gets or sets the field to sort by.
+        /// </summary>
+        public string SortBy { get; set; } = "CreatedAt";
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to sort in descending order.
+        /// </summary>
+        public bool SortDescending { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Base class for user models with role support.
+    /// </summary>
+    public abstract class BaseUserModel
+    {
+        /// <summary>
+        /// Gets or sets the user roles.
+        /// </summary>
+        public SystemRole Roles { get; set; } = 0;
     }
 
     /// <summary>

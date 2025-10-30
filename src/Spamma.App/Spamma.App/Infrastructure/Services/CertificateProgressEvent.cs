@@ -18,7 +18,7 @@ public sealed class CertificateProgressEvent
     /// <summary>
     /// Gets the progress percentage (0-100).
     /// </summary>
-    public int ProgressPercentage => (Step * 100) / TotalSteps;
+    public int ProgressPercentage => (this.Step * 100) / this.TotalSteps;
 
     /// <summary>
     /// Gets the step message describing what is currently happening.
@@ -28,5 +28,5 @@ public sealed class CertificateProgressEvent
     /// <summary>
     /// Gets a value indicating whether the certificate generation is complete.
     /// </summary>
-    public bool IsComplete => Step >= TotalSteps;
+    public bool IsComplete => this.Step >= this.TotalSteps;
 }

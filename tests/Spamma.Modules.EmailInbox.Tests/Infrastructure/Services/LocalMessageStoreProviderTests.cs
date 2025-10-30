@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 using Moq;
-using ResultMonad;
 using Spamma.Modules.Common.Application.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -33,7 +32,7 @@ public class LocalMessageStoreProviderTests
             var message = new MimeMessage
             {
                 Subject = "Test Email",
-                From = { new MailboxAddress("sender", "sender@example.com") }
+                From = { new MailboxAddress("sender", "sender@example.com") },
             };
 
             // Act
@@ -71,7 +70,7 @@ public class LocalMessageStoreProviderTests
             var message = new MimeMessage
             {
                 Subject = "Test Email",
-                From = { new MailboxAddress("sender", "sender@example.com") }
+                From = { new MailboxAddress("sender", "sender@example.com") },
             };
 
             // Act
@@ -106,7 +105,7 @@ public class LocalMessageStoreProviderTests
             var message = new MimeMessage
             {
                 Subject = "Test Email",
-                From = { new MailboxAddress("sender", "sender@example.com") }
+                From = { new MailboxAddress("sender", "sender@example.com") },
             };
 
             var hostEnvironmentMock = new Mock<IHostEnvironment>();
@@ -175,7 +174,7 @@ public class LocalMessageStoreProviderTests
             {
                 Subject = "Test Email",
                 From = { new MailboxAddress("sender", "sender@example.com") },
-                To = { new MailboxAddress("recipient", "recipient@example.com") }
+                To = { new MailboxAddress("recipient", "recipient@example.com") },
             };
 
             var hostEnvironmentMock = new Mock<IHostEnvironment>();
@@ -274,6 +273,7 @@ public class LocalMessageStoreProviderTests
     private class DirectoryWrapperImpl : IDirectoryWrapper
     {
         public void CreateDirectory(string path) => Directory.CreateDirectory(path);
+
         public bool Exists(string path) => Directory.Exists(path);
     }
 

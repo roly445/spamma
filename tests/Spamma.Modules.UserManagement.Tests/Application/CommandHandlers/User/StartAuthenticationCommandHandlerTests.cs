@@ -27,20 +27,20 @@ public class StartAuthenticationCommandHandlerTests
 
     public StartAuthenticationCommandHandlerTests()
     {
-        _userRepositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        _eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<StartAuthenticationCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
-        
+        this._userRepositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
+        this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<StartAuthenticationCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
+
         // Pass empty validators collection since we're not testing validation logic
         var validators = Array.Empty<IValidator<StartAuthenticationCommand>>();
 
-        _handler = new StartAuthenticationCommandHandler(
-            _userRepositoryMock.Object,
-            _timeProvider,
-            _eventPublisherMock.Object,
+        this._handler = new StartAuthenticationCommandHandler(
+            this._userRepositoryMock.Object,
+            this._timeProvider,
+            this._eventPublisherMock.Object,
             validators,
-            _loggerMock.Object);
+            this._loggerMock.Object);
     }
 
     [Fact]
@@ -50,22 +50,22 @@ public class StartAuthenticationCommandHandlerTests
         var command = new StartAuthenticationCommand("unknown@example.com");
         var userMaybe = Maybe<UserAggregate>.Nothing;
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByEmailAddressAsync("unknown@example.com", CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify - CommandResult doesn't have public properties to inspect success/failure
         result.Should().NotBeNull();
 
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByEmailAddressAsync("unknown@example.com", CancellationToken.None),
             Times.Once);
-        
-        _userRepositoryMock.VerifyNoOtherCalls();
-        _eventPublisherMock.VerifyNoOtherCalls();
+
+        this._userRepositoryMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -77,27 +77,27 @@ public class StartAuthenticationCommandHandlerTests
             .Build();
 
         // Suspend the user first
-        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", _fixedUtcNow);
+        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", this._fixedUtcNow);
 
         var userMaybe = Maybe.From(user);
         var command = new StartAuthenticationCommand("suspended@example.com");
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByEmailAddressAsync("suspended@example.com", CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByEmailAddressAsync("suspended@example.com", CancellationToken.None),
             Times.Once);
-        
-        _userRepositoryMock.VerifyNoOtherCalls();
-        _eventPublisherMock.VerifyNoOtherCalls();
+
+        this._userRepositoryMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -111,30 +111,30 @@ public class StartAuthenticationCommandHandlerTests
         var userMaybe = Maybe.From(user);
         var command = new StartAuthenticationCommand("valid@example.com");
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByEmailAddressAsync("valid@example.com", CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
         // Mock repository save to fail
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByEmailAddressAsync("valid@example.com", CancellationToken.None),
             Times.Once);
 
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.VerifyNoOtherCalls();
+        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -148,36 +148,36 @@ public class StartAuthenticationCommandHandlerTests
         var userMaybe = Maybe.From(user);
         var command = new StartAuthenticationCommand("active@example.com");
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByEmailAddressAsync("active@example.com", CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<AuthenticationStartedIntegrationEvent>(),
                 CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.GetByEmailAddressAsync("active@example.com", CancellationToken.None),
             Times.Once);
 
-        _userRepositoryMock.Verify(
+        this._userRepositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
             Times.Once);
 
         // Verify event published with correct data
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(
                 It.Is<AuthenticationStartedIntegrationEvent>(e =>
                     e.UserId == user.Id &&
@@ -197,46 +197,50 @@ public class StartAuthenticationCommandHandlerTests
         var userMaybe = Maybe.From(user);
         var command = new StartAuthenticationCommand("duplicate@example.com");
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.GetByEmailAddressAsync("duplicate@example.com", CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         AuthenticationStartedIntegrationEvent? capturedEvent1 = null;
         AuthenticationStartedIntegrationEvent? capturedEvent2 = null;
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(
                 It.IsAny<AuthenticationStartedIntegrationEvent>(),
                 CancellationToken.None))
             .Callback<AuthenticationStartedIntegrationEvent, CancellationToken>((e, _) =>
             {
                 if (capturedEvent1 == null)
+                {
                     capturedEvent1 = e;
+                }
                 else
+                {
                     capturedEvent2 = e;
+                }
             })
             .Returns(Task.CompletedTask);
 
         // Act - First authentication
-        var result1 = await _handler.Handle(command, CancellationToken.None);
+        var result1 = await this._handler.Handle(command, CancellationToken.None);
         result1.Should().NotBeNull();
 
         // Reset mock for second call
-        _userRepositoryMock.Reset();
-        _userRepositoryMock
+        this._userRepositoryMock.Reset();
+        this._userRepositoryMock
             .Setup(x => x.GetByEmailAddressAsync("duplicate@example.com", CancellationToken.None))
             .ReturnsAsync(userMaybe);
 
-        _userRepositoryMock
+        this._userRepositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act - Second authentication
-        var result2 = await _handler.Handle(command, CancellationToken.None);
+        var result2 = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result2.Should().NotBeNull();

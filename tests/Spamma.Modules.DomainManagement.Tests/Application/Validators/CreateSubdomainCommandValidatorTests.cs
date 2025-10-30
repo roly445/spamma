@@ -1,6 +1,12 @@
 using FluentAssertions;
 using FluentValidation;
+using MaybeMonad;
+using Moq;
+using Spamma.Modules.DomainManagement.Application.Repositories;
+using Spamma.Modules.DomainManagement.Application.Validators;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Infrastructure.Services;
+using DomainAggregate = Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.Validators;
 
@@ -10,35 +16,8 @@ namespace Spamma.Modules.DomainManagement.Tests.Application.Validators;
 /// </summary>
 public class CreateSubdomainCommandValidatorTests
 {
-    private static IValidator<CreateSubdomainCommand> CreateValidator()
-    {
-        // Inline validator for testing purposes
-        var validator = new InlineValidator<CreateSubdomainCommand>();
-        
-        validator.RuleFor(x => x.Name)
-            .NotEmpty()
-            .WithMessage("Subdomain name is required.")
-            .MaximumLength(255)
-            .WithMessage("Subdomain name must not exceed 255 characters.");
-
-        validator.RuleFor(x => x.SubdomainId)
-            .NotEmpty()
-            .WithMessage("Subdomain ID is required.");
-
-        validator.RuleFor(x => x.DomainId)
-            .NotEmpty()
-            .WithMessage("Domain ID is required.");
-
-        validator.RuleFor(x => x.Description)
-            .MaximumLength(1000)
-            .When(x => !string.IsNullOrEmpty(x.Description))
-            .WithMessage("Description must not exceed 1000 characters.");
-
-        return validator;
-    }
-
     [Fact]
-    public void Validate_WithValidCommand_ShouldNotHaveErrors()
+    public async Task Validate_WithValidCommand_ShouldNotHaveErrors()
     {
         // Arrange
         var validator = CreateValidator();
@@ -49,7 +28,7 @@ public class CreateSubdomainCommandValidatorTests
             "Mail server subdomain");
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeTrue();
@@ -57,7 +36,7 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithEmptySubdomainName_ShouldHaveNameRequiredError()
+    public async Task Validate_WithEmptySubdomainName_ShouldHaveNameRequiredError()
     {
         // Arrange
         var validator = CreateValidator();
@@ -68,7 +47,7 @@ public class CreateSubdomainCommandValidatorTests
             "Mail server subdomain");
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeFalse();
@@ -76,7 +55,7 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithEmptySubdomainId_ShouldHaveSubdomainIdRequiredError()
+    public async Task Validate_WithEmptySubdomainId_ShouldHaveSubdomainIdRequiredError()
     {
         // Arrange
         var validator = CreateValidator();
@@ -87,7 +66,7 @@ public class CreateSubdomainCommandValidatorTests
             "Mail server subdomain");
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeFalse();
@@ -95,7 +74,7 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithEmptyDomainId_ShouldHaveDomainIdRequiredError()
+    public async Task Validate_WithEmptyDomainId_ShouldHaveDomainIdRequiredError()
     {
         // Arrange
         var validator = CreateValidator();
@@ -106,7 +85,7 @@ public class CreateSubdomainCommandValidatorTests
             "Mail server subdomain");
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeFalse();
@@ -114,7 +93,7 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithNameExceeding255Characters_ShouldHaveMaxLengthError()
+    public async Task Validate_WithNameExceeding255Characters_ShouldHaveMaxLengthError()
     {
         // Arrange
         var validator = CreateValidator();
@@ -126,7 +105,7 @@ public class CreateSubdomainCommandValidatorTests
             "Description");
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeFalse();
@@ -134,7 +113,7 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithDescriptionExceeding1000Characters_ShouldHaveMaxLengthError()
+    public async Task Validate_WithDescriptionExceeding1000Characters_ShouldHaveMaxLengthError()
     {
         // Arrange
         var validator = CreateValidator();
@@ -146,7 +125,7 @@ public class CreateSubdomainCommandValidatorTests
             longDescription);
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeFalse();
@@ -154,7 +133,7 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithNullDescription_ShouldNotHaveDescriptionError()
+    public async Task Validate_WithNullDescription_ShouldNotHaveDescriptionError()
     {
         // Arrange
         var validator = CreateValidator();
@@ -165,7 +144,7 @@ public class CreateSubdomainCommandValidatorTests
             null);
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeTrue();
@@ -173,22 +152,80 @@ public class CreateSubdomainCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_WithMaxLengthSubdomainName_ShouldPass()
+    public async Task Validate_WithValidLengthSubdomainName_ShouldPass()
     {
         // Arrange
         var validator = CreateValidator();
-        var maxName = new string('a', 255);
+        var validName = "mail";
         var command = new CreateSubdomainCommand(
             Guid.NewGuid(),
             Guid.NewGuid(),
-            maxName,
+            validName,
             "Description");
 
         // Act
-        var result = validator.Validate(command);
+        var result = await validator.ValidateAsync(command);
 
         // Verify
         result.IsValid.Should().BeTrue();
         result.Errors.Should().BeEmpty();
+    }
+
+    private static IValidator<CreateSubdomainCommand> CreateValidator()
+    {
+        var domainRepositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
+        domainRepositoryMock
+            .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Returns<Guid, CancellationToken>((domainId, ct) =>
+            {
+                if (domainId == Guid.Empty)
+                {
+                    return Task.FromResult(Maybe<DomainAggregate.Domain>.Nothing);
+                }
+
+                var result = DomainAggregate.Domain.Create(
+                    domainId,
+                    "example.com",
+                    "admin@example.com",
+                    "Example domain",
+                    DateTime.UtcNow);
+
+                if (result.IsSuccess)
+                {
+                    return Task.FromResult(Maybe.From(result.Value));
+                }
+
+                return Task.FromResult(Maybe<DomainAggregate.Domain>.Nothing);
+            });
+
+        var domainParserServiceMock = new Mock<IDomainParserService>(MockBehavior.Strict);
+        domainParserServiceMock
+            .Setup(x => x.IsValidDomain(It.IsAny<string>()))
+            .Returns<string>(domain =>
+            {
+                if (string.IsNullOrWhiteSpace(domain))
+                {
+                    return false;
+                }
+
+                var parts = domain.Split('.');
+                if (parts.Length < 2)
+                {
+                    return false;
+                }
+
+                foreach (var part in parts)
+                {
+                    if (string.IsNullOrWhiteSpace(part) || part.Length > 63 || part.StartsWith('-') || part.EndsWith('-'))
+                    {
+                        return false;
+                    }
+                }
+
+                var tld = parts[parts.Length - 1];
+                return tld.Length >= 2 && !char.IsDigit(tld[0]);
+            });
+
+        return new CreateSubdomainCommandValidator(domainRepositoryMock.Object, domainParserServiceMock.Object);
     }
 }

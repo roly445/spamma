@@ -1,44 +1,14 @@
 using FluentAssertions;
 using FluentValidation;
+using Moq;
+using Spamma.Modules.DomainManagement.Application.Validators;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Infrastructure.Services;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.Validators;
 
-/// <summary>
-/// Tests for domain creation validation rules.
-/// Domain names must be valid hostnames with appropriate length and format.
-/// </summary>
 public class CreateDomainCommandValidatorTests
 {
-    private static IValidator<CreateDomainCommand> CreateValidator()
-    {
-        // For now, we'll create a basic validator inline since none exists
-        // In a real scenario, this would test the actual CreateDomainCommandValidator
-        var validator = new InlineValidator<CreateDomainCommand>();
-        
-        validator.RuleFor(x => x.Name)
-            .NotEmpty()
-            .WithMessage("Domain name is required.")
-            .MaximumLength(255)
-            .WithMessage("Domain name must not exceed 255 characters.");
-
-        validator.RuleFor(x => x.DomainId)
-            .NotEmpty()
-            .WithMessage("Domain ID is required.");
-
-        validator.RuleFor(x => x.PrimaryContactEmail)
-            .EmailAddress()
-            .When(x => !string.IsNullOrEmpty(x.PrimaryContactEmail))
-            .WithMessage("Primary contact email must be a valid email address.");
-
-        validator.RuleFor(x => x.Description)
-            .MaximumLength(1000)
-            .When(x => !string.IsNullOrEmpty(x.Description))
-            .WithMessage("Description must not exceed 1000 characters.");
-
-        return validator;
-    }
-
     [Fact]
     public void Validate_WithValidCommand_ShouldNotHaveErrors()
     {
@@ -95,6 +65,25 @@ public class CreateDomainCommandValidatorTests
         // Verify
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "Name" && e.ErrorMessage.Contains("255 characters"));
+    }
+
+    [Fact]
+    public void Validate_WithInvalidDomainFormat_ShouldHaveDomainFormatError()
+    {
+        // Arrange
+        var validator = CreateValidator();
+        var command = new CreateDomainCommand(
+            Guid.NewGuid(),
+            "invalid",
+            "admin@example.com",
+            "Example domain");
+
+        // Act
+        var result = validator.Validate(command);
+
+        // Verify
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "Name" && e.ErrorMessage.Contains("valid registrable domain"));
     }
 
     [Fact]
@@ -211,5 +200,43 @@ public class CreateDomainCommandValidatorTests
         // Verify
         result.IsValid.Should().BeTrue();
         result.Errors.Should().BeEmpty();
+    }
+
+    private static IValidator<CreateDomainCommand> CreateValidator()
+    {
+        var domainParserServiceMock = new Mock<IDomainParserService>(MockBehavior.Strict);
+        domainParserServiceMock
+            .Setup(x => x.IsValidDomain(It.IsAny<string>()))
+            .Returns<string>(domain =>
+            {
+                // Mock implementation: return true for valid domains like "example.com", "test.co.uk"
+                // This simulates the Public Suffix List validation
+                if (string.IsNullOrWhiteSpace(domain))
+                {
+                    return false;
+                }
+
+                // Simple check: must have at least one dot and valid structure
+                var parts = domain.Split('.');
+                if (parts.Length < 2)
+                {
+                    return false;
+                }
+
+                // Both parts must have content
+                foreach (var part in parts)
+                {
+                    if (string.IsNullOrWhiteSpace(part) || part.Length > 63 || part.StartsWith('-') || part.EndsWith('-'))
+                    {
+                        return false;
+                    }
+                }
+
+                // TLD must be at least 2 chars and not numeric
+                var tld = parts[parts.Length - 1];
+                return tld.Length >= 2 && !char.IsDigit(tld[0]);
+            });
+
+        return new CreateDomainCommandValidator(domainParserServiceMock.Object);
     }
 }

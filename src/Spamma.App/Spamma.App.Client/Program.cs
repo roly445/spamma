@@ -9,6 +9,7 @@ using Spamma.App.Client.Infrastructure.Contracts;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.App.Client.Infrastructure.Services;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Client;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.UserManagement.Client;

@@ -30,4 +30,3 @@ public record GenerateCertificateResponse
     /// </summary>
     public required string Message { get; init; }
 }
-

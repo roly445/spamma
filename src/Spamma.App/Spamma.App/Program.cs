@@ -34,6 +34,7 @@ using Spamma.Modules.Common;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.Common.Application.Contracts;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.DomainManagement;

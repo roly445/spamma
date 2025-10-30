@@ -59,5 +59,3 @@ public class SmtpCertificateService(ILogger<SmtpCertificateService> logger)
         }
     }
 }
-
-

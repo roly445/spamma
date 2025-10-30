@@ -72,4 +72,3 @@ public sealed class AcmeChallengeServer : IAcmeChallengeResponder
         return null;
     }
 }
-

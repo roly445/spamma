@@ -3,35 +3,43 @@ using System.Security.Claims;
 using MaybeMonad;
 using Microsoft.AspNetCore.Components.Authorization;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 
 namespace Spamma.App.Client.Infrastructure.Auth;
 
-public interface IRefreshableAuthenticationStateProvider
-{
-    Task RefreshAuthenticationStateAsync();
-}
-
+/// <summary>
+/// Provides authentication state management and refresh capability for Blazor WebAssembly client.
+/// </summary>
 public class RefreshableAuthenticationStateProvider(
     HttpClient httpClient,
     ILogger<RefreshableAuthenticationStateProvider> logger)
     : AuthenticationStateProvider, IRefreshableAuthenticationStateProvider
 {
-    private AuthenticationState _currentAuthenticationState = new(new ClaimsPrincipal(new ClaimsIdentity()));
-
+    /// <summary>
+    /// Gets the current authentication state asynchronously.
+    /// </summary>
+    /// <returns>The current authentication state.</returns>
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         var maybe = await this.FetchUserAuthInfoAsync();
+        AuthenticationState currentAuthenticationState;
         if (maybe.HasNoValue || !maybe.Value.IsAuthenticated)
         {
-            this._currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        }
+        else
+        {
+            var identity = CreateClaimsIdentity(maybe.Value);
+            currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal(identity));
         }
 
-        var identity = CreateClaimsIdentity(maybe.Value);
-        this._currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal(identity));
-
-        return this._currentAuthenticationState;
+        return currentAuthenticationState;
     }
 
+    /// <summary>
+    /// Refreshes the authentication state by fetching updated user information from the server.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task RefreshAuthenticationStateAsync()
     {
         ClaimsPrincipal user;
@@ -47,10 +55,15 @@ public class RefreshableAuthenticationStateProvider(
             user = new ClaimsPrincipal(identity);
         }
 
-        this._currentAuthenticationState = new AuthenticationState(user);
-        this.NotifyAuthenticationStateChanged(Task.FromResult(this._currentAuthenticationState));
+        var currentAuthenticationState = new AuthenticationState(user);
+        this.NotifyAuthenticationStateChanged(Task.FromResult(currentAuthenticationState));
     }
 
+    /// <summary>
+    /// Creates a claims identity from user authentication information.
+    /// </summary>
+    /// <param name="userInfo">The user authentication information.</param>
+    /// <returns>A claims identity populated with user information.</returns>
     private static ClaimsIdentity CreateClaimsIdentity(UserAuthInfo userInfo)
     {
         var claims = new List<Claim>
@@ -73,6 +86,10 @@ public class RefreshableAuthenticationStateProvider(
         return new ClaimsIdentity(claims, "ServerAuth");
     }
 
+    /// <summary>
+    /// Fetches current user authentication information from the server.
+    /// </summary>
+    /// <returns>User authentication information if available; otherwise, Nothing.</returns>
     private async Task<Maybe<UserAuthInfo>> FetchUserAuthInfoAsync()
     {
         try

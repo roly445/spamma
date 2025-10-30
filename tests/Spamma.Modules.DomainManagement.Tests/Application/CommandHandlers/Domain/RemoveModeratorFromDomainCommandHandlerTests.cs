@@ -1,10 +1,8 @@
-using Moq;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using ResultMonad;
+using FluentValidation;
 using MaybeMonad;
-using Spamma.Modules.Common.Client;
-using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
@@ -12,8 +10,6 @@ using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
-using BluQube.Commands;
-using FluentValidation;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Domain;
 
@@ -28,19 +24,19 @@ public class RemoveModeratorFromDomainCommandHandlerTests
 
     public RemoveModeratorFromDomainCommandHandlerTests()
     {
-        _repositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
-        _eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<RemoveModeratorFromDomainCommandHandler>>();
-        _timeProvider = new StubTimeProvider(_fixedUtcNow);
+        this._repositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
+        this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<RemoveModeratorFromDomainCommandHandler>>();
+        this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
         var validators = Array.Empty<IValidator<RemoveModeratorFromDomainCommand>>();
 
-        _handler = new RemoveModeratorFromDomainCommandHandler(
-            _repositoryMock.Object,
-            _timeProvider,
+        this._handler = new RemoveModeratorFromDomainCommandHandler(
+            this._repositoryMock.Object,
+            this._timeProvider,
             validators,
-            _loggerMock.Object,
-            _eventPublisherMock.Object);
+            this._loggerMock.Object,
+            this._eventPublisherMock.Object);
     }
 
     [Fact]
@@ -53,40 +49,40 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
-            .WithModerator(userId, _fixedUtcNow.AddSeconds(-10))
+            .WithModerator(userId, this._fixedUtcNow.AddSeconds(-10))
             .Build();
 
         var command = new RemoveModeratorFromDomainCommand(domainId, userId);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(It.IsAny<UserRemovedFromBeingDomainModeratorIntegrationEvent>(), CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.GetByIdAsync(domainId, CancellationToken.None),
             Times.Once);
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(d => d.Id == domainId),
                 CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(
                 It.Is<UserRemovedFromBeingDomainModeratorIntegrationEvent>(e =>
                     e.UserId == userId && e.DomainId == domainId),
@@ -102,21 +98,21 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var userId = Guid.NewGuid();
         var command = new RemoveModeratorFromDomainCommand(domainId, userId);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>.Nothing);
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Never);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<UserRemovedFromBeingDomainModeratorIntegrationEvent>(), CancellationToken.None),
             Times.Never);
     }
@@ -131,30 +127,30 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
-            .WithModerator(userId, _fixedUtcNow.AddSeconds(-10))
+            .WithModerator(userId, this._fixedUtcNow.AddSeconds(-10))
             .Build();
 
         var command = new RemoveModeratorFromDomainCommand(domainId, userId);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
+        var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
         result.Should().NotBeNull();
 
-        _repositoryMock.Verify(
+        this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Once);
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<UserRemovedFromBeingDomainModeratorIntegrationEvent>(), CancellationToken.None),
             Times.Never);
     }
@@ -170,34 +166,34 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
-            .WithModerator(userId1, _fixedUtcNow.AddSeconds(-20))
-            .WithModerator(userId2, _fixedUtcNow.AddSeconds(-10))
+            .WithModerator(userId1, this._fixedUtcNow.AddSeconds(-20))
+            .WithModerator(userId2, this._fixedUtcNow.AddSeconds(-10))
             .Build();
 
         var command1 = new RemoveModeratorFromDomainCommand(domainId, userId1);
         var command2 = new RemoveModeratorFromDomainCommand(domainId, userId2);
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
 
-        _repositoryMock
+        this._repositoryMock
             .Setup(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        _eventPublisherMock
+        this._eventPublisherMock
             .Setup(x => x.PublishAsync(It.IsAny<UserRemovedFromBeingDomainModeratorIntegrationEvent>(), CancellationToken.None))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result1 = await _handler.Handle(command1, CancellationToken.None);
-        var result2 = await _handler.Handle(command2, CancellationToken.None);
+        var result1 = await this._handler.Handle(command1, CancellationToken.None);
+        var result2 = await this._handler.Handle(command2, CancellationToken.None);
 
         // Verify
         result1.Should().NotBeNull();
         result2.Should().NotBeNull();
 
-        _eventPublisherMock.Verify(
+        this._eventPublisherMock.Verify(
             x => x.PublishAsync(It.IsAny<UserRemovedFromBeingDomainModeratorIntegrationEvent>(), CancellationToken.None),
             Times.Exactly(2));
     }

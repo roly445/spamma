@@ -1,4 +1,4 @@
-﻿namespace Spamma.Modules.Common.Client;
+﻿namespace Spamma.Modules.Common.Client.Infrastructure.Constants;
 
 public static class Lookups
 {

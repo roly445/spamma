@@ -126,7 +126,7 @@ internal sealed class CertesLetsEncryptService : ICertesLetsEncryptService
 
             progressPublisher?.Report("Step 5 of 6: Waiting for order to be ready...");
             this._logger.LogInformation("Waiting for order to be ready for finalization");
-            
+
             // Wait for order to be ready (status = "Ready")
             var readyAttempts = 0;
             var maxReadyAttempts = 30;
@@ -203,8 +203,8 @@ internal sealed class CertesLetsEncryptService : ICertesLetsEncryptService
             }
             catch (Exception ex)
             {
-                this._logger.LogError(ex, "Failed to generate PFX certificate");
-                throw;
+                this._logger.LogError(ex, "Failed to generate PFX certificate for domain: {Domain}", domain);
+                throw new InvalidOperationException($"Failed to generate PFX certificate for domain {domain}", ex);
             }
 
             if (pfxBytes == null)
@@ -225,6 +225,3 @@ internal sealed class CertesLetsEncryptService : ICertesLetsEncryptService
         }
     }
 }
-
-
-

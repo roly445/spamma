@@ -15,29 +15,27 @@ public class PasskeyAggregateTests
     private readonly byte[] _publicKey = new byte[] { 0xA0, 0xA1, 0xA2, 0xA3 };
     private readonly DateTime _fixedUtcNow = new(2024, 10, 15, 10, 30, 00, DateTimeKind.Utc);
 
-    #region Registration Tests
-
     [Fact]
     public void Register_WithValidParameters_CreatesPasskeySuccessfully()
     {
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: "My Security Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
-        result.Value.UserId.Should().Be(_userId);
+        result.Value.UserId.Should().Be(this._userId);
         result.Value.DisplayName.Should().Be("My Security Key");
         result.Value.Algorithm.Should().Be("ES256");
         result.Value.SignCount.Should().Be(0);
         result.Value.IsRevoked.Should().BeFalse();
-        result.Value.RegisteredAt.Should().Be(_fixedUtcNow);
+        result.Value.RegisteredAt.Should().Be(this._fixedUtcNow);
         result.Value.LastUsedAt.Should().BeNull();
         result.Value.RevokedAt.Should().BeNull();
     }
@@ -48,12 +46,12 @@ public class PasskeyAggregateTests
         // Act
         var result = Passkey.Register(
             Guid.Empty,
-            _credentialId,
-            _publicKey,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: "My Security Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
@@ -64,13 +62,13 @@ public class PasskeyAggregateTests
     {
         // Act
         var result = Passkey.Register(
-            _userId,
+            this._userId,
             new byte[0],
-            _publicKey,
+            this._publicKey,
             signCount: 0,
             displayName: "My Security Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
@@ -81,13 +79,13 @@ public class PasskeyAggregateTests
     {
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
+            this._userId,
+            this._credentialId,
             new byte[0],
             signCount: 0,
             displayName: "My Security Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
@@ -98,13 +96,13 @@ public class PasskeyAggregateTests
     {
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: string.Empty,
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
@@ -115,13 +113,13 @@ public class PasskeyAggregateTests
     {
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: "   ",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
@@ -132,48 +130,44 @@ public class PasskeyAggregateTests
     {
         // Act
         var result1 = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: "Key 1",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         var result2 = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: "Key 2",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result1.Value.Id.Should().NotBe(result2.Value.Id);
     }
-
-    #endregion
-
-    #region Authentication Tests
 
     [Fact]
     public void RecordAuthentication_WithIncrementedSignCount_UpdatesPasskeySuccessfully()
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(5)
             .Build();
 
         // Act
-        var result = passkey.RecordAuthentication(newSignCount: 6, usedAt: _fixedUtcNow);
+        var result = passkey.RecordAuthentication(newSignCount: 6, usedAt: this._fixedUtcNow);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
         passkey.SignCount.Should().Be(6);
-        passkey.LastUsedAt.Should().Be(_fixedUtcNow);
+        passkey.LastUsedAt.Should().Be(this._fixedUtcNow);
     }
 
     [Fact]
@@ -181,12 +175,12 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(5)
             .Build();
 
-        var laterTime = _fixedUtcNow.AddSeconds(30);
+        var laterTime = this._fixedUtcNow.AddSeconds(30);
 
         // Act
         var result = passkey.RecordAuthentication(newSignCount: 5, usedAt: laterTime);
@@ -202,13 +196,13 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(10)
             .Build();
 
         // Act
-        var result = passkey.RecordAuthentication(newSignCount: 9, usedAt: _fixedUtcNow);
+        var result = passkey.RecordAuthentication(newSignCount: 9, usedAt: this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
@@ -220,42 +214,38 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(5)
-            .AsRevoked(_fixedUtcNow.AddHours(-1), _userId)
+            .AsRevoked(this._fixedUtcNow.AddHours(-1), this._userId)
             .Build();
 
         // Act
-        var result = passkey.RecordAuthentication(newSignCount: 6, usedAt: _fixedUtcNow);
+        var result = passkey.RecordAuthentication(newSignCount: 6, usedAt: this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
         passkey.LastUsedAt.Should().BeNull(); // Not updated
     }
 
-    #endregion
-
-    #region Revocation Tests
-
     [Fact]
     public void Revoke_WithValidParameters_RevokesPasskeySuccessfully()
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .Build();
 
         var revokedByUserId = Guid.NewGuid();
 
         // Act
-        var result = passkey.Revoke(revokedByUserId, _fixedUtcNow);
+        var result = passkey.Revoke(revokedByUserId, this._fixedUtcNow);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
         passkey.IsRevoked.Should().BeTrue();
-        passkey.RevokedAt.Should().Be(_fixedUtcNow);
+        passkey.RevokedAt.Should().Be(this._fixedUtcNow);
         passkey.RevokedByUserId.Should().Be(revokedByUserId);
     }
 
@@ -264,36 +254,32 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
-            .AsRevoked(_fixedUtcNow.AddHours(-1), _userId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
+            .AsRevoked(this._fixedUtcNow.AddHours(-1), this._userId)
             .Build();
 
         var revokedByUserId = Guid.NewGuid();
 
         // Act
-        var result = passkey.Revoke(revokedByUserId, _fixedUtcNow);
+        var result = passkey.Revoke(revokedByUserId, this._fixedUtcNow);
 
         // Verify
         result.IsFailure.Should().BeTrue();
     }
-
-    #endregion
-
-    #region State Tests
 
     [Fact]
     public void Passkey_InitialState_IsNotRevoked()
     {
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: 0,
             displayName: "Test Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.Value.IsRevoked.Should().BeFalse();
@@ -310,13 +296,13 @@ public class PasskeyAggregateTests
 
         // Act
         var result = Passkey.Register(
-            _userId,
+            this._userId,
             customCredentialId,
-            _publicKey,
+            this._publicKey,
             signCount: 0,
             displayName: "Test Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.Value.CredentialId.Should().Equal(customCredentialId);
@@ -330,35 +316,31 @@ public class PasskeyAggregateTests
 
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
+            this._userId,
+            this._credentialId,
             customPublicKey,
             signCount: 0,
             displayName: "Test Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.Value.PublicKey.Should().Equal(customPublicKey);
     }
-
-    #endregion
-
-    #region Edge Cases
 
     [Fact]
     public void RecordAuthentication_MultipleIncrements_MaintainsCorrectSignCount()
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(0)
             .Build();
 
-        var time1 = _fixedUtcNow;
-        var time2 = _fixedUtcNow.AddSeconds(10);
-        var time3 = _fixedUtcNow.AddSeconds(20);
+        var time1 = this._fixedUtcNow;
+        var time2 = this._fixedUtcNow.AddSeconds(10);
+        var time3 = this._fixedUtcNow.AddSeconds(20);
 
         // Act
         passkey.RecordAuthentication(newSignCount: 1, usedAt: time1);
@@ -375,13 +357,13 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(0)
             .Build();
 
         // Act - Sign count stays at 0 (first authentication)
-        var result = passkey.RecordAuthentication(newSignCount: 0, usedAt: _fixedUtcNow);
+        var result = passkey.RecordAuthentication(newSignCount: 0, usedAt: this._fixedUtcNow);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
@@ -393,13 +375,13 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithSignCount(10)
             .Build();
 
         // Act - Large jump is acceptable as long as it's greater than current
-        var result = passkey.RecordAuthentication(newSignCount: 1000, usedAt: _fixedUtcNow);
+        var result = passkey.RecordAuthentication(newSignCount: 1000, usedAt: this._fixedUtcNow);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
@@ -411,13 +393,13 @@ public class PasskeyAggregateTests
     {
         // Act
         var result = Passkey.Register(
-            _userId,
-            _credentialId,
-            _publicKey,
+            this._userId,
+            this._credentialId,
+            this._publicKey,
             signCount: uint.MaxValue,
             displayName: "High Count Key",
             algorithm: "ES256",
-            _fixedUtcNow);
+            this._fixedUtcNow);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
@@ -429,15 +411,15 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithDisplayName("My Key")
             .WithAlgorithm("RS256")
             .WithSignCount(42)
             .Build();
 
         var revokedByUserId = Guid.NewGuid();
-        var revokedAt = _fixedUtcNow;
+        var revokedAt = this._fixedUtcNow;
 
         // Act
         passkey.Revoke(revokedByUserId, revokedAt);
@@ -453,8 +435,8 @@ public class PasskeyAggregateTests
     {
         // Arrange
         var passkey = new PasskeyBuilder()
-            .WithUserId(_userId)
-            .WithCredentialId(_credentialId)
+            .WithUserId(this._userId)
+            .WithCredentialId(this._credentialId)
             .WithDisplayName("My Key")
             .WithAlgorithm("RS256")
             .WithSignCount(42)
@@ -468,7 +450,7 @@ public class PasskeyAggregateTests
         var revokedByUserId = Guid.NewGuid();
 
         // Act
-        passkey.Revoke(revokedByUserId, _fixedUtcNow);
+        passkey.Revoke(revokedByUserId, this._fixedUtcNow);
 
         // Verify non-revocation properties unchanged
         passkey.UserId.Should().Be(originalUserId);
@@ -476,6 +458,4 @@ public class PasskeyAggregateTests
         passkey.Algorithm.Should().Be(originalAlgorithm);
         passkey.SignCount.Should().Be(originalSignCount);
     }
-
-    #endregion
 }

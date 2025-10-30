@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;

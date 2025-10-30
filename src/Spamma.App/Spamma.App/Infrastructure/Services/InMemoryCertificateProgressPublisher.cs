@@ -8,7 +8,7 @@ namespace Spamma.App.Infrastructure.Services;
 /// </summary>
 public sealed class InMemoryCertificateProgressPublisher : ICertificateProgressPublisher
 {
-    private static readonly ConcurrentDictionary<string, Channel<CertificateProgressEvent>> ActiveChannels = 
+    private static readonly ConcurrentDictionary<string, Channel<CertificateProgressEvent>> ActiveChannels =
         new();
 
     /// <summary>

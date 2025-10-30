@@ -1,0 +1,8 @@
+is_global = true
+
+# Spamma Analyzer Rules (SPAMMA prefix)
+
+# SPAMMA001: Query Must Have Validator
+# Severity: Error (enforced at build time)
+# Severity options: none, silent, suggestion, warning, error
+dotnet_diagnostic.SPAMMA001.severity = error

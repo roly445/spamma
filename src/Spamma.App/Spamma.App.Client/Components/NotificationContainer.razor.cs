@@ -9,10 +9,27 @@ namespace Spamma.App.Client.Components;
 public partial class NotificationContainer(INotificationService notificationService) : ComponentBase, IDisposable
 {
     private List<Notification> notifications = new();
+    private bool _disposed;
 
     public void Dispose()
     {
-        notificationService.OnChange -= this.HandleNotificationChange;
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this._disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            notificationService.OnChange -= this.HandleNotificationChange;
+        }
+
+        this._disposed = true;
     }
 
     protected override void OnInitialized()
