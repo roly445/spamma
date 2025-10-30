@@ -24,15 +24,11 @@ public class SendWelcomeEmailToNewUsers(
 
         var emailBody = new List<Tuple<EmailTemplateSection, ImmutableArray<string>>>
         {
-            new(
-                EmailTemplateSection.Text,
-                [
-                    $"Dear {WebUtility.HtmlEncode(ev.Name)},",
-                    "You have been added to the Spamma platform. We are pleased to welcome you as a new user.",
-                    $"To access the platform, please visit: {settings.Value.BaseUri}",
-                    "Best regards,",
-                    "The Spamma Team"
-                ]),
+            new(EmailTemplateSection.Text, [$"Dear {WebUtility.HtmlEncode(ev.Name)},"]),
+            new(EmailTemplateSection.Text, ["You have been added to the Spamma platform. We are pleased to welcome you as a new user."]),
+            new(EmailTemplateSection.Text, [$"To access the platform, please visit: {settings.Value.BaseUri}"]),
+            new(EmailTemplateSection.Text, ["Best regards,"]),
+            new(EmailTemplateSection.Text, ["The Spamma Team"]),
         };
         return emailSender.SendEmailAsync(ev.Name, ev.EmailAddress, "Register", emailBody);
     }

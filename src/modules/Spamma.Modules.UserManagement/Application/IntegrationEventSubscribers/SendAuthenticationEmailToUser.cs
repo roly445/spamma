@@ -25,22 +25,18 @@ public class SendAuthenticationEmailToUser(IAuthTokenProvider authTokenProvider,
         var encodedString = WebUtility.UrlEncode(token.Value);
         var emailBody = new List<Tuple<EmailTemplateSection, ImmutableArray<string>>>
         {
-            new(EmailTemplateSection.Text,  [
-                $"Hi {ev.Name},",
-                "Click the link below to sign in to Spamma:"
-            ]),
+            new(EmailTemplateSection.Text, [$"Hi {ev.Name},"]),
+            new(EmailTemplateSection.Text, ["Click the link below to sign in to Spamma:"]),
             new(
                 EmailTemplateSection.ActionLink,
                 [
                     string.Format(settings.Value.LoginUri, encodedString),
                     "Sign in to Spamma"
                 ]),
-            new(EmailTemplateSection.Text,  [
-                $"If the link does not open, copy and paste the following URL into your browser:",
-                "Click the link below to sign in to Spamma:",
-                string.Format(settings.Value.LoginUri, encodedString),
-                "If you did not request this, you can safely ignore this message."
-            ]),
+            new(EmailTemplateSection.Text, ["If the link does not open, copy and paste the following URL into your browser:"]),
+            new(EmailTemplateSection.Text, ["Click the link below to sign in to Spamma:"]),
+            new(EmailTemplateSection.Text, [string.Format(settings.Value.LoginUri, encodedString)]),
+            new(EmailTemplateSection.Text, ["If you did not request this, you can safely ignore this message."]),
         };
         await emailSender.SendEmailAsync(ev.Name, ev.EmailAddress, "Authenticate your Spamma account", emailBody);
     }
