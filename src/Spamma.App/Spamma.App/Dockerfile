@@ -38,11 +38,13 @@ RUN dotnet build "./Spamma.App.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS test
 WORKDIR "/src"
+COPY [".git", "/src/.git"]
 COPY ["tests/Spamma.Tests.Common/Spamma.Tests.Common.csproj", "tests/Spamma.Tests.Common/"]
 COPY ["tests/Spamma.Modules.UserManagement.Tests/Spamma.Modules.UserManagement.Tests.csproj", "tests/Spamma.Modules.UserManagement.Tests/"]
 COPY ["tests/Spamma.Modules.DomainManagement.Tests/Spamma.Modules.DomainManagement.Tests.csproj", "tests/Spamma.Modules.DomainManagement.Tests/"]
 COPY ["tests/Spamma.Modules.EmailInbox.Tests/Spamma.Modules.EmailInbox.Tests.csproj", "tests/Spamma.Modules.EmailInbox.Tests/"]
 COPY tests/ tests/
+RUN mkdir -p /test-results
 RUN dotnet test "tests/Spamma.Modules.UserManagement.Tests/Spamma.Modules.UserManagement.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/UserManagement.trx" || exit 1
 RUN dotnet test "tests/Spamma.Modules.DomainManagement.Tests/Spamma.Modules.DomainManagement.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/DomainManagement.trx" || exit 1
 RUN dotnet test "tests/Spamma.Modules.EmailInbox.Tests/Spamma.Modules.EmailInbox.Tests.csproj" --no-build --configuration Release --logger "trx;LogFileName=/test-results/EmailInbox.trx" || exit 1
