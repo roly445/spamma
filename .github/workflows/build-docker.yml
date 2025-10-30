@@ -63,35 +63,53 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build test image for extraction
+      - name: Prepare test-results directory
+        run: mkdir -p test-results
+
+      - name: Build test stage as loadable image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile
-          load: true
           target: test
+          load: true
+          tags: spamma:test
           build-args: |
             BUILD_VERSION=${{ steps.meta.outputs.version }}
             BUILD_DATE=${{ steps.date.outputs.tag }}
             VCS_REF=${{ github.sha }}
-          tags: spamma:test-extract
           cache-from: type=gha
 
-      - name: Extract test results from Docker
+      - name: Extract test results from Docker image
         run: |
-          mkdir -p test-results
-          echo "Extracting test results from Docker image..."
-          docker run --rm -v $(pwd)/test-results:/tmp/out spamma:test-extract \
-            sh -c 'echo "Contents of /test-results:"; ls -la /test-results/ 2>/dev/null || echo "Directory not found"; if [ -d /test-results ] && [ "$(ls -A /test-results 2>/dev/null)" ]; then echo "Copying test results..."; cp /test-results/* /tmp/out/ 2>/dev/null && echo "Copy successful" || echo "Copy failed"; else echo "No test results found"; fi' || true
-          echo "Local test-results directory:"
-          ls -la test-results/ 2>/dev/null || echo "test-results directory not found"
+          echo "Running container to extract test results..."
+          # Create a temporary container and copy files
+          CONTAINER_ID=$(docker create spamma:test)
+          echo "Container ID: $CONTAINER_ID"
+          
+          echo "Listing /test-results in container:"
+          docker cp $CONTAINER_ID:/test-results . 2>/dev/null || echo "Failed to copy from /test-results"
+          
+          # Clean up
+          docker rm $CONTAINER_ID
+          
+          echo "Contents of local test-results:"
+          ls -la test-results/ 2>/dev/null || echo "No test-results directory"
+          
+          echo "Looking for .trx files:"
+          find test-results -name "*.trx" -type f -exec ls -lh {} \; 2>/dev/null || echo "No .trx files found"
         shell: bash
 
-      - name: Debug - List all files in test-results
+      - name: Debug - Verify test results exist
         if: always()
         run: |
-          echo "Final test-results contents:"
-          find test-results -type f -name "*.trx" 2>/dev/null | head -20 || echo "No .trx files found"
+          echo "=== Test Results Directory Contents ==="
+          if [ -d test-results ]; then
+            find test-results -type f | head -20
+            find test-results -name "*.trx" | wc -l
+          else
+            echo "test-results directory does not exist"
+          fi
         shell: bash
 
       - name: Publish test results
