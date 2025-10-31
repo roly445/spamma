@@ -18,6 +18,9 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Nager.PublicSuffix;
+using Nager.PublicSuffix.RuleProviders;
+using Nager.PublicSuffix.RuleProviders.CacheProviders;
 using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Components;
@@ -287,6 +290,11 @@ builder.Services.AddSingleton<AcmeChallengeServer>();
 builder.Services.AddSingleton<IAcmeChallengeResponder>(sp => sp.GetRequiredService<AcmeChallengeServer>());
 builder.Services.AddHostedService<CertificateRenewalBackgroundService>();
 
+builder.Services.AddHttpClient(); //Required for CachedHttpRuleProvider
+builder.Services.AddSingleton<ICacheProvider, LocalFileSystemCacheProvider>();
+builder.Services.AddSingleton<IRuleProvider, CachedHttpRuleProvider>();
+builder.Services.AddSingleton<IDomainParser, DomainParser>();
+
 builder.Host.ApplyJasperFxExtensions();
 
 var app = builder.Build();
@@ -308,6 +316,12 @@ app.UseAntiforgery();
 app.UseSession();
 app.UseAcmeChallenge();
 app.UseMiddleware<SetupModeMiddleware>();
+
+var ruleProvider = app.Services.GetService<IRuleProvider>();
+if (ruleProvider != null)
+{
+    await ruleProvider.BuildAsync();
+}
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
