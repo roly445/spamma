@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  checks: write
   packages: write
 
 jobs:
@@ -24,9 +25,7 @@ jobs:
           - arch: arm64
             rid: linux-arm64
             runs-on: [self-hosted, linux, arm64]
-    outputs:
-      ts: ${{ steps.ts.outputs.ts }}
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
