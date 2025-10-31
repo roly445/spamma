@@ -56,7 +56,7 @@ jobs:
         run: dotnet nuget locals all --clear
 
       - name: Restore NuGet packages
-        run: dotnet restore
+        run: dotnet restore -r ${{ matrix.rid }}
 
       - name: Run tests (${{ matrix.arch }})
         run: |
