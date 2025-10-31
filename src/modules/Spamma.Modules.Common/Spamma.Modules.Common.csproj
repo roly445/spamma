@@ -13,7 +13,7 @@
     <ItemGroup>
       <PackageReference Include="DotNetCore.CAP" Version="8.4.1" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-      <PackageReference Include="Marten" Version="8.13.0" />
+      <PackageReference Include="Marten" Version="8.13.3" />
       <PackageReference Include="MaybeMonad" Version="1.0.1.1" />
       <PackageReference Include="MediatR.Behaviors.Authorization" Version="12.5.0" />
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />

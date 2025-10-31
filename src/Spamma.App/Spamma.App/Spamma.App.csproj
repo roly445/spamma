@@ -39,21 +39,21 @@
         <PackageReference Include="FluentEmail.Smtp" Version="3.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.10" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.10" />
-        <PackageReference Include="Marten" Version="8.13.0" />
-        <PackageReference Include="Marten.AspNetCore" Version="8.13.0" />
-        <PackageReference Include="BluQube" Version="1.0.1" />
+        <PackageReference Include="Marten" Version="8.13.3" />
+        <PackageReference Include="Marten.AspNetCore" Version="8.13.3" />
+        <PackageReference Include="BluQube" Version="1.0.3" />
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
         <PackageReference Include="Nager.PublicSuffix" Version="3.7.0" />
         <PackageReference Include="SmtpServer" Version="11.0.0" />
         <PackageReference Include="FluentValidation" Version="12.0.0" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
         <PackageReference Include="Certes" Version="3.0.4" />
-        <PackageReference Include="OpenTelemetry" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
+        <PackageReference Include="OpenTelemetry" Version="1.13.1" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.13.1" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.13.1" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.13.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.13.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.13.0" />
         <PackageReference Include="MinVer" Version="6.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
