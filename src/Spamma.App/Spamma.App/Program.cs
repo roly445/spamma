@@ -13,6 +13,7 @@ using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -73,6 +74,10 @@ builder.Services.AddRazorComponents()
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<ICommander, Commander>();
 builder.Services.AddScoped<IQuerier, Querier>();
+
+// Configure data protection for consistent cookie encryption across container restarts
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/certs/keys"));
 
 builder.Services.Configure<Settings>(opt => builder.Configuration.GetSection("Settings").Bind(opt));
 builder.Services.Configure<SetupSettings>(opt => builder.Configuration.GetSection("Setup").Bind(opt));
@@ -290,7 +295,7 @@ builder.Services.AddSingleton<AcmeChallengeServer>();
 builder.Services.AddSingleton<IAcmeChallengeResponder>(sp => sp.GetRequiredService<AcmeChallengeServer>());
 builder.Services.AddHostedService<CertificateRenewalBackgroundService>();
 
-builder.Services.AddHttpClient(); //Required for CachedHttpRuleProvider
+builder.Services.AddHttpClient(); // Required for CachedHttpRuleProvider
 builder.Services.AddSingleton<ICacheProvider, LocalFileSystemCacheProvider>();
 builder.Services.AddSingleton<IRuleProvider, CachedHttpRuleProvider>();
 builder.Services.AddSingleton<IDomainParser, DomainParser>();

@@ -61,7 +61,7 @@ COPY --from=publish /app/publish .
 # Create messages directory for email storage (volume mount point)
 RUN mkdir -p /app/messages && chown -R $APP_UID:$APP_UID /app/messages
 
-# Create certs directory for SMTP TLS certificates (volume mount point)
-RUN mkdir -p /app/certs && chown -R $APP_UID:$APP_UID /app/certs
+# Create certs directory for SMTP TLS certificates and data protection keys (volume mount point)
+RUN mkdir -p /app/certs/keys && chown -R $APP_UID:$APP_UID /app/certs
 
 ENTRYPOINT ["dotnet", "Spamma.App.dll"]
