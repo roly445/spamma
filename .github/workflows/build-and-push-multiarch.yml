@@ -46,47 +46,16 @@ jobs:
         working-directory: src/Spamma.App/Spamma.App
         run: npm run build
 
-      - name: Setup .NET
-        if: matrix.arch == 'amd64'
-        uses: actions/setup-dotnet@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build application in Docker (${{ matrix.arch }})
+        uses: docker/build-push-action@v5
         with:
-          dotnet-version: '9.x'
-
-      - name: Clear NuGet cache
-        run: dotnet nuget locals all --clear
-
-      - name: Restore NuGet packages
-        run: dotnet restore src/Spamma.App/Spamma.App/Spamma.App.csproj --interactive false
-
-      - name: Run tests (${{ matrix.arch }})
-        run: |
-          dotnet test \
-            --configuration Release \
-            --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
-            --collect:"XPlat Code Coverage" \
-            --results-directory test-results
-
-      - name: Publish test results (${{ matrix.arch }})
-        if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: test-results/**/*.trx
-          check_name: Test Results (${{ matrix.arch }})
-
-      - name: Publish for ${{ matrix.arch }}
-        run: |
-          mkdir -p publish
-          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj \
-            -c Release \
-            --self-contained false \
-            -o publish \
-            /p:UseAppHost=false \
-            /p:SelfContainedWasm=false \
-            /p:PublishTrimmed=false \
-            /p:PublishReadyToRun=false \
-            /p:DebugType=none \
-            /p:DebugSymbols=false \
-            /p:SkipBlazorWebAssemblyPlugins=true
+          context: .
+          file: src/Spamma.App/Spamma.App/Dockerfile.${{ matrix.arch == 'amd64' && 'amd64' || 'arm' }}
+          target: publish
+          outputs: type=local,dest=publish
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
