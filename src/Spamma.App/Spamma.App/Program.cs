@@ -138,7 +138,7 @@ builder.Services
             };
         }
 
-        if (bool.TryParse(builder.Configuration["Settings:EmailSmtpUseSsl"], out var useSsl))
+        if (bool.TryParse(builder.Configuration["Settings:EmailSmtpUseTls"], out var useSsl))
         {
             client.EnableSsl = useSsl;
         }

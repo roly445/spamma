@@ -29,6 +29,7 @@ public class DatabaseConfigurationProvider(string connectionString, ILogger<Data
             "smtp.port" => "Settings:EmailSmtpPort",
             "smtp.username" => "Settings:EmailSmtpUsername",
             "smtp.password" => "Settings:EmailSmtpPassword",
+            "smtp.useTls" => "Settings:EmailSmtpUseTls",
             "from.email" => "Settings:FromEmailAddress",
             "from.name" => "Settings:FromName",
             "security.signingKey" => "Settings:SigningKeyBase64",
