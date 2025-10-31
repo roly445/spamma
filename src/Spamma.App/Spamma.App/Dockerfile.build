@@ -4,9 +4,14 @@ WORKDIR /src
 
 # Copy frontend files
 COPY ["src/Spamma.App/Spamma.App/package*.json", "./"]
+COPY ["src/Spamma.App/Spamma.App/Assets", "./Assets"]
+COPY ["src/Spamma.App/Spamma.App/webpack.config.js", "./"]
 
 # Install dependencies and build
 RUN npm ci && npm run build
+
+# List output for debugging
+RUN ls -la
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 
@@ -20,7 +25,7 @@ COPY ["shared/", "shared/"]
 COPY ["global.json", "."]
 
 # Copy built frontend assets from frontend-build stage
-COPY --from=frontend-build /src/dist src/Spamma.App/Spamma.App/wwwroot
+COPY --from=frontend-build /src/wwwroot src/Spamma.App/Spamma.App/wwwroot
 
 # Restore and build
 RUN dotnet restore
