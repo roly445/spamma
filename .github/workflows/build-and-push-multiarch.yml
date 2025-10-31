@@ -85,7 +85,8 @@ jobs:
             /p:PublishTrimmed=false \
             /p:PublishReadyToRun=false \
             /p:DebugType=none \
-            /p:DebugSymbols=false
+            /p:DebugSymbols=false \
+            /p:SkipBlazorWebAssemblyPlugins=true
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
