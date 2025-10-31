@@ -31,7 +31,6 @@ public static class Module
 
         // Register domain parser service - will be initialized by hosted service
         services.AddSingleton<IDomainParserService, DomainParserService>();
-        services.AddHostedService<DomainParserInitializationService>();
 
         return services;
     }
