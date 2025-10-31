@@ -3,6 +3,9 @@ using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Client.Infrastructure.Contracts;
@@ -17,6 +20,21 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 await LoadAppSettingsAsync(builder);
+
+// Configure WASM client traces to go through server proxy
+// This avoids CORS issues and centralizes telemetry routing
+// Set OTEL_EXPORTER_OTLP_ENDPOINT environment variable on server to control where traces go
+var clientOtelEndpoint = $"{builder.HostEnvironment.BaseAddress.TrimEnd('/')}/api/otel/traces";
+Environment.SetEnvironmentVariable("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", clientOtelEndpoint);
+
+// Configure OpenTelemetry for client-side observability
+// Traces HTTP calls and other client operations
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+        tracing
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter())
+    .ConfigureResource(r => r.AddService("spamma-client"));
 
 // Now you can configure IOptions as usual
 builder.Services.Configure<Settings>(builder.Configuration.GetSection("Settings"));

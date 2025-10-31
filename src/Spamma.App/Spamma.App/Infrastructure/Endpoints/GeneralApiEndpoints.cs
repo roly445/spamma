@@ -32,6 +32,14 @@ internal static class GeneralApiEndpoints
 
         app.MapGenerateCertificateEndpoint();
         app.MapGenerateCertificateStreamEndpoint();
+
+        // OTLP trace collection endpoint for WASM client
+        // WASM client sends traces here, server forwards to real OTLP collector
+        app.MapPost("api/otel/traces", ForwardOtelTraces)
+            .WithName("ForwardOtelTraces")
+            .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status500InternalServerError)
+            .DisableAntiforgery(); // OTEL collector doesn't use CSRF tokens
     }
 
     /// <summary>
@@ -93,5 +101,64 @@ internal static class GeneralApiEndpoints
             authProperties);
 
         return Results.Json(userResult.Value);
+    }
+
+    /// <summary>
+    /// Proxy endpoint for WASM client OTEL traces.
+    /// Receives protobuf traces from client and forwards to configured OTLP collector endpoint.
+    /// </summary>
+    private static async Task<IResult> ForwardOtelTraces(
+        HttpContext httpContext,
+        IHttpClientFactory httpClientFactory,
+        ILogger logger)
+    {
+        try
+        {
+            // Get the OTLP collector endpoint from environment
+            var otelEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+            if (string.IsNullOrEmpty(otelEndpoint))
+            {
+                // If not configured, just return OK (telemetry is optional)
+                logger.LogWarning("OTEL_EXPORTER_OTLP_ENDPOINT not configured, WASM client traces will be discarded");
+                return Results.Ok();
+            }
+
+            // Ensure endpoint ends with /v1/traces
+            if (!otelEndpoint.EndsWith('/'))
+            {
+                otelEndpoint += "/";
+            }
+
+            var tracesEndpoint = $"{otelEndpoint}v1/traces";
+
+            // Read the request body (protobuf traces)
+            var memoryStream = new MemoryStream();
+            await httpContext.Request.Body.CopyToAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            // Forward to real OTLP collector
+            using var client = httpClientFactory.CreateClient();
+            var response = await client.PostAsync(
+                tracesEndpoint,
+                new StreamContent(memoryStream)
+                {
+                    Headers = { ContentType = new("application/x-protobuf"), },
+                });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogWarning(
+                    "Failed to forward WASM traces to {Endpoint}: {Status}",
+                    tracesEndpoint,
+                    response.StatusCode);
+            }
+
+            return Results.Ok();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error forwarding WASM client traces");
+            return Results.StatusCode(StatusCodes.Status500InternalServerError);
+        }
     }
 }
