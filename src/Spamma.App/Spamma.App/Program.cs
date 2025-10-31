@@ -22,6 +22,11 @@ using Microsoft.IdentityModel.Tokens;
 using Nager.PublicSuffix;
 using Nager.PublicSuffix.RuleProviders;
 using Nager.PublicSuffix.RuleProviders.CacheProviders;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Components;
@@ -52,6 +57,26 @@ using StackExchange.Redis;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure OpenTelemetry for logs, metrics, and traces
+// Uses OTLP exporter for maximum flexibility with any backend
+// Configure endpoint via environment: OTEL_EXPORTER_OTLP_ENDPOINT=http://your-backend:4317
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing =>
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter())
+    .WithMetrics(metrics =>
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter())
+    .ConfigureResource(r => r.AddService("spamma"));
+
+builder.Logging.AddOpenTelemetry(options =>
+    options.AddOtlpExporter());
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
