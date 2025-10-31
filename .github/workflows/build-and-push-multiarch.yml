@@ -48,20 +48,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and publish in Docker (${{ matrix.arch }})
+      - name: Build application in Docker (${{ matrix.arch }})
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile
           target: publish
-          outputs: type=local,dest=publish-output
-          platforms: linux/${{ matrix.arch == 'amd64' && 'amd64' || 'arm64' }}
+          load: true
+          tags: spamma:publish-${{ matrix.arch }}
+
+      - name: Extract publish artifacts from Docker
+        run: |
+          docker create --name temp-container spamma:publish-${{ matrix.arch }}
+          docker cp temp-container:/app/publish ./publish
+          docker rm temp-container
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
         with:
           name: publish-${{ matrix.arch }}
-          path: publish-output/app/publish
+          path: publish
 
   docker:
     name: Build and push multi-arch image
