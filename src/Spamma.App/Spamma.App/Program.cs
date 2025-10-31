@@ -42,6 +42,7 @@ using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.DomainManagement;
+using Spamma.Modules.DomainManagement.Infrastructure.Services;
 using Spamma.Modules.EmailInbox;
 using Spamma.Modules.UserManagement;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
@@ -326,6 +327,14 @@ var ruleProvider = app.Services.GetService<IRuleProvider>();
 if (ruleProvider != null)
 {
     await ruleProvider.BuildAsync();
+}
+
+// Initialize domain parser service with the built rule provider
+var domainParser = app.Services.GetService<IDomainParser>();
+var domainParserService = app.Services.GetService<IDomainParserService>();
+if (domainParser != null && domainParserService != null)
+{
+    domainParserService.SetDomainParser(domainParser);
 }
 
 app.MapStaticAssets();
