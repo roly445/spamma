@@ -41,13 +41,27 @@ Then access Jaeger UI at `http://localhost:16686`
 
 ## What's Instrumented
 
-### Tracing
+### Server-Side Tracing
 
 - **ASP.NET Core**: Incoming HTTP requests, response times, error codes
 - **HTTP Client**: Outgoing HTTP calls (external APIs, webhooks)
 - **Custom Spans**: Domain logic, CQRS handlers (add `ITracer` injection if needed)
 
-### Metrics
+### Client-Side Tracing (WASM)
+
+- **HTTP Calls**: All fetch calls to backend APIs (automatically traced)
+- **Component Lifecycle**: Blazor component rendering and updates
+- **User Interactions**: Button clicks, form submissions (with custom instrumentation)
+
+**How it works**:
+
+1. WASM client traces its operations
+2. Client sends traces to server proxy endpoint (`/api/otel/traces`)
+3. Server receives traces and forwards to real OTLP collector
+4. All traces (server + client) appear in same observability backend
+5. Complete user journey visible: browser → API → database
+
+### Server-Side Metrics
 
 - **ASP.NET Core**: Active connections, request counts, latencies, errors
 - **HTTP Client**: Request duration, active connections
@@ -97,7 +111,9 @@ export OTEL_EXPORTER_OTLP_HEADERS="dd-api-key=YOUR_API_KEY"
 
 ## Development Setup
 
-### Quick Start with Jaeger
+### Quick Start with Jaeger (Recommended)
+
+This setup captures traces from both server and WASM client.
 
 1. **Start Jaeger**:
 
@@ -105,18 +121,41 @@ export OTEL_EXPORTER_OTLP_HEADERS="dd-api-key=YOUR_API_KEY"
    docker run -d -p 4317:4317 -p 16686:16686 jaegertracing/all-in-one:latest
    ```
 
-2. **Run Spamma**:
+2. **Run Spamma** (with OTEL endpoint configured):
 
    ```bash
    export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
    dotnet run --project src/Spamma.App/Spamma.App
    ```
 
-3. **Open UI** at `http://localhost:16686`
-   - Select "spamma" service
-   - View traces, spans, latencies, errors
+3. **Generate some traces**:
+   - Open `http://localhost:5000` (or your Spamma instance)
+   - Create a domain, send an email, or perform any action
 
-### Custom Instrumentation
+4. **View traces in Jaeger UI** at `http://localhost:16686`:
+   - Select **"spamma"** service (server traces)
+   - Select **"spamma-client"** service (WASM client traces)
+   - Click any trace to see full request waterfall
+   - View both client and server spans in same trace
+   - See timing, errors, and custom tags
+
+**Example trace visualization**:
+
+```text
+User clicks "Create Domain" button
+├─ Client-side (spamma-client)
+│  ├─ [5ms] Form validation
+│  └─ [45ms] HTTP POST /api/domain-management/create-domain
+│     └─ [4500ms] Network roundtrip
+│
+└─ Server-side (spamma)
+   └─ [4450ms] POST /api/domain-management/create-domain
+      ├─ [2000ms] Domain validation
+      ├─ [1500ms] Database insert
+      └─ [950ms] Event publishing
+```
+
+### Quick Start with Docker Compose (Production-like)
 
 To add custom tracing to domain logic:
 
@@ -149,6 +188,27 @@ builder.Services.AddOpenTelemetry()
         .AddSource("Spamma.Modules.*")
         .AddOtlpExporter());
 ```
+
+### Tracing Client-Side Issues (WASM)
+
+When debugging user issues, check for both server and client traces:
+
+**Example Scenario**: "Form submission hangs for 10 seconds"
+
+1. **Client traces** show:
+   - 100ms: Form validation passed
+   - 50ms: HTTP POST sent to `/api/users/create`
+   - 9500ms: **Waiting for response** (shows network latency)
+   - 200ms: Response received, processing
+   
+2. **Server traces** show:
+   - 20ms: Request received
+   - 5000ms: Database insert slow (show query)
+   - 50ms: Response sent
+   
+3. **Conclusion**: Network latency is issue (9500ms client wait vs 5000ms server processing)
+
+Without client traces, you'd only see server processed in 5 seconds—misleading!
 
 ## Performance Considerations
 
