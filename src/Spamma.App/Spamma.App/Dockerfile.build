@@ -1,0 +1,60 @@
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /src
+
+# Copy frontend files
+COPY ["src/Spamma.App/Spamma.App/package*.json", "./"]
+
+# Install dependencies and build
+RUN npm ci && npm run build
+
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /src
+
+# Copy solution and project files
+COPY ["Spamma.sln", "."]
+COPY ["src/", "src/"]
+COPY ["tests/", "tests/"]
+COPY ["shared/", "shared/"]
+COPY ["global.json", "."]
+
+# Copy built frontend assets from frontend-build stage
+COPY --from=frontend-build /src/dist src/Spamma.App/Spamma.App/wwwroot
+
+# Restore and build
+RUN dotnet restore
+
+# Run tests
+RUN dotnet test \
+    --configuration Release \
+    --no-restore \
+    --logger "trx;LogFileName=test-results.trx" \
+    --collect:"XPlat Code Coverage" \
+    --results-directory test-results
+
+# Publish
+FROM build AS publish
+RUN dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj \
+    -c Release \
+    --no-restore \
+    --self-contained false \
+    -o /app/publish \
+    /p:UseAppHost=false \
+    /p:SelfContainedWasm=false
+
+# Final runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+
+WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
+EXPOSE 25
+EXPOSE 587
+
+COPY --from=publish /app/publish ./
+
+# Create directories expected by the app
+RUN mkdir -p /app/messages /app/certs
+
+ENTRYPOINT ["dotnet", "Spamma.App.dll"]
