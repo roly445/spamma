@@ -63,6 +63,7 @@ jobs:
           dotnet test \
             -r ${{ matrix.rid }} \
             --configuration Release \
+            --no-restore \
             --logger "trx;LogFileName=test-results-${{ matrix.arch }}.trx" \
             --collect:"XPlat Code Coverage" \
             --results-directory test-results
@@ -77,7 +78,7 @@ jobs:
       - name: Publish for ${{ matrix.arch }}
         run: |
           mkdir -p publish
-          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r ${{ matrix.rid }} --self-contained false -o publish /p:UseAppHost=false
+          dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj -c Release -r ${{ matrix.rid }} --self-contained false --no-restore -o publish /p:UseAppHost=false
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
