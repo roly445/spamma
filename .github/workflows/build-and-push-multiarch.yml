@@ -56,7 +56,7 @@ jobs:
         run: dotnet nuget locals all --clear
 
       - name: Restore NuGet packages
-        run: dotnet restore src/Spamma.App/Spamma.App/Spamma.App.csproj
+        run: dotnet restore src/Spamma.App/Spamma.App/Spamma.App.csproj --interactive false
 
       - name: Run tests (${{ matrix.arch }})
         run: |
