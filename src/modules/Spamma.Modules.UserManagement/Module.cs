@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.UserManagement.Application.Repositories;
+using Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
 using Spamma.Modules.UserManagement.Infrastructure.Projections;
 using Spamma.Modules.UserManagement.Infrastructure.Repositories;
 
@@ -39,6 +40,8 @@ public static class Module
 
     public static JsonOptions AddJsonConvertersForUserManagement(this JsonOptions jsonOptions)
     {
+        // Add converter for byte[] to handle WebAuthn credential data properly
+        jsonOptions.SerializerOptions.Converters.Add(new ByteArrayJsonConverter());
         return jsonOptions;
     }
 
