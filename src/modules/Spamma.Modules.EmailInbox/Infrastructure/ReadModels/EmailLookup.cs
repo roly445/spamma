@@ -15,4 +15,6 @@ public class EmailLookup
     public DateTime WhenSent { get; set; }
 
     public DateTime? WhenDeleted { get; set; }
+
+    public bool IsFavorite { get; set; }
 }

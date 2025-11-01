@@ -30,4 +30,18 @@ public class EmailLookupProjection : EventProjection
         ops.Patch<EmailLookup>(@event.StreamId)
             .Set(x => x.WhenDeleted, @event.Data.WhenDeleted);
     }
+
+    [UsedImplicitly]
+    public void Project(IEvent<EmailMarkedAsFavorite> @event, IDocumentOperations ops)
+    {
+        ops.Patch<EmailLookup>(@event.StreamId)
+            .Set(x => x.IsFavorite, true);
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<EmailUnmarkedAsFavorite> @event, IDocumentOperations ops)
+    {
+        ops.Patch<EmailLookup>(@event.StreamId)
+            .Set(x => x.IsFavorite, false);
+    }
 }

@@ -24,6 +24,7 @@ public partial class EmailViewer(
     private string _rawSource = string.Empty;
     private bool _showSaveDropdown;
     private bool _isDeleting;
+    private bool _isTogglingFavorite;
 
     private int? _currentViewportWidth = null;
     private string _currentViewportName = "Full Width";
@@ -49,6 +50,9 @@ public partial class EmailViewer(
 
     [Parameter]
     public EventCallback<SearchEmailsQueryResult.EmailSummary> OnEmailDeleted { get; set; }
+
+    [Parameter]
+    public EventCallback<SearchEmailsQueryResult.EmailSummary> OnEmailUpdated { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -252,6 +256,49 @@ public partial class EmailViewer(
 
         this._isDeleting = false;
         this.StateHasChanged();
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (this.Email == null || this._isTogglingFavorite)
+        {
+            return;
+        }
+
+        this._isTogglingFavorite = true;
+        this.StateHasChanged();
+
+        var result = await commander.Send(new ToggleEmailFavoriteCommand(this.Email.EmailId));
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            // Update the local Email object to reflect the new favorite status
+            this.Email = this.Email with { IsFavorite = !this.Email.IsFavorite };
+            await this.OnEmailUpdated.InvokeAsync(this.Email);
+        }
+        else
+        {
+            notificationService.ShowError("Failed to update email favorite status. Please try again.");
+        }
+
+        this._isTogglingFavorite = false;
+        this.StateHasChanged();
+    }
+
+    private string GetFavoriteButtonClasses()
+    {
+        var baseClasses = "p-2 rounded-md transition-colors";
+        if (this.Email?.IsFavorite == true)
+        {
+            return $"{baseClasses} text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50";
+        }
+
+        return $"{baseClasses} text-gray-400 hover:text-yellow-600 hover:bg-yellow-50";
+    }
+
+    private string GetFavoriteTooltip()
+    {
+        return this.Email?.IsFavorite == true ? "Remove from favorites" : "Add to favorites";
     }
 
     private void ProcessMimeMessage()

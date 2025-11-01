@@ -26,6 +26,8 @@ public partial class Email : AggregateRoot
 
     internal DateTime? WhenDeleted { get; private set; }
 
+    internal bool IsFavorite { get; private set; }
+
     internal IReadOnlyList<EmailAddress> EmailAddresses => this._emailAddresses;
 
     internal static Result<Email, BluQubeErrorData> Create(
@@ -46,6 +48,42 @@ public partial class Email : AggregateRoot
         }
 
         var @event = new EmailDeleted(whenDeleted);
+        this.RaiseEvent(@event);
+
+        return ResultWithError.Ok<BluQubeErrorData>();
+    }
+
+    internal ResultWithError<BluQubeErrorData> MarkAsFavorite(DateTime whenMarked)
+    {
+        if (this.WhenDeleted.HasValue)
+        {
+            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(EmailInboxErrorCodes.EmailAlreadyDeleted, $"Cannot mark deleted email '{this.Id}' as favorite."));
+        }
+
+        if (this.IsFavorite)
+        {
+            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(EmailInboxErrorCodes.EmailAlreadyFavorited, $"Email '{this.Id}' is already marked as favorite."));
+        }
+
+        var @event = new EmailMarkedAsFavorite(whenMarked);
+        this.RaiseEvent(@event);
+
+        return ResultWithError.Ok<BluQubeErrorData>();
+    }
+
+    internal ResultWithError<BluQubeErrorData> UnmarkAsFavorite(DateTime whenUnmarked)
+    {
+        if (this.WhenDeleted.HasValue)
+        {
+            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(EmailInboxErrorCodes.EmailAlreadyDeleted, $"Cannot unmark deleted email '{this.Id}' as favorite."));
+        }
+
+        if (!this.IsFavorite)
+        {
+            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(EmailInboxErrorCodes.EmailNotFavorited, $"Email '{this.Id}' is not marked as favorite."));
+        }
+
+        var @event = new EmailUnmarkedAsFavorite(whenUnmarked);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();

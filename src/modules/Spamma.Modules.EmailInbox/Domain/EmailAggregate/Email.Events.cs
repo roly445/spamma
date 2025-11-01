@@ -14,6 +14,12 @@ public partial class Email
             case EmailDeleted emailDeleted:
                 this.Apply(emailDeleted);
                 break;
+            case EmailMarkedAsFavorite emailMarkedAsFavorite:
+                this.Apply(emailMarkedAsFavorite);
+                break;
+            case EmailUnmarkedAsFavorite emailUnmarkedAsFavorite:
+                this.Apply(emailUnmarkedAsFavorite);
+                break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
@@ -32,5 +38,15 @@ public partial class Email
         this.Subject = @event.Subject;
         this.WhenSent = @event.WhenSent;
         this._emailAddresses.AddRange(@event.EmailAddresses.Select(ea => new EmailAddress(ea.Address, ea.Name, ea.EmailAddressType)));
+    }
+
+    private void Apply(EmailMarkedAsFavorite @event)
+    {
+        this.IsFavorite = true;
+    }
+
+    private void Apply(EmailUnmarkedAsFavorite @event)
+    {
+        this.IsFavorite = false;
     }
 }

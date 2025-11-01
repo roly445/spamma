@@ -54,7 +54,7 @@ public class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpC
             .ToListAsync(token: cancellationToken);
 
         var result = new SearchEmailsQueryResult(
-            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.WhenSent)).ToList(),
+            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.WhenSent, x.IsFavorite)).ToList(),
             TotalCount: totalCount,
             Page: page,
             PageSize: pageSize,

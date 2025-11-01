@@ -208,6 +208,33 @@ public partial class Home(IQuerier querier, ISignalRService signalRService) : ID
         this.StateHasChanged();
     }
 
+    private void HandleEmailUpdated(SearchEmailsQueryResult.EmailSummary updatedEmail)
+    {
+        // Update the email in the list to reflect the new favorite status
+        this.emails = this.emails.Select(email =>
+            email.EmailId == updatedEmail.EmailId ? updatedEmail : email).ToList();
+
+        // Update the selectedEmail if it's the one that was updated
+        if (this.selectedEmail?.EmailId == updatedEmail.EmailId)
+        {
+            this.selectedEmail = updatedEmail;
+        }
+
+        // Update the search result items as well
+        if (this._searchResult != null)
+        {
+            var updatedItems = this._searchResult.Items.Select(email =>
+                email.EmailId == updatedEmail.EmailId ? updatedEmail : email).ToList();
+
+            this._searchResult = this._searchResult with
+            {
+                Items = updatedItems,
+            };
+        }
+
+        this.StateHasChanged();
+    }
+
     private async Task HandleSearchKeyPress(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
