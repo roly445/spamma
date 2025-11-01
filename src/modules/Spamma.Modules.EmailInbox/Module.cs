@@ -62,6 +62,7 @@ public static class Module
         });
 
         services.AddHostedService<SmtpHostedService>();
+        services.AddHostedService<EmailCleanupBackgroundService>();
         services.AddSingleton<IMessageStoreProvider, LocalMessageStoreProvider>();
         return services;
     }
