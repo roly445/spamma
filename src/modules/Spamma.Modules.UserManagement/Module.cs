@@ -1,4 +1,5 @@
-﻿using BluQube.Attributes;
+﻿using System.Text.Json;
+using BluQube.Attributes;
 using Fido2NetLib;
 using FluentValidation;
 using JasperFx.Events.Projections;
@@ -53,6 +54,13 @@ public static class Module
 
     public static StoreOptions ConfigureUserManagement(this StoreOptions options)
     {
+        // Configure JSON defaults for Marten to include our byte array converter
+        var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        jsonOptions.Converters.Add(new ByteArrayJsonConverter());
+
+        // Apply the custom JSON options to Marten
+        options.UseSystemTextJsonForSerialization(jsonOptions);
+
         options.Projections.Add<UserLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<PasskeyProjection>(ProjectionLifecycle.Inline);
         return options;

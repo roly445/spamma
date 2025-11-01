@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -9,6 +10,7 @@ using Fido2NetLib;
 using Fido2NetLib.Objects;
 using JasperFx;
 using Marten;
+using Marten.Services.Json;
 using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -53,6 +55,7 @@ using Spamma.Modules.UserManagement;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Client.Contracts;
+using Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
 using StackExchange.Redis;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
@@ -113,6 +116,9 @@ builder.Services.AddUserManagement()
 
 builder.Services.Configure<JsonOptions>(options =>
 {
+    // Add global byte array converter for WebAuthn credential data
+    options.SerializerOptions.Converters.Add(new ByteArrayJsonConverter());
+
     options.AddJsonConvertersForUserManagement()
         .AddJsonConvertersForDomainManagement()
         .AddJsonConvertersForEmailInbox();
@@ -125,8 +131,9 @@ builder.Services.AddMarten(options =>
 {
     options.Connection(connectionString);
     options.AutoCreateSchemaObjects = AutoCreate.All;
-    options.UseSystemTextJsonForSerialization();
 
+    // Note: UseSystemTextJsonForSerialization is called in ConfigureUserManagement()
+    // to apply our ByteArrayJsonConverter for passkey data
     options.ConfigureUserManagement()
         .ConfigureDomainManagement()
         .ConfigureEmailInbox();
