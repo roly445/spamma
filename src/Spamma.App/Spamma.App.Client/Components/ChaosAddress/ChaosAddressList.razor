@@ -6,19 +6,39 @@
 @using BluQube.Commands
 @using BluQube.Queries
 @using BluQube.Constants
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IQuerier Querier
 @inject ICommander Commander
 @inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="bg-white border border-gray-200 rounded-lg p-4">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-medium">Chaos Addresses</h2>
-        <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700" @onclick="OpenCreate">
-            Create Chaos Address
-        </button>
+        @if (canCreate)
+        {
+            <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700" @onclick="OpenCreate">
+                Create Chaos Address
+            </button>
+        }
     </div>
 
-    @if (isLoading)
+    @if (!isInitialized)
+    {
+        <div class="text-center py-8">
+            <svg class="animate-spin h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        </div>
+    }
+    else if (!canView)
+    {
+        <div class="bg-yellow-50 border border-yellow-200 rounded p-4 text-sm text-yellow-800">
+            <p>You do not have permission to view chaos addresses for this subdomain.</p>
+        </div>
+    }
+    else if (isLoading)
     {
         <div class="text-center py-8">
             <svg class="animate-spin h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
@@ -30,11 +50,18 @@
     else if (chaosAddresses == null || chaosAddresses.Count == 0)
     {
         <div class="text-center py-8 text-gray-500">
-            <p>No chaos addresses yet. Create one to get started.</p>
+            <p>No chaos addresses yet. @(canCreate ? "Create one to get started." : "")</p>
         </div>
     }
     else
     {
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                @errorMessage
+            </div>
+        }
+
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="border-b border-gray-200">
@@ -53,7 +80,13 @@
                     {
                         var isImmutable = chaos.TotalReceived > 0;
                         <tr class="border-b border-gray-100 hover:bg-gray-50">
-                            <td class="py-3 px-3">@chaos.LocalPart (subdomain)</td>
+                            <td class="py-3 px-3">
+                                <span class="font-mono text-xs">@chaos.LocalPart</span>
+                                @if (isImmutable)
+                                {
+                                    <span class="inline-block ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded" title="This address is immutable after receiving its first email">Immutable</span>
+                                }
+                            </td>
                             <td class="py-3 px-3">
                                 <span class="@(chaos.Enabled ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800") px-2 py-1 rounded text-xs font-medium">
                                     @(chaos.Enabled ? "Enabled" : "Disabled")
@@ -73,19 +106,26 @@
                             </td>
                             <td class="py-3 px-3 text-xs">@chaos.CreatedAt.ToString("yyyy-MM-dd")</td>
                             <td class="py-3 px-3 text-center space-x-1">
-                                <button 
-                                    class="px-2 py-1 text-xs @(chaos.Enabled ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-green-100 text-green-600 hover:bg-green-200") rounded"
-                                    @onclick="() => ToggleChaosAddress(chaos.Id, !chaos.Enabled)"
-                                    title="@(chaos.Enabled ? "Disable" : "Enable")">
-                                    @(chaos.Enabled ? "Disable" : "Enable")
-                                </button>
-                                @if (!isImmutable)
+                                @if (canManage)
                                 {
-                                    <button class="px-2 py-1 text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 rounded" @onclick="() => DeleteChaosAddress(chaos.Id)" title="Delete">Delete</button>
+                                    <button 
+                                        class="px-2 py-1 text-xs @(chaos.Enabled ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-green-100 text-green-600 hover:bg-green-200") rounded"
+                                        @onclick="() => ToggleChaosAddress(chaos.Id, !chaos.Enabled)"
+                                        title="@(chaos.Enabled ? "Disable" : "Enable")">
+                                        @(chaos.Enabled ? "Disable" : "Enable")
+                                    </button>
+                                    @if (!isImmutable)
+                                    {
+                                        <button class="px-2 py-1 text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 rounded" @onclick="() => DeleteChaosAddress(chaos.Id)" title="Delete">Delete</button>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 py-1 text-xs text-gray-400 cursor-help" title="Immutable after first receive - editing not allowed">—</span>
+                                    }
                                 }
                                 else
                                 {
-                                    <span class="text-xs text-gray-400" title="Immutable after first receive">Immutable</span>
+                                    <span class="text-xs text-gray-400">Read-only</span>
                                 }
                             </td>
                         </tr>
@@ -95,30 +135,81 @@
         </div>
     }
 
-    <CreateChaosAddress @ref="createModal" SubdomainId="SubdomainId" OnCreated="HandleCreated" />
+    <CreateChaosAddress @ref="createModal" SubdomainId="SubdomainId ?? Guid.Empty" OnCreated="HandleCreated" />
 </div>
 
 @code {
     [Parameter]
-    public Guid SubdomainId { get; set; }
+    public Guid? SubdomainId { get; set; }
 
     private CreateChaosAddress? createModal;
     private IReadOnlyList<ChaosAddressSummary>? chaosAddresses;
-    private bool isLoading = true;
+    private bool isLoading;
+    private bool isInitialized;
     private string? errorMessage;
+    private bool canView;
+    private bool canCreate;
+    private bool canManage;
 
     protected override async Task OnInitializedAsync()
     {
+        await CheckAuthorization();
         await LoadChaosAddresses();
+        isInitialized = true;
+    }
+
+    private async Task CheckAuthorization()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (!user.Identity?.IsAuthenticated ?? false)
+            {
+                canView = false;
+                canCreate = false;
+                canManage = false;
+                return;
+            }
+
+            // Extract roles/claims from user
+            var roles = user.FindAll("role").Select(c => c.Value).ToList();
+
+            // Authorization logic:
+            // View: Any authenticated user
+            canView = user.Identity?.IsAuthenticated ?? false;
+
+            // Create: Domain moderators, subdomain moderators, or subdomain viewers per project conventions
+            canCreate = roles.Contains("DomainModerator") ||
+                       roles.Contains("DomainManagement") ||
+                       roles.Contains("SubdomainModerator") ||
+                       roles.Contains("SubdomainViewer");
+
+            // Manage (Enable/Disable/Delete): Domain moderators, subdomain moderators
+            canManage = roles.Contains("DomainModerator") ||
+                       roles.Contains("DomainManagement") ||
+                       roles.Contains("SubdomainModerator");
+        }
+        catch
+        {
+            // If authorization check fails, default to read-only
+            canView = true;
+            canCreate = false;
+            canManage = false;
+        }
     }
 
     private async Task LoadChaosAddresses()
     {
+        if (!canView)
+            return;
+
         isLoading = true;
         errorMessage = null;
         try
         {
-            var query = new GetChaosAddressesQuery(SubdomainId == Guid.Empty ? null : SubdomainId);
+            var query = new GetChaosAddressesQuery(SubdomainId);
             var result = await Querier.Send(query);
             if (result.Status == QueryResultStatus.Succeeded && result.Data != null)
             {
