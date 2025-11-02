@@ -104,7 +104,24 @@ Implementation phases (prioritized)
 
   - Add listing in SubdomainDetails page (there is already a placeholder referencing "Chaos Addresses").
 
+  UI/UX Decisions (implementation notes):
+
+  - Create flow: implement creation as a modal/slidout using the project's standard modal components (do not navigate to a separate page for creation).
+
+  - SMTP codes: use the constants provided in `Spamma.Modules.Common.Client.SmtpResponseCode` in the client; do not accept arbitrary numeric codes from the user.
+
+  - Timestamp display: show `LastReceivedAt` as `yyyy-MM-dd HH:mm UTC` or `"Never received"` when null.
+
+  - Immutability: do not present an Edit/Delete CTA for addresses with `TotalReceived > 0`; keep Enable/Disable visible after first receive.
+
+  - Page access vs actions: the `/chaos-addresses` page is reachable for read-only viewing; hide action controls for unauthorized users and rely on server-side authorization to enforce permission checks.
+
+  - Validation: map server-side validation errors to form fields using the project's standard mapping approach (field-level messages + toast for non-field errors).
+  - Provide a dedicated management page at client route `/chaos-addresses` (WASM). The page SHOULD accept an optional route segment `/chaos-addresses/{subdomainId}` or query parameter `?subdomainId=` to pre-filter by subdomain. `SubdomainDetails.razor` should include a "Manage Chaos Addresses" link to this page and may show a compact preview of top entries.
+
 - Files (suggested):
+
+  - src/Spamma.App/Spamma.App.Client/Pages/Subdomains/ChaosAddresses.razor  # Dedicated page for chaos management
 
   - src/Spamma.App/Spamma.App.Client/Pages/Admin/SubdomainDetails.razor (augment existing UI)
 

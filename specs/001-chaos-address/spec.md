@@ -98,7 +98,31 @@ As a system owner, I want chaos addresses to become immutable (no edits or delet
 - **FR-006**: The system MUST track, per chaos address, an aggregate counter of total emails received and the timestamp (UTC) of the most recent email received. These values MUST update atomically on message receipt.
 - **FR-007**: If a chaos address is disabled, incoming messages to that address MUST be processed by the normal inbound processing pipeline (no special error response).
 - **FR-008**: Attempts to delete a chaos address that has received at least one email MUST be rejected with a clear error explaining immutability.
-- **FR-009**: The UI and API MUST expose chaos addresses in domain/subdomain administration pages, showing: local-part, status (enabled/disabled), configured SMTP error (enum), total-received count, last-received timestamp, and creation date. The UI should infer immutability from TotalReceived > 0 and prevent edits/deletes accordingly.
+ - **FR-009**: The UI and API MUST expose chaos addresses on a dedicated, non-admin-only page and via the domain/subdomain administration flows. Requirements:
+  - Route: a dedicated page MUST be available at `/chaos-addresses` (client-side WASM route). The page SHOULD also accept an optional route segment `/chaos-addresses/{subdomainId}` or query parameter `?subdomainId=` to pre-filter by subdomain. This page is separate from the legacy admin-only pages and is discoverable from `SubdomainDetails` via a "Manage Chaos Addresses" link.
+   - Display: the page and API list view MUST show: local-part, status (enabled/disabled), configured SMTP error (enum), total-received count, last-received (UTC) timestamp (or "Never received"), created date, and created-by where available.
+   - Immutability: the UI MUST infer immutability from `TotalReceived > 0` and prevent edits and deletes for immutable addresses (actions hidden or disabled with a tooltip explaining immutability). Enable/disable controls remain allowed after first receive.
+   - Access / Permissions: this page is NOT admin-only. Permission mapping follows project conventions (see FR-010 and plan):
+     - `DomainManagement` (system role): full access across domains/subdomains (create, enable/disable, edit/delete prior to first receive, view audit data).
+     - `DomainModerator`: full access within their domain (create, enable/disable, edit/delete prior to first receive, view audit data).
+     - `SubdomainModerator`: full access within their subdomain.
+     - `SubdomainViewer`: per the project's conventions, viewers MAY be granted creation/enable/disable rights for their subdomain. The UI MUST hide or disable actions the current user is not authorized to perform and surface authorization errors returned by the API.
+   - Discovery: `SubdomainDetails.razor` MUST include a prominent link/button labeled "Manage Chaos Addresses" that navigates to the dedicated page for the subdomain. The subdomain details page may also include a compact preview (e.g., top 3 chaos addresses) but the full management experience must be on the dedicated page.
+   - API: The API endpoints/queries for listing and detail MUST support server-side authorization checks and return only entries the caller is permitted to view or act upon. The client should use `IQuerier` / `ICommander` patterns for queries and commands.
+
+UI/UX Implementation Notes (decisions):
+
+- Create flow: The create form for a chaos address SHOULD be presented in a modal/slidout from the dedicated page (not a separate navigation page). The projects standard modal/slidout/confirm patterns MUST be used — the UI code should call into the shared modal components so behavior and accessibility are consistent across the app.
+
+- SMTP codes source: The set of allowed `SmtpResponseCode` values MUST be represented as constants in `Spamma.Modules.Common.Client` and consumed by the client UI; the UI MUST NOT accept arbitrary numeric input for the SMTP code field.
+
+- Timestamp / null display: The UI MUST display `LastReceivedAt` as either the UTC timestamp (formatted like `yyyy-MM-dd HH:mm UTC`) or the string `"Never received"` when null. Optionally the UI may show the user's local time on hover or in a tooltip.
+
+- Immutability UX: When `TotalReceived > 0` the address is immutable. The UI MUST not show an Edit or Delete CTA for immutable addresses (no edit CTA). The Enable/Disable control remains visible and usable after first receive.
+
+- Page access vs actions: The dedicated page at `/chaos-addresses` is discoverable and reachable by authorized users and viewers; the page itself should be accessible for read-only viewing even if the current user lacks management permissions. UI action controls (Create, Enable, Disable, Delete, Edit) MUST be hidden for users that lack the corresponding permission; attempting actions via direct API calls must still be rejected server-side per FR-010.
+
+- Validation & error mapping: Server-side validation errors returned by command handlers MUST include field-level information that the client can map to individual form controls. The client UI MUST use the project's standard form error mapping (inline field errors + toast/alert for non-field errors) so create/update failures present clean, field-associated error messages and success notifications per existing conventions.
 - **FR-010**: The system MUST prevent non-authorized users from creating, editing, enabling/disabling, or deleting chaos addresses according to existing domain permission rules.
 - **FR-011**: The system MUST ensure that responding with SMTP error for a recipient does not prevent processing of other recipients where SMTP protocol allows per-recipient responses; the system implementation MUST use appropriate SMTP response semantics.
 - **FR-012**: The system MUST log auditable events for: chaos address created, enabled, disabled, first-received (transition to immutable), and attempted edits/deletes after immutability, including actor, timestamp, and reason.
