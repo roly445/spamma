@@ -55,4 +55,8 @@
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
+
+    <ItemGroup>
+  <ProjectReference Include="..\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
+    </ItemGroup>
 </Project>

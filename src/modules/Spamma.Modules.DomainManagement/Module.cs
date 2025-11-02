@@ -27,6 +27,7 @@ public static class Module
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IDomainRepository, DomainRepository>();
         services.AddScoped<ISubdomainRepository, SubdomainRepository>();
+        services.AddScoped<IChaosAddressRepository, ChaosAddressRepository>();
         services.AddScoped<ILookupClient, LookupClient>();
 
         // Register domain parser service - will be initialized by hosted service

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;

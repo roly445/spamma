@@ -40,13 +40,15 @@ public partial class Email
         this._emailAddresses.AddRange(@event.EmailAddresses.Select(ea => new EmailAddress(ea.Address, ea.Name, ea.EmailAddressType)));
     }
 
-    private void Apply(EmailMarkedAsFavorite @event)
+    private void Apply(EmailMarkedAsFavorite unused)
     {
+        _ = unused;
         this.IsFavorite = true;
     }
 
-    private void Apply(EmailUnmarkedAsFavorite @event)
+    private void Apply(EmailUnmarkedAsFavorite unused)
     {
+        _ = unused;
         this.IsFavorite = false;
     }
 }

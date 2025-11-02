@@ -5,6 +5,7 @@ using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 using DomainAggregate = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;

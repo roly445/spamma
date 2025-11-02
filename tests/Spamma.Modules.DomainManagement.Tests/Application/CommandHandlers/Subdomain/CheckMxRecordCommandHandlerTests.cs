@@ -11,6 +11,7 @@ using Spamma.Modules.Common;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;

@@ -24,7 +24,7 @@ internal class CompleteAuthenticationCommandHandler(
 
         if (userMaybe.HasNoValue)
         {
-            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"User with ID {request.UserId} not found"));
+            return CommandResult.Failed(new BluQube.Commands.BluQubeErrorData(CommonErrorCodes.NotFound, $"User with ID {request.UserId} not found"));
         }
 
         var user = userMaybe.Value;
@@ -40,6 +40,6 @@ internal class CompleteAuthenticationCommandHandler(
         }
 
         var saveResult = await repository.SaveAsync(user, cancellationToken);
-        return !saveResult.IsSuccess ? CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed)) : CommandResult.Succeeded();
+        return !saveResult.IsSuccess ? CommandResult.Failed(new BluQube.Commands.BluQubeErrorData(CommonErrorCodes.SavingChangesFailed)) : CommandResult.Succeeded();
     }
 }

@@ -9,3 +9,4 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1206:DeclarationKeywordsMustFollowOrder", Justification = "This rule breaks the new 'required' modifier best practices")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:FileMustHaveHeader", Justification = "Not Required")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1518:Use line endings correctly at end of file", Justification = "Not enforcing strict line ending requirements")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "RS1041:Compiler extensions should not be implemented in assemblies with the .NET Framework target framework", Justification = "Roslyn analyzer framework limitation for .NET 9.0")]

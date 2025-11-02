@@ -4,6 +4,8 @@ using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls;

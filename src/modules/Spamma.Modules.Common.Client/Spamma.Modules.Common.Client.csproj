@@ -26,4 +26,8 @@
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
 
+        <ItemGroup>
+            <!-- Common.Abstractions reference removed; SmtpResponseCode is now defined in this project per request -->
+        </ItemGroup>
+
 </Project>

@@ -35,6 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Application\Authorizers\Commands\ChaosAddress\" />
       <Folder Include="Application\IntegrationEventSubscribers\" />
     </ItemGroup>
 
@@ -52,6 +53,9 @@
       </Compile>
       <Compile Update="Domain\SubdomainAggregate\Subdomain.Events.cs">
         <DependentUpon>Subdomain.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Domain\ChaosAddressAggregate\ChaosAddress.Events.cs">
+        <DependentUpon>ChaosAddress.cs</DependentUpon>
       </Compile>
     </ItemGroup>
 

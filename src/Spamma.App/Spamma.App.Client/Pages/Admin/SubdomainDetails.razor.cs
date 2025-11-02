@@ -7,6 +7,7 @@ using Spamma.App.Client.Components.UserControls;
 using Spamma.App.Client.Components.UserControls.Subdomain;
 using Spamma.App.Client.Infrastructure.Contracts;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 

@@ -7,6 +7,7 @@ using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
 

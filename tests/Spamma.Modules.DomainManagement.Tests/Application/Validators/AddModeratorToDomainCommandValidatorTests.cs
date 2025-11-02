@@ -1,6 +1,7 @@
 using FluentAssertions;
 using FluentValidation;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.Validators;
 

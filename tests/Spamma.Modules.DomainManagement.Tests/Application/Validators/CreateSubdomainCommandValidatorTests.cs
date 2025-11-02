@@ -5,6 +5,7 @@ using Moq;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Application.Validators;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Infrastructure.Services;
 using DomainAggregate = Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 

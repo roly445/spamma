@@ -5,6 +5,7 @@ using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Subdomain;
