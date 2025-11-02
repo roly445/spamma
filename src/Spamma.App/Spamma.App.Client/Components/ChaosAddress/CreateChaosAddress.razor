@@ -186,7 +186,7 @@
         }
     }
 
-    private IEnumerable<SmtpResponseCode> GetSmtpCodes()
+    private static IEnumerable<SmtpResponseCode> GetSmtpCodes()
     {
         // Return common chaos codes
         return new[]
@@ -203,7 +203,7 @@
         };
     }
 
-    private string GetSmtpDescription(SmtpResponseCode smtpCode)
+    private static string GetSmtpDescription(SmtpResponseCode smtpCode)
     {
         return smtpCode switch
         {
