@@ -2,17 +2,18 @@
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands;
 
-public class AddModeratorToDomainCommandAuthorizer : AbstractRequestAuthorizer<AddModeratorToDomainCommand>
+public class AddModeratorToSubdomainCommandAuthorizer : AbstractRequestAuthorizer<AddModeratorToSubdomainCommand>
 {
-    public override void BuildPolicy(AddModeratorToDomainCommand request)
+    public override void BuildPolicy(AddModeratorToSubdomainCommand request)
     {
         this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustBeModeratorToDomainRequirement
+        this.UseRequirement(new MustBeModeratorToSubdomainRequirement
         {
-            DomainId = request.DomainId,
+            SubdomainId = request.SubdomainId,
         });
     }
 }

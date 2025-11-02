@@ -1,17 +1,18 @@
 ﻿using FluentValidation;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Client.Application.Commands;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.Validators;
 
-public class AddModeratorToDomainCommandValidator : AbstractValidator<AddModeratorToDomainCommand>
+public class AddModeratorToSubdomainCommandValidator : AbstractValidator<AddModeratorToSubdomainCommand>
 {
-    public AddModeratorToDomainCommandValidator()
+    public AddModeratorToSubdomainCommandValidator()
     {
-        this.RuleFor(x => x.DomainId)
+        this.RuleFor(x => x.SubdomainId)
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)
-            .WithMessage("Domain ID is required.");
+            .WithMessage("Subdomain ID is required.");
 
         this.RuleFor(x => x.UserId)
             .NotEmpty()
