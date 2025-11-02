@@ -3,9 +3,13 @@
 @using Spamma.Modules.DomainManagement.Client.Application.Queries
 @using Spamma.Modules.DomainManagement.Client.Contracts
 @using Spamma.App.Client.Components.ChaosAddress
+@using Spamma.App.Client.Layout
+@layout AppLayout
 @inject IQuerier Querier
 @inject NavigationManager Navigation
 @attribute [Authorize]
+
+<PageTitle>Chaos Addresses - Spamma</PageTitle>
 
 @code {
     [Parameter]
@@ -21,18 +25,35 @@
     }
 }
 
-<div class="max-w-4xl mx-auto py-6">
-    <h1 class="text-2xl font-semibold">Chaos Addresses</h1>
-    <p class="text-sm text-gray-600 mt-1">Manage chaos addresses for this subdomain.</p>
-
-    @if (isLoading)
-    {
-        <div class="py-8">Loading...</div>
-    }
-    else
-    {
-        <div class="mt-6">
-            <ChaosAddressList SubdomainId="SubdomainId ?? Guid.Empty" />
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Chaos Addresses</h1>
+                        <p class="mt-1 text-sm text-gray-500">Test email handling by simulating SMTP errors</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    }
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        @if (isLoading)
+        {
+            <div class="flex items-center justify-center py-16">
+                <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        }
+        else
+        {
+            <ChaosAddressList SubdomainId="SubdomainId" />
+        }
+    </div>
 </div>
