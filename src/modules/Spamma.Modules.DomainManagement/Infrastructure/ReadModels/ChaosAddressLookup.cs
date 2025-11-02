@@ -21,4 +21,6 @@ public class ChaosAddressLookup
     public DateTime? LastReceivedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public Guid CreatedBy { get; set; }
 }

@@ -18,6 +18,7 @@ public static class ChaosAddressLookupProjection
             TotalReceived = 0,
             LastReceivedAt = null,
             CreatedAt = @event.CreatedAt,
+            CreatedBy = Guid.Empty,
         };
     }
 
