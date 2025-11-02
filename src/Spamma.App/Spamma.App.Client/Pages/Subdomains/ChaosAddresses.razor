@@ -1,0 +1,37 @@
+@page "/chaos-addresses"
+@page "/chaos-addresses/{subdomainId:guid}"
+@using Spamma.Modules.DomainManagement.Client.Application.Queries
+@using Spamma.Modules.DomainManagement.Client.Contracts
+@inject IQuerier Querier
+@inject NavigationManager Navigation
+@attribute [Authorize]
+
+@code {
+    [Parameter]
+    public Guid? SubdomainId { get; set; }
+
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Placeholder: load data via IQuerier
+        await Task.Delay(10);
+        isLoading = false;
+    }
+}
+
+<div class="max-w-4xl mx-auto py-6">
+    <h1 class="text-2xl font-semibold">Chaos Addresses</h1>
+    <p class="text-sm text-gray-600 mt-1">Manage chaos addresses for this subdomain.</p>
+
+    @if (isLoading)
+    {
+        <div class="py-8">Loading...</div>
+    }
+    else
+    {
+        <div class="mt-6">
+            <ChaosAddressList SubdomainId="SubdomainId ?? Guid.Empty" />
+        </div>
+    }
+</div>
