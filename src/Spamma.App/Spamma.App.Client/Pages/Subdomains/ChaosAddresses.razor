@@ -554,12 +554,12 @@
 @if (showEditSlideout && editChaosAddress != null)
 {
     <div class="fixed inset-0 overflow-hidden z-40">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @onclick="CloseEditSlideout" @onclick:stopPropagation="true"></div>
+        <!-- Backdrop - only close on direct click to backdrop -->
+        <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @onclick="CloseEditSlideout"></div>
         
-        <!-- Slide-out Panel -->
+        <!-- Slide-out Panel - prevent backdrop clicks from bubbling -->
         <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10" @onclick:stopPropagation="true">
-            <div class="pointer-events-auto w-screen max-w-md transform transition ease-in-out duration-300 @(showEditSlideout ? "translate-x-0" : "translate-x-full")">
+            <div class="pointer-events-auto w-screen max-w-md transform transition ease-in-out duration-300 @(showEditSlideout ? "translate-x-0" : "translate-x-full")" @onclick:stopPropagation="true">
                 <div class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
                     <!-- Header -->
                     <div class="flex items-center justify-between bg-blue-600 px-4 py-6 sm:px-6">
