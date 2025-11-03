@@ -5,14 +5,8 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Infrastructure.Auth;
 
-/// <summary>
-/// Extension methods for AuthenticationState to work with user authorization information.
-/// </summary>
 public static class AuthenticationStateExtensions
 {
-    /// <summary>
-    /// Extracts UserAuthInfo from the authentication state's claims.
-    /// </summary>
     public static UserAuthInfo ToUserAuthInfo(this AuthenticationState authState)
     {
         if (authState.User?.Identity?.IsAuthenticated != true)
@@ -52,4 +46,5 @@ public static class AuthenticationStateExtensions
             viewableSubdomains);
     }
 }
+
 
