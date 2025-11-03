@@ -7,6 +7,7 @@
 @using BluQube.Queries
 @using BluQube.Constants
 @using Microsoft.AspNetCore.Components.Authorization
+@using Spamma.App.Client.Infrastructure.Auth
 @inject IQuerier Querier
 @inject ICommander Commander
 @inject IJSRuntime JSRuntime
@@ -153,51 +154,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await CheckAuthorization();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userInfo = authState.ToUserAuthInfo();
+        canView = userInfo.CanViewChaosAddresses();
+        canCreate = userInfo.CanCreateChaosAddresses();
+        canManage = userInfo.CanManageChaosAddresses();
+        
         await LoadChaosAddresses();
         isInitialized = true;
-    }
-
-    private async Task CheckAuthorization()
-    {
-        try
-        {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-
-            if (!user.Identity?.IsAuthenticated ?? false)
-            {
-                canView = false;
-                canCreate = false;
-                canManage = false;
-                return;
-            }
-
-            // Extract roles/claims from user
-            var roles = user.FindAll("role").Select(c => c.Value).ToList();
-
-            // Authorization logic:
-            // View: Any authenticated user
-            canView = user.Identity?.IsAuthenticated ?? false;
-
-            // Create: Domain moderators, subdomain moderators, or subdomain viewers per project conventions
-            canCreate = roles.Contains("DomainModerator") ||
-                       roles.Contains("DomainManagement") ||
-                       roles.Contains("SubdomainModerator") ||
-                       roles.Contains("SubdomainViewer");
-
-            // Manage (Enable/Disable/Delete): Domain moderators, subdomain moderators
-            canManage = roles.Contains("DomainModerator") ||
-                       roles.Contains("DomainManagement") ||
-                       roles.Contains("SubdomainModerator");
-        }
-        catch
-        {
-            // If authorization check fails, default to read-only
-            canView = true;
-            canCreate = false;
-            canManage = false;
-        }
     }
 
     private async Task LoadChaosAddresses()
