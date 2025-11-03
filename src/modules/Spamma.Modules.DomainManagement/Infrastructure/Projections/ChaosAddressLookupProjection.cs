@@ -1,5 +1,8 @@
+using JasperFx.Events;
 using JetBrains.Annotations;
+using Marten;
 using Marten.Events.Projections;
+using Marten.Patching;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
@@ -27,21 +30,24 @@ public class ChaosAddressLookupProjection : EventProjection
     }
 
     [UsedImplicitly]
-    public void Project(ChaosAddressEnabled @event, ChaosAddressLookup readModel)
+    public void Project(IEvent<ChaosAddressEnabled> @event, IDocumentOperations ops)
     {
-        readModel.Enabled = true;
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Set(x => x.Enabled, true);
     }
 
     [UsedImplicitly]
-    public void Project(ChaosAddressDisabled @event, ChaosAddressLookup readModel)
+    public void Project(IEvent<ChaosAddressDisabled> @event, IDocumentOperations ops)
     {
-        readModel.Enabled = false;
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Set(x => x.Enabled, false);
     }
 
     [UsedImplicitly]
-    public void Project(ChaosAddressReceived @event, ChaosAddressLookup readModel)
+    public void Project(IEvent<ChaosAddressReceived> @event, IDocumentOperations ops)
     {
-        readModel.TotalReceived += 1;
-        readModel.LastReceivedAt = @event.When;
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Increment(x => x.TotalReceived, 1)
+            .Set(x => x.LastReceivedAt, @event.Data.When);
     }
 }
