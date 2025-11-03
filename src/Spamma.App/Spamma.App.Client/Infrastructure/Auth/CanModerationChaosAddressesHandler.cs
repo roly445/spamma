@@ -12,7 +12,7 @@ public class CanModerationChaosAddressesHandler : AuthorizationHandler<CanModera
         {
             return Task.CompletedTask;
         }
-        
+
         if (userInfo.SystemRole.HasFlag(SystemRole.DomainManagement))
         {
             context.Succeed(requirement);
@@ -23,13 +23,12 @@ public class CanModerationChaosAddressesHandler : AuthorizationHandler<CanModera
         {
             context.Succeed(requirement);
         }
-        
 
         if (userInfo.ModeratedSubdomains.Any())
         {
             context.Succeed(requirement);
         }
-        
+
         if (userInfo.ViewableSubdomains.Any())
         {
             context.Succeed(requirement);

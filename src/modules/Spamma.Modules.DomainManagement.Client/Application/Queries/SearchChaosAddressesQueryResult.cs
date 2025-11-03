@@ -8,5 +8,5 @@ public record SearchChaosAddressesQueryResult(
     int PageNumber,
     int PageSize) : IQueryResult
 {
-    public int TotalPages => (TotalCount + PageSize - 1) / PageSize;
+    public int TotalPages => (this.TotalCount + this.PageSize - 1) / this.PageSize;
 }

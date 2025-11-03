@@ -12,7 +12,7 @@ public class AssignedToAnySubdomainHandler : AuthorizationHandler<AssignedToAnyS
         {
             return Task.CompletedTask;
         }
-        
+
         if (userInfo.SystemRole.HasFlag(SystemRole.DomainManagement))
         {
             context.Succeed(requirement);
@@ -23,7 +23,6 @@ public class AssignedToAnySubdomainHandler : AuthorizationHandler<AssignedToAnyS
         {
             context.Succeed(requirement);
         }
-        
 
         if (userInfo.ModeratedSubdomains.Any())
         {

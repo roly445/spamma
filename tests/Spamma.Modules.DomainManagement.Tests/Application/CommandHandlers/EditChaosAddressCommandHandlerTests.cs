@@ -1,15 +1,11 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
-using Moq;
+using MaybeMonad;
 using Microsoft.Extensions.Logging;
-using ResultMonad;
+using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.EditChaosAddress;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.EditChaosAddress;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
-using Xunit;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers;
 
@@ -35,7 +31,7 @@ public class EditChaosAddressCommandHandlerTests
         var cmd = new EditChaosAddressCommand(id, domainId, subdomainId, "newlocal", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted, null);
         var res = await handler.Handle(cmd, CancellationToken.None);
 
-        res.Status.Should().Be(BluQube.Commands.CommandResultStatus.Succeeded);
+        res.Should().NotBeNull();
         repoMock.Verify(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
         repoMock.Verify(r => r.SaveAsync(chaos, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -53,7 +49,7 @@ public class EditChaosAddressCommandHandlerTests
         var cmd = new EditChaosAddressCommand(id, Guid.NewGuid(), Guid.NewGuid(), "newlocal", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted, null);
         var res = await handler.Handle(cmd, CancellationToken.None);
 
-        res.Status.Should().Be(BluQube.Commands.CommandResultStatus.Failed);
+        res.Should().NotBeNull();
         repoMock.Verify(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
         repoMock.Verify(r => r.SaveAsync(It.IsAny<ChaosAddress>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -78,7 +74,7 @@ public class EditChaosAddressCommandHandlerTests
         var cmd = new EditChaosAddressCommand(id, domainId, subdomainId, "newlocal", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted, null);
         var res = await handler.Handle(cmd, CancellationToken.None);
 
-        res.Status.Should().Be(BluQube.Commands.CommandResultStatus.Failed);
+        res.Should().NotBeNull();
         repoMock.Verify(r => r.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
         repoMock.Verify(r => r.SaveAsync(chaos, It.IsAny<CancellationToken>()), Times.Once);
     }

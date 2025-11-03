@@ -1,8 +1,6 @@
-using System;
 using FluentAssertions;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 using Spamma.Tests.Common.Verification;
-using Xunit;
 
 namespace Spamma.Modules.DomainManagement.Tests.Domain.ChaosAddressAggregate;
 
@@ -17,13 +15,17 @@ public class ChaosAddressEditLocalPartAndSmtpTests
         var when = DateTime.UtcNow;
 
         var create = ChaosAddress.Create(id, domainId, subdomainId, "local", Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable, when);
+
         var agg = create.ShouldBeOk();
+
+        // created event is present on new aggregates; clear it so tests observe only events caused by Edit()
+        agg.MarkEventsAsCommitted();
 
         var result = agg.Edit(domainId, subdomainId, "newlocal", Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable);
 
         result.ShouldBeOk();
         agg.LocalPart.Should().Be("newlocal");
-        agg.UncommittedEvents.Should().Contain(e => e.GetType().Name == "ChaosAddressLocalPartChanged");
+        agg.GetUncommittedEvents().Should().Contain(e => e.GetType().Name == "ChaosAddressLocalPartChanged");
     }
 
     [Fact]
@@ -35,13 +37,17 @@ public class ChaosAddressEditLocalPartAndSmtpTests
         var when = DateTime.UtcNow;
 
         var create = ChaosAddress.Create(id, domainId, subdomainId, "local", Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable, when);
+
         var agg = create.ShouldBeOk();
+
+        // created event is present on new aggregates; clear it so tests observe only events caused by Edit()
+        agg.MarkEventsAsCommitted();
 
         var result = agg.Edit(domainId, subdomainId, "local", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted);
 
         result.ShouldBeOk();
         agg.ConfiguredSmtpCode.Should().Be(Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted);
-        agg.UncommittedEvents.Should().Contain(e => e.GetType().Name == "ChaosAddressSmtpCodeChanged");
+        agg.GetUncommittedEvents().Should().Contain(e => e.GetType().Name == "ChaosAddressSmtpCodeChanged");
     }
 
     [Fact]
@@ -53,12 +59,15 @@ public class ChaosAddressEditLocalPartAndSmtpTests
         var when = DateTime.UtcNow;
 
         var create = ChaosAddress.Create(id, domainId, subdomainId, "local", Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable, when);
+
         var agg = create.ShouldBeOk();
+
+        // created event is present on new aggregates; clear it so tests observe only events caused by Edit()
+        agg.MarkEventsAsCommitted();
 
         var result = agg.Edit(domainId, subdomainId, "local", Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable);
 
         result.ShouldBeOk();
-        // Expect no events because nothing changed
-        agg.UncommittedEvents.Should().BeEmpty();
+        agg.GetUncommittedEvents().Should().BeEmpty();
     }
 }

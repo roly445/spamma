@@ -46,7 +46,7 @@ public static class AuthenticationStateExtensions
             moderatedSubdomains,
             viewableSubdomains);
     }
-    
+
     public static UserAuthInfo ToUserAuthInfo(this AuthorizationHandlerContext context)
     {
         if (context.User?.Identity?.IsAuthenticated != true)

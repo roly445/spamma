@@ -18,7 +18,6 @@ namespace Spamma.App.Client.Pages.Subdomains;
 public partial class ChaosAddresses(IQuerier querier,
     ICommander commander,
     INotificationService notificationService,
-    AuthenticationStateProvider authenticationStateProvider,
     IJSRuntime jsRuntime)
 {
     private bool isLoading = true;
@@ -26,186 +25,10 @@ public partial class ChaosAddresses(IQuerier querier,
     private IReadOnlyList<ChaosAddressSummary>? chaosAddresses;
 
     private bool isInitialized;
-    private string? errorMessage;
 
     private ChaosAddressSearchRequest searchRequest = new();
     private Dictionary<string, List<SubdomainOption>>? subdomainsByDomain;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await Task.WhenAll(
-            LoadChaosAddresses(),
-            LoadSubdomains());
-        isInitialized = true;
-    }
-
-    private async Task LoadSubdomains()
-    {
-        var query = new SearchSubdomainsQuery(null, null, null, 1, 1000, "SubdomainName", false);
-        var result = await querier.Send(query);
-        if (result.Status == QueryResultStatus.Succeeded && result.Data.TotalCount > 0)
-        {
-            subdomainsByDomain = result.Data.Items
-                .GroupBy(x => x.ParentDomainName)
-                .OrderBy(x => x.Key)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g
-                        .Select(x => new SubdomainOption { Id = x.Id, DomainId = x.ParentDomainId, SubdomainName = x.SubdomainName })
-                        .OrderBy(x => x.SubdomainName)
-                        .ToList());
-        }
-    }
-
-    private async Task LoadChaosAddresses()
-    {
-        isLoading = true;
-        StateHasChanged();
-        var enabled = searchRequest.EnabledFilter switch
-        {
-            "enabled" => true,
-            "disabled" => false,
-            _ => (bool?)null
-        };
-
-        var subdomainId = string.IsNullOrEmpty(searchRequest.SubdomainIdFilter)
-            ? (Guid?)null
-            : Guid.Parse(searchRequest.SubdomainIdFilter);
-
-        var query = new SearchChaosAddressesQuery(
-            searchRequest.SearchTerm,
-            subdomainId,
-            enabled,
-            1,
-            50,
-            searchRequest.SortBy,
-            true);
-
-        var result = await querier.Send(query);
-        chaosAddresses = result is { Status: QueryResultStatus.Succeeded, Data.TotalCount: > 0 } ? result.Data.Items : new List<ChaosAddressSummary>();
-
-
-        isLoading = false;
-
-    }
-
-    private async Task HandleCreated()
-    {
-        await LoadChaosAddresses();
-    }
-
-    private void ToggleChaosAddress(Guid id, bool enable)
-    {
-        var chaos = chaosAddresses?.FirstOrDefault(x => x.Id == id);
-        if (chaos != null)
-        {
-            if (enable)
-            {
-                enableConfirmData = chaos;
-                showEnableConfirm = true;
-                enableIdToProcess = id;
-            }
-            else
-            {
-                suspendConfirmData = chaos;
-                showSuspendConfirm = true;
-                suspendIdToProcess = id;
-            }
-        }
-    }
-
-    private async Task ConfirmDisable()
-    {
-        isSuspendProcessing = true;
-        StateHasChanged();
-
-        var command = new DisableChaosAddressCommand(suspendIdToProcess, Guid.NewGuid());
-        var result = await commander.Send(command);
-
-        if (result.Status == CommandResultStatus.Succeeded)
-        {
-            CloseSuspendConfirm();
-            await LoadChaosAddresses();
-        }
-        else
-        {
-            notificationService.ShowError("Failed to disable chaos address.");
-        }
-
-        isSuspendProcessing = false;
-        StateHasChanged();
-    }
-
-    private async Task ConfirmEnable()
-    {
-        isEnableProcessing = true;
-        StateHasChanged();
-
-        var command = new EnableChaosAddressCommand(enableIdToProcess, Guid.NewGuid());
-        var result = await commander.Send(command);
-
-        if (result.Status == CommandResultStatus.Succeeded)
-        {
-            CloseEnableConfirm();
-            await LoadChaosAddresses();
-        }
-        else
-        {
-            notificationService.ShowError("Failed to enable chaos address.");
-        }
-
-        isEnableProcessing = false;
-        StateHasChanged();
-    }
-
-    private void DeleteChaosAddress(Guid id)
-    {
-        var chaos = chaosAddresses?.FirstOrDefault(x => x.Id == id);
-        if (chaos != null)
-        {
-            deleteConfirmData = chaos;
-            showDeleteConfirm = true;
-            deleteIdToProcess = id;
-        }
-    }
-
-    private async Task ConfirmDelete()
-    {
-        isDeleteProcessing = true;
-        StateHasChanged();
-
-        var command = new DeleteChaosAddressCommand(deleteIdToProcess);
-        var result = await commander.Send(command);
-
-        if (result.Status == CommandResultStatus.Succeeded)
-        {
-            CloseDeleteConfirm();
-            await LoadChaosAddresses();
-        }
-        else
-        {
-            notificationService.ShowError("Failed to delete chaos address");
-        }
-
-        isDeleteProcessing = false;
-        StateHasChanged();
-    }
-
-    private class ChaosAddressSearchRequest
-    {
-        public string? SearchTerm { get; set; }
-        public string SubdomainIdFilter { get; set; } = "";
-        public string EnabledFilter { get; set; } = "";
-        public string SortBy { get; set; } = "CreatedAt";
-    }
-
-    private class SubdomainOption
-    {
-        public Guid Id { get; set; }
-        public Guid DomainId { get; set; }
-        public string SubdomainName { get; set; } = string.Empty;
-    }
-    
     private bool showModal;
     private bool isCreating;
 
@@ -240,168 +63,12 @@ public partial class ChaosAddresses(IQuerier querier,
     private string? outsideClickHandlerId;
     private DotNetObjectReference<ChaosAddresses>? dotNetRef;
 
-    private void OpenCreate()
+    protected override async Task OnInitializedAsync()
     {
-        showModal = true;
-        model = new();
-    }
-
-    public void CloseCreate()
-    {
-        showModal = false;
-        model = new();
-        errorMessage = null;
-    }
-
-    private void CloseSuspendConfirm()
-    {
-        showSuspendConfirm = false;
-        suspendConfirmData = null;
-        suspendIdToProcess = Guid.Empty;
-    }
-
-    private void CloseEnableConfirm()
-    {
-        showEnableConfirm = false;
-        enableConfirmData = null;
-        enableIdToProcess = Guid.Empty;
-    }
-
-    private void CloseDeleteConfirm()
-    {
-        showDeleteConfirm = false;
-        deleteConfirmData = null;
-        deleteIdToProcess = Guid.Empty;
-    }
-
-    private void OpenEdit(ChaosAddressSummary chaos)
-    {
-        editChaosAddress = chaos;
-        editDescription = string.Empty;
-        editLocalPart = chaos.LocalPart;
-        editSmtpCodeString = ((int)chaos.ConfiguredSmtpCode).ToString();
-        editSubdomainIdString = chaos.SubdomainId == Guid.Empty ? string.Empty : chaos.SubdomainId.ToString();
-        showEditSlideout = true;
-        // Register a JS outside-click handler that will call CloseEditSlideout when clicking outside the panel
-        try
-        {
-            dotNetRef = DotNetObjectReference.Create(this);
-            // selector targets the panel element by id
-            _ = jsRuntime.InvokeAsync<string>("registerOutsideClickHandler", "#chaos-edit-panel", dotNetRef, "CloseEditSlideout")
-                .AsTask().ContinueWith(t => { if (t.Status == TaskStatus.RanToCompletion) outsideClickHandlerId = t.Result; });
-        }
-        catch
-        {
-            // swallow - non-fatal if JS not available
-        }
-    }
-
-    private void CloseEditSlideout()
-    {
-        showEditSlideout = false;
-        editChaosAddress = null;
-        editDescription = string.Empty;
-        editLocalPart = string.Empty;
-        editSmtpCodeString = string.Empty;
-        editSubdomainIdString = string.Empty;
-        // unregister JS outside-click handler
-        try
-        {
-            if (!string.IsNullOrEmpty(outsideClickHandlerId))
-            {
-                _ = jsRuntime.InvokeVoidAsync("removeOutsideClickHandler", outsideClickHandlerId);
-                outsideClickHandlerId = null;
-            }
-            dotNetRef?.Dispose();
-            dotNetRef = null;
-        }
-        catch
-        {
-            // ignore
-        }
-    }
-
-    private async Task SaveEditChanges()
-    {
-        isEditSaving = true;
-        StateHasChanged();
-
-        if (editChaosAddress == null)
-        {
-            isEditSaving = false;
-            return;
-        }
-
-        if (!int.TryParse(editSmtpCodeString, out var smtpCodeValue))
-        {
-            notificationService.ShowError("Invalid SMTP code selected");
-            isEditSaving = false;
-            StateHasChanged();
-            return;
-        }
-
-        // determine selected subdomain and domain id
-        Guid selectedSubdomainId = string.IsNullOrEmpty(editSubdomainIdString) ? editChaosAddress.SubdomainId : Guid.Parse(editSubdomainIdString);
-        var selectedSubdomain = subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == selectedSubdomainId);
-        Guid domainId = selectedSubdomain?.DomainId ?? editChaosAddress.DomainId;
-
-        var command = new EditChaosAddressCommand(
-            editChaosAddress.Id,
-            domainId,
-            selectedSubdomainId,
-            editLocalPart,
-            (SmtpResponseCode)smtpCodeValue,
-            string.IsNullOrWhiteSpace(editDescription) ? null : editDescription
-        );
-
-        var result = await commander.Send(command);
-
-        if (result.Status == CommandResultStatus.Succeeded)
-        {
-            notificationService.ShowSuccess("Chaos address updated successfully");
-            CloseEditSlideout();
-            await LoadChaosAddresses();
-        }
-        else
-        {
-            notificationService.ShowError("Failed to update chaos address");
-        }
-
-        isEditSaving = false;
-        StateHasChanged();
-    }
-
-    private async Task HandleCreate()
-    {
-        isCreating = true;
-        StateHasChanged();
-
-        var selectedSubdomain = subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == model.SubdomainId);
-        var domainId = selectedSubdomain?.DomainId ?? Guid.Empty;
-
-        var command = new CreateChaosAddressCommand(
-            Guid.NewGuid(), // Id
-            domainId, // DomainId (looked up from subdomain)
-            model.SubdomainId, // SubdomainId
-            model.LocalPart,
-            (SmtpResponseCode)model.SmtpCode,
-            Guid.Empty // CreatedBy (to be set by backend from auth context)
-        );
-
-        var result = await commander.Send(command);
-
-        if (result.Status == CommandResultStatus.Succeeded)
-        {
-            CloseCreate();
-            await LoadChaosAddresses();
-        }
-        else
-        {
-            notificationService.ShowError("Failed to create chaos address");
-        }
-   
-        isCreating = false;
-        StateHasChanged();
+        await Task.WhenAll(
+            this.LoadChaosAddresses(),
+            this.LoadSubdomains());
+        this.isInitialized = true;
     }
 
     private static IEnumerable<SmtpResponseCode> GetSmtpCodes()
@@ -434,35 +101,328 @@ public partial class ChaosAddresses(IQuerier querier,
             SmtpResponseCode.UserNotLocalTryForwardPath => "User Not Local",
             SmtpResponseCode.ExceededStorageAllocation => "Exceeded Storage",
             SmtpResponseCode.MailboxNameNotAllowed => "Mailbox Name Not Allowed",
-            _ => "Unknown"
+            _ => "Unknown",
         };
     }
 
-    private string? GetSelectedSubdomainName()
+    private async Task LoadSubdomains()
     {
-        if (model is null || model.SubdomainId == Guid.Empty || subdomainsByDomain == null)
+        var query = new SearchSubdomainsQuery(null, null, null, 1, 1000, "SubdomainName", false);
+        var result = await querier.Send(query);
+        if (result.Status == QueryResultStatus.Succeeded && result.Data.TotalCount > 0)
         {
-            return null;
+            this.subdomainsByDomain = result.Data.Items
+                .GroupBy(x => x.ParentDomainName)
+                .OrderBy(x => x.Key)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g
+                        .Select(x => new SubdomainOption { Id = x.Id, DomainId = x.ParentDomainId, SubdomainName = x.SubdomainName })
+                        .OrderBy(x => x.SubdomainName)
+                        .ToList());
         }
+    }
 
-        foreach (var domainGroup in subdomainsByDomain)
+    private async Task LoadChaosAddresses()
+    {
+        this.isLoading = true;
+        this.StateHasChanged();
+        var enabled = this.searchRequest.EnabledFilter switch
         {
-            var subdomain = domainGroup.Value.FirstOrDefault(s => s.Id == model.SubdomainId);
-            if (subdomain != null)
+            "enabled" => true,
+            "disabled" => false,
+            _ => (bool?)null,
+        };
+
+        var subdomainId = string.IsNullOrEmpty(this.searchRequest.SubdomainIdFilter)
+            ? (Guid?)null
+            : Guid.Parse(this.searchRequest.SubdomainIdFilter);
+
+        var query = new SearchChaosAddressesQuery(
+            this.searchRequest.SearchTerm,
+            subdomainId,
+            enabled,
+            1,
+            50,
+            this.searchRequest.SortBy,
+            true);
+
+        var result = await querier.Send(query);
+        this.chaosAddresses = result is { Status: QueryResultStatus.Succeeded, Data.TotalCount: > 0 } ? result.Data.Items : new List<ChaosAddressSummary>();
+
+        this.isLoading = false;
+    }
+
+    private void ToggleChaosAddress(Guid id, bool enable)
+    {
+        var chaos = this.chaosAddresses?.FirstOrDefault(x => x.Id == id);
+        if (chaos != null)
+        {
+            if (enable)
             {
-                return "@" + subdomain.SubdomainName + "." + domainGroup.Key;
+                this.enableConfirmData = chaos;
+                this.showEnableConfirm = true;
+                this.enableIdToProcess = id;
+            }
+            else
+            {
+                this.suspendConfirmData = chaos;
+                this.showSuspendConfirm = true;
+                this.suspendIdToProcess = id;
             }
         }
+    }
 
-        return null;
+    private async Task ConfirmDisable()
+    {
+        this.isSuspendProcessing = true;
+        this.StateHasChanged();
+
+        var command = new DisableChaosAddressCommand(this.suspendIdToProcess, Guid.NewGuid());
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            this.CloseSuspendConfirm();
+            await this.LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to disable chaos address.");
+        }
+
+        this.isSuspendProcessing = false;
+        this.StateHasChanged();
+    }
+
+    private async Task ConfirmEnable()
+    {
+        this.isEnableProcessing = true;
+        this.StateHasChanged();
+
+        var command = new EnableChaosAddressCommand(this.enableIdToProcess, Guid.NewGuid());
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            this.CloseEnableConfirm();
+            await this.LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to enable chaos address.");
+        }
+
+        this.isEnableProcessing = false;
+        this.StateHasChanged();
+    }
+
+    private void DeleteChaosAddress(Guid id)
+    {
+        var chaos = this.chaosAddresses?.FirstOrDefault(x => x.Id == id);
+        if (chaos != null)
+        {
+            this.deleteConfirmData = chaos;
+            this.showDeleteConfirm = true;
+            this.deleteIdToProcess = id;
+        }
+    }
+
+    private async Task ConfirmDelete()
+    {
+        this.isDeleteProcessing = true;
+        this.StateHasChanged();
+
+        var command = new DeleteChaosAddressCommand(this.deleteIdToProcess);
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            this.CloseDeleteConfirm();
+            await this.LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to delete chaos address");
+        }
+
+        this.isDeleteProcessing = false;
+        this.StateHasChanged();
+    }
+
+    private void OpenCreate()
+    {
+        this.showModal = true;
+        this.model = new();
+    }
+
+    private void CloseCreate()
+    {
+        this.showModal = false;
+        this.model = new();
+    }
+
+    private void CloseSuspendConfirm()
+    {
+        this.showSuspendConfirm = false;
+        this.suspendConfirmData = null;
+        this.suspendIdToProcess = Guid.Empty;
+    }
+
+    private void CloseEnableConfirm()
+    {
+        this.showEnableConfirm = false;
+        this.enableConfirmData = null;
+        this.enableIdToProcess = Guid.Empty;
+    }
+
+    private void CloseDeleteConfirm()
+    {
+        this.showDeleteConfirm = false;
+        this.deleteConfirmData = null;
+        this.deleteIdToProcess = Guid.Empty;
+    }
+
+    private void OpenEdit(ChaosAddressSummary chaos)
+    {
+        this.editChaosAddress = chaos;
+        this.editDescription = string.Empty;
+        this.editLocalPart = chaos.LocalPart;
+        this.editSmtpCodeString = ((int)chaos.ConfiguredSmtpCode).ToString();
+        this.editSubdomainIdString = chaos.SubdomainId == Guid.Empty ? string.Empty : chaos.SubdomainId.ToString();
+        this.showEditSlideout = true;
+        try
+        {
+            this.dotNetRef = DotNetObjectReference.Create(this);
+            _ = jsRuntime.InvokeAsync<string>("registerOutsideClickHandler", "#chaos-edit-panel", this.dotNetRef, "CloseEditSlideout")
+                .AsTask().ContinueWith(t =>
+                {
+                    if (t.Status == TaskStatus.RanToCompletion)
+                    {
+                        this.outsideClickHandlerId = t.Result;
+                    }
+                });
+        }
+        catch
+        {
+            // swallow - non-fatal if JS not available
+        }
+    }
+
+    private void CloseEditSlideout()
+    {
+        this.showEditSlideout = false;
+        this.editChaosAddress = null;
+        this.editDescription = string.Empty;
+        this.editLocalPart = string.Empty;
+        this.editSmtpCodeString = string.Empty;
+        this.editSubdomainIdString = string.Empty;
+        try
+        {
+            if (!string.IsNullOrEmpty(this.outsideClickHandlerId))
+            {
+                _ = jsRuntime.InvokeVoidAsync("removeOutsideClickHandler", this.outsideClickHandlerId);
+                this.outsideClickHandlerId = null;
+            }
+
+            this.dotNetRef?.Dispose();
+            this.dotNetRef = null;
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    private async Task SaveEditChanges()
+    {
+        this.isEditSaving = true;
+        this.StateHasChanged();
+
+        if (this.editChaosAddress == null)
+        {
+            this.isEditSaving = false;
+            return;
+        }
+
+        if (!int.TryParse(this.editSmtpCodeString, out var smtpCodeValue))
+        {
+            notificationService.ShowError("Invalid SMTP code selected");
+            this.isEditSaving = false;
+            this.StateHasChanged();
+            return;
+        }
+
+        // determine selected subdomain and domain id
+        Guid selectedSubdomainId = string.IsNullOrEmpty(this.editSubdomainIdString) ? this.editChaosAddress.SubdomainId : Guid.Parse(this.editSubdomainIdString);
+        var selectedSubdomain = this.subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == selectedSubdomainId);
+        Guid domainId = selectedSubdomain?.DomainId ?? this.editChaosAddress.DomainId;
+
+        var command = new EditChaosAddressCommand(
+            this.editChaosAddress.Id,
+            domainId,
+            selectedSubdomainId,
+            this.editLocalPart,
+            (SmtpResponseCode)smtpCodeValue,
+            string.IsNullOrWhiteSpace(this.editDescription) ? null : this.editDescription);
+
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            notificationService.ShowSuccess("Chaos address updated successfully");
+            this.CloseEditSlideout();
+            await this.LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to update chaos address");
+        }
+
+        this.isEditSaving = false;
+        this.StateHasChanged();
+    }
+
+    private async Task HandleCreate()
+    {
+        this.isCreating = true;
+        this.StateHasChanged();
+
+        var selectedSubdomain = this.subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == this.model.SubdomainId);
+        var domainId = selectedSubdomain?.DomainId ?? Guid.Empty;
+
+        var command = new CreateChaosAddressCommand(
+            Guid.NewGuid(), // Id
+            domainId, // DomainId (looked up from subdomain)
+            this.model.SubdomainId, // SubdomainId
+            this.model.LocalPart,
+            (SmtpResponseCode)this.model.SmtpCode,
+            Guid.Empty); // CreatedBy (to be set by backend from auth context)
+
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            this.CloseCreate();
+            await this.LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to create chaos address");
+        }
+
+        this.isCreating = false;
+        this.StateHasChanged();
     }
 
     private string GetSubdomainDisplayName(Guid subdomainId)
     {
-        if (subdomainsByDomain == null)
+        if (this.subdomainsByDomain == null)
+        {
             return string.Empty;
+        }
 
-        foreach (var domainGroup in subdomainsByDomain)
+        foreach (var domainGroup in this.subdomainsByDomain)
         {
             var subdomain = domainGroup.Value.FirstOrDefault(s => s.Id == subdomainId);
             if (subdomain != null)
@@ -477,15 +437,38 @@ public partial class ChaosAddresses(IQuerier querier,
     public class CreateChaosAddressFormModel
     {
         public string LocalPart { get; set; } = string.Empty;
+
         public int SmtpCode { get; set; }
+
         public string? Description { get; set; }
+
         public Guid SubdomainId { get; set; }
 
         public string SubdomainIdString
         {
-            get => SubdomainId == Guid.Empty ? "" : SubdomainId.ToString();
-            set => SubdomainId = string.IsNullOrEmpty(value) ? Guid.Empty : Guid.Parse(value);
+            get => this.SubdomainId == Guid.Empty ? string.Empty : this.SubdomainId.ToString();
+            set => this.SubdomainId = string.IsNullOrEmpty(value) ? Guid.Empty : Guid.Parse(value);
         }
+    }
+
+    private sealed class ChaosAddressSearchRequest
+    {
+        public string? SearchTerm { get; set; }
+
+        public string SubdomainIdFilter { get; set; } = string.Empty;
+
+        public string EnabledFilter { get; set; } = string.Empty;
+
+        public string SortBy { get; set; } = "CreatedAt";
+    }
+
+    private sealed class SubdomainOption
+    {
+        public Guid Id { get; set; }
+
+        public Guid DomainId { get; set; }
+
+        public string SubdomainName { get; set; } = string.Empty;
     }
 }
 

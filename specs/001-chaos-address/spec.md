@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-chaos-address`  
 **Created**: 2025-11-01  
-**Status**: Draft  
+**Status**: IMPLEMENTED (see Implementation & Tests section below)
 **Input**: User description: "A chaos monkey address that can respond with a fixed SMTP error code. Created by users with domain management permission, assigned as moderator or viewer. Must be unique, disabled by default, immutable after first use, and track total received count and most recent date. Starts disabled; when disabled emails processed normally; when enabled returns the configured SMTP error. Cannot be edited or deleted after first email received."
 
 ## User Scenarios & Testing *(mandatory)*
@@ -78,6 +78,50 @@ As a system owner, I want chaos addresses to become immutable (no edits or delet
 - Race on first-receive: If two messages arrive at the same moment, ensure the transition from editable to immutable and the increment of counters is atomic to avoid lost updates.
 
 - Storage limits: Track only aggregate counts and most recent timestamp; do not attempt to store unlimited per-message details to avoid unbounded growth.
+
+--
+
+## Implementation & Tests (current state)
+
+This section documents the implemented behavior, files, and tests as present in the repository on branch `001-chaos-address`.
+
+Status: Feature implemented, committed and tested. Full solution build is clean and unit tests pass across relevant projects. See `specs/001-chaos-address/tasks.md` for a task-level execution log.
+
+Key implemented artifacts (non-exhaustive):
+
+- Domain aggregate and events:
+  - `src/modules/Spamma.Modules.DomainManagement/Domain/ChaosAddressAggregate/ChaosAddress.cs`
+  - `src/modules/Spamma.Modules.DomainManagement/Domain/ChaosAddressAggregate/Events/` (ChaosAddressCreated, ChaosAddressEnabled, ChaosAddressDisabled, ChaosAddressReceived, ChaosAddressSubdomainChanged, ChaosAddressLocalPartChanged, ChaosAddressSmtpCodeChanged)
+
+- Read model & projection:
+  - `src/modules/Spamma.Modules.DomainManagement/Infrastructure/ReadModels/ChaosAddressLookup.cs`
+  - `src/modules/Spamma.Modules.DomainManagement/Infrastructure/Projections/ChaosAddressLookupProjection.cs`
+
+- Commands / Handlers / Validators:
+  - Client DTOs: `src/modules/Spamma.Modules.DomainManagement.Client/Application/Commands/...` (Create, Enable, Disable, DeleteChaosAddressCommand in `Commands/DeleteChaosAddress`)
+  - Server handlers: `src/modules/Spamma.Modules.DomainManagement/Application/CommandHandlers/ChaosAddress/*` (Create, Enable, Disable, RecordReceived, Delete)
+  - Validators: `src/modules/Spamma.Modules.DomainManagement/Application/Validators/ChaosAddress/*` (Create/Edit/Delete/Enable/Disable/RecordReceived). A minimal `DeleteChaosAddressCommandValidator` ensures `Id` is present for delete operations.
+
+- SMTP integration:
+  - `src/modules/Spamma.Modules.EmailInbox/Infrastructure/Services/SpammaMessageStore.cs` - detects recipients in To/Cc/Bcc order, queries the `ChaosAddressLookup` read model, and returns configured SMTP error codes for the first matching enabled chaos address; falls back to normal processing otherwise. It also dispatches `RecordChaosAddressReceivedCommand` as a best-effort update for counters.
+
+- Client UI (WASM):
+  - Dedicated page `ChaosAddresses.razor` and list component `ChaosAddressList.razor` (routes `/chaos-addresses` and `/chaos-addresses/{subdomainId}`) with placeholders for Create modal.
+
+Tests & Build Status (as of last run):
+
+- Full solution build: succeeded (0 errors, 0 warnings)
+- DomainManagement tests: succeeded (103 tests, 0 failures)
+- EmailInbox tests: succeeded (5 targeted SMTP processing tests, all passing)
+- Full test summary: 273 total tests, 0 failed, 273 succeeded (see `dotnet test` output and `specs/001-chaos-address/tasks.md` for details)
+
+Known implementation notes:
+
+- Immutability: Implemented in aggregate logic — once `TotalReceived > 0` the aggregate rejects edits and deletions; enable/disable remain allowed.
+- Projection: `ChaosAddressLookupProjection` updates read model fields and patches atomic counters for `TotalReceived` and `LastReceivedAt` on `ChaosAddressReceived` events.
+- SMTP per-recipient semantics: SpammaMessageStore implements first-match behavior and responds per recipient where the underlying SMTP library supports it.
+
+If you need the spec to include further implementation details (file-level mapping, PR references, or code excerpts), say which areas to expand and I will add them.
 
 - Disabled by default: Ensure existing message processing paths are preserved when the chaos address is disabled.
 

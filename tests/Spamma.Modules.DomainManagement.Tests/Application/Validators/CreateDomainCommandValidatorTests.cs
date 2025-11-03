@@ -2,7 +2,6 @@ using FluentAssertions;
 using FluentValidation;
 using Moq;
 using Spamma.Modules.DomainManagement.Application.Validators;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 using Spamma.Modules.DomainManagement.Infrastructure.Services;
 

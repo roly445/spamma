@@ -1,0 +1,46 @@
+using System;
+using System.Linq.Expressions;
+using FluentAssertions;
+using Moq;
+using Marten;
+using Marten.Patching;
+using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
+using Spamma.Modules.DomainManagement.Infrastructure.Projections;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
+using JasperFx.Events;
+using Xunit;
+
+namespace Spamma.Modules.DomainManagement.Tests.Infrastructure.Projections;
+
+public class ChaosAddressLookupProjectionTests
+{
+    [Fact]
+    public void Apply_ChaosAddressSubdomainChanged_PatchesReadModel()
+    {
+        var streamId = Guid.NewGuid();
+        var newDomain = Guid.NewGuid();
+        var newSubdomain = Guid.NewGuid();
+
+        var evtMock = new Mock<IEvent<ChaosAddressSubdomainChanged>>();
+        evtMock.SetupGet(x => x.StreamId).Returns(streamId);
+        evtMock.SetupGet(x => x.Data).Returns(new ChaosAddressSubdomainChanged(newDomain, newSubdomain));
+
+        var patchMock = new Mock<IPatchExpression<ChaosAddressLookup>>(MockBehavior.Strict);
+        patchMock
+            .Setup(p => p.Set(It.IsAny<Expression<Func<ChaosAddressLookup, Guid>>>(), newDomain))
+            .Returns(patchMock.Object);
+        patchMock
+            .Setup(p => p.Set(It.IsAny<Expression<Func<ChaosAddressLookup, Guid>>>(), newSubdomain))
+            .Returns(patchMock.Object);
+
+        var opsMock = new Mock<IDocumentOperations>(MockBehavior.Strict);
+        opsMock.Setup(o => o.Patch<ChaosAddressLookup>(streamId)).Returns(patchMock.Object);
+
+        var projection = new ChaosAddressLookupProjection();
+        projection.Project(evtMock.Object, opsMock.Object);
+
+        opsMock.Verify(o => o.Patch<ChaosAddressLookup>(streamId), Times.Once);
+        patchMock.Verify(p => p.Set(It.IsAny<Expression<Func<ChaosAddressLookup, Guid>>>(), newDomain), Times.Once);
+        patchMock.Verify(p => p.Set(It.IsAny<Expression<Func<ChaosAddressLookup, Guid>>>(), newSubdomain), Times.Once);
+    }
+}

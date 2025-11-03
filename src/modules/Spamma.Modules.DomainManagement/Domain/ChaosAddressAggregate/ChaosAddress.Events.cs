@@ -22,7 +22,7 @@ public partial class ChaosAddress
                 this.Apply(e);
                 break;
             case ChaosAddressDeleted e:
-                this.Apply(e);
+                Apply(e);
                 break;
             case ChaosAddressLocalPartChanged e:
                 this.Apply(e);
@@ -36,6 +36,11 @@ public partial class ChaosAddress
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
+    }
+
+    private static void Apply(ChaosAddressDeleted @event)
+    {
+        _ = @event;
     }
 
     private void Apply(ChaosAddressCreated @event)
@@ -67,11 +72,6 @@ public partial class ChaosAddress
     {
         this.TotalReceived += 1;
         this.LastReceivedAt = @event.When;
-    }
-
-    private void Apply(ChaosAddressDeleted @event)
-    {
-        _ = @event;
     }
 
     private void Apply(ChaosAddressLocalPartChanged @event)

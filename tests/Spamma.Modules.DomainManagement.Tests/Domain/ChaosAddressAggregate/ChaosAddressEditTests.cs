@@ -1,8 +1,6 @@
-using System;
 using FluentAssertions;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 using Spamma.Tests.Common.Verification;
-using Xunit;
 
 namespace Spamma.Modules.DomainManagement.Tests.Domain.ChaosAddressAggregate;
 
@@ -31,8 +29,8 @@ public class ChaosAddressEditTests
         agg.DomainId.Should().Be(newDomain);
         agg.SubdomainId.Should().Be(newSubdomain);
 
-        // Verify a ChaosAddressSubdomainChanged event exists in the event list
-        agg.UncommittedEvents.Should().Contain(e => e.GetType().Name == "ChaosAddressSubdomainChanged");
+    // Verify a ChaosAddressSubdomainChanged event exists in the event list
+        agg.GetUncommittedEvents().Should().Contain(e => e.GetType().Name == "ChaosAddressSubdomainChanged");
     }
 
     [Fact]
@@ -61,8 +59,8 @@ public class ChaosAddressEditTests
         agg.DomainId.Should().Be(domainId);
         agg.SubdomainId.Should().Be(subdomainId);
 
-        // No ChaosAddressSubdomainChanged event should be present
-        agg.UncommittedEvents.Should().NotContain(e => e.GetType().Name == "ChaosAddressSubdomainChanged");
+    // No ChaosAddressSubdomainChanged event should be present
+        agg.GetUncommittedEvents().Should().NotContain(e => e.GetType().Name == "ChaosAddressSubdomainChanged");
     }
 
     [Fact]
@@ -80,7 +78,7 @@ public class ChaosAddressEditTests
 
         result.ShouldBeOk();
 
-        // local part changed but domain/subdomain same -> no subdomain changed event
-        agg.UncommittedEvents.Should().NotContain(e => e.GetType().Name == "ChaosAddressSubdomainChanged");
+    // local part changed but domain/subdomain same -> no subdomain changed event
+        agg.GetUncommittedEvents().Should().NotContain(e => e.GetType().Name == "ChaosAddressSubdomainChanged");
     }
 }
