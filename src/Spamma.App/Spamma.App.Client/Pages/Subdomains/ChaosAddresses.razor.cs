@@ -9,6 +9,7 @@ using Spamma.Modules.Common;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.CreateChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.DeleteChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.DisableChaosAddress;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.EditChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.EnableChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
@@ -232,6 +233,8 @@ public partial class ChaosAddresses(IQuerier querier,
     private bool isEditSaving;
     private ChaosAddressSummary? editChaosAddress;
     private string editDescription = string.Empty;
+    private string editLocalPart = string.Empty;
+    private string editSmtpCodeString = string.Empty;
 
     private void OpenCreate()
     {
@@ -271,6 +274,8 @@ public partial class ChaosAddresses(IQuerier querier,
     {
         editChaosAddress = chaos;
         editDescription = string.Empty;
+        editLocalPart = chaos.LocalPart;
+        editSmtpCodeString = ((int)chaos.ConfiguredSmtpCode).ToString();
         showEditSlideout = true;
     }
 
@@ -279,6 +284,8 @@ public partial class ChaosAddresses(IQuerier querier,
         showEditSlideout = false;
         editChaosAddress = null;
         editDescription = string.Empty;
+        editLocalPart = string.Empty;
+        editSmtpCodeString = string.Empty;
     }
 
     private async Task SaveEditChanges()
@@ -286,12 +293,39 @@ public partial class ChaosAddresses(IQuerier querier,
         isEditSaving = true;
         StateHasChanged();
 
-        // TODO: Implement UpdateChaosAddressCommand with description update
-        // For now, just simulate saving
-        await Task.Delay(500);
+        if (editChaosAddress == null)
+        {
+            isEditSaving = false;
+            return;
+        }
 
-        CloseEditSlideout();
-        await LoadChaosAddresses();
+        if (!int.TryParse(editSmtpCodeString, out var smtpCodeValue))
+        {
+            notificationService.ShowError("Invalid SMTP code selected");
+            isEditSaving = false;
+            StateHasChanged();
+            return;
+        }
+
+        var command = new EditChaosAddressCommand(
+            editChaosAddress.Id,
+            editLocalPart,
+            (SmtpResponseCode)smtpCodeValue,
+            string.IsNullOrWhiteSpace(editDescription) ? null : editDescription
+        );
+
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            notificationService.ShowSuccess("Chaos address updated successfully");
+            CloseEditSlideout();
+            await LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to update chaos address");
+        }
 
         isEditSaving = false;
         StateHasChanged();
