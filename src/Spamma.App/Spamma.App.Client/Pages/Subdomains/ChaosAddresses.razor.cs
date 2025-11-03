@@ -354,6 +354,25 @@ public partial class ChaosAddresses(IQuerier querier,
         };
     }
 
+    private string? GetSelectedSubdomainName()
+    {
+        if (model is null || model.SubdomainId == Guid.Empty || subdomainsByDomain == null)
+        {
+            return null;
+        }
+
+        foreach (var domainGroup in subdomainsByDomain.Values)
+        {
+            var subdomain = domainGroup.FirstOrDefault(s => s.Id == model.SubdomainId);
+            if (subdomain != null)
+            {
+                return "@" + subdomain.SubdomainName;
+            }
+        }
+
+        return null;
+    }
+
     public class CreateChaosAddressFormModel
     {
         public string LocalPart { get; set; } = string.Empty;

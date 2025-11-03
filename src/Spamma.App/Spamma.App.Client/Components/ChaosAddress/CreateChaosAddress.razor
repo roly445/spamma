@@ -1,0 +1,18 @@
+@using Spamma.Modules.DomainManagement.Client.Application.Commands.CreateChaosAddress
+@using Spamma.Modules.DomainManagement.Client.Application.Queries
+@using Spamma.Modules.Common
+@using BluQube.Commands
+@using BluQube.Constants
+@inject ICommander Commander
+
+
+
+@code {
+    [Parameter]
+    public Guid SubdomainId { get; set; }
+
+    [Parameter]
+    public EventCallback OnCreated { get; set; }
+
+    
+} 
