@@ -24,6 +24,12 @@ public partial class ChaosAddress
             case ChaosAddressDeleted e:
                 this.Apply(e);
                 break;
+            case ChaosAddressLocalPartChanged e:
+                this.Apply(e);
+                break;
+            case ChaosAddressSmtpCodeChanged e:
+                this.Apply(e);
+                break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
@@ -63,5 +69,15 @@ public partial class ChaosAddress
     private void Apply(ChaosAddressDeleted @event)
     {
         _ = @event;
+    }
+
+    private void Apply(ChaosAddressLocalPartChanged @event)
+    {
+        this.LocalPart = @event.NewLocalPart;
+    }
+
+    private void Apply(ChaosAddressSmtpCodeChanged @event)
+    {
+        this.ConfiguredSmtpCode = @event.NewSmtpCode;
     }
 }

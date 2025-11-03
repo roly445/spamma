@@ -56,4 +56,18 @@ public class ChaosAddressLookupProjection : EventProjection
     {
         ops.Delete<ChaosAddressLookup>(@event.StreamId);
     }
+
+    [UsedImplicitly]
+    public void Project(IEvent<ChaosAddressLocalPartChanged> @event, IDocumentOperations ops)
+    {
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Set(x => x.LocalPart, @event.Data.NewLocalPart);
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<ChaosAddressSmtpCodeChanged> @event, IDocumentOperations ops)
+    {
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Set(x => x.ConfiguredSmtpCode, @event.Data.NewSmtpCode);
+    }
 }
