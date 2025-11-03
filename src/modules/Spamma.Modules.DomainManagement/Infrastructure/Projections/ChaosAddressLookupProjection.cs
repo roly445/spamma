@@ -50,4 +50,10 @@ public class ChaosAddressLookupProjection : EventProjection
             .Increment(x => x.TotalReceived, 1)
             .Set(x => x.LastReceivedAt, @event.Data.When);
     }
+
+    [UsedImplicitly]
+    public void Project(IEvent<ChaosAddressDeleted> @event, IDocumentOperations ops)
+    {
+        ops.Delete<ChaosAddressLookup>(@event.StreamId);
+    }
 }

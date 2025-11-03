@@ -21,6 +21,9 @@ public partial class ChaosAddress
             case ChaosAddressReceived e:
                 this.Apply(e);
                 break;
+            case ChaosAddressDeleted e:
+                this.Apply(e);
+                break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
@@ -55,5 +58,10 @@ public partial class ChaosAddress
     {
         this.TotalReceived += 1;
         this.LastReceivedAt = @event.When;
+    }
+
+    private void Apply(ChaosAddressDeleted @event)
+    {
+        _ = @event;
     }
 }
