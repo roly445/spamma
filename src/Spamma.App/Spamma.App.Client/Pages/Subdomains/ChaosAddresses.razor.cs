@@ -7,6 +7,7 @@ using Microsoft.JSInterop;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.CreateChaosAddress;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.DeleteChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.DisableChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.EnableChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
@@ -171,12 +172,18 @@ public partial class ChaosAddresses(IQuerier querier,
         isDeleteProcessing = true;
         StateHasChanged();
 
-        // TODO: Implement DeleteChaosAddressCommand
-        // For now, just close the dialog
-        await Task.Delay(1000); // Simulate processing
+        var command = new DeleteChaosAddressCommand(deleteIdToProcess);
+        var result = await commander.Send(command);
 
-        CloseDeleteConfirm();
-        await LoadChaosAddresses();
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            CloseDeleteConfirm();
+            await LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to delete chaos address");
+        }
 
         isDeleteProcessing = false;
         StateHasChanged();

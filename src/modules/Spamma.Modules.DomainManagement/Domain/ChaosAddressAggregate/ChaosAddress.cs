@@ -79,4 +79,11 @@ public partial class ChaosAddress : AggregateRoot
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
+
+    public ResultWithError<BluQubeErrorData> Delete(DateTime when)
+    {
+        var @event = new ChaosAddressDeleted(when);
+        this.RaiseEvent(@event);
+        return ResultWithError.Ok<BluQubeErrorData>();
+    }
 }
