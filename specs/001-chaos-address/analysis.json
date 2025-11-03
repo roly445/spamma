@@ -1,0 +1,26 @@
+{
+  "feature": "chaos-address",
+  "branch": "001-chaos-address",
+  "status": "implemented",
+  "implementedArtifacts": {
+    "aggregate": "src/modules/Spamma.Modules.DomainManagement/Domain/ChaosAddressAggregate/ChaosAddress.cs",
+    "projection": "src/modules/Spamma.Modules.DomainManagement/Infrastructure/Projections/ChaosAddressLookupProjection.cs",
+    "validators": [
+      "src/modules/Spamma.Modules.DomainManagement/Application/Validators/ChaosAddress/DeleteChaosAddressCommandValidator.cs"
+    ],
+    "tests": "tests/Spamma.Modules.DomainManagement.Tests/"
+  },
+  "verification": {
+    "build": "succeeded",
+    "tests": {
+      "total": 273,
+      "failed": 0,
+      "passed": 273
+    }
+  },
+  "notes": [
+    "Adjusted tests to use public aggregate API and removed fake Marten implementation.",
+    "Consider clarifying uniqueness scope and supported SMTP codes in spec.md"
+  ],
+  "generatedAt": "2025-11-03T00:00:00Z"
+}
