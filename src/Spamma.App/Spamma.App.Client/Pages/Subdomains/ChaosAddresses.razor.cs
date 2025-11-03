@@ -361,12 +361,12 @@ public partial class ChaosAddresses(IQuerier querier,
             return null;
         }
 
-        foreach (var domainGroup in subdomainsByDomain.Values)
+        foreach (var domainGroup in subdomainsByDomain)
         {
-            var subdomain = domainGroup.FirstOrDefault(s => s.Id == model.SubdomainId);
+            var subdomain = domainGroup.Value.FirstOrDefault(s => s.Id == model.SubdomainId);
             if (subdomain != null)
             {
-                return "@" + subdomain.SubdomainName;
+                return "@" + subdomain.SubdomainName + "." + domainGroup.Key;
             }
         }
 

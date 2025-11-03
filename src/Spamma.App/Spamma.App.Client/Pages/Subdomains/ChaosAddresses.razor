@@ -42,7 +42,7 @@
                                     <optgroup label="@domainGroup.Key">
                                         @foreach (var subdomain in domainGroup.Value)
                                         {
-                                            <option value="@subdomain.Id">@subdomain.SubdomainName</option>
+                                            <option value="@subdomain.Id">@subdomain.SubdomainName.@domainGroup.Key</option>
                                         }
                                     </optgroup>
                                 }
@@ -229,7 +229,7 @@
                                         <optgroup label="@domainGroup.Key">
                                             @foreach (var subdomain in domainGroup.Value)
                                             {
-                                                <option value="@subdomain.Id">@subdomain.SubdomainName</option>
+                                                <option value="@subdomain.Id">@subdomain.SubdomainName.@domainGroup.Key</option>
                                             }
                                         </optgroup>
                                     }
