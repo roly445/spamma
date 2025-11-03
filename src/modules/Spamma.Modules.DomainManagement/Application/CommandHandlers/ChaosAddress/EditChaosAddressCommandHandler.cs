@@ -25,7 +25,7 @@ internal class EditChaosAddressCommandHandler(
         }
 
         var chaos = chaosMaybe.Value;
-        var result = chaos.Edit(request.LocalPart, request.ConfiguredSmtpCode);
+        var result = chaos.Edit(request.DomainId, request.SubdomainId, request.LocalPart, request.ConfiguredSmtpCode);
         if (result.IsFailure)
         {
             return CommandResult.Failed(result.Error);

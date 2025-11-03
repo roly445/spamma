@@ -87,13 +87,19 @@ public partial class ChaosAddress : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> Edit(string newLocalPart, SmtpResponseCode newSmtpCode)
+    public ResultWithError<BluQubeErrorData> Edit(Guid newDomainId, Guid newSubdomainId, string newLocalPart, SmtpResponseCode newSmtpCode)
     {
         if (this.TotalReceived > 0)
         {
             return ResultWithError.Fail(new BluQubeErrorData(
                 DomainManagementErrorCodes.CannotEditAfterReceive,
                 "Cannot edit chaos address after emails have been received"));
+        }
+
+        if (this.DomainId != newDomainId || this.SubdomainId != newSubdomainId)
+        {
+            var subdomainEvent = new ChaosAddressSubdomainChanged(newDomainId, newSubdomainId);
+            this.RaiseEvent(subdomainEvent);
         }
 
         if (this.LocalPart != newLocalPart)

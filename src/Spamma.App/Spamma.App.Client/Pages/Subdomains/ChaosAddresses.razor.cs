@@ -18,7 +18,8 @@ namespace Spamma.App.Client.Pages.Subdomains;
 public partial class ChaosAddresses(IQuerier querier,
     ICommander commander,
     INotificationService notificationService,
-    AuthenticationStateProvider authenticationStateProvider)
+    AuthenticationStateProvider authenticationStateProvider,
+    IJSRuntime jsRuntime)
 {
     private bool isLoading = true;
 
@@ -235,6 +236,9 @@ public partial class ChaosAddresses(IQuerier querier,
     private string editDescription = string.Empty;
     private string editLocalPart = string.Empty;
     private string editSmtpCodeString = string.Empty;
+    private string editSubdomainIdString = string.Empty;
+    private string? outsideClickHandlerId;
+    private DotNetObjectReference<ChaosAddresses>? dotNetRef;
 
     private void OpenCreate()
     {
@@ -276,7 +280,20 @@ public partial class ChaosAddresses(IQuerier querier,
         editDescription = string.Empty;
         editLocalPart = chaos.LocalPart;
         editSmtpCodeString = ((int)chaos.ConfiguredSmtpCode).ToString();
+        editSubdomainIdString = chaos.SubdomainId == Guid.Empty ? string.Empty : chaos.SubdomainId.ToString();
         showEditSlideout = true;
+        // Register a JS outside-click handler that will call CloseEditSlideout when clicking outside the panel
+        try
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            // selector targets the panel element by id
+            _ = jsRuntime.InvokeAsync<string>("registerOutsideClickHandler", "#chaos-edit-panel", dotNetRef, "CloseEditSlideout")
+                .AsTask().ContinueWith(t => { if (t.Status == TaskStatus.RanToCompletion) outsideClickHandlerId = t.Result; });
+        }
+        catch
+        {
+            // swallow - non-fatal if JS not available
+        }
     }
 
     private void CloseEditSlideout()
@@ -286,6 +303,22 @@ public partial class ChaosAddresses(IQuerier querier,
         editDescription = string.Empty;
         editLocalPart = string.Empty;
         editSmtpCodeString = string.Empty;
+        editSubdomainIdString = string.Empty;
+        // unregister JS outside-click handler
+        try
+        {
+            if (!string.IsNullOrEmpty(outsideClickHandlerId))
+            {
+                _ = jsRuntime.InvokeVoidAsync("removeOutsideClickHandler", outsideClickHandlerId);
+                outsideClickHandlerId = null;
+            }
+            dotNetRef?.Dispose();
+            dotNetRef = null;
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     private async Task SaveEditChanges()
@@ -307,8 +340,15 @@ public partial class ChaosAddresses(IQuerier querier,
             return;
         }
 
+        // determine selected subdomain and domain id
+        Guid selectedSubdomainId = string.IsNullOrEmpty(editSubdomainIdString) ? editChaosAddress.SubdomainId : Guid.Parse(editSubdomainIdString);
+        var selectedSubdomain = subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == selectedSubdomainId);
+        Guid domainId = selectedSubdomain?.DomainId ?? editChaosAddress.DomainId;
+
         var command = new EditChaosAddressCommand(
             editChaosAddress.Id,
+            domainId,
+            selectedSubdomainId,
             editLocalPart,
             (SmtpResponseCode)smtpCodeValue,
             string.IsNullOrWhiteSpace(editDescription) ? null : editDescription
@@ -415,6 +455,23 @@ public partial class ChaosAddresses(IQuerier querier,
         }
 
         return null;
+    }
+
+    private string GetSubdomainDisplayName(Guid subdomainId)
+    {
+        if (subdomainsByDomain == null)
+            return string.Empty;
+
+        foreach (var domainGroup in subdomainsByDomain)
+        {
+            var subdomain = domainGroup.Value.FirstOrDefault(s => s.Id == subdomainId);
+            if (subdomain != null)
+            {
+                return $"@{subdomain.SubdomainName}.{domainGroup.Key}";
+            }
+        }
+
+        return string.Empty;
     }
 
     public class CreateChaosAddressFormModel

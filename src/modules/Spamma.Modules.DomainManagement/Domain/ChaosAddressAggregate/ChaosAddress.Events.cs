@@ -27,6 +27,9 @@ public partial class ChaosAddress
             case ChaosAddressLocalPartChanged e:
                 this.Apply(e);
                 break;
+            case ChaosAddressSubdomainChanged e:
+                this.Apply(e);
+                break;
             case ChaosAddressSmtpCodeChanged e:
                 this.Apply(e);
                 break;
@@ -74,6 +77,12 @@ public partial class ChaosAddress
     private void Apply(ChaosAddressLocalPartChanged @event)
     {
         this.LocalPart = @event.NewLocalPart;
+    }
+
+    private void Apply(ChaosAddressSubdomainChanged @event)
+    {
+        this.DomainId = @event.NewDomainId;
+        this.SubdomainId = @event.NewSubdomainId;
     }
 
     private void Apply(ChaosAddressSmtpCodeChanged @event)

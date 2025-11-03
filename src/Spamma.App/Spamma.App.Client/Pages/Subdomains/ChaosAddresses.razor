@@ -136,7 +136,7 @@
                                 var isImmutable = chaos.TotalReceived > 0;
                                 <tr class="border-b border-gray-100 hover:bg-gray-50">
                                     <td class="py-3 px-3">
-                                        <span class="font-mono text-xs">@chaos.LocalPart</span>
+                                        <span class="font-mono text-xs">@($"{chaos.LocalPart}@{GetSubdomainDisplayName(chaos.SubdomainId)}")</span>
                                         @if (isImmutable)
                                         {
                                             <span class="inline-block ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded" title="This address is immutable after receiving its first email">Immutable</span>
@@ -248,12 +248,13 @@
                                 Email Address <span class="text-red-500">*</span>
                             </label>
                             <div class="flex items-center">
-                                <InputText @bind-Value="model.LocalPart" 
-                                          placeholder="chaos"
-                                          class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                                <span class="px-3 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-500">
-                                    @(GetSelectedSubdomainName() ?? "@subdomain")
-                                </span>
+                                <div class="mt-2">
+                                    <label class="block text-sm font-medium text-gray-700">Local part</label>
+                                    <div class="mt-1 flex rounded-md shadow-sm">
+                                        <InputText id="edit-localpart" class="flex-1 block w-full rounded-l-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" @bind-Value="editLocalPart" />
+                                        <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-sm text-gray-600">@GetSubdomainDisplayName(editChaosAddress.SubdomainId)</span>
+                                    </div>
+                                </div>
                             </div>
                             <ValidationMessage For="@(() => model.LocalPart)" class="mt-1 text-sm text-red-600" />
                             <p class="mt-1 text-xs text-gray-500">Enter the local part (prefix) of the email address</p>
@@ -560,7 +561,7 @@
         <!-- Slide-out Container -->
         <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
             <!-- Actual Panel (pointer-events-auto to capture clicks inside only) -->
-            <div class="pointer-events-auto w-screen max-w-md transform transition ease-in-out duration-300 @(showEditSlideout ? "translate-x-0" : "translate-x-full")">
+            <div id="chaos-edit-panel" class="pointer-events-auto w-screen max-w-md transform transition ease-in-out duration-300 @(showEditSlideout ? "translate-x-0" : "translate-x-full")">
                 <div class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
                     <!-- Header -->
                     <div class="flex items-center justify-between bg-blue-600 px-4 py-6 sm:px-6">
@@ -587,10 +588,33 @@
                                 }
                                 else
                                 {
-                                    <input type="text" @bind="editLocalPart" 
-                                           @onclick:stopPropagation="true"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                           placeholder="Local part of email address" />
+                                    <div class="mt-2">
+                                        <label class="block text-sm font-medium text-gray-700">Local part</label>
+                                        <div class="mt-1 flex rounded-md shadow-sm">
+                                            <InputText id="edit-localpart-slideout" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm" @bind-Value="editLocalPart" @onclick:stopPropagation="true" />
+                                            <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-sm text-gray-600">@GetSubdomainDisplayName(editChaosAddress.SubdomainId)</span>
+                                        </div>
+                                    </div>
+                                    <!-- Allow editing the subdomain before first receive -->
+                                    <div class="mt-4">
+                                        <label class="block text-sm font-medium text-gray-700">Subdomain</label>
+                                        <select @bind="editSubdomainIdString" @onclick:stopPropagation="true" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm">
+                                            <option value="">-- Select a subdomain --</option>
+                                            @if (subdomainsByDomain != null)
+                                            {
+                                                @foreach (var domainGroup in subdomainsByDomain)
+                                                {
+                                                    <optgroup label="@domainGroup.Key">
+                                                        @foreach (var subdomain in domainGroup.Value)
+                                                        {
+                                                            <option value="@subdomain.Id">@subdomain.SubdomainName.@domainGroup.Key</option>
+                                                        }
+                                                    </optgroup>
+                                                }
+                                            }
+                                        </select>
+                                        <p class="mt-1 text-xs text-gray-500">Change which subdomain this address belongs to (allowed only before the first received email).</p>
+                                    </div>
                                     <p class="mt-1 text-xs text-gray-500">Can be edited before receiving emails</p>
                                 }
                             </div>
@@ -613,7 +637,7 @@
                                         <option value="">Select SMTP Code...</option>
                                         @foreach (var smtpCode in GetSmtpCodes())
                                         {
-                                            <option value="@smtpCode">@smtpCode</option>
+                                            <option value="@((int)smtpCode)">@smtpCode.ToString() (@GetSmtpDescription(smtpCode))</option>
                                         }
                                     </select>
                                     <p class="mt-1 text-xs text-gray-500">Can be edited before receiving emails</p>

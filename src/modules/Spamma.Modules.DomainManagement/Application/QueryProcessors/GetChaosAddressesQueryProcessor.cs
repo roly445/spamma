@@ -26,6 +26,7 @@ public class GetChaosAddressesQueryProcessor(IDocumentSession session) : IQueryP
 
         var summaries = items.Select(x => new ChaosAddressSummary(
             x.Id,
+            x.DomainId,
             x.SubdomainId,
             x.LocalPart,
             x.ConfiguredSmtpCode,

@@ -65,6 +65,14 @@ public class ChaosAddressLookupProjection : EventProjection
     }
 
     [UsedImplicitly]
+    public void Project(IEvent<ChaosAddressSubdomainChanged> @event, IDocumentOperations ops)
+    {
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Set(x => x.DomainId, @event.Data.NewDomainId)
+            .Set(x => x.SubdomainId, @event.Data.NewSubdomainId);
+    }
+
+    [UsedImplicitly]
     public void Project(IEvent<ChaosAddressSmtpCodeChanged> @event, IDocumentOperations ops)
     {
         ops.Patch<ChaosAddressLookup>(@event.StreamId)

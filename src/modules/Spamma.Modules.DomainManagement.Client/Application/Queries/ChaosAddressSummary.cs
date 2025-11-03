@@ -4,6 +4,7 @@ namespace Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 public record ChaosAddressSummary(
     Guid Id,
+    Guid DomainId,
     Guid SubdomainId,
     string LocalPart,
     SmtpResponseCode ConfiguredSmtpCode,
