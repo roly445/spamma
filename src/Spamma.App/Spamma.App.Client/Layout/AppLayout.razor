@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Spamma.App.Client.Components
+@using Spamma.Modules.Common.Client.Infrastructure.Constants
 @inherits LayoutComponentBase
 
 <style>
@@ -69,7 +70,7 @@
                                                 </a>
                                             </Authorized>
                                         </AuthorizeView>
-                                        <AuthorizeView Policy="AssignedToAnyDomain">
+                                        <AuthorizeView Policy="@Lookups.AssignedToAnyDomain">
                                             <Authorized>
                                                 <a href="/admin/domains" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,19 +80,26 @@
                                                 </a>
                                             </Authorized>
                                         </AuthorizeView>
-                                        <a href="/admin/subdomains" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-                                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                            </svg>
-                                            Subdomain Management
-                                        </a>
-                                        <a href="/chaos-addresses" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-                                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M7.08 6.06A9 9 0 110 12a9 9 0 0110.08-5.94z"></path>
-                                            </svg>
-                                            Chaos Addresses
-                                        </a>
-
+                                        <AuthorizeView Policy="@Lookups.AssignedToAnySubdomain">
+                                            <Authorized>
+                                                <a href="/admin/subdomains" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                    <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                                    </svg>
+                                                    Subdomain Management
+                                                </a>
+                                            </Authorized>
+                                        </AuthorizeView>
+                                        <AuthorizeView Policy="@Lookups.CanModerateChaosAddresses">
+                                            <Authorized>
+                                                <a href="/chaos-addresses" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                    <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M7.08 6.06A9 9 0 110 12a9 9 0 0110.08-5.94z"></path>
+                                                    </svg>
+                                                    Chaos Addresses
+                                                </a>
+                                            </Authorized>
+                                        </AuthorizeView>
                                     </div>
                                 </div>
                             }

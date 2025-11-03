@@ -1,47 +1,68 @@
 @page "/chaos-addresses"
-@page "/chaos-addresses/{subdomainId:guid}"
 @using Spamma.Modules.DomainManagement.Client.Application.Queries
 @using Spamma.Modules.DomainManagement.Client.Contracts
 @using Spamma.App.Client.Components.ChaosAddress
+@using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Layout
+@using Spamma.Modules.Common.Client.Infrastructure.Constants
 @layout AppLayout
-@inject IQuerier Querier
-@inject NavigationManager Navigation
-@attribute [Authorize]
+@attribute [Authorize(Policy = Lookups.CanModerateChaosAddresses)]
 
 <PageTitle>Chaos Addresses - Spamma</PageTitle>
 
-@code {
-    [Parameter]
-    public Guid? SubdomainId { get; set; }
-
-    private bool isLoading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Placeholder: load data via IQuerier
-        await Task.Delay(10);
-        isLoading = false;
-    }
-}
-
 <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="py-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Chaos Addresses</h1>
-                        <p class="mt-1 text-sm text-gray-500">Test email handling by simulating SMTP errors</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <AdminHeader Title="Chaos Addresses" Subtitle="Test email handling by simulating SMTP errors">
+        <Controls>
+            <button @onclick="OpenCreate" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="w-4 h-4 mr-2" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Create Chaos Address
+            </button>
+        </Controls>
+    </AdminHeader>
+ 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <EditForm Model="@searchRequest" OnSubmit="@HandleSearch" FormName="ChaosAddressSearchForm">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <InputText @bind-Value="searchRequest.SearchTerm"
+                                   placeholder="Search by email address..."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <InputSelect @bind-Value="searchRequest.EnabledFilter"
+                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Statuses</option>
+                            <option value="enabled">Enabled</option>
+                            <option value="disabled">Disabled</option>
+                        </InputSelect>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                        <InputSelect @bind-Value="searchRequest.SortBy"
+                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="CreatedAt">Created Date</option>
+                            <option value="LocalPart">Email Address</option>
+                            <option value="Enabled">Status</option>
+                            <option value="TotalReceived">Received Count</option>
+                            <option value="LastReceivedAt">Last Received</option>
+                        </InputSelect>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit"
+                                class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+
         @if (isLoading)
         {
             <div class="flex items-center justify-center py-16">
@@ -53,7 +74,111 @@
         }
         else
         {
-            <ChaosAddressList SubdomainId="SubdomainId" />
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                @if (!isInitialized)
+                {
+                    <div class="text-center py-8">
+                        <svg class="animate-spin h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </div>
+                }
+                else if (isLoading)
+                {
+                    <div class="text-center py-8">
+                        <svg class="animate-spin h-6 w-6 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </div>
+                }
+                else if (chaosAddresses == null || chaosAddresses.Count == 0)
+                {
+                    <div class="text-center py-8 text-gray-500">
+                        <p>No chaos addresses yet. Create one to get started.</p>
+                    </div>
+                }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="border-b border-gray-200">
+                            <tr>
+                                <th class="text-left py-2 px-3 font-medium">Email Address</th>
+                                <th class="text-left py-2 px-3 font-medium">Status</th>
+                                <th class="text-left py-2 px-3 font-medium">SMTP Code</th>
+                                <th class="text-left py-2 px-3 font-medium">Received</th>
+                                <th class="text-left py-2 px-3 font-medium">Last Received</th>
+                                <th class="text-left py-2 px-3 font-medium">Created</th>
+                                <th class="text-center py-2 px-3 font-medium">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var chaos in chaosAddresses)
+                            {
+                                var isImmutable = chaos.TotalReceived > 0;
+                                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                    <td class="py-3 px-3">
+                                        <span class="font-mono text-xs">@chaos.LocalPart</span>
+                                        @if (isImmutable)
+                                        {
+                                            <span class="inline-block ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded" title="This address is immutable after receiving its first email">Immutable</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 px-3">
+                                        <span class="@(chaos.Enabled ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800") px-2 py-1 rounded text-xs font-medium">
+                                            @(chaos.Enabled ? "Enabled" : "Disabled")
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-3 font-mono text-xs">@chaos.ConfiguredSmtpCode</td>
+                                    <td class="py-3 px-3">@chaos.TotalReceived</td>
+                                    <td class="py-3 px-3">
+                                        @if (chaos.LastReceivedAt.HasValue)
+                                        {
+                                            <span title="@chaos.LastReceivedAt.Value.ToString("u")">@chaos.LastReceivedAt.Value.ToString("yyyy-MM-dd HH:mm") UTC</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400">Never received</span>
+                                        }
+                                    </td>
+                                    <td class="py-3 px-3 text-xs">@chaos.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td class="py-3 px-3 text-center space-x-1">
+
+                                        <button
+                                            class="px-2 py-1 text-xs @(chaos.Enabled ? "bg-red-100 text-red-600 hover:bg-red-200" : "bg-green-100 text-green-600 hover:bg-green-200") rounded"
+                                            @onclick="() => ToggleChaosAddress(chaos.Id, !chaos.Enabled)"
+                                            title="@(chaos.Enabled ? "Disable" : "Enable")">
+                                            @(chaos.Enabled ? "Disable" : "Enable")
+                                        </button>
+                                        @if (!isImmutable)
+                                        {
+                                            <button class="px-2 py-1 text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 rounded" @onclick="() => DeleteChaosAddress(chaos.Id)" title="Delete">Delete</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="px-2 py-1 text-xs text-gray-400 cursor-help" title="Immutable after first receive - editing not allowed">—</span>
+                                        }
+
+
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                @* <CreateChaosAddress @ref="createModal" SubdomainId="SubdomainId ?? Guid.Empty" OnCreated="HandleCreated" /> *@
+            </div>
         }
     </div>
 </div>

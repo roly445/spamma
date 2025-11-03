@@ -64,12 +64,20 @@ builder.Services.AddAuthorizationCore(options =>
     options.AddPolicy(
         Lookups.AssignedToAnyDomain,
         policy => policy.Requirements.Add(new AssignedToAnyDomainRequirement()));
+    options.AddPolicy(
+        Lookups.AssignedToAnySubdomain,
+        policy => policy.Requirements.Add(new AssignedToAnyDomainRequirement()));
+    options.AddPolicy(
+        Lookups.CanModerateChaosAddresses,
+        policy => policy.Requirements.Add(new CanModerationChaosAddressesRequirement()));
 });
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
 
 builder.Services.AddScoped<IAuthorizationHandler, BitwiseRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnySubdomainHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CanModerationChaosAddressesHandler>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
