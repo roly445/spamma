@@ -219,6 +219,12 @@ public partial class ChaosAddresses(IQuerier querier,
     private ChaosAddressSummary? deleteConfirmData;
     private Guid deleteIdToProcess;
 
+    // Edit Slideout
+    private bool showEditSlideout;
+    private bool isEditSaving;
+    private ChaosAddressSummary? editChaosAddress;
+    private string editDescription = string.Empty;
+
     private void OpenCreate()
     {
         showModal = true;
@@ -251,6 +257,36 @@ public partial class ChaosAddresses(IQuerier querier,
         showDeleteConfirm = false;
         deleteConfirmData = null;
         deleteIdToProcess = Guid.Empty;
+    }
+
+    private void OpenEdit(ChaosAddressSummary chaos)
+    {
+        editChaosAddress = chaos;
+        editDescription = string.Empty;
+        showEditSlideout = true;
+    }
+
+    private void CloseEditSlideout()
+    {
+        showEditSlideout = false;
+        editChaosAddress = null;
+        editDescription = string.Empty;
+    }
+
+    private async Task SaveEditChanges()
+    {
+        isEditSaving = true;
+        StateHasChanged();
+
+        // TODO: Implement UpdateChaosAddressCommand with description update
+        // For now, just simulate saving
+        await Task.Delay(500);
+
+        CloseEditSlideout();
+        await LoadChaosAddresses();
+
+        isEditSaving = false;
+        StateHasChanged();
     }
 
     private async Task HandleCreate()
