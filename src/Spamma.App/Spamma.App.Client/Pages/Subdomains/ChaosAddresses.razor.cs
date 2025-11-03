@@ -48,7 +48,7 @@ public partial class ChaosAddresses(IQuerier querier,
                 .ToDictionary(
                     g => g.Key,
                     g => g
-                        .Select(x => new SubdomainOption { Id = x.Id, SubdomainName = x.SubdomainName })
+                        .Select(x => new SubdomainOption { Id = x.Id, DomainId = x.ParentDomainId, SubdomainName = x.SubdomainName })
                         .OrderBy(x => x.SubdomainName)
                         .ToList());
         }
@@ -193,6 +193,7 @@ public partial class ChaosAddresses(IQuerier querier,
     private class SubdomainOption
     {
         public Guid Id { get; set; }
+        public Guid DomainId { get; set; }
         public string SubdomainName { get; set; } = string.Empty;
     }
     
@@ -294,30 +295,32 @@ public partial class ChaosAddresses(IQuerier querier,
         isCreating = true;
         StateHasChanged();
 
-            var command = new CreateChaosAddressCommand(
-                Guid.NewGuid(), // Id
-                Guid.Empty, // DomainId (to be set by backend)
-                model.SubdomainId, // SubdomainId
-                model.LocalPart,
-                (SmtpResponseCode)model.SmtpCode,
-                Guid.Empty // CreatedBy (to be set by backend from auth context)
-            );
+        var selectedSubdomain = subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == model.SubdomainId);
+        var domainId = selectedSubdomain?.DomainId ?? Guid.Empty;
 
-            var result = await commander.Send(command);
+        var command = new CreateChaosAddressCommand(
+            Guid.NewGuid(), // Id
+            domainId, // DomainId (looked up from subdomain)
+            model.SubdomainId, // SubdomainId
+            model.LocalPart,
+            (SmtpResponseCode)model.SmtpCode,
+            Guid.Empty // CreatedBy (to be set by backend from auth context)
+        );
 
-            if (result.Status == CommandResultStatus.Succeeded)
-            {
-                CloseCreate();
-                await LoadChaosAddresses();
-            }
-            else
-            {
-                notificationService.ShowError("Failed to create chaos address");
-            }
-       
-            isCreating = false;
-            StateHasChanged();
-        
+        var result = await commander.Send(command);
+
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            CloseCreate();
+            await LoadChaosAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to create chaos address");
+        }
+   
+        isCreating = false;
+        StateHasChanged();
     }
 
     private static IEnumerable<SmtpResponseCode> GetSmtpCodes()
