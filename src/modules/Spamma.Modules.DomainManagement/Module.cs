@@ -52,6 +52,7 @@ public static class Module
     {
         options.Projections.Add<DomainLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<SubdomainLookupProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<ChaosAddressLookupProjection>(ProjectionLifecycle.Inline);
         return options;
     }
 }
