@@ -15,6 +15,7 @@
  - Export formats: both CSV and JSON will be supported (CSV for analytics/BI, JSON for structured export including sample preview).  
  - Q2: Export formats → both CSV and JSON.
  - Q3: Export permissions → any user with access to the subdomain may request exports (subject to existing access controls and operator policies).
+ - Q4: Export delivery → synchronous immediate browser download (requested). Large exports may be subject to size limits; operators can configure server-side limits and fallback behavior.
 
 
 ## User Scenarios & Testing *(mandatory)*
@@ -93,6 +94,8 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 
  - **FR-013**: Export authorization: The system MUST permit export requests from any user who has read access to the target subdomain's inbox and campaigns. Operators MAY additionally restrict export rights via role-based configuration.
  - **FR-014**: Export auditing and rate-limiting: All export requests and completed exports MUST be logged (who requested, what was exported, timestamp). The system MUST support rate-limiting or throttling for export requests to prevent large-scale data exfiltration.
+
+- **FR-015**: Export delivery: The system MUST support synchronous immediate downloads for exports under configured size/time limits. If an export exceeds those limits, the system MUST return a clear error and suggest alternatives (reduce scope or request an async/export job). Operators must be able to configure synchronous limits.
 
 **Acceptance scenario (export)**:
 
