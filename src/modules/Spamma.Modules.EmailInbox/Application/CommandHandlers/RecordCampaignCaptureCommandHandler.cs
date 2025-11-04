@@ -1,7 +1,7 @@
 using BluQube.Commands;
 using FluentValidation;
-using Microsoft.Extensions.Logging;
 using Marten;
+using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;

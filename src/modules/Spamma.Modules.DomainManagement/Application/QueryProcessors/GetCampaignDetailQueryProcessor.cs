@@ -45,7 +45,7 @@ public class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryP
             timeBuckets.Add(new GetCampaignDetailQueryResult.TimeBucket(
                 startTime,
                 endTime,
-                (int)Math.Max(1, campaign.TotalCaptured / 4)));
+                Math.Max(1, campaign.TotalCaptured / 4)));
 
             currentTime = startTime;
         }

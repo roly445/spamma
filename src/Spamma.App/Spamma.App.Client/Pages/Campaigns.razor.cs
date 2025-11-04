@@ -8,9 +8,6 @@ namespace Spamma.App.Client.Pages;
 [Authorize]
 public partial class Campaigns
 {
-    [Inject]
-    public IQuerier Querier { get; set; } = null!;
-
     private GetCampaignsQueryResult? _campaigns;
     private List<SubdomainSummary>? _subdomains;
     private string _selectedSubdomainId = string.Empty;
@@ -18,7 +15,10 @@ public partial class Campaigns
     private bool _isSortDescending = true;
     private int _currentPage = 1;
     private int _pageSize = 50;
-    private bool _isLoading = false;
+    private bool _isLoading;
+
+    [Inject]
+    public IQuerier Querier { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -35,7 +35,6 @@ public partial class Campaigns
             if (result?.Data != null)
             {
                 _subdomains = result.Data.Items
-                    .Cast<SearchSubdomainsQueryResult.SubdomainSummary>()
                     .Select(s => new SubdomainSummary
                     {
                         Id = s.Id,
@@ -45,8 +44,8 @@ public partial class Campaigns
 
                 if (_subdomains.Any())
                 {
-                    _selectedSubdomainId = _subdomains.First().Id.ToString();
-                    await RefreshCampaigns();
+                    _selectedSubdomainId = _subdomains[0].Id.ToString();
+                    await this.RefreshCampaigns();
                 }
             }
         }

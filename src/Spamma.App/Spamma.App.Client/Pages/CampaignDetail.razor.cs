@@ -8,6 +8,10 @@ namespace Spamma.App.Client.Pages;
 [Authorize]
 public partial class CampaignDetail
 {
+    private GetCampaignDetailQueryResult? _campaignDetail;
+    private string _campaignValue = string.Empty;
+    private bool _isLoading;
+
     [Parameter]
     public Guid CampaignId { get; set; }
 
@@ -19,10 +23,6 @@ public partial class CampaignDetail
 
     [Inject]
     public NavigationManager NavigationManager { get; set; } = null!;
-
-    private GetCampaignDetailQueryResult? _campaignDetail;
-    private string _campaignValue = string.Empty;
-    private bool _isLoading = false;
 
     protected override async Task OnInitializedAsync()
     {
