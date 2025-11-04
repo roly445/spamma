@@ -13,6 +13,8 @@
 - Q1: Sample retention → 30 days (default). Samples may be deleted manually before the retention period by operators or authorized users. An export mechanism is requested (see next clarification question).  
 
  - Export formats: both CSV and JSON will be supported (CSV for analytics/BI, JSON for structured export including sample preview).  
+ - Q2: Export formats → both CSV and JSON.
+ - Q3: Export permissions → any user with access to the subdomain may request exports (subject to existing access controls and operator policies).
 
 
 ## User Scenarios & Testing *(mandatory)*
@@ -88,6 +90,9 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - **FR-010**: System MUST not persist full message bodies for campaign-tracked emails except for the single sample per campaign (stored as a truncated/sanitized preview); audit logs must record when samples are stored and why.
 - **FR-011**: System MUST provide an explicit delete API (operator and authorized-user action) to remove stored campaign samples prior to retention expiry; deletion actions MUST be auditable.
 - **FR-012**: System MUST provide an export capability allowing authorized users to export campaign data (CSV/JSON) that includes campaign metadata (subdomain, campaign value, first/last timestamps, total captured) and the sample preview where present; exports must respect access control and privacy configuration (samples exported only if sample storage is enabled and the requester has appropriate permissions).
+
+ - **FR-013**: Export authorization: The system MUST permit export requests from any user who has read access to the target subdomain's inbox and campaigns. Operators MAY additionally restrict export rights via role-based configuration.
+ - **FR-014**: Export auditing and rate-limiting: All export requests and completed exports MUST be logged (who requested, what was exported, timestamp). The system MUST support rate-limiting or throttling for export requests to prevent large-scale data exfiltration.
 
 **Acceptance scenario (export)**:
 
