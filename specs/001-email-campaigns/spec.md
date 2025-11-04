@@ -6,6 +6,13 @@
 **Status**: Draft  
 **Input**: User description: "Email campaigns - this is a feature that enables users of spamma to send bulk emails to a subdomain in spamma without saving the content of the emails just recording the email was received. We might want to save one email per campaign so the user can check the content. A campaign is not created in the ui but is created on the fly by the presence of a custom header in the email. The system will dictate what the header is, but the value will be down to the user sending the email campaigns. There needs to be a page on the app where users can see the results of a campaign, this would be a paged list with the subdomain, campaign value, first and last date of the emails captured, and the total captured. The user can only see the subdomains they have access to. From there, is a drill into page where the user can see a timing graph of how the emails came in and the sample email that was saved. From the inbox, an email will be visually tagged with being part of a campaign and when the click to view the email, the email viewer will have a cta to the campaign page for that email."
 
+## Clarifications
+
+### Session 2025-11-04
+
+- Q1: Sample retention → 30 days (default). Samples may be deleted manually before the retention period by operators or authorized users. An export mechanism is requested (see next clarification question).  
+
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - View campaign list (Priority: P1)
@@ -77,6 +84,8 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - **FR-008**: System MUST sanitize and validate campaign header values (max length, printable characters) and reject or truncate values that exceed limits.
 - **FR-009**: System MUST provide operator-controlled configuration settings for campaign sample retention period and maximum stored preview length; operators MAY be able to disable sample storage, but the default behavior is to store a single sample per campaign.
 - **FR-010**: System MUST not persist full message bodies for campaign-tracked emails except for the single sample per campaign (stored as a truncated/sanitized preview); audit logs must record when samples are stored and why.
+- **FR-011**: System MUST provide an explicit delete API (operator and authorized-user action) to remove stored campaign samples prior to retention expiry; deletion actions MUST be auditable.
+- **FR-012**: System MUST provide an export capability allowing authorized users to export campaign data (CSV/JSON) that includes campaign metadata (subdomain, campaign value, first/last timestamps, total captured) and the sample preview where present; exports must respect access control and privacy configuration (samples exported only if sample storage is enabled and the requester has appropriate permissions).
  - **FR-011**: If an incoming campaign email is addressed to a chaos address for the targeted subdomain, the system MUST both: (a) record the campaign capture (increment counts, update timestamps, and optionally save sample if enabled) and (b) return the configured SMTP response for chaos-address recipients to the sender (for example, a MailboxNameNotAllowed response). The system MUST ensure that recording the campaign does not silently suppress the SMTP error and that both outcomes are auditable.
  - Chaos address interaction: when a campaign email is sent to a chaos address the system will both register the campaign hit and return the chaos-address SMTP response. Tests should verify ordering (capture occurs and is visible in the campaign counts) and that senders receive the expected SMTP error code.
 
