@@ -3,11 +3,21 @@
 
 # Spamma Constitution
 
+<!--
+Sync Impact Report:
+- Version change: 1.0.0 -> 1.1.0
+- Modified principles: Code Quality & Project Structure (clarified no XML comments; zero compiler warnings; Blazor split requirement)
+- Added rules: "No new projects without approval"; "Commands/Queries in .Client; Handlers in server"; "Blazor razor/codebehind split"
+- Added sections: Code Quality explicit rules
+- Templates updated: .specify/templates/spec-template.md ✅ updated, .specify/templates/plan-template.md ✅ updated
+- Follow-up TODOs: review tasks-template.md for task categorization ⚠ pending (file: .specify/templates/tasks-template.md)
+-->
+
 This constitution records the project's high-level principles and the amendment process. It is
 intentionally concise; operational runbooks and specification templates implement these
 principles in detail.
 
-Version: 1.0.0 | Ratified: 2025-11-01 | Last Amended: 2025-11-01
+Version: 1.1.0 | Ratified: 2025-11-01 | Last Amended: 2025-11-04
 
 ## Core Principles
 

@@ -38,6 +38,9 @@ The following checks MUST be validated and documented in the plan before researc
 - Security & Privacy: Any access control, transport security (TLS), and data retention implications must be
   described and approved.
 - Code Quality: Conformance with repository conventions (one public type per file, StyleCop rules as configured).
+  - Additional Code Quality GATES: No XML documentation comments for intent (use clear naming), zero compiler warnings, and Blazor components split into `.razor` + `.razor.cs` for interactive UI.
+  - Commands/Queries placement: Verify Commands and Queries exist in the `.Client` project and that server-side handlers/validators are in the non-`.Client` project.
+  - Project additions: Any new project addition must be justified in the plan and approved before creation.
 - CI Compatibility: The feature must be runnable in CI (headless build of frontend assets if applicable) and pass
   the project's automated checks locally before the PR is opened.
 

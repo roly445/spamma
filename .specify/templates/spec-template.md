@@ -90,6 +90,14 @@
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
+### Code Quality & Project Structure (MANDATORY for PRs)
+
+- **CQ-001**: All code MUST compile with zero warnings. Any new warnings must be addressed before merging.
+- **CQ-002**: Public types MUST use clear intent naming. XML documentation comments (`///`) are NOT required and MUST NOT be used for public API intent — code clarity and naming SHOULD provide intent.
+- **CQ-003**: Blazor components MUST be split into a `.razor` file and a `.razor.cs` code-behind file for interactive logic; server-side-only static pages are exempt when explicitly marked.
+- **CQ-004**: Commands and Queries types MUST be declared in the respective `.Client` project. Their handlers, validators and authorizers MUST be implemented in the non-`.Client` server project.
+- **CQ-005**: No new project (csproj) is to be added to the repository without explicit approval from maintainers (documented in the PR).
+
 *Example of marking unclear requirements:*
 
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
