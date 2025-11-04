@@ -36,6 +36,7 @@ As a user, I want to drill into a campaign row to see a timing graph and a sampl
 
 1. **Given** a campaign has captured N emails, **When** the user opens the campaign detail, **Then** they see a timing graph (e.g., counts per minute/hour/day depending on range) and a single sample email display with subject, sender, received timestamp and a CTA to open the email in the inbox viewer.
 2. **Given** no sample email was saved for a campaign, **When** the user opens the detail, **Then** the UI shows an informative placeholder explaining no sample was captured and an option to enable sample capture for future messages (if allowed by policy).
+3. **Given** an incoming campaign email was addressed to a chaos address for that subdomain, **When** the email is processed by the SMTP ingress, **Then** the system records the campaign capture (count and timestamps) and the SMTP session returns the configured chaos-address response (for example, MailboxNameNotAllowed) so the sender is informed the mailbox is not deliverable.
 
 ---
 
@@ -76,6 +77,8 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - **FR-008**: System MUST sanitize and validate campaign header values (max length, printable characters) and reject or truncate values that exceed limits.
 - **FR-009**: System MUST provide a configuration setting (operator-controlled) to enable or disable saving sample emails per campaign and to control sample retention period.
 - **FR-010**: System MUST not persist message bodies for campaign-tracked emails unless explicitly enabled by configuration; audit logs must record when samples are stored.
+ - **FR-011**: If an incoming campaign email is addressed to a chaos address for the targeted subdomain, the system MUST both: (a) record the campaign capture (increment counts, update timestamps, and optionally save sample if enabled) and (b) return the configured SMTP response for chaos-address recipients to the sender (for example, a MailboxNameNotAllowed response). The system MUST ensure that recording the campaign does not silently suppress the SMTP error and that both outcomes are auditable.
+ - Chaos address interaction: when a campaign email is sent to a chaos address the system will both register the campaign hit and return the chaos-address SMTP response. Tests should verify ordering (capture occurs and is visible in the campaign counts) and that senders receive the expected SMTP error code.
 
 ### Code Quality & Project Structure (MANDATORY for PRs)
 
