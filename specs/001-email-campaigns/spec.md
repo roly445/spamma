@@ -57,11 +57,11 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 
 ### Edge Cases
 
-- What happens when an email contains multiple campaign headers? [NEEDS CLARIFICATION: choose priority parsing rule — first header wins, last header wins, or ignore multi-header messages]
-- What happens when campaign header values collide across different subdomains? (Expect campaigns scoped per subdomain; same header value on different subdomains are distinct campaigns.)
+- What happens when an email contains multiple campaign headers? (Resolved: first header value is used.)
+- What happens when campaign header values collide across different subdomains? (Campaigns are scoped per subdomain; same header value on different subdomains are distinct campaigns.)
 - Handling large burst traffic: timing graph should gracefully degrade (aggregate into larger buckets) instead of plotting every message point.
-- GDPR / PII: campaigns should default to NOT storing full message bodies; only a single sample may be stored per campaign (configurable and opt-in).
-- Invalid header values (maliciously large or non-printable): header values must be sanitized and limited to an allowed length (e.g., 255 chars).
+- GDPR / PII: the system stores a single sample email per campaign by default (for display) but does not persist full message bodies beyond that sample unless explicitly changed by operator configuration. Sample storage is subject to retention policy and auditing.
+- Invalid header values (maliciously large or non-printable): header values must be sanitized and limited to an allowed length (resolved: 255 chars max, truncated/sanitized).
 
 ## Requirements *(mandatory)*
 
@@ -69,14 +69,14 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 
 - **FR-001**: System MUST recognize a campaign when an incoming email contains a configured campaign header (header name determined by system configuration) and extract the campaign value.
 - **FR-002**: System MUST record the email as part of the campaign without persisting the full message body by default; the system MUST increment the campaign count and update first/last received timestamps.
-- **FR-003**: System MUST allow saving a single sample email per campaign; when the first email for a campaign is eligible and sample capture is enabled, the system stores that message's metadata and content for display purposes only.
+-- **FR-003**: System MUST store a single sample email per campaign by default. When the first email for a campaign arrives, the system shall record a sample message's metadata and a truncated/sanitized content preview for display purposes. The sample is visible to users who have access to the subdomain's inbox.
 - **FR-004**: System MUST expose a Campaigns page listing campaigns scoped to subdomains the current user has access to, with paging, sorting (by last received, total captured), and basic filtering by campaign value and date range.
 - **FR-005**: System MUST enforce access control: users can only view campaigns for subdomains they have permission for.
 - **FR-006**: System MUST provide a campaign detail view that renders a timing graph of message counts over time and displays the saved sample email (if present).
 - **FR-007**: System MUST visually tag inbox messages that belong to a campaign and include a CTA in the message viewer linking to that campaign's detail page.
 - **FR-008**: System MUST sanitize and validate campaign header values (max length, printable characters) and reject or truncate values that exceed limits.
-- **FR-009**: System MUST provide a configuration setting (operator-controlled) to enable or disable saving sample emails per campaign and to control sample retention period.
-- **FR-010**: System MUST not persist message bodies for campaign-tracked emails unless explicitly enabled by configuration; audit logs must record when samples are stored.
+- **FR-009**: System MUST provide operator-controlled configuration settings for campaign sample retention period and maximum stored preview length; operators MAY be able to disable sample storage, but the default behavior is to store a single sample per campaign.
+- **FR-010**: System MUST not persist full message bodies for campaign-tracked emails except for the single sample per campaign (stored as a truncated/sanitized preview); audit logs must record when samples are stored and why.
  - **FR-011**: If an incoming campaign email is addressed to a chaos address for the targeted subdomain, the system MUST both: (a) record the campaign capture (increment counts, update timestamps, and optionally save sample if enabled) and (b) return the configured SMTP response for chaos-address recipients to the sender (for example, a MailboxNameNotAllowed response). The system MUST ensure that recording the campaign does not silently suppress the SMTP error and that both outcomes are auditable.
  - Chaos address interaction: when a campaign email is sent to a chaos address the system will both register the campaign hit and return the chaos-address SMTP response. Tests should verify ordering (capture occurs and is visible in the campaign counts) and that senders receive the expected SMTP error code.
 
@@ -119,16 +119,11 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - The system's default is NOT to store email bodies; storing a single sample per campaign is opt-in via configuration.
 - The inbox and campaign views share the same authorization model present in the system (users have explicit access lists for subdomains).
 
-## Open Questions [NEEDS CLARIFICATION]
+## Clarifications resolved
 
-1. [Q1] Multi-header handling: If an email contains multiple campaign headers, should the system: A) use the first header value, B) use the last header value, or C) treat the message as ineligible and ignore campaign tracking?  
-   - Suggested default: A) use the first header value.  
-
-2. [Q2] Sample capture policy: Should sample capture be off by default and operator-controlled (recommended), or should it be user-opt-in per campaign?  
-   - Suggested default: Operator-controlled, off by default; opt-in enables storing a single sample per campaign.  
-
-3. [Q3] Header length limit: What is the maximum allowed length for campaign header values?  
-   - Suggested default: 255 characters (sanitized and truncated).
+- Q1 (multi-header handling): Option A — use the first header value.
+- Q2 (sample capture policy): System stores one sample per campaign by default; samples are visible to users who can view emails for that subdomain. Operators may configure retention and may disable sample storage if necessary.
+- Q3 (header length limit): 255 characters maximum; values are sanitized and truncated to this limit.
 
 ---
 
