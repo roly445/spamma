@@ -75,6 +75,8 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - GDPR / PII: the system stores a single sample email per campaign by default (for display) but does not persist full message bodies beyond that sample unless explicitly changed by operator configuration. Sample storage is subject to retention policy and auditing.
 - Invalid header values (maliciously large or non-printable): header values must be sanitized and limited to an allowed length (resolved: 255 chars max, truncated/sanitized).
 
+- Campaign-tagged messages exclusion: Campaign-tagged messages are excluded from the standard inbox auto-deletion policy to ensure campaign analytics remain accurate; retention and deletion of saved samples remain governed by sample retention settings and the explicit delete API (FR-011).
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -97,10 +99,13 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 
 - **FR-015**: Export delivery: The system MUST support synchronous immediate downloads for exports under configured size/time limits. If an export exceeds those limits, the system MUST return a clear error and suggest alternatives (reduce scope or request an async/export job). Operators must be able to configure synchronous limits.
 
+- **FR-016**: Auto-delete exclusion: The system MUST exclude any message identified as belonging to a campaign from the standard inbox auto-deletion process. Campaign-tagged messages MUST remain discoverable in campaign counts and in the inbox until explicitly deleted via the normal user or admin delete actions or via the campaign-sample delete API (FR-011). This exclusion applies regardless of global auto-delete schedules.
+
 **Acceptance scenario (export)**:
 
 1. **Given** a user with export permissions for subdomain `example.spamma.io`, **When** they request an export for campaign `promo-1` in CSV format, **Then** the system returns a CSV file containing rows with campaign metadata and a column for sample preview (if present) and logs the export action.
 2. **Given** the same user requests JSON, **When** the export completes, **Then** a structured JSON payload is returned containing campaign metadata and (if present) a sanitized sample preview nested within the campaign record.
+3. **Given** the system has an auto-delete job configured to remove standard inbox messages older than X days, **When** the auto-delete executes, **Then** any messages marked as campaign hits are NOT removed by that job and remain visible in the inbox and campaign counts.
  - **FR-011**: If an incoming campaign email is addressed to a chaos address for the targeted subdomain, the system MUST both: (a) record the campaign capture (increment counts, update timestamps, and optionally save sample if enabled) and (b) return the configured SMTP response for chaos-address recipients to the sender (for example, a MailboxNameNotAllowed response). The system MUST ensure that recording the campaign does not silently suppress the SMTP error and that both outcomes are auditable.
  - Chaos address interaction: when a campaign email is sent to a chaos address the system will both register the campaign hit and return the chaos-address SMTP response. Tests should verify ordering (capture occurs and is visible in the campaign counts) and that senders receive the expected SMTP error code.
 
