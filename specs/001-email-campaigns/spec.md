@@ -17,6 +17,11 @@
  - Q3: Export permissions → any user with access to the subdomain may request exports (subject to existing access controls and operator policies).
  - Q4: Export delivery → synchronous immediate browser download (requested). Large exports may be subject to size limits; operators can configure server-side limits and fallback behavior.
 
+- Q5: Campaign value case-sensitivity → Case-insensitive: campaign values will be normalized to lower-case for storage and querying. Display may preserve original-case for UI if desired, but all matching and indexing MUST use the normalized lower-case form.
+ - Q6: Default synchronous export limit → Default synchronous export size/time limit: 10,000 rows. Operators can configure this threshold per deployment.
+
+- Q7: Capture timing → Asynchronous (recommended): campaign captures will be recorded asynchronously after the SMTP response is returned to the sender. The system MUST record a lightweight receipt/audit event synchronously at ingress, retry failed persistence attempts, and surface failures in audit logs and operator dashboards.
+
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -33,6 +38,7 @@ As an authenticated user with access to one or more subdomains, I want to see a 
 1. **Given** user has access to subdomain `example.spamma.io` and campaigns `promo-1` and `promo-2` exist, **When** the user visits the Campaigns page, **Then** they see a paged list with rows containing: Subdomain, Campaign value, First received date, Last received date, Total captured.
 2. **Given** there are more campaigns than fit on a page, **When** the user navigates pages, **Then** the list provides correct pagination and preserves sorting/filtering state.
 3. **Given** a user has access only to subdomain B, **When** they view campaigns, **Then** they see only campaigns for subdomain B and cannot see campaigns for other subdomains.
+4. **Given** a user is viewing the Campaigns page, **When** they click the manual "Refresh" control, **Then** the UI re-queries the backend and displays updated counts and last-received timestamps.
 
 ---
 
@@ -49,6 +55,8 @@ As a user, I want to drill into a campaign row to see a timing graph and a sampl
 1. **Given** a campaign has captured N emails, **When** the user opens the campaign detail, **Then** they see a timing graph (e.g., counts per minute/hour/day depending on range) and a single sample email display with subject, sender, received timestamp and a CTA to open the email in the inbox viewer.
 2. **Given** no sample email was saved for a campaign, **When** the user opens the detail, **Then** the UI shows an informative placeholder explaining no sample was captured and an option to enable sample capture for future messages (if allowed by policy).
 3. **Given** an incoming campaign email was addressed to a chaos address for that subdomain, **When** the email is processed by the SMTP ingress, **Then** the system records the campaign capture (count and timestamps) and the SMTP session returns the configured chaos-address response (for example, MailboxNameNotAllowed) so the sender is informed the mailbox is not deliverable.
+
+  Note: Recording is best-effort and MAY be persisted asynchronously; the system MUST audit the receipt, retry persistence on transient failures, and surface capture failures to operators. Returning the SMTP chaos response MUST NOT be suppressed by capture attempts.
 
 ---
 
@@ -83,23 +91,35 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 
 - **FR-001**: System MUST recognize a campaign when an incoming email contains a configured campaign header (header name determined by system configuration) and extract the campaign value.
 - **FR-002**: System MUST record the email as part of the campaign without persisting the full message body by default; the system MUST increment the campaign count and update first/last received timestamps.
--- **FR-003**: System MUST store a single sample email per campaign by default. When the first email for a campaign arrives, the system shall record a sample message's metadata and a truncated/sanitized content preview for display purposes. The sample is visible to users who have access to the subdomain's inbox.
-- **FR-004**: System MUST expose a Campaigns page listing campaigns scoped to subdomains the current user has access to, with paging, sorting (by last received, total captured), and basic filtering by campaign value and date range.
+ - **FR-002**: System MUST record the email as part of the campaign without persisting the full message body by default; the system MUST increment the campaign count and update first/last received timestamps.
+ - **FR-003**: System MUST store a single sample email per campaign by default. When the first email for a campaign arrives, the system shall record that first message's metadata and a truncated/sanitized content preview for display purposes. The sample MUST be the first captured message and MUST NOT be replaced by later messages unless an operator explicitly reconfigures the policy. The sample is visible to users who have access to the subdomain's inbox.
+ - **FR-004**: System MUST expose a Campaigns page listing campaigns scoped to subdomains the current user has access to, with paging, sorting (by last received, total captured), and basic filtering by campaign value and date range.
 - **FR-005**: System MUST enforce access control: users can only view campaigns for subdomains they have permission for.
 - **FR-006**: System MUST provide a campaign detail view that renders a timing graph of message counts over time and displays the saved sample email (if present).
 - **FR-007**: System MUST visually tag inbox messages that belong to a campaign and include a CTA in the message viewer linking to that campaign's detail page.
 - **FR-008**: System MUST sanitize and validate campaign header values (max length, printable characters) and reject or truncate values that exceed limits.
 - **FR-009**: System MUST provide operator-controlled configuration settings for campaign sample retention period and maximum stored preview length; operators MAY be able to disable sample storage, but the default behavior is to store a single sample per campaign.
-- **FR-010**: System MUST not persist full message bodies for campaign-tracked emails except for the single sample per campaign (stored as a truncated/sanitized preview); audit logs must record when samples are stored and why.
-- **FR-011**: System MUST provide an explicit delete API (operator and authorized-user action) to remove stored campaign samples prior to retention expiry; deletion actions MUST be auditable.
+ - **FR-010**: System MUST not persist full message bodies for campaign-tracked emails except for the single sample per campaign (stored as a truncated/sanitized preview); audit logs must record when samples are stored and why.
+ - **FR-011**: System MUST provide an explicit delete API (operator and authorized-user action) to remove stored campaign samples prior to retention expiry; deletion actions MUST be auditable. The delete API MUST be protected by role-based access control; by default only users with the Admin role (represented by server-side authorization requirement types such as `CanModerationChaosAddressesRequirement` / `MustBeAdminRequirement`) may perform campaign-wide deletes. Delete operations MUST record an audit event containing the actor, timestamp, scope (subdomain + campaign value), and deletion mode (soft/hard).
+
+ - **FR-017**: Capture persistence timing: Campaign capture records MAY be persisted asynchronously after the SMTP response is returned. The system MUST:
+   - persist a lightweight receipt/audit event at ingress time (synchronously) to prove receipt;
+  - ensure a short synchronous acknowledgement is written and visible to the capture pipeline such that at least 95% of captures are recorded to the read-model within 5 seconds under normal load (see SC-002);
+   - retry persistence of campaign aggregates and samples on transient failures;
+   - surface persistent failures in audit logs and operator dashboards for remediation;
+   - allow operators to configure a hybrid mode (short synchronous timeout with async fallback).
 - **FR-012**: System MUST provide an export capability allowing authorized users to export campaign data (CSV/JSON) that includes campaign metadata (subdomain, campaign value, first/last timestamps, total captured) and the sample preview where present; exports must respect access control and privacy configuration (samples exported only if sample storage is enabled and the requester has appropriate permissions).
 
  - **FR-013**: Export authorization: The system MUST permit export requests from any user who has read access to the target subdomain's inbox and campaigns. Operators MAY additionally restrict export rights via role-based configuration.
  - **FR-014**: Export auditing and rate-limiting: All export requests and completed exports MUST be logged (who requested, what was exported, timestamp). The system MUST support rate-limiting or throttling for export requests to prevent large-scale data exfiltration.
 
 - **FR-015**: Export delivery: The system MUST support synchronous immediate downloads for exports under configured size/time limits. If an export exceeds those limits, the system MUST return a clear error and suggest alternatives (reduce scope or request an async/export job). Operators must be able to configure synchronous limits.
+  - For larger exports the system MUST support an async export job lifecycle (JobId, status endpoint, IO store delivery and notification). Operators must be able to configure synchronous limits and fallback behavior.
+ - **FR-015**: Export delivery: The system MUST support synchronous immediate downloads for exports under configured size/time limits. The default synchronous row-limit MUST be 10,000 rows; operators MAY configure a different threshold (rows or time). If an export exceeds those limits, the system MUST return a clear error and suggest alternatives (reduce scope or request an async/export job). Operators must be able to configure synchronous limits and fallback behavior.
 
 - **FR-016**: Auto-delete exclusion: The system MUST exclude any message identified as belonging to a campaign from the standard inbox auto-deletion process. Campaign-tagged messages MUST remain discoverable in campaign counts and in the inbox until explicitly deleted via the normal user or admin delete actions or via the campaign-sample delete API (FR-011). This exclusion applies regardless of global auto-delete schedules.
+
+ - **FR-018**: Manual refresh control: The system MUST provide a manual "Refresh" control on the Campaigns list and campaign detail pages that triggers a re-query of campaign counts and metadata. The UI MUST display updated counts within 5 seconds of the backend responding to the query. This control allows users to opt-in to refreshing read-models that are populated asynchronously.
 
 **Acceptance scenario (export)**:
 
@@ -153,6 +173,10 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - Q1 (multi-header handling): Option A — use the first header value.
 - Q2 (sample capture policy): System stores one sample per campaign by default; samples are visible to users who can view emails for that subdomain. Operators may configure retention and may disable sample storage if necessary.
 - Q3 (header length limit): 255 characters maximum; values are sanitized and truncated to this limit.
+ - Q5 (case-sensitivity): Campaign header values are case-insensitive; values are normalized to lower-case for storage and queries (matching is performed against the normalized form).
+ - Q7 (capture timing): Asynchronous (recommended) — campaign captures are recorded asynchronously after SMTP response; receipt events are audited and retries are performed on failure.
+ - Q8 (counts freshness): Manual refresh — the UI will provide a manual "Refresh" control to re-query campaign counts; counts are eventually consistent and updated via asynchronous persistence.
+ - Q9 (sample-selection): First message — the sample saved for a campaign is the first message seen for that campaign and is not replaced by subsequent messages unless the operator changes policy.
 
 ---
 
