@@ -9,5 +9,3 @@ public record ExportCampaignDataQuery(
     string CampaignValue,
     string Format = "csv",
     int? MaxRows = null) : IQuery<ExportCampaignDataQueryResult>;
-
-public record ExportCampaignDataQueryResult(string JobId, string? DownloadUrl);

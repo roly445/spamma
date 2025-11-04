@@ -22,7 +22,8 @@
     "webpack-merge": "6.0.1"
   },
   "dependencies": {
-    "tailwindcss": "^4.1.13"
+    "tailwindcss": "^4.1.13",
+    "apexcharts": "^3.45.0"
   },
   "targets": {
     "default": {

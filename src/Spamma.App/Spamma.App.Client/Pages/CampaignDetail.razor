@@ -1,0 +1,122 @@
+@page "/campaigns/{CampaignId:guid}"
+@using Spamma.App.Client.Layout
+@using Spamma.Modules.DomainManagement.Client.Application.Queries
+@using Microsoft.AspNetCore.Components.Web
+@layout AppLayout
+
+@attribute [Authorize]
+
+<PageTitle>Campaign Details - Spamma</PageTitle>
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3">
+                            <a href="/campaigns" class="text-blue-600 hover:text-blue-900">Campaigns</a>
+                            <span class="text-gray-400">/</span>
+                            <h1 class="text-2xl font-bold text-gray-900">@_campaignValue</h1>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">@_campaignDetail?.TotalCaptured total messages captured</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @if (_isLoading)
+        {
+            <div class="text-center py-12">
+                <div class="inline-flex items-center space-x-2">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="text-gray-600">Loading campaign details...</span>
+                </div>
+            </div>
+        }
+        else if (_campaignDetail == null)
+        {
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <p class="text-gray-600">Campaign not found</p>
+            </div>
+        }
+        else
+        {
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Total Captured</p>
+                    <p class="text-2xl font-bold text-gray-900">@_campaignDetail.TotalCaptured</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">First Received</p>
+                    <p class="text-sm font-mono text-gray-600">@_campaignDetail.FirstReceivedAt.ToString("g")</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Last Received</p>
+                    <p class="text-sm font-mono text-gray-600">@_campaignDetail.LastReceivedAt.ToString("g")</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Duration</p>
+                    <p class="text-sm font-mono text-gray-600">@GetDurationText()</p>
+                </div>
+            </div>
+
+            <!-- Chart (placeholder for ApexCharts) -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
+                <div id="campaign-chart" class="w-full h-96 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
+                    <p class="text-gray-400">Chart will be rendered here via ApexCharts</p>
+                </div>
+            </div>
+
+            <!-- Sample Message -->
+            @if (_campaignDetail.Sample != null)
+            {
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Sample Message</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Subject</p>
+                            <p class="font-medium text-gray-900">@_campaignDetail.Sample.Subject</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase">From</p>
+                                <p class="font-mono text-sm text-gray-600">@_campaignDetail.Sample.From</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase">To</p>
+                                <p class="font-mono text-sm text-gray-600">@_campaignDetail.Sample.To</p>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Received At</p>
+                            <p class="font-mono text-sm text-gray-600">@_campaignDetail.Sample.ReceivedAt.ToString("g")</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase">Preview</p>
+                            <p class="text-sm text-gray-600 whitespace-pre-wrap break-words">@_campaignDetail.Sample.ContentPreview</p>
+                        </div>
+                        <div>
+                            <a href="/app/@_campaignDetail.Sample.MessageId" 
+                               class="text-blue-600 hover:text-blue-900 font-medium text-sm">
+                                View Full Message in Inbox
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+                    <p class="text-gray-500">No sample message available</p>
+                </div>
+            }
+        }
+    </div>
+</div>

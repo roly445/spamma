@@ -150,6 +150,40 @@ public class SpammaMessageStore : MessageStore
 
         if (saveDataResult.Status != CommandResultStatus.Failed)
         {
+            // Detect and record campaign header if present
+            try
+            {
+                var settings = scope.ServiceProvider.GetRequiredService<Settings>();
+                if (settings.CampaignCapture?.HeaderName != null)
+                {
+                    var campaignHeader = message.Headers[settings.CampaignCapture.HeaderName];
+                    if (!string.IsNullOrEmpty(campaignHeader))
+                    {
+                        var campaignValue = campaignHeader.Trim().ToLowerInvariant();
+                        if (campaignValue.Length <= settings.CampaignCapture.MaxHeaderLength)
+                        {
+                            var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
+                            var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
+
+                            await commander.Send(
+                                new RecordCampaignCaptureCommand(
+                                    foundSubdomain.Id,
+                                    messageId,
+                                    campaignValue,
+                                    message.Subject ?? string.Empty,
+                                    fromAddress,
+                                    toAddress,
+                                    DateTimeOffset.UtcNow),
+                                cancellationToken);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to record campaign capture for message {MessageId}", messageId);
+            }
+
             return SmtpResponse.Ok;
         }
 

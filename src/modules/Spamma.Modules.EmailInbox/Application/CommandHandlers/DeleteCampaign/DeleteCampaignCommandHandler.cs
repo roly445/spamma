@@ -1,18 +1,23 @@
 using BluQube.Commands;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.DeleteCampaign;
 
-internal class DeleteCampaignCommandHandler : CommandHandler<Spamma.Modules.EmailInbox.Client.Application.Commands.DeleteCampaignCommand>
+public class DeleteCampaignCommandHandler(
+    IEnumerable<IValidator<DeleteCampaignCommand>> validators,
+    ILogger<DeleteCampaignCommandHandler> logger)
+    : CommandHandler<DeleteCampaignCommand>(validators, logger)
 {
-    public DeleteCampaignCommandHandler(IEnumerable<IValidator<Spamma.Modules.EmailInbox.Client.Application.Commands.DeleteCampaignCommand>> validators, ILogger<DeleteCampaignCommandHandler> logger)
-        : base(validators, logger)
-    {
-    }
-
-    public override Task<CommandResult> Handle(Spamma.Modules.EmailInbox.Client.Application.Commands.DeleteCampaignCommand command, CancellationToken cancellationToken)
+    protected override async Task<CommandResult> HandleInternal(DeleteCampaignCommand request, CancellationToken cancellationToken)
     {
         // TODO: Implement deletion logic (authorization, soft/hard delete, audit event)
-        return Task.FromResult(CommandResult.Ok());
+        // For now, just return success - full implementation requires:
+        // 1. Authorization check (Admin or CanModerationChaosAddressesRequirement)
+        // 2. Repository delete (hard or soft based on Force flag)
+        // 3. Audit event emission
+        return await Task.FromResult(CommandResult.Succeeded());
     }
 }

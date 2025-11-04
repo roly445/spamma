@@ -1,0 +1,7 @@
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+webpack.config.js
+postcss.config.js
