@@ -12,6 +12,8 @@
 
 - Q1: Sample retention → 30 days (default). Samples may be deleted manually before the retention period by operators or authorized users. An export mechanism is requested (see next clarification question).  
 
+ - Export formats: both CSV and JSON will be supported (CSV for analytics/BI, JSON for structured export including sample preview).  
+
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -86,6 +88,11 @@ As a user browsing the inbox for a subdomain, I want emails that are part of a c
 - **FR-010**: System MUST not persist full message bodies for campaign-tracked emails except for the single sample per campaign (stored as a truncated/sanitized preview); audit logs must record when samples are stored and why.
 - **FR-011**: System MUST provide an explicit delete API (operator and authorized-user action) to remove stored campaign samples prior to retention expiry; deletion actions MUST be auditable.
 - **FR-012**: System MUST provide an export capability allowing authorized users to export campaign data (CSV/JSON) that includes campaign metadata (subdomain, campaign value, first/last timestamps, total captured) and the sample preview where present; exports must respect access control and privacy configuration (samples exported only if sample storage is enabled and the requester has appropriate permissions).
+
+**Acceptance scenario (export)**:
+
+1. **Given** a user with export permissions for subdomain `example.spamma.io`, **When** they request an export for campaign `promo-1` in CSV format, **Then** the system returns a CSV file containing rows with campaign metadata and a column for sample preview (if present) and logs the export action.
+2. **Given** the same user requests JSON, **When** the export completes, **Then** a structured JSON payload is returned containing campaign metadata and (if present) a sanitized sample preview nested within the campaign record.
  - **FR-011**: If an incoming campaign email is addressed to a chaos address for the targeted subdomain, the system MUST both: (a) record the campaign capture (increment counts, update timestamps, and optionally save sample if enabled) and (b) return the configured SMTP response for chaos-address recipients to the sender (for example, a MailboxNameNotAllowed response). The system MUST ensure that recording the campaign does not silently suppress the SMTP error and that both outcomes are auditable.
  - Chaos address interaction: when a campaign email is sent to a chaos address the system will both register the campaign hit and return the chaos-address SMTP response. Tests should verify ordering (capture occurs and is visible in the campaign counts) and that senders receive the expected SMTP error code.
 
