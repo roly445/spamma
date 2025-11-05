@@ -35,8 +35,10 @@ public static class Module
         services.AddScoped<ILookupClient, LookupClient>();
 
         // Register caching services for performance optimization
-        services.AddSingleton<ISubdomainCache, SubdomainCache>();
-        services.AddSingleton<IChaosAddressCache, ChaosAddressCache>();
+        // Note: Scoped lifetime (not Singleton) to allow injection of scoped IQuerier for fallback queries
+        // Redis connection itself is thread-safe and shared; scoping here only affects the wrapper lifetime
+        services.AddScoped<ISubdomainCache, SubdomainCache>();
+        services.AddScoped<IChaosAddressCache, ChaosAddressCache>();
 
         // Register cache invalidation event handler for CAP subscribers
         services.AddScoped<CacheInvalidationEventHandler>();
