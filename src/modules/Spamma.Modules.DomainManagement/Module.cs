@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Nager.PublicSuffix;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
+using Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
 using Spamma.Modules.DomainManagement.Infrastructure.Repositories;
 using Spamma.Modules.DomainManagement.Infrastructure.Services;
@@ -36,6 +37,9 @@ public static class Module
         // Register caching services for performance optimization
         services.AddSingleton<ISubdomainCache, SubdomainCache>();
         services.AddSingleton<IChaosAddressCache, ChaosAddressCache>();
+
+        // Register cache invalidation event handler for CAP subscribers
+        services.AddScoped<CacheInvalidationEventHandler>();
 
         // Register domain parser service - will be initialized by hosted service
         services.AddSingleton<IDomainParserService, DomainParserService>();

@@ -15,4 +15,6 @@ public static class IntegrationEventNames
     public const string UserRemovedFromBeingSubdomainModerator = "domain-management.subdomain.user-removed-as-moderator";
     public const string UserRemovedFromBeingSubdomainViewer = "domain-management.subdomain.user-removed-as-viewer";
     public const string UserDetailsUpdated = "user-management.user.user-details-updated";
+    public const string SubdomainStatusChanged = "domain-management.subdomain.status-changed";
+    public const string ChaosAddressUpdated = "domain-management.chaos-address.updated";
 }
