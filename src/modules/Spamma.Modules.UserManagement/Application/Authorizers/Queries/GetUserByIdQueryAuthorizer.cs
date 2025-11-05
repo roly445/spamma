@@ -6,11 +6,11 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Queries;
 
-public class GetUserByIdQueryAuthorizer(ITempObjectStore tempObjectStore) : AbstractRequestAuthorizer<GetUserByIdQuery>
+public class GetUserByIdQueryAuthorizer(IInternalQueryStore internalQueryStore) : AbstractRequestAuthorizer<GetUserByIdQuery>
 {
     public override void BuildPolicy(GetUserByIdQuery request)
     {
-        if (tempObjectStore.IsStoringReferenceForObject(request))
+        if (internalQueryStore.IsStoringReferenceForObject(request))
         {
             return;
         }

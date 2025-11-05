@@ -1,4 +1,5 @@
-﻿using BluQube.Attributes;
+﻿using System.Threading.Channels;
+using BluQube.Attributes;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;
@@ -10,6 +11,7 @@ using SmtpServer;
 using SmtpServer.Storage;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Projections;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -26,7 +28,16 @@ public static class Module
         services.AddMediatorAuthorization(typeof(Module).Assembly);
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IEmailRepository, EmailRepository>();
+        services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
+
+        // Background job queues for campaign and chaos address recording (non-blocking operations)
+        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob>());
+        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob>());
+        services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.BackgroundJobProcessor>();
+
+        // CAP integration event handlers
+        services.AddScoped<Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers.PersistReceivedEmailHandler>();
 
         // Certificate generation service
         services.AddScoped<ICertesLetsEncryptService, CertesLetsEncryptService>();
@@ -82,6 +93,10 @@ public static class Module
     public static StoreOptions ConfigureEmailInbox(this StoreOptions options)
     {
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
+
+        options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
+
         return options;
     }
 }

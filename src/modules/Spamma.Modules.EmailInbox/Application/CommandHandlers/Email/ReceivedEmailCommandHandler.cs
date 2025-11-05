@@ -2,23 +2,19 @@
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.Common.Domain.Contracts;
-using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
-namespace Spamma.Modules.EmailInbox.Application.CommandHandlers;
+namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 
 public class ReceivedEmailCommandHandler(
-    IEnumerable<IValidator<ReceivedEmailCommand>> validators, ILogger<ReceivedEmailCommandHandler> logger, IEmailRepository repository,
-    IIntegrationEventPublisher eventPublisher)
+    IEnumerable<IValidator<ReceivedEmailCommand>> validators, ILogger<ReceivedEmailCommandHandler> logger, IEmailRepository repository)
     : CommandHandler<ReceivedEmailCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(ReceivedEmailCommand request, CancellationToken cancellationToken)
     {
-        var emailResult = Email.Create(
+        var emailResult = Domain.EmailAggregate.Email.Create(
             request.EmailId, request.DomainId, request.SubdomainId, request.Subject, request.WhenSent, request.EmailAddresses.Select(x => new EmailReceived.EmailAddress(x.Address, x.Name, x.EmailAddressType)).ToList());
 
         if (emailResult.IsFailure)
@@ -33,7 +29,8 @@ public class ReceivedEmailCommandHandler(
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
         }
 
-        await eventPublisher.PublishAsync(new EmailReceivedIntegrationEvent(request.EmailId, request.DomainId, request.SubdomainId), cancellationToken);
+        // Note: EmailReceivedIntegrationEvent is now published by CAP handler (PersistReceivedEmailHandler)
+        // SMTP handler publishes with metadata, CAP subscriber handles persisting to database
         return CommandResult.Succeeded();
     }
 }

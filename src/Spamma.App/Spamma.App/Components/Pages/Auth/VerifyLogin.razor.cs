@@ -20,7 +20,7 @@ public partial class VerifyLogin(
     NavigationManager navigation,
     ILogger<VerifyLogin> logger, IAuthTokenProvider authTokenProvider,
     IHttpContextAccessor httpContextAccessor, IQuerier querier,
-    UserStatusCache userStatusCache, ITempObjectStore tempObjectStore) : ComponentBase
+    UserStatusCache userStatusCache, IInternalQueryStore internalQueryStore) : ComponentBase
 {
     private string? errorMessage;
 
@@ -86,7 +86,7 @@ public partial class VerifyLogin(
     {
         // Create claims for the authenticated user
         var query = new GetUserByIdQuery(userId);
-        tempObjectStore.AddReferenceForObject(query);
+        internalQueryStore.AddReferenceForObject(query);
         var userResult = await querier.Send(query);
         var claims = ClaimsBuilder.BuildClaims(
             userResult.Data.Id,

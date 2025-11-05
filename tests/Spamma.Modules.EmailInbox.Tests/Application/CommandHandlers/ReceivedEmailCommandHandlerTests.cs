@@ -3,9 +3,8 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ResultMonad;
-using Spamma.Modules.Common.Domain.Contracts;
-using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers;
+using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
@@ -16,14 +15,12 @@ namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers;
 public class ReceivedEmailCommandHandlerTests
 {
     private readonly Mock<IEmailRepository> _repositoryMock;
-    private readonly Mock<IIntegrationEventPublisher> _eventPublisherMock;
     private readonly Mock<ILogger<ReceivedEmailCommandHandler>> _loggerMock;
     private readonly ReceivedEmailCommandHandler _handler;
 
     public ReceivedEmailCommandHandlerTests()
     {
         this._repositoryMock = new Mock<IEmailRepository>(MockBehavior.Strict);
-        this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
         this._loggerMock = new Mock<ILogger<ReceivedEmailCommandHandler>>();
 
         var validators = Array.Empty<IValidator<ReceivedEmailCommand>>();
@@ -31,12 +28,11 @@ public class ReceivedEmailCommandHandlerTests
         this._handler = new ReceivedEmailCommandHandler(
             validators,
             this._loggerMock.Object,
-            this._repositoryMock.Object,
-            this._eventPublisherMock.Object);
+            this._repositoryMock.Object);
     }
 
     [Fact]
-    public async Task Handle_WhenEmailReceivedSuccessfully_SavesEmailAndPublishesEvent()
+    public async Task Handle_WhenEmailReceivedSuccessfully_SavesEmail()
     {
         // Arrange
         var emailId = Guid.NewGuid();
@@ -62,12 +58,6 @@ public class ReceivedEmailCommandHandlerTests
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        this._eventPublisherMock
-            .Setup(x => x.PublishAsync(
-                It.IsAny<EmailReceivedIntegrationEvent>(),
-                CancellationToken.None))
-            .Returns(Task.CompletedTask);
-
         // Act
         var result = await this._handler.Handle(command, CancellationToken.None);
 
@@ -77,15 +67,6 @@ public class ReceivedEmailCommandHandlerTests
         this._repositoryMock.Verify(
             x => x.SaveAsync(
                 It.Is<Email>(e => e.Id == emailId),
-                CancellationToken.None),
-            Times.Once);
-
-        this._eventPublisherMock.Verify(
-            x => x.PublishAsync(
-                It.Is<EmailReceivedIntegrationEvent>(e =>
-                    e.EmailId == emailId &&
-                    e.DomainId == domainId &&
-                    e.SubdomainId == subdomainId),
                 CancellationToken.None),
             Times.Once);
     }
@@ -118,8 +99,6 @@ public class ReceivedEmailCommandHandlerTests
         this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
             Times.Once);
-
-        this._eventPublisherMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -150,10 +129,6 @@ public class ReceivedEmailCommandHandlerTests
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        this._eventPublisherMock
-            .Setup(x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None))
-            .Returns(Task.CompletedTask);
-
         // Act
         var result = await this._handler.Handle(command, CancellationToken.None);
 
@@ -162,10 +137,6 @@ public class ReceivedEmailCommandHandlerTests
 
         this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
-            Times.Once);
-
-        this._eventPublisherMock.Verify(
-            x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None),
             Times.Once);
     }
 
@@ -202,10 +173,6 @@ public class ReceivedEmailCommandHandlerTests
             .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        this._eventPublisherMock
-            .Setup(x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None))
-            .Returns(Task.CompletedTask);
-
         // Act
         var result1 = await this._handler.Handle(command1, CancellationToken.None);
         var result2 = await this._handler.Handle(command2, CancellationToken.None);
@@ -216,10 +183,6 @@ public class ReceivedEmailCommandHandlerTests
 
         this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
-            Times.Exactly(2));
-
-        this._eventPublisherMock.Verify(
-            x => x.PublishAsync(It.IsAny<EmailReceivedIntegrationEvent>(), CancellationToken.None),
             Times.Exactly(2));
     }
 }

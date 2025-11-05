@@ -44,6 +44,53 @@ description: "Task list template for feature implementation"
   ============================================================================
 -->
 
+## Task Categories (Constitution-driven)
+
+The project's constitution requires explicit task categories to be included in every
+generated `tasks.md`. These categories MUST be considered when producing actionable
+tasks for a feature. Each category below includes example tasks; the generated
+`tasks.md` must include concrete file paths and owners for each task.
+
+- Code Quality
+  - [ ] CQ-001 Run solution build and fix compiler errors/warnings (dotnet build).
+  - [ ] CQ-002 Run static analyzers (StyleCop/Sonar) and address any violations.
+  - [ ] CQ-003 Ensure one public type per file and remove any XML doc comments used
+        for primary intent; prefer clear naming and small focused types.
+
+- Compiler Warnings
+  - [ ] CW-001 Treat compiler warnings as failures in CI for the feature branch.
+  - [ ] CW-002 Fix or suppress library-specific unavoidable warnings with commented rationale.
+
+- Blazor Component Split
+  - [ ] BZ-001 Convert interactive `.razor` components to `.razor` + `.razor.cs` code-behind.
+  - [ ] BZ-002 Ensure server-rendered static pages are marked with
+        `[ExcludeFromInteractiveRouting]` where applicable.
+
+- Commands & Queries Placement
+  - [ ] CQP-001 Add command/query DTOs to the corresponding `.Client` project under
+        `Application/Commands` or `Application/Queries` with `[BluQubeCommand|BluQubeQuery]` attributes where required.
+  - [ ] CQP-002 Implement handlers, validators and authorizers in the non-`.Client` server project in `Application/CommandHandlers` or `Application/QueryProcessors`.
+
+- Project Additions Approval
+  - [ ] PA-001 If a new csproj is needed, add a PR justification and get explicit maintainer approval before creating the project.
+
+- Tests
+  - [ ] TST-001 Add unit tests for domain logic (happy path and key failure modes).
+  - [ ] TST-002 Add at least one integration test that exercises the full ingestion or API flow when applicable.
+
+- Observability
+  - [ ] OBS-001 Add structured logging (Serilog/Microsoft.Extensions.Logging) for new flows.
+  - [ ] OBS-002 Add metrics/tracing hooks where long-running or async operations exist.
+
+- Security & Privacy
+  - [ ] SEC-001 Ensure no secrets are committed; reference secrets via environment variables or user-secrets.
+  - [ ] SEC-002 Add authorization checks and unit tests for permission boundaries.
+
+These categories MUST be surfaced in the generated `tasks.md` output and mapped to
+at least one responsible owner or team. The tasks generator should not omit these
+categories.
+
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Project initialization and basic structure

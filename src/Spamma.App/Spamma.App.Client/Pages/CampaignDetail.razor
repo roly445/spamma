@@ -1,0 +1,122 @@
+@page "/campaigns/{CampaignId:guid}"
+@using Spamma.App.Client.Layout
+@using Spamma.App.Client.Components.UserControls
+@using Spamma.Modules.DomainManagement.Client.Application.Queries
+@using Spamma.Modules.EmailInbox.Client.Application.Queries
+@using Microsoft.AspNetCore.Components.Web
+@layout AppLayout
+
+@attribute [Authorize]
+
+<PageTitle>Campaign Details - Spamma</PageTitle>
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <AdminHeader Title="@_campaignValue">
+        <Controls>
+            <a href="/campaigns" class="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 flex flex-row gap-1.5" title="Back">
+                <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Campaigns
+            </a>
+        </Controls>
+    </AdminHeader>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @if (_isLoading)
+        {
+            <div class="text-center py-12">
+                <div class="inline-flex items-center space-x-2">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="text-gray-600">Loading campaign details...</span>
+                </div>
+            </div>
+        }
+        else if (_campaignDetail == null)
+        {
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <p class="text-gray-600">Campaign not found</p>
+            </div>
+        }
+        else
+        {
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Total Captured</p>
+                    <p class="text-2xl font-bold text-gray-900">@_campaignDetail.TotalCaptured</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">First Received</p>
+                    <p class="text-sm font-mono text-gray-600">@_campaignDetail.FirstReceivedAt.ToString("g")</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Last Received</p>
+                    <p class="text-sm font-mono text-gray-600">@_campaignDetail.LastReceivedAt.ToString("g")</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Duration</p>
+                    <p class="text-sm font-mono text-gray-600">@GetDurationText()</p>
+                </div>
+            </div>
+
+            <!-- Chart (placeholder for ApexCharts) -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
+                @if (_campaignDetail?.TimeBuckets != null && _campaignDetail.TimeBuckets.Count > 0)
+                {
+                    <div class="space-y-4">
+                        @foreach (var bucket in _campaignDetail.TimeBuckets)
+                        {
+                            var maxCaptures = _campaignDetail.TimeBuckets.Max(b => b.Count);
+                            var barWidth = maxCaptures > 0 ? (bucket.Count * 100 / maxCaptures) : 0;
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <p class="text-sm text-gray-600">@bucket.StartTime.ToString("MMM dd") - @bucket.EndTime.ToString("MMM dd")</p>
+                                    <p class="text-sm font-medium text-gray-900">@bucket.Count captures</p>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-8">
+                                    <div class="bg-blue-600 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" 
+                                         style="width: @barWidth%;">
+                                        @if (barWidth > 15)
+                                        {
+                                            <span>@bucket.Count</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="w-full h-96 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
+                        <p class="text-gray-400">No timeline data available</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Sample Message -->
+            @if (_campaignDetail?.Sample != null)
+            {
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="border-b border-gray-200 p-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Sample Message</h2>
+                    </div>
+                    <div class="h-96">
+                        <EmailViewer Email="_emailSummary" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+                    <p class="text-gray-500">No sample message available</p>
+                </div>
+            }
+        }
+    </div>
+</div>

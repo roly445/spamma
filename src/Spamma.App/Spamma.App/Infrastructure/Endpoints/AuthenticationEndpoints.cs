@@ -87,7 +87,7 @@ internal static class AuthenticationEndpoints
         IQuerier querier,
         AssertionRequest request,
         IPasskeyRepository passkeyRepository,
-        ITempObjectStore tempObjectStore)
+        IInternalQueryStore internalQueryStore)
     {
         try
         {
@@ -162,7 +162,7 @@ internal static class AuthenticationEndpoints
 
             // Query user details to get email and name
             var userQuery = new GetUserByIdQuery(userId);
-            tempObjectStore.AddReferenceForObject(userQuery);
+            internalQueryStore.AddReferenceForObject(userQuery);
             var userResult = await querier.Send(userQuery);
 
             if (userResult.Status != QueryResultStatus.Succeeded)

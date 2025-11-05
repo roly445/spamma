@@ -9,7 +9,7 @@ using StackExchange.Redis;
 
 namespace Spamma.App.Infrastructure.Services;
 
-public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier querier, ITempObjectStore tempObjectStore)
+public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier querier, IInternalQueryStore internalQueryStore)
 {
     private const string Prefix = "userstatus:";
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
@@ -23,7 +23,7 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
         if (!value.HasValue || forceRefresh)
         {
             var query = new GetUserByIdQuery(userId);
-            tempObjectStore.AddReferenceForObject(query);
+            internalQueryStore.AddReferenceForObject(query);
             var result = await querier.Send(query);
             if (result.Status == QueryResultStatus.Succeeded)
             {

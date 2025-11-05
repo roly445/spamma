@@ -9,9 +9,13 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Nager.PublicSuffix;
 using Spamma.Modules.DomainManagement.Application.Repositories;
+using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
+using Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
 using Spamma.Modules.DomainManagement.Infrastructure.Repositories;
 using Spamma.Modules.DomainManagement.Infrastructure.Services;
+using Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
+using StackExchange.Redis;
 
 namespace Spamma.Modules.DomainManagement;
 
@@ -29,6 +33,15 @@ public static class Module
         services.AddScoped<ISubdomainRepository, SubdomainRepository>();
         services.AddScoped<IChaosAddressRepository, ChaosAddressRepository>();
         services.AddScoped<ILookupClient, LookupClient>();
+
+        // Register caching services for performance optimization
+        // Note: Scoped lifetime (not Singleton) to allow injection of scoped IQuerier for fallback queries
+        // Redis connection itself is thread-safe and shared; scoping here only affects the wrapper lifetime
+        services.AddScoped<ISubdomainCache, SubdomainCache>();
+        services.AddScoped<IChaosAddressCache, ChaosAddressCache>();
+
+        // Register cache invalidation event handler for CAP subscribers
+        services.AddScoped<CacheInvalidationEventHandler>();
 
         // Register domain parser service - will be initialized by hosted service
         services.AddSingleton<IDomainParserService, DomainParserService>();

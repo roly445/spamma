@@ -256,7 +256,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             {
                 // Not in cache: fetch from DB, then cache it
                 var userManager = context.HttpContext.RequestServices.GetRequiredService<IQuerier>();
-                var tempObjectStore = context.HttpContext.RequestServices.GetRequiredService<ITempObjectStore>();
+                var tempObjectStore = context.HttpContext.RequestServices.GetRequiredService<IInternalQueryStore>();
                 var query = new GetUserByIdQuery(userId);
                 tempObjectStore.AddReferenceForObject(query);
                 var user = await userManager.Send(query);
@@ -321,7 +321,7 @@ builder.Services.AddSingleton<ISetupDetectionService, SetupDetectionService>();
 builder.Services.AddSingleton<IInMemorySetupAuthService, InMemorySetupAuthService>();
 
 builder.Services.AddScoped<UserStatusCache>();
-builder.Services.AddSingleton<ITempObjectStore, TempObjectStore>();
+builder.Services.AddSingleton<IInternalQueryStore, InternalQueryStore>();
 
 // Register ACME certificate services
 builder.Services.AddSingleton<AcmeChallengeServer>();

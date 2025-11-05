@@ -47,6 +47,9 @@
       <Compile Update="Domain\EmailAggregate\Email.Events.cs">
         <DependentUpon>Email.cs</DependentUpon>
       </Compile>
+      <Compile Update="Domain\CampaignAggregate\Campaign.Events.cs">
+        <DependentUpon>Campaign.cs</DependentUpon>
+      </Compile>
     </ItemGroup>
 
     <ItemGroup>
