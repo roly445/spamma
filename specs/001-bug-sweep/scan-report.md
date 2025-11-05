@@ -129,3 +129,65 @@ The user provided a list of known issues to merge into this scan report. I recor
   - Suggested action: Disable the favourite action for campaign-bound emails in the UI and enforce at API/command level so favouriting is rejected for campaign emails.
 
 If you want, I can begin implementing the P1 items from this merged list now (items 2 and 11), or continue the automated scan and produce line-level findings for the P2/P3 items so we can create focused PRs. Which do you prefer?
+
+## Curated findings (source-level, filtered)
+
+Below are short, source-level findings curated from the filtered scan results (excludes `bin/`, `obj/`, `wwwroot/_framework`). Each entry includes the file area, a concise symptom, and suggested action.
+
+- RefreshableAuthenticationStateProvider (P2)
+
+  - Files: `src/Spamma.App/Spamma.App.Client/Infrastructure/Auth/RefreshableAuthenticationStateProvider.cs`, `src/Spamma.App/Spamma.App.Client/Infrastructure/Auth/IRefreshableAuthenticationStateProvider.cs`, `src/Spamma.App/Spamma.App.Client/Layout/AppLayout.razor.cs`
+  - Symptom: provider type exists and `AppLayout.razor.cs` checks/calls `RefreshAuthenticationStateAsync()` when the injected `AuthenticationStateProvider` implements `IRefreshableAuthenticationStateProvider`, but the provider may not be wired or used across the app.
+  - Action: either wire the provider where appropriate (navigation hooks, periodic refresh) or remove and consolidate. Add a small integration test for auth state refresh.
+
+- Manual deletion of campaign emails (P1 — data-loss risk)
+
+  - Files: `src/Spamma.App/Spamma.App.Client/Components/UserControls/EmailViewer.razor.cs` (DeleteEmail -> `commander.Send(new DeleteEmailCommand(..))`), `src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/Email/DeleteEmailCommandHandler.cs`, `src/modules/Spamma.Modules.EmailInbox/Domain/EmailAggregate/Email.cs`
+  - Symptom: UI allows manual deletion. Recommended policy (per user report): emails that belong to a campaign must not be deletable individually (only deleted when the campaign is deleted).
+  - Action: enforce at two levels: (1) UI — disable/remove the delete control for campaign-bound emails; (2) Server/handler — validate in `DeleteEmailCommandHandler` and return a domain error (use `EmailInboxErrorCodes`) if the email is campaign-bound. Add unit tests for the handler and a UI test for the disabled state.
+
+- Favoriting emails that belong to campaigns (P1 — policy)
+
+  - Files: `src/Spamma.App/Spamma.App.Client/Components/UserControls/EmailViewer.razor` + `.razor.cs` (ToggleFavorite -> `ToggleEmailFavoriteCommand`), `src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/Email/ToggleEmailFavoriteCommandHandler.cs`, `src/modules/Spamma.Modules.EmailInbox/Domain/EmailAggregate/Email.cs`
+  - Symptom: UI allows toggling favorite for any email; product policy requires that campaign emails cannot be favourited.
+  - Action: UI — hide/disable favorite button for campaign emails; Server — handler should reject toggles for campaign-bound emails and return an appropriate error code. Add tests.
+
+- Outside-click handlers / nav menu not closing (P2)
+
+  - Files: `src/Spamma.App/Spamma.App/Assets/Scripts/app.ts` (registerOutsideClickHandler / removeOutsideClickHandler), `src/Spamma.App/Spamma.App.Client/Pages/Subdomains/ChaosAddresses.razor.cs` (registerOutsideClickHandler usage), UI nav components.
+  - Symptom: user-reported nav menu (cog) does not close on item click. Script provides global handler storage; verify callers always remove the handler and that navigation triggers removal.
+  - Action: ensure each menu/navigation item invokes the removal (call `removeOutsideClickHandler`) after navigation, or use a single component-local handler that auto-cleans. Add a small UI test.
+
+- Modal & slideout overlays: transparency + shared base (P2/P3)
+
+  - Files (examples): `src/Spamma.App/Spamma.App.Client/Pages/Subdomains/ChaosAddresses.razor`, `src/Spamma.App/Spamma.App.Client/Pages/Admin/Users.razor`, `src/Spamma.App/Spamma.App.Client/Components/UserControls/*` (many modal components).
+  - Symptom: overlays use `bg-gray-500 bg-opacity-75` or similar in many places; modals/slideouts vary in markup and behaviour.
+  - Action: normalize to a common `ModalBase` / `SlideoutBase` and shared CSS utilities (use Tailwind `bg-black/50`, `backdrop-blur-sm` where desired). Make background-click-to-close opt-in (see next item). Effort: small-to-medium.
+
+- Modal/slideout background-click behaviour (P2)
+
+  - Files: many modal/slideout components (see above). Currently background `@onclick` often bound to the close action.
+  - Symptom: some flows require explicit confirmation; background-click-to-close can lead to accidental dismissals.
+  - Action: make background-click-to-close opt-in per-modal (property on ModalBase) and update critical flows (confirmations) to ignore background clicks.
+
+- Slideout animations & consistency (P3)
+
+  - Files: `src/Spamma.App/Spamma.App.Client/Pages/Subdomains/ChaosAddresses.razor` (slideout markup uses transform/translate classes), other slideouts.
+  - Symptom: inconsistent or missing animations across slideouts.
+  - Action: extract shared slideout class with transition/transform and apply consistently. Small CSS change.
+
+- Campaign view chart (P3)
+
+  - Files: `src/Spamma.App/Spamma.App.Client/Pages/CampaignDetail.razor` (chart placeholder), `src/Spamma.App/Spamma.App/package.json` (apexcharts dependency present)
+  - Symptom: chart is a placeholder and may not be needed.
+  - Action: remove chart code and dependency if not used, or replace with a small summary UI. Update package.json and build assets accordingly.
+
+- Campaign listing filter card (P3)
+
+  - Files: `src/Spamma.App/Spamma.App.Client/Pages/Campaigns.razor` (filters area)
+  - Symptom: filter card configured for 4 items but shows 3; layout mismatch/UX polish.
+  - Action: adjust layout or add missing filter; small UI fix.
+
+---
+
+Next steps (short): pick whether you want me to implement the P1 policy fixes now (delete/favourite enforcement + IsSubdomainValid), or I should continue to turn the P2/P3 findings above into line-level tickets (I can produce patches for small UI/server fixes afterwards).
