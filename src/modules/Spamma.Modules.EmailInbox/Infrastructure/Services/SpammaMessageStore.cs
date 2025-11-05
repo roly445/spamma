@@ -22,6 +22,7 @@ using Spamma.Modules.Common;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
+using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
@@ -45,10 +46,8 @@ public class SpammaMessageStore : MessageStore
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SpammaMessageStore>>();
         var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
         var commander = scope.ServiceProvider.GetRequiredService<ICommander>();
-        var querier = scope.ServiceProvider.GetRequiredService<IQuerier>();
-
-        // documentSession removed - use querier/commander for cross-module access
-        var tempObjectStore = scope.ServiceProvider.GetRequiredService<IInternalQueryStore>();
+        var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
+        var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
 
         using var stream = new MemoryStream();
 
@@ -74,35 +73,30 @@ public class SpammaMessageStore : MessageStore
         foreach (var recipient in recipients)
         {
             var recipientDomain = recipient.Domain.ToLowerInvariant();
-            var query = new SearchSubdomainsQuery(
-                SearchTerm: recipientDomain,
-                ParentDomainId: null,
-                Status: SubdomainStatus.Active,
-                Page: 1,
-                PageSize: 1,
-                SortBy: "domainname",
-                SortDescending: false);
-            tempObjectStore.AddReferenceForObject(query);
-            var subdomainResult = await querier.Send(query, cancellationToken);
-            if (subdomainResult.Status != QueryResultStatus.Succeeded || subdomainResult.Data.TotalCount == 0)
+
+            var subdomainMaybe = await subdomainCache.GetSubdomainAsync(recipientDomain, cancellationToken: cancellationToken);
+            if (!subdomainMaybe.HasValue)
             {
                 // No active subdomain for this recipient, continue to next recipient
                 continue;
             }
 
-            var subdomain = subdomainResult.Data.Items[0];
+            var subdomain = subdomainMaybe.Value;
 
             // keep the first discovered subdomain for later ReceivedEmailCommand if no chaos address matches
             foundSubdomain ??= subdomain;
 
-            // Check ChaosAddress by calling domain-management query for this subdomain and local-part
+            // Check ChaosAddress by calling cache for this subdomain and local-part
             var localPart = recipient.Address.Split('@')[0];
-            var chaosQuery = new GetChaosAddressBySubdomainAndLocalPartQuery(subdomain.Id, localPart);
-            tempObjectStore.AddReferenceForObject(chaosQuery);
-            var chaosResult = await querier.Send(chaosQuery, cancellationToken);
-            if (chaosResult is { Status: QueryResultStatus.Succeeded, Data.Enabled: true })
+            var chaosAddressMaybe = await chaosAddressCache.GetChaosAddressAsync(subdomain.Id, localPart, cancellationToken: cancellationToken);
+            if (chaosAddressMaybe.HasValue)
             {
-                var chaos = chaosResult.Data;
+                var chaos = chaosAddressMaybe.Value;
+
+                if (!chaos.Enabled)
+                {
+                    continue;
+                }
 
                 // best-effort record receive
                 try
