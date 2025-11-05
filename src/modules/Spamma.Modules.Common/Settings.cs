@@ -19,6 +19,4 @@ public class Settings
     public string MailServerHostname { get; init; } = string.Empty;
 
     public int MxPriority { get; init; } = 10;
-
-    public CampaignCaptureConfig? CampaignCapture { get; init; }
 }

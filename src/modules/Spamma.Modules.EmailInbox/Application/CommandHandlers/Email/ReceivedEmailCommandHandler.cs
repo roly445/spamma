@@ -6,10 +6,9 @@ using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
-namespace Spamma.Modules.EmailInbox.Application.CommandHandlers;
+namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 
 public class ReceivedEmailCommandHandler(
     IEnumerable<IValidator<ReceivedEmailCommand>> validators, ILogger<ReceivedEmailCommandHandler> logger, IEmailRepository repository,
@@ -18,7 +17,7 @@ public class ReceivedEmailCommandHandler(
 {
     protected override async Task<CommandResult> HandleInternal(ReceivedEmailCommand request, CancellationToken cancellationToken)
     {
-        var emailResult = Email.Create(
+        var emailResult = Domain.EmailAggregate.Email.Create(
             request.EmailId, request.DomainId, request.SubdomainId, request.Subject, request.WhenSent, request.EmailAddresses.Select(x => new EmailReceived.EmailAddress(x.Address, x.Name, x.EmailAddressType)).ToList());
 
         if (emailResult.IsFailure)

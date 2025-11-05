@@ -8,6 +8,8 @@ public class CampaignSummary
 
     public string CampaignValue { get; set; } = string.Empty;
 
+    public Guid? SampleMessageId { get; set; }
+
     public DateTimeOffset FirstReceivedAt { get; set; }
 
     public DateTimeOffset LastReceivedAt { get; set; }

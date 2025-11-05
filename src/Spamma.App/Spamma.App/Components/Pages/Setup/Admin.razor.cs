@@ -12,7 +12,7 @@ namespace Spamma.App.Components.Pages.Setup;
 
 public partial class Admin(
     IAppConfigurationService appConfigurationService,
-    ITempObjectStore tempObjectStore,
+    IInternalQueryStore internalQueryStore,
     ILogger<Admin> logger, ICommander commander)
 {
     private string? successMessage;
@@ -53,7 +53,7 @@ public partial class Admin(
         var userId = Guid.NewGuid();
         logger.LogInformation("Creating admin user with email: {Email}", this.Model.AdminEmail);
         var cmd = new CreateUserCommand(userId, this.Model.AdminName, this.Model.AdminEmail, false, 0);
-        tempObjectStore.AddReferenceForObject(cmd);
+        internalQueryStore.AddReferenceForObject(cmd);
         await commander.Send(cmd);
 
         this.successMessage = "Admin user created successfully!";

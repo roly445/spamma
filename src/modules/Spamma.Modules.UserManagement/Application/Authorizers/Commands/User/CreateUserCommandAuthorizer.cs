@@ -6,11 +6,11 @@ using Spamma.Modules.UserManagement.Client.Application.Commands;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.User;
 
-public class CreateUserCommandAuthorizer(ITempObjectStore tempObjectStore) : AbstractRequestAuthorizer<CreateUserCommand>
+public class CreateUserCommandAuthorizer(IInternalQueryStore internalQueryStore) : AbstractRequestAuthorizer<CreateUserCommand>
 {
     public override void BuildPolicy(CreateUserCommand request)
     {
-        if (tempObjectStore.IsStoringReferenceForObject(request))
+        if (internalQueryStore.IsStoringReferenceForObject(request))
         {
             return;
         }

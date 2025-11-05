@@ -6,6 +6,7 @@ using ResultMonad;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers;
+using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;

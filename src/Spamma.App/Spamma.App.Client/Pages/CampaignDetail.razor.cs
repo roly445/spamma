@@ -1,22 +1,25 @@
+using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
+/// <summary>
+/// Code-behind for the CampaignDetail razor component.
+/// </summary>
 [Authorize]
 public partial class CampaignDetail
 {
     private GetCampaignDetailQueryResult? _campaignDetail;
+    private SearchEmailsQueryResult.EmailSummary? _emailSummary;
     private string _campaignValue = string.Empty;
     private bool _isLoading;
 
     [Parameter]
     public Guid CampaignId { get; set; }
-
-    [SupplyParameterFromQuery]
-    public Guid? SubdomainId { get; set; }
 
     [Inject]
     public IQuerier Querier { get; set; } = null!;
@@ -26,51 +29,70 @@ public partial class CampaignDetail
 
     protected override async Task OnInitializedAsync()
     {
-        if (!SubdomainId.HasValue || SubdomainId.Value == Guid.Empty)
+        if (this.CampaignId == Guid.Empty)
         {
-            NavigationManager.NavigateTo("/campaigns");
+            this.NavigationManager.NavigateTo("/campaigns");
             return;
         }
 
-        await LoadCampaignDetail();
+        await this.LoadCampaignDetail();
     }
 
     private async Task LoadCampaignDetail()
     {
-        _isLoading = true;
+        this._isLoading = true;
         try
         {
-            var query = new GetCampaignDetailQuery(SubdomainId!.Value, CampaignId);
-            var result = await Querier.Send(query, CancellationToken.None);
+            // We don't know the SubdomainId yet, so we'll use Guid.Empty for now
+            // The query processor should handle this by looking up the campaign first
+            var query = new GetCampaignDetailQuery(Guid.Empty, this.CampaignId);
+            var result = await this.Querier.Send(query, CancellationToken.None);
 
-            if (result?.Data != null)
+            if (result.Status == QueryResultStatus.Succeeded)
             {
-                _campaignDetail = result.Data;
-                _campaignValue = result.Data.CampaignValue;
+                this._campaignDetail = result.Data;
+                this._campaignValue = result.Data.CampaignValue;
+
+                // If there's a sample message, fetch the full email summary
+                if (result.Data.Sample != null)
+                {
+                    var emailQuery = new GetEmailByIdQuery(result.Data.Sample.MessageId);
+                    var emailResult = await this.Querier.Send(emailQuery, CancellationToken.None);
+
+                    if (emailResult.Status == QueryResultStatus.Succeeded)
+                    {
+                        this._emailSummary = new SearchEmailsQueryResult.EmailSummary(
+                            emailResult.Data.Id,
+                            emailResult.Data.Subject,
+                            "Email",
+                            emailResult.Data.WhenSent,
+                            emailResult.Data.IsFavorite);
+                    }
+                }
             }
             else
             {
-                NavigationManager.NavigateTo("/campaigns");
+                this.NavigationManager.NavigateTo("/campaigns");
             }
         }
         catch (Exception)
         {
-            NavigationManager.NavigateTo("/campaigns");
+            this.NavigationManager.NavigateTo("/campaigns");
         }
         finally
         {
-            _isLoading = false;
+            this._isLoading = false;
         }
     }
 
     private string GetDurationText()
     {
-        if (_campaignDetail == null)
+        if (this._campaignDetail == null)
         {
             return "N/A";
         }
 
-        var duration = _campaignDetail.LastReceivedAt - _campaignDetail.FirstReceivedAt;
+        var duration = this._campaignDetail.LastReceivedAt - this._campaignDetail.FirstReceivedAt;
         if (duration.TotalDays > 1)
         {
             return $"{(int)duration.TotalDays} days";

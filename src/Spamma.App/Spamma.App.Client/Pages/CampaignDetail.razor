@@ -1,6 +1,8 @@
 @page "/campaigns/{CampaignId:guid}"
 @using Spamma.App.Client.Layout
+@using Spamma.App.Client.Components.UserControls
 @using Spamma.Modules.DomainManagement.Client.Application.Queries
+@using Spamma.Modules.EmailInbox.Client.Application.Queries
 @using Microsoft.AspNetCore.Components.Web
 @layout AppLayout
 
@@ -10,22 +12,16 @@
 
 <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="py-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center space-x-3">
-                            <a href="/campaigns" class="text-blue-600 hover:text-blue-900">Campaigns</a>
-                            <span class="text-gray-400">/</span>
-                            <h1 class="text-2xl font-bold text-gray-900">@_campaignValue</h1>
-                        </div>
-                        <p class="mt-1 text-sm text-gray-500">@_campaignDetail?.TotalCaptured total messages captured</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <AdminHeader Title="@_campaignValue">
+        <Controls>
+            <a href="/campaigns" class="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 flex flex-row gap-1.5" title="Back">
+                <svg class="w-5 h-5 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Campaigns
+            </a>
+        </Controls>
+    </AdminHeader>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -69,45 +65,49 @@
             <!-- Chart (placeholder for ApexCharts) -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
-                <div id="campaign-chart" class="w-full h-96 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
-                    <p class="text-gray-400">Chart will be rendered here via ApexCharts</p>
-                </div>
+                @if (_campaignDetail?.TimeBuckets != null && _campaignDetail.TimeBuckets.Count > 0)
+                {
+                    <div class="space-y-4">
+                        @foreach (var bucket in _campaignDetail.TimeBuckets)
+                        {
+                            var maxCaptures = _campaignDetail.TimeBuckets.Max(b => b.Count);
+                            var barWidth = maxCaptures > 0 ? (bucket.Count * 100 / maxCaptures) : 0;
+                            
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <p class="text-sm text-gray-600">@bucket.StartTime.ToString("MMM dd") - @bucket.EndTime.ToString("MMM dd")</p>
+                                    <p class="text-sm font-medium text-gray-900">@bucket.Count captures</p>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-8">
+                                    <div class="bg-blue-600 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" 
+                                         style="width: @barWidth%;">
+                                        @if (barWidth > 15)
+                                        {
+                                            <span>@bucket.Count</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="w-full h-96 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
+                        <p class="text-gray-400">No timeline data available</p>
+                    </div>
+                }
             </div>
 
             <!-- Sample Message -->
-            @if (_campaignDetail.Sample != null)
+            @if (_campaignDetail?.Sample != null)
             {
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Sample Message</h2>
-                    <div class="space-y-3">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase">Subject</p>
-                            <p class="font-medium text-gray-900">@_campaignDetail.Sample.Subject</p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase">From</p>
-                                <p class="font-mono text-sm text-gray-600">@_campaignDetail.Sample.From</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase">To</p>
-                                <p class="font-mono text-sm text-gray-600">@_campaignDetail.Sample.To</p>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase">Received At</p>
-                            <p class="font-mono text-sm text-gray-600">@_campaignDetail.Sample.ReceivedAt.ToString("g")</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase">Preview</p>
-                            <p class="text-sm text-gray-600 whitespace-pre-wrap break-words">@_campaignDetail.Sample.ContentPreview</p>
-                        </div>
-                        <div>
-                            <a href="/app/@_campaignDetail.Sample.MessageId" 
-                               class="text-blue-600 hover:text-blue-900 font-medium text-sm">
-                                View Full Message in Inbox
-                            </a>
-                        </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="border-b border-gray-200 p-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Sample Message</h2>
+                    </div>
+                    <div class="h-96">
+                        <EmailViewer Email="_emailSummary" />
                     </div>
                 </div>
             }

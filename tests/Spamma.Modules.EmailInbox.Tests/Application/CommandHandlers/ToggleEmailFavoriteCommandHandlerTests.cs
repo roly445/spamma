@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using ResultMonad;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers;
+using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;

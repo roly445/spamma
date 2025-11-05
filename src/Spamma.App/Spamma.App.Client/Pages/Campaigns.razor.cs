@@ -1,10 +1,16 @@
+using BluQube.Commands;
+using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
+/// <summary>
+/// Code-behind for the Campaigns razor component.
+/// </summary>
 [Authorize]
 public partial class Campaigns
 {
@@ -22,7 +28,7 @@ public partial class Campaigns
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadSubdomains();
+        await this.LoadSubdomains();
     }
 
     private async Task LoadSubdomains()
@@ -32,9 +38,9 @@ public partial class Campaigns
             var query = new SearchSubdomainsQuery(null, null, null, 1, 1000, "SubdomainName", false);
             var result = await this.Querier.Send(query, CancellationToken.None);
 
-            if (result?.Data != null)
+            if (result.Status == QueryResultStatus.Succeeded)
             {
-                _subdomains = result.Data.Items
+                this._subdomains = result.Data.Items
                     .Select(s => new SubdomainSummary
                     {
                         Id = s.Id,
@@ -42,9 +48,9 @@ public partial class Campaigns
                     })
                     .ToList();
 
-                if (_subdomains.Any())
+                if (this._subdomains.Any())
                 {
-                    _selectedSubdomainId = _subdomains[0].Id.ToString();
+                    this._selectedSubdomainId = this._subdomains[0].Id.ToString();
                     await this.RefreshCampaigns();
                 }
             }
@@ -59,9 +65,9 @@ public partial class Campaigns
     {
         if (e.Value is string subdomainId && !string.IsNullOrEmpty(subdomainId))
         {
-            _selectedSubdomainId = subdomainId;
-            _currentPage = 1;
-            await RefreshCampaigns();
+            this._selectedSubdomainId = subdomainId;
+            this._currentPage = 1;
+            await this.RefreshCampaigns();
         }
     }
 
@@ -69,33 +75,33 @@ public partial class Campaigns
     {
         if (e.Value is string sortBy)
         {
-            _sortBy = sortBy;
-            _currentPage = 1;
-            await RefreshCampaigns();
+            this._sortBy = sortBy;
+            this._currentPage = 1;
+            await this.RefreshCampaigns();
         }
     }
 
     private async Task RefreshCampaigns()
     {
-        if (string.IsNullOrEmpty(_selectedSubdomainId) || !Guid.TryParse(_selectedSubdomainId, out var subdomainId))
+        if (string.IsNullOrEmpty(this._selectedSubdomainId) || !Guid.TryParse(this._selectedSubdomainId, out var subdomainId))
         {
             return;
         }
 
-        _isLoading = true;
+        this._isLoading = true;
         try
         {
             var query = new GetCampaignsQuery(
                 subdomainId,
-                _currentPage,
-                _pageSize,
-                _sortBy,
-                _isSortDescending);
+                this._currentPage,
+                this._pageSize,
+                this._sortBy,
+                this._isSortDescending);
 
-            var result = await Querier.Send(query, CancellationToken.None);
-            if (result?.Data != null)
+            var result = await this.Querier.Send(query, CancellationToken.None);
+            if (result.Status == QueryResultStatus.Succeeded)
             {
-                _campaigns = result.Data;
+                this._campaigns = result.Data;
             }
         }
         catch (Exception)
@@ -104,25 +110,25 @@ public partial class Campaigns
         }
         finally
         {
-            _isLoading = false;
+            this._isLoading = false;
         }
     }
 
     private async Task PreviousPage()
     {
-        if (_currentPage > 1)
+        if (this._currentPage > 1)
         {
-            _currentPage--;
-            await RefreshCampaigns();
+            this._currentPage--;
+            await this.RefreshCampaigns();
         }
     }
 
     private async Task NextPage()
     {
-        if (_campaigns != null && _currentPage < _campaigns.TotalPages)
+        if (this._campaigns != null && this._currentPage < this._campaigns.TotalPages)
         {
-            _currentPage++;
-            await RefreshCampaigns();
+            this._currentPage++;
+            await this.RefreshCampaigns();
         }
     }
 

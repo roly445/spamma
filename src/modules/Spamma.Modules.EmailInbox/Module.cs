@@ -10,6 +10,7 @@ using SmtpServer;
 using SmtpServer.Storage;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Projections;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -26,6 +27,7 @@ public static class Module
         services.AddMediatorAuthorization(typeof(Module).Assembly);
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IEmailRepository, EmailRepository>();
+        services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
         // Certificate generation service
@@ -82,6 +84,10 @@ public static class Module
     public static StoreOptions ConfigureEmailInbox(this StoreOptions options)
     {
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
+
+        options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
+
         return options;
     }
 }

@@ -1,9 +1,9 @@
 using BluQube.Queries;
 using Marten;
-using Spamma.Modules.DomainManagement.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
-namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
+namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
 public class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProcessor<GetCampaignsQuery, GetCampaignsQueryResult>
 {

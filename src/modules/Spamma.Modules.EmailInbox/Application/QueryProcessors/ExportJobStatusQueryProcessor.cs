@@ -1,7 +1,7 @@
 using BluQube.Queries;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
-namespace Spamma.Modules.EmailInbox.Application.QueryProcessors.ExportJobStatus;
+namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
 public class ExportJobStatusQueryProcessor : IQueryProcessor<ExportJobStatusQuery, ExportJobStatusQueryResult>
 {

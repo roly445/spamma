@@ -57,7 +57,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(querier.Object);
         services.AddSingleton(commander.Object);
         services.AddSingleton(messageProvider.Object);
-        services.AddSingleton<ITempObjectStore, TempObjectStoreStub>();
+        services.AddSingleton<IInternalQueryStore, InternalQueryStoreStub>();
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();
@@ -102,7 +102,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(querier.Object);
         services.AddSingleton(commander.Object);
         services.AddSingleton(messageProvider.Object);
-        services.AddSingleton<ITempObjectStore, TempObjectStoreStub>();
+        services.AddSingleton<IInternalQueryStore, InternalQueryStoreStub>();
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();
@@ -149,7 +149,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(querier.Object);
         services.AddSingleton(commander.Object);
         services.AddSingleton(messageProvider.Object);
-        services.AddSingleton<ITempObjectStore, TempObjectStoreStub>();
+        services.AddSingleton<IInternalQueryStore, InternalQueryStoreStub>();
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();
@@ -199,7 +199,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(querier.Object);
         services.AddSingleton(commander.Object);
         services.AddSingleton(messageProvider.Object);
-        services.AddSingleton<ITempObjectStore, TempObjectStoreStub>();
+        services.AddSingleton<IInternalQueryStore, InternalQueryStoreStub>();
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();
@@ -236,7 +236,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(querier.Object);
         services.AddSingleton(commander.Object);
         services.AddSingleton(messageProvider.Object);
-        services.AddSingleton<ITempObjectStore, TempObjectStoreStub>();
+        services.AddSingleton<IInternalQueryStore, InternalQueryStoreStub>();
         services.AddLogging();
 
         var provider = services.BuildServiceProvider();
@@ -276,7 +276,7 @@ public class SpammaMessageStoreTests
         throw new InvalidOperationException("Cannot read reply code from SmtpResponse");
     }
 
-    private sealed class TempObjectStoreStub : ITempObjectStore
+    private sealed class InternalQueryStoreStub : IInternalQueryStore
     {
         public Result AddReferenceForObject(object obj) => Result.Ok();
 

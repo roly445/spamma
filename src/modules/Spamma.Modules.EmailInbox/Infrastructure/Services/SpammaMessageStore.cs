@@ -48,7 +48,7 @@ public class SpammaMessageStore : MessageStore
         var querier = scope.ServiceProvider.GetRequiredService<IQuerier>();
 
         // documentSession removed - use querier/commander for cross-module access
-        var tempObjectStore = scope.ServiceProvider.GetRequiredService<ITempObjectStore>();
+        var tempObjectStore = scope.ServiceProvider.GetRequiredService<IInternalQueryStore>();
 
         using var stream = new MemoryStream();
 
@@ -97,7 +97,7 @@ public class SpammaMessageStore : MessageStore
 
             // Check ChaosAddress by calling domain-management query for this subdomain and local-part
             var localPart = recipient.Address.Split('@')[0];
-            var chaosQuery = new Spamma.Modules.DomainManagement.Client.Application.Queries.GetChaosAddressBySubdomainAndLocalPartQuery(subdomain.Id, localPart);
+            var chaosQuery = new GetChaosAddressBySubdomainAndLocalPartQuery(subdomain.Id, localPart);
             tempObjectStore.AddReferenceForObject(chaosQuery);
             var chaosResult = await querier.Send(chaosQuery, cancellationToken);
             if (chaosResult is { Status: QueryResultStatus.Succeeded, Data.Enabled: true })
@@ -151,37 +151,24 @@ public class SpammaMessageStore : MessageStore
         if (saveDataResult.Status != CommandResultStatus.Failed)
         {
             // Detect and record campaign header if present
-            try
+            var campaignHeader = message.Headers.FirstOrDefault(x => x.Field.Equals("x-spamma-camp", StringComparison.InvariantCultureIgnoreCase));
+            if (campaignHeader != null && !string.IsNullOrEmpty(campaignHeader.Value))
             {
-                var settings = scope.ServiceProvider.GetRequiredService<Settings>();
-                if (settings.CampaignCapture?.HeaderName != null)
-                {
-                    var campaignHeader = message.Headers[settings.CampaignCapture.HeaderName];
-                    if (!string.IsNullOrEmpty(campaignHeader))
-                    {
-                        var campaignValue = campaignHeader.Trim().ToLowerInvariant();
-                        if (campaignValue.Length <= settings.CampaignCapture.MaxHeaderLength)
-                        {
-                            var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
-                            var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
+                var campaignValue = campaignHeader.Value.Trim().ToLowerInvariant();
 
-                            await commander.Send(
-                                new RecordCampaignCaptureCommand(
-                                    foundSubdomain.Id,
-                                    messageId,
-                                    campaignValue,
-                                    message.Subject ?? string.Empty,
-                                    fromAddress,
-                                    toAddress,
-                                    DateTimeOffset.UtcNow),
-                                cancellationToken);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Failed to record campaign capture for message {MessageId}", messageId);
+                var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
+                var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
+
+                await commander.Send(
+                    new RecordCampaignCaptureCommand(
+                        foundSubdomain.Id,
+                        messageId,
+                        campaignValue,
+                        message.Subject ?? string.Empty,
+                        fromAddress,
+                        toAddress,
+                        DateTimeOffset.UtcNow),
+                    cancellationToken);
             }
 
             return SmtpResponse.Ok;

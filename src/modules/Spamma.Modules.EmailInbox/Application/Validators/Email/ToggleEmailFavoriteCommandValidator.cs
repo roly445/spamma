@@ -2,7 +2,7 @@ using FluentValidation;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
-namespace Spamma.Modules.EmailInbox.Application.Validators;
+namespace Spamma.Modules.EmailInbox.Application.Validators.Email;
 
 /// <summary>
 /// Validator for email favorite toggle command.

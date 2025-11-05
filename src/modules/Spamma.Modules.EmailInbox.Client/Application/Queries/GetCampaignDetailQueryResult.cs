@@ -1,6 +1,6 @@
 using BluQube.Queries;
 
-namespace Spamma.Modules.DomainManagement.Client.Application.Queries;
+namespace Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 public record GetCampaignDetailQueryResult(
     Guid CampaignId,
