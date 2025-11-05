@@ -13,7 +13,7 @@ var host = parser.Get("host") ?? "localhost";
 var port = int.TryParse(parser.Get("port"), out var p) ? p : 25;
 var from = parser.Get("from") ?? "tester@localhost";
 var to = parser.Get("to") ?? "test@test.d-home.dev";
-var batchSize = int.TryParse(parser.Get("batch"), out var b) ? Math.Clamp(b, 1, 100) : 30;
+var batchSize = int.TryParse(parser.Get("batch"), out var b) ? Math.Clamp(b, 1, 100) : 100;
 var batches = int.TryParse(parser.Get("batches"), out var bs) ? Math.Max(1, bs) : 1;
 var subject = parser.Get("subject") ?? "Spamma Load Test";
 var htmlBody = parser.Get("html") ?? "<p>This is the <strong>HTML</strong> part</p>";
@@ -24,7 +24,6 @@ Console.WriteLine($"Host={host}:{port} From={from} To={to} BatchSize={batchSize}
 for (var batchIndex = 0; batchIndex < batches; batchIndex++)
 {
     var batchId = Guid.NewGuid();
-    Console.WriteLine($"Sending batch {batchIndex + 1}/{batches} with X-Spamma-Comp: {batchId}");
 
     var tasks = new List<Task>();
     for (var i = 0; i < batchSize; i++)
@@ -44,7 +43,7 @@ for (var batchIndex = 0; batchIndex < batches; batchIndex++)
 
         tasks.Add(SendAsync(host, port, message));
     }
-
+    Console.WriteLine($"Sending batch {batchIndex + 1}/{batches} with X-Spamma-Comp: {batchId}");
     await Task.WhenAll(tasks);
     Console.WriteLine($"Batch {batchIndex + 1} complete.");
 }

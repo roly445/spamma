@@ -1,27 +1,13 @@
-﻿using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
+﻿using System.Buffers;
+using System.Threading.Channels;
 using BluQube.Commands;
 using BluQube.Constants;
-using BluQube.Queries;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
-using MimeKit;
 using SmtpServer;
 using SmtpServer.Protocol;
 using SmtpServer.Storage;
-
-using Spamma.Modules.Common;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
-using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
@@ -68,6 +54,7 @@ public class SpammaMessageStore : MessageStore
         recipients.AddRange(message.Bcc.Mailboxes);
 
         SearchSubdomainsQueryResult.SubdomainSummary? foundSubdomain = null;
+        Guid? chaosAddressId = null;
 
         // First-match semantics: iterate recipients in delivery order and return the configured SMTP response
         foreach (var recipient in recipients)
@@ -98,16 +85,7 @@ public class SpammaMessageStore : MessageStore
                     continue;
                 }
 
-                // best-effort record receive
-                try
-                {
-                    // Use client-side command contract so EmailInbox doesn't reference DomainManagement server project
-                    await commander.Send(new RecordChaosAddressReceivedCommand(chaos.Id, DateTime.UtcNow), cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Failed to record chaos address receive for {ChaosAddressId}", chaos.Id);
-                }
+                chaosAddressId = chaos.Id;
 
                 // Map configured SmtpResponseCode -> numeric reply code and return
                 var code = (int)chaos.ConfiguredSmtpCode;
@@ -144,25 +122,60 @@ public class SpammaMessageStore : MessageStore
 
         if (saveDataResult.Status != CommandResultStatus.Failed)
         {
-            // Detect and record campaign header if present
+            // Get background job channels (singleton registered in DI)
+            var campaignChannel = scope.ServiceProvider.GetRequiredService<Channel<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob>>();
+            var chaosChannel = scope.ServiceProvider.GetRequiredService<Channel<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob>>();
+
+            // Queue campaign capture job if header present (non-blocking, returns immediately)
             var campaignHeader = message.Headers.FirstOrDefault(x => x.Field.Equals("x-spamma-camp", StringComparison.InvariantCultureIgnoreCase));
             if (campaignHeader != null && !string.IsNullOrEmpty(campaignHeader.Value))
             {
                 var campaignValue = campaignHeader.Value.Trim().ToLowerInvariant();
-
                 var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
                 var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
 
-                await commander.Send(
-                    new RecordCampaignCaptureCommand(
-                        foundSubdomain.Id,
-                        messageId,
-                        campaignValue,
-                        message.Subject ?? string.Empty,
-                        fromAddress,
-                        toAddress,
-                        DateTimeOffset.UtcNow),
-                    cancellationToken);
+                var job = new Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob(
+                    foundSubdomain.Id,
+                    messageId,
+                    campaignValue,
+                    message.Subject ?? string.Empty,
+                    fromAddress,
+                    toAddress,
+                    DateTimeOffset.UtcNow);
+
+                try
+                {
+                    // Queue for background processing - this never blocks for long
+                    await campaignChannel.Writer.WriteAsync(job, cancellationToken);
+                }
+                catch (ChannelClosedException ex)
+                {
+                    logger.LogWarning(ex, "Campaign job channel closed, background processor may have stopped");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to queue campaign capture job for email {EmailId}", messageId);
+                }
+            }
+
+            // Queue chaos address job if applicable (non-blocking, returns immediately)
+            if (chaosAddressId.HasValue)
+            {
+                var job = new Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob(chaosAddressId.Value, DateTime.UtcNow);
+
+                try
+                {
+                    // Queue for background processing - this never blocks for long
+                    await chaosChannel.Writer.WriteAsync(job, cancellationToken);
+                }
+                catch (ChannelClosedException ex)
+                {
+                    logger.LogWarning(ex, "Chaos address job channel closed, background processor may have stopped");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to queue chaos address job for {ChaosAddressId}", chaosAddressId);
+                }
             }
 
             return SmtpResponse.Ok;

@@ -3,6 +3,7 @@ using BluQube.Constants;
 using BluQube.Queries;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
@@ -19,7 +20,7 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 public class SubdomainCache(
     IConnectionMultiplexer redisMultiplexer,
     IQuerier querier,
-    ILogger<SubdomainCache> logger) : ISubdomainCache
+    ILogger<SubdomainCache> logger, IInternalQueryStore internalQueryStore) : ISubdomainCache
 {
     private const string CacheKeyPrefix = "subdomain:";
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
@@ -39,19 +40,22 @@ public class SubdomainCache(
 
         if (!forceRefresh)
         {
-            var cachedValue = _redis.StringGet(cacheKey);
+            var cachedValue = this._redis.StringGet(cacheKey);
             if (cachedValue.HasValue)
             {
                 try
                 {
-                    var cachedSubdomain = JsonSerializer.Deserialize<SearchSubdomainsQueryResult.SubdomainSummary>(cachedValue.ToString());
-                    logger.LogDebug("Cache HIT for subdomain: {Domain}", domain);
-                    return Maybe.From(cachedSubdomain);
+                    var cachedSubdomain = JsonSerializer.Deserialize<SearchSubdomainsQueryResult.SubdomainSummary?>(cachedValue.ToString());
+                    if (cachedSubdomain != null)
+                    {
+                        logger.LogDebug("Cache HIT for subdomain: {Domain}", domain);
+                        return Maybe.From(cachedSubdomain);
+                    }
                 }
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex, "Failed to deserialize cached subdomain for {Domain}", domain);
-                    await InvalidateAsync(domain, cancellationToken);
+                    await this.InvalidateAsync(domain, cancellationToken);
                 }
             }
         }
@@ -66,7 +70,7 @@ public class SubdomainCache(
             PageSize: 1,
             SortBy: "domainname",
             SortDescending: false);
-
+        internalQueryStore.AddReferenceForObject(query);
         var result = await querier.Send(query, cancellationToken);
 
         if (result.Status != QueryResultStatus.Succeeded || result.Data.TotalCount == 0)
@@ -79,11 +83,12 @@ public class SubdomainCache(
         // Cache the result
         try
         {
-            await SetSubdomainAsync(domain, subdomain, cancellationToken);
+            await this.SetSubdomainAsync(domain, subdomain, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to cache subdomain for {Domain}", domain);
+
             // Continue despite cache failure - fallback to uncached operation
         }
 
@@ -105,8 +110,8 @@ public class SubdomainCache(
         try
         {
             var serialized = JsonSerializer.SerializeToUtf8Bytes(subdomain);
-            _redis.StringSet(cacheKey, serialized, _ttl);
-            logger.LogDebug("Cached subdomain: {Domain} with TTL {TTL}", domain, _ttl);
+            this._redis.StringSet(cacheKey, serialized, this._ttl);
+            logger.LogDebug("Cached subdomain: {Domain} with TTL {TTL}", domain, this._ttl);
         }
         catch (Exception ex)
         {
@@ -127,7 +132,7 @@ public class SubdomainCache(
 
         try
         {
-            _redis.KeyDelete(cacheKey);
+            this._redis.KeyDelete(cacheKey);
             logger.LogInformation("Invalidated cache for subdomain: {Domain}", domain);
         }
         catch (Exception ex)
@@ -147,7 +152,7 @@ public class SubdomainCache(
 
             if (keys.Length > 0)
             {
-                _redis.KeyDelete(keys);
+                this._redis.KeyDelete(keys);
                 logger.LogInformation("Invalidated {Count} cache entries matching pattern: {Pattern}", keys.Length, pattern);
             }
         }

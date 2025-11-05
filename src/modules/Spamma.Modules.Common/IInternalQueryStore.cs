@@ -12,11 +12,11 @@ public interface IInternalQueryStore
 
 public class InternalQueryStore : IInternalQueryStore
 {
-    private ConditionalWeakTable<object, BoolWrapper> _table = new();
+    private readonly ConditionalWeakTable<object, BoolWrapper> _table = new();
 
     public Result AddReferenceForObject(object obj)
     {
-        this._table.AddOrUpdate(obj, new BoolWrapper());;
+        this._table.AddOrUpdate(obj, new BoolWrapper());
         return Result.Ok();
     }
 
@@ -24,8 +24,8 @@ public class InternalQueryStore : IInternalQueryStore
     {
         return this._table.TryGetValue(obj, out var d) && d.Value;
     }
-    
-    private class BoolWrapper
+
+    private sealed class BoolWrapper
     {
         public bool Value { get; } = true;
     }

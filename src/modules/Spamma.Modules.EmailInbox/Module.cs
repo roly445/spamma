@@ -1,4 +1,5 @@
-﻿using BluQube.Attributes;
+﻿using System.Threading.Channels;
+using BluQube.Attributes;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;
@@ -29,6 +30,14 @@ public static class Module
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
+
+        // Background job queues for campaign and chaos address recording (non-blocking operations)
+        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob>());
+        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob>());
+        services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.BackgroundJobProcessor>();
+
+        // CAP integration event handlers
+        services.AddScoped<Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers.PersistReceivedEmailHandler>();
 
         // Certificate generation service
         services.AddScoped<ICertesLetsEncryptService, CertesLetsEncryptService>();

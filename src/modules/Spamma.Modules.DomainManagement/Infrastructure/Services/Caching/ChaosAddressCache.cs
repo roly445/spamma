@@ -3,6 +3,7 @@ using BluQube.Constants;
 using BluQube.Queries;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using StackExchange.Redis;
@@ -18,7 +19,7 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 public class ChaosAddressCache(
     IConnectionMultiplexer redisMultiplexer,
     IQuerier querier,
-    ILogger<ChaosAddressCache> logger) : IChaosAddressCache
+    ILogger<ChaosAddressCache> logger, IInternalQueryStore internalQueryStore) : IChaosAddressCache
 {
     private const string CacheKeyPrefix = "chaos:";
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
@@ -39,19 +40,22 @@ public class ChaosAddressCache(
 
         if (!forceRefresh)
         {
-            var cachedValue = _redis.StringGet(cacheKey);
+            var cachedValue = this._redis.StringGet(cacheKey);
             if (cachedValue.HasValue)
             {
                 try
                 {
-                    var cachedChaosAddress = JsonSerializer.Deserialize<GetChaosAddressBySubdomainAndLocalPartQueryResult>(cachedValue.ToString());
-                    logger.LogDebug("Cache HIT for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
-                    return Maybe.From(cachedChaosAddress);
+                    var cachedChaosAddress = JsonSerializer.Deserialize<GetChaosAddressBySubdomainAndLocalPartQueryResult?>(cachedValue.ToString());
+                    if (cachedChaosAddress != null)
+                    {
+                        logger.LogDebug("Cache HIT for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
+                        return Maybe.From(cachedChaosAddress);
+                    }
                 }
                 catch (Exception ex)
                 {
                     logger.LogWarning(ex, "Failed to deserialize cached chaos address for {SubdomainId}:{LocalPart}", subdomainId, localPart);
-                    await InvalidateAsync(subdomainId, localPart, cancellationToken);
+                    await this.InvalidateAsync(subdomainId, localPart, cancellationToken);
                 }
             }
         }
@@ -59,7 +63,7 @@ public class ChaosAddressCache(
         // Cache miss or forceRefresh: query database
         logger.LogDebug("Cache MISS for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
         var query = new GetChaosAddressBySubdomainAndLocalPartQuery(subdomainId, localPart);
-
+        internalQueryStore.AddReferenceForObject(query);
         var result = await querier.Send(query, cancellationToken);
 
         if (result.Status != QueryResultStatus.Succeeded || result.Data == null)
@@ -72,11 +76,12 @@ public class ChaosAddressCache(
         // Cache the result (even if not enabled, to avoid repeated queries)
         try
         {
-            await SetChaosAddressAsync(subdomainId, localPart, chaosAddress, cancellationToken);
+            await this.SetChaosAddressAsync(subdomainId, localPart, chaosAddress, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to cache chaos address for {SubdomainId}:{LocalPart}", subdomainId, localPart);
+
             // Continue despite cache failure - fallback to uncached operation
         }
 
@@ -99,8 +104,8 @@ public class ChaosAddressCache(
         try
         {
             var serialized = JsonSerializer.SerializeToUtf8Bytes(chaosAddress);
-            _redis.StringSet(cacheKey, serialized, _ttl);
-            logger.LogDebug("Cached chaos address: {SubdomainId}:{LocalPart} with TTL {TTL}", subdomainId, localPart, _ttl);
+            this._redis.StringSet(cacheKey, serialized, this._ttl);
+            logger.LogDebug("Cached chaos address: {SubdomainId}:{LocalPart} with TTL {TTL}", subdomainId, localPart, this._ttl);
         }
         catch (Exception ex)
         {
@@ -121,7 +126,7 @@ public class ChaosAddressCache(
 
         try
         {
-            _redis.KeyDelete(cacheKey);
+            this._redis.KeyDelete(cacheKey);
             logger.LogInformation("Invalidated cache for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
         }
         catch (Exception ex)
@@ -147,7 +152,7 @@ public class ChaosAddressCache(
 
             if (keys.Length > 0)
             {
-                _redis.KeyDelete(keys);
+                this._redis.KeyDelete(keys);
                 logger.LogInformation("Invalidated {Count} cache entries for subdomain: {SubdomainId}", keys.Length, subdomainId);
             }
         }

@@ -1,6 +1,5 @@
 ﻿using System.IO.Compression;
 using BluQube.Queries;
-using Spamma.Modules.Common.Application.Contracts;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
