@@ -7,4 +7,5 @@ public record GetEmailByIdQueryResult(
     Guid SubdomainId,
     string Subject,
     DateTime WhenSent,
-    bool IsFavorite) : IQueryResult;
+    bool IsFavorite,
+    Guid? CampaignId) : IQueryResult;

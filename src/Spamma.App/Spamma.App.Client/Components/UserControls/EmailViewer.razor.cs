@@ -247,6 +247,7 @@ public partial class EmailViewer(
 
         if (result.Status == CommandResultStatus.Succeeded)
         {
+            notificationService.ShowSuccess("Email deleted successfully.");
             await this.OnEmailDeleted.InvokeAsync(this.Email);
         }
         else
@@ -274,6 +275,8 @@ public partial class EmailViewer(
         {
             // Update the local Email object to reflect the new favorite status
             this.Email = this.Email with { IsFavorite = !this.Email.IsFavorite };
+            var message = this.Email.IsFavorite ? "Email marked as favorite." : "Email unmarked as favorite.";
+            notificationService.ShowSuccess(message);
             await this.OnEmailUpdated.InvokeAsync(this.Email);
         }
         else

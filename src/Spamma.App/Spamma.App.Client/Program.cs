@@ -79,6 +79,7 @@ builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnySubdomainHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CanModerationChaosAddressesHandler>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
+builder.Services.AddSingleton<IErrorMessageMapperService, ErrorMessageMapperService>();
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

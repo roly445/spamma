@@ -13,5 +13,5 @@ public record SearchEmailsQueryResult(
 
     public bool HasPreviousPage => this.Page > 1;
 
-    public record EmailSummary(Guid EmailId, string Subject, string PrimaryToAddress, DateTime ReceivedAt, bool IsFavorite);
+    public record EmailSummary(Guid EmailId, string Subject, string PrimaryToAddress, DateTime ReceivedAt, bool IsFavorite, Guid? CampaignId);
 }

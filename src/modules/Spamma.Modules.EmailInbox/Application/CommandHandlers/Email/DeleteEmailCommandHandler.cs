@@ -6,6 +6,7 @@ using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 
@@ -23,6 +24,13 @@ public class DeleteEmailCommandHandler(
         }
 
         var email = emailMaybe.Value;
+
+        if (email.CampaignId != null)
+        {
+            logger.LogWarning("Email {EmailId} is part of campaign {CampaignId}, deletion rejected", email.Id, email.CampaignId);
+            return CommandResult.Failed(new BluQubeErrorData(EmailInboxErrorCodes.EmailIsPartOfCampaign, "Email is part of a campaign and cannot be deleted."));
+        }
+
         var result = email.Delete(timeProvider.GetUtcNow().DateTime);
         if (!result.IsSuccess)
         {

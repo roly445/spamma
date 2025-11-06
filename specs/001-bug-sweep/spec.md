@@ -4,6 +4,30 @@
 **Created**: 2025-11-05  
 **Status**: Draft  
 **Input**: User description: "I want to perform a sweep up of some minor bugs ang gniggles that have been introduced"
+ 
+## Clarifications
+
+### Session 2025-11-06
+
+- Q: Campaign-bound email behavior → A: Disallow both deletion and favouriting for campaign-bound emails.
+
+- Q: Error handling style → A: Use BluQube built-in error handling (return failed CommandResult with BluQubeErrorData and error code `EmailIsPartOfCampaign`).
+
+- Q: Admin override policy → A: No override — campaign-bound emails are never deletable or favouritable (no admin/force override).
+
+- Q: Test coverage for campaign protections → A: Unit tests + API contract/integration tests (no browser-level UI test required).
+
+- Q: Campaign protection trigger → A: Protect whenever `CampaignId` is non-null (no campaign lookup).
+
+- Q: Campaign deletion handling → A: Cascade delete: deleting a Campaign also deletes all associated emails.
+
+- Q: Campaign deletion execution → A: Synchronous cascade delete (immediate in same request/transaction).
+
+- Q: HTTP/API mapping for campaign protection errors → A: Use standard BluQube error responses (return failed CommandResult with BluQubeErrorData; do not hard-code HTTP status in tests).
+
+- Q: Campaign email cardinality → A: There is always exactly one email per campaign (1:1). No bulk-delete limits required.
+
+- Q: Client UI behavior for campaign-bound emails → A: Hide Delete/Favorite controls completely (no visible controls).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -55,6 +79,11 @@ Acceptance Scenarios:
 - What happens when a user has intermittent network connectivity? UI should gracefully retry or surface clear guidance.
 - How does system behave when a background projection fails? It should log an actionable error and retry without blocking other features.
 
+- Campaign-bound email operations: Background services (e.g., `EmailCleanupBackgroundService`) and automated processes that issue `DeleteEmailCommand` or `ToggleEmailFavoriteCommand` MUST respect campaign association and either skip such emails or escalate to manual review. All such actions MUST be recorded in an audit log with the initiating actor and timestamp.
+Campaign-bound email operations: Background services (e.g., `EmailCleanupBackgroundService`) and automated processes that issue `DeleteEmailCommand` or `ToggleEmailFavoriteCommand` MUST respect campaign association and either skip such emails or escalate to manual review. All domain-changing actions — including synchronous cascade deletions triggered by deleting a Campaign — MUST be recorded in an auditable event trail (for example, emitted Marten events or a dedicated audit record) that includes the initiating actor and timestamp. This requirement aligns with the project constitution's Observability & Auditability principle.
+
+Clarification: deleting a Campaign WILL cascade-delete the single associated email. Because campaigns are 1:1 with emails, this synchronous cascade is safe and does not require bulk-delete limits. This cascade occurs synchronously in the same HTTP request/transaction (i.e., delete call performs immediate removal). Implementers SHOULD ensure requests are protected from timeouts and that irreversible actions are covered by backups or explicit data-migration procedures. Recording audit logs for cascade deletions IS REQUIRED by this spec; ensure Marten events or equivalent audit records are emitted so the action is auditable.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -64,6 +93,17 @@ Acceptance Scenarios:
 - **FR-003**: Projections and read-models MUST reflect the correct state after domain events; obvious mismatches in counts or status labels MUST be corrected.
 - **FR-004**: JavaScript console MUST not contain unhandled exceptions during normal flows (login, setup, inbox viewing) in manual smoke tests.
 - **FR-005**: Fixes MUST include unit or integration tests where feasible (projection fixes, command handler fixes, critical client-side logic) to prevent regressions.
+
+- **FR-007**: Testing scope for campaign-protection fixes: Implement unit tests for command handlers and validators, and API-level integration/contract tests that verify BluQube error semantics (failed `CommandResult` with `BluQubeErrorData` and `EmailIsPartOfCampaign` code). Browser-level end-to-end UI tests are optional for this change and not required to meet acceptance.
+
+
+Clarification: API tests should assert on the returned `BluQubeErrorData` and error code (`EmailIsPartOfCampaign`) rather than relying on a particular HTTP status code. The BluQube runtime will map the error data to an appropriate HTTP response.
+
+
+- **FR-006**: Campaign-bound emails MUST be protected from client-initiated deletion and favouriting. The server MUST validate and reject Delete or ToggleFavorite operations when an Email has a non-null `CampaignId` by returning a failed `CommandResult` containing `BluQubeErrorData` with the error code `EmailIsPartOfCampaign`. The client UI MUST hide or disable Delete and Favorite controls for campaign-bound emails and surface an explanatory tooltip or message when appropriate. There is NO admin/force override for campaign-bound emails; corrective action requires deleting the campaign (which may cascade) or an explicit data-migration process outside normal runtime commands.
+
+
+Note: There is NO admin/force override for campaign-bound emails. Any corrective action must be performed by deleting the campaign (which may cascade) or via an explicit data-migration process outside normal runtime commands; do not implement `Force` flags or admin bypasses for Delete/ToggleFavorite commands.
 
 ### Code Quality & Project Structure (MANDATORY for PRs)
 
@@ -77,6 +117,11 @@ Acceptance Scenarios:
 
 - **ReadModel / Projection**: Representation of computed state (counts, statuses, timestamps) that must be validated after fixes.
 - **UI Page / Component**: Named interactive pages (Login, Setup, Inbox, Dashboard) where layout and interactivity must be verified.
+
+- **Data Model (Email)**: Email records SHOULD include a nullable `CampaignId` (GUID) field indicating association to a campaign when present. Server logic will treat non-null `CampaignId` as 'campaign-bound'.
+
+
+Clarification: protection trigger — any non-null `CampaignId` MUST be treated as "campaign-bound" and blocked from client-initiated Delete or ToggleFavorite operations. Implementations SHOULD NOT rely on an additional Campaign status lookup; the presence of a CampaignId alone is sufficient to enforce protection.
 
 ## Success Criteria *(mandatory)*
 

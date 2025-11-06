@@ -66,7 +66,8 @@ public partial class CampaignDetail
                             emailResult.Data.Subject,
                             "Email",
                             emailResult.Data.WhenSent,
-                            emailResult.Data.IsFavorite);
+                            emailResult.Data.IsFavorite,
+                            emailResult.Data.CampaignId);
                     }
                 }
             }

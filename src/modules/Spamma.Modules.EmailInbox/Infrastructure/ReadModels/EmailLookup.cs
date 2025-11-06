@@ -17,4 +17,6 @@ public class EmailLookup
     public DateTime? WhenDeleted { get; set; }
 
     public bool IsFavorite { get; set; }
+
+    public Guid? CampaignId { get; set; }
 }

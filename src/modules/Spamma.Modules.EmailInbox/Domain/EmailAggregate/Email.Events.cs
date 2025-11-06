@@ -20,6 +20,9 @@ public partial class Email
             case EmailUnmarkedAsFavorite emailUnmarkedAsFavorite:
                 this.Apply(emailUnmarkedAsFavorite);
                 break;
+            case CampaignCaptured campaignCaptured:
+                this.Apply(campaignCaptured);
+                break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
@@ -50,5 +53,10 @@ public partial class Email
     {
         _ = unused;
         this.IsFavorite = false;
+    }
+
+    private void Apply(CampaignCaptured @event)
+    {
+        this.CampaignId = @event.CampaignId;
     }
 }

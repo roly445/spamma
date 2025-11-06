@@ -1,0 +1,34 @@
+openapi: 3.0.0
+info:
+  title: Spamma Email Inbox API (partial)
+  version: 0.1.0
+paths:
+  /api/email/{id}/delete:
+    post:
+      summary: Delete an email
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: BluQube error response with BluQubeErrorData
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BluQubeError'
+components:
+  schemas:
+    BluQubeError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object

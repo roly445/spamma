@@ -28,6 +28,8 @@ public partial class Email : AggregateRoot
 
     internal bool IsFavorite { get; private set; }
 
+    internal Guid? CampaignId { get; set; }
+
     internal IReadOnlyList<EmailAddress> EmailAddresses => this._emailAddresses;
 
     internal static Result<Email, BluQubeErrorData> Create(
@@ -87,5 +89,11 @@ public partial class Email : AggregateRoot
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();
+    }
+
+    internal void CaptureCampaign(Guid campaignId, DateTime capturedAt)
+    {
+        var @event = new CampaignCaptured(campaignId, this.SubdomainId, this.Id, string.Empty, capturedAt);
+        this.RaiseEvent(@event);
     }
 }
