@@ -12,20 +12,21 @@ public class PostgreSqlFixture : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
     private IDocumentStore? _store;
+
     public IDocumentSession? Session { get; private set; }
 
     public async Task InitializeAsync()
     {
-        _container = new PostgreSqlBuilder()
+        this._container = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
             .WithDatabase("spamma_test")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .Build();
 
-        await _container.StartAsync();
+        await this._container.StartAsync();
 
-        var connectionString = _container.GetConnectionString();
+        var connectionString = this._container.GetConnectionString();
 
         // Configure Marten with the test database
         var services = new ServiceCollection();
@@ -39,30 +40,30 @@ public class PostgreSqlFixture : IAsyncLifetime
         });
 
         var provider = services.BuildServiceProvider();
-        _store = provider.GetRequiredService<IDocumentStore>();
+        this._store = provider.GetRequiredService<IDocumentStore>();
 
         // Create schema and apply all migrations
-        await _store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
+        await this._store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
 
-        Session = _store.LightweightSession();
+        this.Session = this._store.LightweightSession();
     }
 
     public async Task DisposeAsync()
     {
-        if (Session != null)
+        if (this.Session != null)
         {
-            await Session.DisposeAsync();
+            await this.Session.DisposeAsync();
         }
 
-        if (_store != null)
+        if (this._store != null)
         {
-            _store.Dispose();
+            this._store.Dispose();
         }
 
-        if (_container != null)
+        if (this._container != null)
         {
-            await _container.StopAsync();
-            await _container.DisposeAsync();
+            await this._container.StopAsync();
+            await this._container.DisposeAsync();
         }
     }
 }
