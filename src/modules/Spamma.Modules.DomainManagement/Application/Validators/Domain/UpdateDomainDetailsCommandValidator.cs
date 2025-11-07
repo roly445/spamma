@@ -1,9 +1,8 @@
 ﻿using FluentValidation;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
-namespace Spamma.Modules.DomainManagement.Application.Validators;
+namespace Spamma.Modules.DomainManagement.Application.Validators.Domain;
 
 public class UpdateDomainDetailsCommandValidator : AbstractValidator<UpdateDomainDetailsCommand>
 {

@@ -4,6 +4,7 @@ using JasperFx.Events;
 using Marten;
 using Marten.Patching;
 using Moq;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
@@ -20,7 +21,7 @@ public class ChaosAddressLookupProjectionTests
         var subdomain = Guid.NewGuid();
         var when = DateTime.UtcNow;
 
-        var evt = new ChaosAddressCreated(id, domain, subdomain, "local", Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable, when);
+        var evt = new ChaosAddressCreated(id, domain, subdomain, "local", SmtpResponseCode.MailboxUnavailable, when);
 
         var projection = new ChaosAddressLookupProjection();
         var readModel = projection.Create(evt);
@@ -29,7 +30,7 @@ public class ChaosAddressLookupProjectionTests
         readModel.DomainId.Should().Be(domain);
         readModel.SubdomainId.Should().Be(subdomain);
         readModel.LocalPart.Should().Be("local");
-        readModel.ConfiguredSmtpCode.Should().Be(Spamma.Modules.Common.SmtpResponseCode.MailboxUnavailable);
+        readModel.ConfiguredSmtpCode.Should().Be(SmtpResponseCode.MailboxUnavailable);
         readModel.CreatedAt.Should().Be(when);
     }
 

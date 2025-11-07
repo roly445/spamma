@@ -15,7 +15,7 @@ public record SearchSubdomainsQueryResult(
     public bool HasPreviousPage => this.Page > 1;
 
     public record SubdomainSummary(
-        Guid Id,
+        Guid SubdomainId,
         Guid ParentDomainId,
         string SubdomainName,
         string ParentDomainName,

@@ -17,7 +17,7 @@ public partial class Subdomains
             return;
         }
 
-        this._suspendSubdomain.Open(new SuspendSubdomain.DataModel(subdomain.Id, subdomain.FullDomainName));
+        this._suspendSubdomain.Open(new SuspendSubdomain.DataModel(subdomain.SubdomainId, subdomain.FullDomainName));
     }
 
     private Task HandleSubdomainSuspended()

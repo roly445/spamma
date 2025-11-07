@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
-namespace Spamma.App.Client.Infrastructure.Auth;
+namespace Spamma.Modules.Common.Client;
 
 public class UserAuthInfo
 {
@@ -15,7 +14,7 @@ public class UserAuthInfo
         this.ModeratedDomains = moderatedDomains;
         this.ModeratedSubdomains = moderatedSubdomains;
         this.ViewableSubdomains = viewableSubdomains;
-        this.IsAuthenticated = isAuthenticated;
+        this.IsAuthenticated = !string.IsNullOrEmpty(userId);
     }
 
     public string? UserId { get; private set; }

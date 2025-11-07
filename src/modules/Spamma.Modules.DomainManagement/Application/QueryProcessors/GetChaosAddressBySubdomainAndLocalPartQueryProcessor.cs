@@ -10,7 +10,7 @@ public class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSessi
     public Task<QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>> Handle(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
     {
         var match = session.Query<ChaosAddressLookup>()
-            .FirstOrDefault(x => x.SubdomainId == request.SubdomainId && x.LocalPart.Equals(request.LocalPart, System.StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(x => x.SubdomainId == request.SubdomainId && x.LocalPart.Equals(request.LocalPart, StringComparison.OrdinalIgnoreCase));
 
         if (match == null)
         {

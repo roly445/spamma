@@ -1,16 +1,11 @@
 using DotNetCore.CAP;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
 using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 
-/// <summary>
-/// Invalidates caches when domain management events occur.
-/// Subscribes to subdomain status changes and chaos address updates to ensure cache freshness.
-/// </summary>
 public class CacheInvalidationEventHandler(
     ISubdomainCache subdomainCache,
     IChaosAddressCache chaosAddressCache,

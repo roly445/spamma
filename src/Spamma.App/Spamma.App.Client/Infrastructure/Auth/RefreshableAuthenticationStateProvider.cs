@@ -15,23 +15,32 @@ public class RefreshableAuthenticationStateProvider(
     ILogger<RefreshableAuthenticationStateProvider> logger)
     : AuthenticationStateProvider, IRefreshableAuthenticationStateProvider
 {
+    private ClaimsPrincipal? _currentUser;
+
     /// <summary>
     /// Gets the current authentication state asynchronously.
     /// </summary>
     /// <returns>The current authentication state.</returns>
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+        if (this._currentUser != null)
+        {
+            return new AuthenticationState(this._currentUser);
+        }
+
         var maybe = await this.FetchUserAuthInfoAsync();
         AuthenticationState currentAuthenticationState;
         if (maybe.HasNoValue || !maybe.Value.IsAuthenticated)
         {
-            currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            this._currentUser = new ClaimsPrincipal(new ClaimsIdentity());
         }
         else
         {
             var identity = CreateClaimsIdentity(maybe.Value);
-            currentAuthenticationState = new AuthenticationState(new ClaimsPrincipal(identity));
+            this._currentUser = new ClaimsPrincipal(identity);
         }
+
+        currentAuthenticationState = new AuthenticationState(this._currentUser);
 
         return currentAuthenticationState;
     }
@@ -42,20 +51,18 @@ public class RefreshableAuthenticationStateProvider(
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task RefreshAuthenticationStateAsync()
     {
-        ClaimsPrincipal user;
-
         var maybe = await this.FetchUserAuthInfoAsync();
         if (maybe.HasNoValue || !maybe.Value.IsAuthenticated)
         {
-            user = new ClaimsPrincipal(new ClaimsIdentity());
+            this._currentUser = new ClaimsPrincipal(new ClaimsIdentity());
         }
         else
         {
             var identity = CreateClaimsIdentity(maybe.Value);
-            user = new ClaimsPrincipal(identity);
+            this._currentUser = new ClaimsPrincipal(identity);
         }
 
-        var currentAuthenticationState = new AuthenticationState(user);
+        var currentAuthenticationState = new AuthenticationState(this._currentUser);
         this.NotifyAuthenticationStateChanged(Task.FromResult(currentAuthenticationState));
     }
 

@@ -1,8 +1,8 @@
-﻿using System.Security.Claims;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
-using Spamma.Modules.UserManagement.Client.Contracts;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
 
@@ -14,17 +14,15 @@ public class MustBeDomainAdministratorRequirement : IAuthorizationRequirement
     {
         public Task<AuthorizationResult> Handle(MustBeDomainAdministratorRequirement request, CancellationToken cancellationToken = default)
         {
-            var context = httpContextAccessor.HttpContext;
-
-            var claim = context?.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (claim != null && Enum.TryParse<SystemRole>(claim, out var userRoles))
+            var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+            if (!user.IsAuthenticated)
             {
-                return userRoles.HasFlag(SystemRole.DomainManagement)
-                    ? Task.FromResult(AuthorizationResult.Succeed())
-                    : Task.FromResult(AuthorizationResult.Fail());
+                return Task.FromResult(AuthorizationResult.Fail());
             }
 
-            return Task.FromResult(AuthorizationResult.Fail());
+            return user.SystemRole.HasFlag(SystemRole.DomainManagement)
+                ? Task.FromResult(AuthorizationResult.Succeed())
+                : Task.FromResult(AuthorizationResult.Fail());
         }
     }
 }

@@ -4,7 +4,7 @@ namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
 public class ChaosAddressSuspensionAudit
 {
-    public ChaosAddressSuspensionAudit(
+    private ChaosAddressSuspensionAudit(
         DateTime whenHappened, ChaosAddressSuspensionAuditType type)
     {
         this.WhenHappened = whenHappened;

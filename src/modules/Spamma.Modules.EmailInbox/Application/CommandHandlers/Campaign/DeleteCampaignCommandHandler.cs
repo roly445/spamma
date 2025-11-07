@@ -16,16 +16,15 @@ public class DeleteCampaignCommandHandler(
 {
     protected override async Task<CommandResult> HandleInternal(DeleteCampaignCommand request, CancellationToken cancellationToken)
     {
-        var campaignId = GuidFromCampaignValue(request.SubdomainId, request.CampaignValue);
-        var campaignMaybe = await campaignRepository.GetByIdAsync(campaignId, cancellationToken);
+        var campaignMaybe = await campaignRepository.GetByIdAsync(request.CampaignId, cancellationToken);
 
         if (campaignMaybe.HasNoValue)
         {
-            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Campaign '{campaignId}' not found"));
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Campaign '{request.CampaignId}' not found"));
         }
 
         var campaign = campaignMaybe.Value;
-        var deleteResult = campaign.Delete(timeProvider.GetUtcNow(), request.Force);
+        var deleteResult = campaign.Delete(timeProvider.GetUtcNow());
 
         if (deleteResult.IsFailure)
         {
@@ -39,13 +38,5 @@ public class DeleteCampaignCommandHandler(
         }
 
         return CommandResult.Succeeded();
-    }
-
-    private static Guid GuidFromCampaignValue(Guid subdomainId, string campaignValue)
-    {
-        // Create deterministic GUID from subdomain ID + campaign value
-        var combined = subdomainId.ToString() + ":" + campaignValue;
-        var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(combined));
-        return new Guid(hash.Take(16).ToArray());
     }
 }

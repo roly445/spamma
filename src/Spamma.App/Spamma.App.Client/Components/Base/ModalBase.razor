@@ -1,0 +1,75 @@
+@namespace Spamma.App.Client.Components.Base
+
+@* Shared modal overlay component with consistent styling and optional background-click-to-close *@
+
+@if (IsVisible)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="@AriaLabelledBy" role="dialog" aria-modal="true">
+        <!-- Background overlay -->
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Backdrop (with optional click-to-close) -->
+            <div class="fixed inset-0 bg-black/30 transition-opacity backdrop-blur-sm"
+                 @onclick="HandleBackdropClick"
+                 aria-hidden="true"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal content -->
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle @WidthClass">
+                @ChildContent
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Controls modal visibility.
+    /// </summary>
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    /// <summary>
+    /// Callback when IsVisible should be set to false (user clicks close button, outside click, or ESC).
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    /// <summary>
+    /// If true, clicking the backdrop (background) will close the modal.
+    /// Default is false to prevent accidental dismissals in confirmation flows.
+    /// </summary>
+    [Parameter]
+    public bool AllowBackdropClose { get; set; } = false;
+
+    /// <summary>
+    /// Tailwind width class for the modal. Default is sm (w-full sm:max-w-sm).
+    /// Options: sm (max-w-sm), md (max-w-md), lg (max-w-lg), xl (max-w-xl), 2xl (max-w-2xl), 3xl (max-w-3xl), 4xl (max-w-4xl).
+    /// </summary>
+    [Parameter]
+    public string WidthClass { get; set; } = "sm:max-w-sm w-full";
+
+    /// <summary>
+    /// ARIA label ID for accessibility. Should reference the modal header or title element.
+    /// </summary>
+    [Parameter]
+    public string? AriaLabelledBy { get; set; }
+
+    /// <summary>
+    /// The modal content (header, body, footer).
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Handles backdrop click event. Only closes if AllowBackdropClose is true.
+    /// </summary>
+    private async Task HandleBackdropClick()
+    {
+        if (AllowBackdropClose)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+}

@@ -1,152 +1,151 @@
-﻿@if (isVisible && _dataModel != null)
-{
-    <div class="fixed inset-0 overflow-hidden z-50" @onclick="Close">
-        <div class="absolute inset-0 overflow-hidden">
-            <!-- Background overlay -->
-            <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-            
-            <!-- Panel -->
-            <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex" @onclick:stopPropagation="true">
-                <div class="w-screen max-w-md">
-                    <div class="h-full flex flex-col py-6 bg-white shadow-xl overflow-y-scroll">
-                        <!-- Header -->
-                        <div class="px-4 sm:px-6">
-                            <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-medium text-gray-900">Edit Domain</h2>
-                                <button @onclick="Close" class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <svg class="h-6 w-6" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
+<!-- Edit Domain Slideout -->
+<SlideoutBase IsVisible="isVisible && _dataModel != null"
+              OnClose="@Close"
+              Direction="right"
+              AllowBackdropClose="true"
+              WidthClass="max-w-md"
+              AriaLabelledBy="edit-domain-title">
+    <!-- Header -->
+    <div class="bg-blue-600 px-4 py-6 sm:px-6">
+        <div class="flex items-center justify-between">
+            <h2 id="edit-domain-title" class="text-lg font-medium text-white">Edit Domain</h2>
+            <button type="button" @onclick="Close" class="text-blue-100 hover:text-white">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-6 bg-white">
+        <div class="space-y-6">
+            @if (_dataModel != null)
+            {
+                <!-- Domain Header -->
+                <div class="text-center">
+                    <div class="mx-auto h-16 w-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mb-3">
+                        <svg class="h-8 w-8 text-white" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9 3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">@_dataModel.DomainName</h3>
+                    <div class="mt-1 flex items-center justify-center">
+                        @if (_dataModel.IsVerified)
+                        {
+                            <svg class="h-4 w-4 text-green-500 mr-1" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            <span class="text-sm text-green-600 font-medium">Verified</span>
+                        }
+                        else
+                        {
+                            <svg class="h-4 w-4 text-amber-500 mr-1" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.966-.833-2.736 0L3.077 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <span class="text-sm text-amber-600 font-medium">Pending Verification</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Edit Form -->
+                <EditForm Model="@model" OnValidSubmit="@HandleSaveDomain" FormName="EditDomainForm">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="space-y-6">
+                        <!-- Basic Information -->
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-900 mb-3">Basic Information</h4>
+                            
+                            <div class="space-y-4">
+                                <!-- Domain Name (Read-only) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Domain Name</label>
+                                    <div class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-500 sm:text-sm">
+                                        @_dataModel.DomainName
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">Domain name cannot be changed after creation</p>
+                                </div>
+
+                                <!-- Primary Contact -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Primary Contact Email</label>
+                                    <InputText @bind-Value="model.PrimaryContact" 
+                                              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                                    <ValidationMessage For="@(() => model.PrimaryContact)" class="mt-1 text-sm text-red-600" />
+                                </div>
+
+                                <!-- Description -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                                    <InputTextArea @bind-Value="model.Description" 
+                                                  rows="3"
+                                                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                                    <ValidationMessage For="@(() => model.Description)" class="mt-1 text-sm text-red-600" />
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Content -->
-                        <div class="mt-6 relative flex-1 px-4 sm:px-6">
-                            <!-- Domain Header -->
-                            <div class="text-center mb-6">
-                                <div class="mx-auto h-16 w-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg flex items-center justify-center mb-3">
-                                    <svg class="h-8 w-8 text-white" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9 3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-                                    </svg>
+
+                        <!-- Domain Statistics -->
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-900 mb-3">Domain Statistics</h4>
+                            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-500">Created</span>
+                                    <span class="text-sm text-gray-900">@_dataModel.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
                                 </div>
-                                <h3 class="text-lg font-medium text-gray-900">@_dataModel.DomainName</h3>
-                                <div class="mt-1 flex items-center justify-center">
-                                    @if (_dataModel.IsVerified)
-                                    {
-                                        <svg class="h-4 w-4 text-green-500 mr-1" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                                        </svg>
-                                        <span class="text-sm text-green-600 font-medium">Verified</span>
-                                    }
-                                    else
-                                    {
-                                        <svg class="h-4 w-4 text-amber-500 mr-1" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.966-.833-2.736 0L3.077 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                        </svg>
-                                        <span class="text-sm text-amber-600 font-medium">Pending Verification</span>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- Edit Form -->
-                            <EditForm Model="@model" OnValidSubmit="@HandleSaveDomain" FormName="EditDomainForm">
-                                <DataAnnotationsValidator />
-                                
-                                <div class="space-y-6">
-                                    <!-- Basic Information -->
-                                    <div>
-                                        <h4 class="text-sm font-medium text-gray-900 mb-3">Basic Information</h4>
-                                        
-                                        <div class="space-y-4">
-                                            <!-- Domain Name (Read-only) -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700">Domain Name</label>
-                                                <div class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-500 sm:text-sm">
-                                                    @_dataModel.DomainName
-                                                </div>
-                                                <p class="mt-1 text-xs text-gray-500">Domain name cannot be changed after creation</p>
-                                            </div>
-
-                                            <!-- Primary Contact -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700">Primary Contact Email</label>
-                                                <InputText @bind-Value="model.PrimaryContact" 
-                                                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                                                <ValidationMessage For="@(() => model.PrimaryContact)" class="mt-1 text-sm text-red-600" />
-                                            </div>
-
-                                            <!-- Description -->
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700">Description</label>
-                                                <InputTextArea @bind-Value="model.Description" 
-                                                              rows="3"
-                                                              class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                                                <ValidationMessage For="@(() => model.Description)" class="mt-1 text-sm text-red-600" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Domain Statistics -->
-                                    <div>
-                                        <h4 class="text-sm font-medium text-gray-900 mb-3">Domain Statistics</h4>
-                                        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-                                            <div class="flex justify-between">
-                                                <span class="text-sm text-gray-500">Created</span>
-                                                <span class="text-sm text-gray-900">@_dataModel.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-sm text-gray-500">Verification Status</span>
-                                                <span class="text-sm text-gray-900">
-                                                    @if (_dataModel.IsVerified)
-                                                    {
-                                                        <span>Verified on @(_dataModel.VerifiedAt?.ToString("MMM dd, yyyy") ?? "Unknown")</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span>Not verified</span>
-                                                    }
-                                                </span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-sm text-gray-500">Subdomains</span>
-                                                <span class="text-sm text-gray-900">@_dataModel.SubdomainCount</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-sm text-gray-500">Assigned Users</span>
-                                                <span class="text-sm text-gray-900">@_dataModel.AssignedUserCount</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Form Actions -->
-                                <div class="mt-6 flex justify-end space-x-3">
-                                    <button type="button" @onclick="Close" 
-                                           class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" 
-                                           class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        @if (isProcessing)
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-500">Verification Status</span>
+                                    <span class="text-sm text-gray-900">
+                                        @if (_dataModel.IsVerified)
                                         {
-                                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            <span>Saving...</span>
+                                            <span>Verified on @(_dataModel.VerifiedAt?.ToString("MMM dd, yyyy") ?? "Unknown")</span>
                                         }
                                         else
                                         {
-                                            <span>Save Changes</span>
+                                            <span>Not verified</span>
                                         }
-                                    </button>
+                                    </span>
                                 </div>
-                            </EditForm>
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-500">Subdomains</span>
+                                    <span class="text-sm text-gray-900">@_dataModel.SubdomainCount</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-500">Assigned Users</span>
+                                    <span class="text-sm text-gray-900">@_dataModel.AssignedUserCount</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </EditForm>
+            }
         </div>
     </div>
-}
+
+    <!-- Footer Actions -->
+    <div class="flex space-x-3 border-t border-gray-200 px-4 py-4 sm:px-6">
+        <button type="button"
+                @onclick="Close"
+                class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Cancel
+        </button>
+        <button type="button"
+                @onclick="HandleSaveDomain"
+                disabled="@isProcessing"
+                class="flex-1 inline-flex justify-center items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (isProcessing)
+            {
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Saving...</span>
+            }
+            else
+            {
+                <span>Save Changes</span>
+            }
+        </button>
+    </div>
+</SlideoutBase>

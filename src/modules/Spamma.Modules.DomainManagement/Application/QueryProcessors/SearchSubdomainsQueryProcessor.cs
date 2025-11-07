@@ -3,12 +3,12 @@ using System.Security.Claims;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
@@ -41,42 +41,20 @@ public class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpConte
         }
 
         var skipDomains = false;
-        var claim = accessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-        if (claim == null || (Enum.TryParse<SystemRole>(claim, out var userRoles) && userRoles.HasFlag(SystemRole.DomainManagement)))
+        var user = accessor.HttpContext.ToUserAuthInfo();
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement))
         {
             skipDomains = true;
         }
 
         if (!skipDomains)
         {
-            var domainClaims = accessor.HttpContext?.User?.FindAll(Lookups.ModeratedDomainClaim).Select(x =>
-            {
-                if (Guid.TryParse(x.Value, out var d))
-                {
-                    return d;
-                }
-
-                return (Guid?)null;
-            }).Where(x => x.HasValue).Select(x => x!.Value).ToList();
-            var subdomainClaims = accessor.HttpContext?.User?.FindAll(Lookups.ModeratedSubdomainClaim).Select(x =>
-            {
-                if (Guid.TryParse(x.Value, out var d))
-                {
-                    return d;
-                }
-
-                return (Guid?)null;
-            }).Where(x => x.HasValue).Select(x => x!.Value).ToList();
             whereConditions.Add(u =>
-                (domainClaims != null && domainClaims.Contains(u.DomainId)) ||
-                (subdomainClaims != null && subdomainClaims.Contains(u.Id)));
+                user.ModeratedDomains.Contains(u.DomainId) ||
+                user.ModeratedSubdomains.Contains(u.Id));
         }
 
-        IQueryable<SubdomainLookup> filteredQuery = baseQuery;
-        foreach (var condition in whereConditions)
-        {
-            filteredQuery = filteredQuery.Where(condition);
-        }
+        var filteredQuery = whereConditions.Aggregate<Expression<Func<SubdomainLookup, bool>>, IQueryable<SubdomainLookup>>(baseQuery, (current, condition) => current.Where(condition ?? (x => true)));
 
         var orderedQuery = request.SortBy.ToLowerInvariant() switch
          {
@@ -121,11 +99,6 @@ public class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpConte
 
     private static SubdomainStatus GetSubdomainStatus(SubdomainLookup domain)
     {
-        if (domain.IsSuspended)
-        {
-            return SubdomainStatus.Suspended;
-        }
-
-        return SubdomainStatus.Active;
+        return domain.IsSuspended ? SubdomainStatus.Suspended : SubdomainStatus.Active;
     }
 }

@@ -75,7 +75,7 @@ public class SpammaMessageStore : MessageStore
 
             // Check ChaosAddress by calling cache for this subdomain and local-part
             var localPart = recipient.Address.Split('@')[0];
-            var chaosAddressMaybe = await chaosAddressCache.GetChaosAddressAsync(subdomain.Id, localPart, cancellationToken: cancellationToken);
+            var chaosAddressMaybe = await chaosAddressCache.GetChaosAddressAsync(subdomain.SubdomainId, localPart, cancellationToken: cancellationToken);
             if (chaosAddressMaybe.HasValue)
             {
                 var chaos = chaosAddressMaybe.Value;
@@ -85,7 +85,7 @@ public class SpammaMessageStore : MessageStore
                     continue;
                 }
 
-                chaosAddressId = chaos.Id;
+                chaosAddressId = chaos.ChaosAddressId;
 
                 // Map configured SmtpResponseCode -> numeric reply code and return
                 var code = (int)chaos.ConfiguredSmtpCode;
@@ -115,7 +115,7 @@ public class SpammaMessageStore : MessageStore
             new ReceivedEmailCommand(
                 messageId,
                 foundSubdomain.ParentDomainId,
-                foundSubdomain.Id,
+                foundSubdomain.SubdomainId,
                 message.Subject,
                 message.Date.DateTime,
                 addresses), cancellationToken);
@@ -135,7 +135,7 @@ public class SpammaMessageStore : MessageStore
                 var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
 
                 var job = new Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob(
-                    foundSubdomain.Id,
+                    foundSubdomain.SubdomainId,
                     messageId,
                     campaignValue,
                     message.Subject ?? string.Empty,

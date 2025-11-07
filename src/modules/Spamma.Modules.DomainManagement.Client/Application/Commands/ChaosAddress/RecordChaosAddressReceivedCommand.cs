@@ -1,7 +1,5 @@
-using BluQube.Attributes;
 using BluQube.Commands;
 
-namespace Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
+namespace Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
-[BluQubeCommand(Path = "api/domain-management/record-chaos-address-received")]
 public record RecordChaosAddressReceivedCommand(Guid ChaosAddressId, DateTime ReceivedAt) : ICommand;

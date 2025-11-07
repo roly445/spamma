@@ -24,9 +24,9 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.Contract;
 /// <summary>
 /// Contract tests verifying API behavior for campaign protection rules.
 /// These tests verify the contract between the client (API endpoint) and the handlers:
-/// - DeleteEmail and ToggleEmailFavorite commands must reject campaign-bound emails
-/// - Error responses must use the EmailIsPartOfCampaign error code
-/// - Status must indicate failure (CommandResultStatus.Failed)
+/// - DeleteEmail and ToggleEmailFavorite commands must reject campaign-bound emails.
+/// - Error responses must use the EmailIsPartOfCampaign error code.
+/// - Status must indicate failure (CommandResultStatus.Failed).
 /// </summary>
 public class EmailCampaignProtectionTests
 {
@@ -67,8 +67,9 @@ public class EmailCampaignProtectionTests
     /// Contract: DeleteEmail API must reject campaign-bound emails with EmailIsPartOfCampaign error code.
     /// Endpoint: email-inbox/delete-email
     /// Request: DeleteEmailCommand(EmailId)
-    /// Response: CommandResult with Status=Failed, ErrorData.Code=EmailIsPartOfCampaign
+    /// Response: CommandResult with Status=Failed, ErrorData.Code=EmailIsPartOfCampaign.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task DeleteEmailContract_CampaignBoundEmail_RejectsWithEmailIsPartOfCampaignError()
     {
@@ -120,8 +121,9 @@ public class EmailCampaignProtectionTests
     /// Contract: ToggleEmailFavorite API must reject campaign-bound emails with EmailIsPartOfCampaign error code.
     /// Endpoint: email-inbox/toggle-favorite
     /// Request: ToggleEmailFavoriteCommand(EmailId)
-    /// Response: CommandResult with Status=Failed, ErrorData.Code=EmailIsPartOfCampaign
+    /// Response: CommandResult with Status=Failed, ErrorData.Code=EmailIsPartOfCampaign.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ToggleEmailFavoriteContract_CampaignBoundEmail_RejectsWithEmailIsPartOfCampaignError()
     {
@@ -173,6 +175,7 @@ public class EmailCampaignProtectionTests
     /// Contract: DeleteEmail API must successfully delete non-campaign emails.
     /// This verifies the positive path to ensure campaign checks don't break normal operations.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task DeleteEmailContract_NonCampaignEmail_SucceedsNormally()
     {
@@ -232,6 +235,7 @@ public class EmailCampaignProtectionTests
     /// Contract: ToggleEmailFavorite API must successfully toggle non-campaign emails.
     /// This verifies the positive path to ensure campaign checks don't break normal operations.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ToggleEmailFavoriteContract_NonCampaignEmail_SucceedsNormally()
     {
@@ -277,6 +281,7 @@ public class EmailCampaignProtectionTests
     /// Contract: Campaign protection must not affect other error cases.
     /// NotFound errors should still be returned normally.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task DeleteEmailContract_NonExistentEmail_ReturnsNotFoundError()
     {
@@ -302,6 +307,7 @@ public class EmailCampaignProtectionTests
     /// Contract: Campaign protection is fail-fast - it executes before any domain state changes.
     /// Multiple campaign checks should all fail immediately.
     /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task CampaignProtection_FailsFastBeforeStateChanges()
     {

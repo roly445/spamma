@@ -11,12 +11,6 @@ using StackExchange.Redis;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
-/// <summary>
-/// Redis-backed cache for subdomain lookups by domain name.
-/// Uses direct IConnectionMultiplexer for full Redis capabilities including pattern-based invalidation.
-/// Cache keys: subdomain:{domain.ToLower()}
-/// TTL: 1 hour (or until invalidated by CAP event)
-/// </summary>
 public class SubdomainCache(
     IConnectionMultiplexer redisMultiplexer,
     IQuerier querier,
@@ -60,7 +54,6 @@ public class SubdomainCache(
             }
         }
 
-        // Cache miss or forceRefresh: query database
         logger.LogDebug("Cache MISS for subdomain: {Domain}", domain);
         var query = new SearchSubdomainsQuery(
             SearchTerm: domain.ToLowerInvariant(),
@@ -70,7 +63,7 @@ public class SubdomainCache(
             PageSize: 1,
             SortBy: "domainname",
             SortDescending: false);
-        internalQueryStore.AddReferenceForObject(query);
+        internalQueryStore.StoreQueryRef(query);
         var result = await querier.Send(query, cancellationToken);
 
         if (result.Status != QueryResultStatus.Succeeded || result.Data.TotalCount == 0)
@@ -80,7 +73,6 @@ public class SubdomainCache(
 
         var subdomain = result.Data.Items[0];
 
-        // Cache the result
         try
         {
             await this.SetSubdomainAsync(domain, subdomain, cancellationToken);
@@ -88,8 +80,6 @@ public class SubdomainCache(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to cache subdomain for {Domain}", domain);
-
-            // Continue despite cache failure - fallback to uncached operation
         }
 
         return Maybe.From(subdomain);

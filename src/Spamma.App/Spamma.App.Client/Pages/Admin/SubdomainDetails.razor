@@ -1,4 +1,4 @@
-﻿@page "/admin/subdomains/{id:guid}"
+@page "/admin/subdomains/{id:guid}"
 @page "/admin/domains/{domainId:guid}/subdomains/{id:guid}"
 @using System.ComponentModel.DataAnnotations
 @using BluQube.Constants
@@ -63,7 +63,7 @@
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-red-800">This subdomain is suspended</h3>
                             <p class="mt-1 text-sm text-red-700">
-                                Email processing, chaos monkey rules, and campaigns are disabled until the subdomain is unsuspended.
+                                Email processing is disabled until the subdomain is unsuspended.
                             </p>
                         </div>
                     </div>
@@ -164,14 +164,6 @@
                                             class="@(_activeTab == 1 ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300") whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                                         Viewers
                                     </button>
-                                    <button @onclick="() => SetActiveTab(2)"
-                                            class="@(_activeTab == 2 ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300") whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                        Chaos Addresses
-                                    </button>
-                                    <button @onclick="() => SetActiveTab(3)"
-                                            class="@(_activeTab == 3 ? "border-blue-500 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300") whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                                        Campaigns
-                                    </button>
                                 </nav>
                             </div>
                             
@@ -183,17 +175,6 @@
                                 else if (_activeTab == 1)
                                 {
                                     <UserAssignment @ref="_viewerAssignments" EntityId="Id" EntityUsage="UserAssignment.Usage.SubdomainViewing" Name="@subdomain.FullName"/>
-                                }
-                                else if (_activeTab == 2)
-                                {
-                                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                        <div class="flex items-center justify-between">
-                                            <h3 class="text-sm font-medium text-gray-900">Chaos Addresses</h3>
-                                            <a class="text-sm text-blue-600 hover:underline" href="@($"/chaos-addresses/{Id}")">Manage Chaos Addresses</a>
-                                        </div>
-                                        <div class="mt-3 text-sm text-gray-500">Manage chaos addresses for this subdomain. Click "Manage Chaos Addresses" to open the full management page.</div>
-                                        <!-- Optional compact preview of top entries could be added here -->
-                                    </div>
                                 }
                             </div>
                         </div>
@@ -219,12 +200,6 @@
                             
                             <button @onclick="OpenAddViewer" class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
                                 Add Viewer
-                            </button>
-                            <button class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
-                                Add Chaos Rule
-                            </button>
-                            <button class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
-                                Add Campaign
                             </button>
                             @if (subdomain.Status != SubdomainStatus.Suspended)
                             {

@@ -3,7 +3,7 @@ using BluQube.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
@@ -43,9 +43,6 @@ public sealed class BackgroundJobProcessor(
                             job.SubdomainId,
                             job.EmailId,
                             job.CampaignValue,
-                            job.Subject,
-                            job.FromAddress,
-                            job.ToAddress,
                             job.CapturedAt),
                         stoppingToken);
                 }

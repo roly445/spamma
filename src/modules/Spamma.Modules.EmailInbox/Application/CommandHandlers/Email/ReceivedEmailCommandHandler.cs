@@ -29,8 +29,6 @@ public class ReceivedEmailCommandHandler(
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
         }
 
-        // Note: EmailReceivedIntegrationEvent is now published by CAP handler (PersistReceivedEmailHandler)
-        // SMTP handler publishes with metadata, CAP subscriber handles persisting to database
         return CommandResult.Succeeded();
     }
 }

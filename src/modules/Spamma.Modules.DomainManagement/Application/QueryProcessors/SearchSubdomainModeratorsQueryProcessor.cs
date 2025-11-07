@@ -24,13 +24,9 @@ public class SearchSubdomainModeratorsQueryProcessor(IDocumentSession session) :
                 m.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
-        IQueryable<SubdomainModerator> filteredQuery = baseQuery;
-        foreach (var condition in whereConditions)
-        {
-            filteredQuery = filteredQuery.Where(condition);
-        }
+        var filteredQuery = whereConditions.Aggregate(baseQuery, (current, condition) => current.Where(condition));
 
-        IOrderedQueryable<SubdomainModerator> orderedQuery = request.SortBy.ToLowerInvariant() switch
+        var orderedQuery = request.SortBy.ToLowerInvariant() switch
         {
             "name" => request.SortDescending
                 ? filteredQuery.OrderByDescending(d => d.Name)

@@ -10,7 +10,7 @@ public class GetUserByIdQueryAuthorizer(IInternalQueryStore internalQueryStore) 
 {
     public override void BuildPolicy(GetUserByIdQuery request)
     {
-        if (internalQueryStore.IsStoringReferenceForObject(request))
+        if (internalQueryStore.IsQueryStored(request))
         {
             return;
         }

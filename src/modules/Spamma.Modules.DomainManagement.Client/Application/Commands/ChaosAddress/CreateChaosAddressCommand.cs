@@ -1,13 +1,13 @@
 using BluQube.Attributes;
 using BluQube.Commands;
+using Spamma.Modules.Common.Client;
 
-namespace Spamma.Modules.DomainManagement.Client.Application.Commands.CreateChaosAddress;
+namespace Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
 [BluQubeCommand(Path = "api/domain-management/create-chaos-address")]
 public record CreateChaosAddressCommand(
-    Guid Id,
+    Guid ChaosAddressId,
     Guid DomainId,
     Guid SubdomainId,
     string LocalPart,
-    Spamma.Modules.Common.SmtpResponseCode ConfiguredSmtpCode,
-    Guid CreatedBy) : ICommand;
+    SmtpResponseCode ConfiguredSmtpCode) : ICommand;

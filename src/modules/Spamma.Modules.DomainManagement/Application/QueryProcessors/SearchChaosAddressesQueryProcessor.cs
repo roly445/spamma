@@ -1,17 +1,21 @@
+using System.Linq.Expressions;
 using BluQube.Queries;
 using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class SearchChaosAddressesQueryProcessor(IDocumentSession session) : IQueryProcessor<SearchChaosAddressesQuery, SearchChaosAddressesQueryResult>
+public class SearchChaosAddressesQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchChaosAddressesQuery, SearchChaosAddressesQueryResult>
 {
     public async Task<QueryResult<SearchChaosAddressesQueryResult>> Handle(SearchChaosAddressesQuery request, CancellationToken cancellationToken)
     {
         var baseQuery = session.Query<ChaosAddressLookup>();
 
-        var filteredAndSorted = GetFilteredAndSortedQuery(baseQuery, request);
+        var filteredAndSorted = this.GetFilteredAndSortedQuery(baseQuery, request);
 
         var totalCount = await filteredAndSorted.CountAsync(cancellationToken);
 
@@ -29,32 +33,47 @@ public class SearchChaosAddressesQueryProcessor(IDocumentSession session) : IQue
             x.Enabled,
             x.TotalReceived,
             x.LastReceivedAt,
-            x.CreatedAt,
-            x.CreatedBy)).ToList();
+            x.CreatedAt)).ToList();
 
         var result = new SearchChaosAddressesQueryResult(summaries, totalCount, request.PageNumber, request.PageSize);
         return QueryResult<SearchChaosAddressesQueryResult>.Succeeded(result);
     }
 
-    private static IQueryable<ChaosAddressLookup> GetFilteredAndSortedQuery(IQueryable<ChaosAddressLookup> query, SearchChaosAddressesQuery request)
+    private IQueryable<ChaosAddressLookup> GetFilteredAndSortedQuery(IQueryable<ChaosAddressLookup> query, SearchChaosAddressesQuery request)
     {
-        var filtered = query;
+        var whereConditions = new List<Expression<Func<ChaosAddressLookup, bool>>>();
+
+        var skipDomains = false;
+        var user = accessor.HttpContext.ToUserAuthInfo();
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement))
+        {
+            skipDomains = true;
+        }
+
+        if (!skipDomains)
+        {
+            whereConditions.Add(u =>
+                user.ModeratedDomains.Contains(u.DomainId) ||
+                user.ModeratedSubdomains.Contains(u.Id));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.ToLower();
-            filtered = filtered.Where(x => x.LocalPart.ToLower().Contains(searchTerm));
+            whereConditions.Add(x => x.LocalPart.ToLower().Contains(searchTerm));
         }
 
         if (request.SubdomainId.HasValue)
         {
-            filtered = filtered.Where(x => x.SubdomainId == request.SubdomainId.Value);
+            whereConditions.Add(x => x.SubdomainId == request.SubdomainId.Value);
         }
 
         if (request.Enabled.HasValue)
         {
-            filtered = filtered.Where(x => x.Enabled == request.Enabled.Value);
+            whereConditions.Add(x => x.Enabled == request.Enabled.Value);
         }
+
+        var filtered = whereConditions.Aggregate(query, (current, condition) => current.Where(condition));
 
         return request.SortBy switch
         {

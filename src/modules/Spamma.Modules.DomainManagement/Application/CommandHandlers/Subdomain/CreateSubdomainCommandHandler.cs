@@ -1,10 +1,8 @@
 ﻿using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Application.Repositories;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using SubdomainAggregate = Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain;
 

@@ -7,16 +7,10 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 
-/// <summary>
-/// Handler for recording campaign capture events.
-/// Uses a static dictionary of per-campaign locks to prevent race conditions
-/// when multiple concurrent SMTP deliveries target the same campaign.
-/// </summary>
 public class RecordCampaignCaptureCommandHandler(
     IEnumerable<IValidator<RecordCampaignCaptureCommand>> validators,
     ILogger<RecordCampaignCaptureCommandHandler> logger,
-    ICampaignRepository campaignRepository,
-    TimeProvider timeProvider)
+    ICampaignRepository campaignRepository)
     : CommandHandler<RecordCampaignCaptureCommand>(validators, logger)
 {
     private static readonly Dictionary<Guid, SemaphoreSlim> CampaignLocks = new();
@@ -27,27 +21,23 @@ public class RecordCampaignCaptureCommandHandler(
         try
         {
             var campaignId = GuidFromCampaignValue(request.SubdomainId, request.CampaignValue);
-            var now = timeProvider.GetUtcNow();
 
-            // Acquire per-campaign lock to prevent concurrent creation/update races
             var @lock = GetOrCreateLock(campaignId);
             await @lock.WaitAsync(cancellationToken);
 
             try
             {
-                // Try to load existing campaign
                 var campaignMaybe = await campaignRepository.GetByIdAsync(campaignId, cancellationToken);
 
                 Domain.CampaignAggregate.Campaign campaign;
                 if (campaignMaybe.HasNoValue)
                 {
-                    // Create new campaign
                     var createResult = Domain.CampaignAggregate.Campaign.Create(
                         campaignId,
                         request.SubdomainId,
                         request.CampaignValue,
                         request.MessageId,
-                        now);
+                        request.ReceivedAt);
 
                     if (createResult.IsFailure)
                     {
@@ -60,7 +50,7 @@ public class RecordCampaignCaptureCommandHandler(
                 {
                     // Record additional capture to existing campaign
                     campaign = campaignMaybe.Value;
-                    var captureResult = campaign.RecordCapture(request.MessageId, now);
+                    var captureResult = campaign.RecordCapture(request.MessageId, request.ReceivedAt);
 
                     if (captureResult.IsFailure)
                     {

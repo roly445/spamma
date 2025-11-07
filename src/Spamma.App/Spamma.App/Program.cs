@@ -14,6 +14,7 @@ using Marten.Services.Json;
 using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -38,6 +39,7 @@ using Spamma.App.Infrastructure.Contracts;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
 using Spamma.App.Infrastructure.Endpoints;
+using Spamma.App.Infrastructure.Endpoints.Maintenance;
 using Spamma.App.Infrastructure.Hubs;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
@@ -258,7 +260,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 var userManager = context.HttpContext.RequestServices.GetRequiredService<IQuerier>();
                 var tempObjectStore = context.HttpContext.RequestServices.GetRequiredService<IInternalQueryStore>();
                 var query = new GetUserByIdQuery(userId);
-                tempObjectStore.AddReferenceForObject(query);
+                tempObjectStore.StoreQueryRef(query);
                 var user = await userManager.Send(query);
 
                 if (user.Status != QueryResultStatus.Succeeded || user.Data.IsSuspended)
@@ -381,6 +383,7 @@ app.AddUserManagementApi()
 // Map API endpoints organized by feature
 app.MapGeneralApiEndpoints();
 app.MapAuthenticationEndpoints();
+app.MapMaintenanceEndpoints();
 
 app.MapHub<NotifierHub>($"/{Lookups.NotificationHubName}");
 

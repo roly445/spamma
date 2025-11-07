@@ -8,9 +8,6 @@ using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 
-/// <summary>
-/// Command handler for toggling email favorite status to prevent automatic deletion.
-/// </summary>
 public class ToggleEmailFavoriteCommandHandler(
     IEmailRepository repository,
     TimeProvider timeProvider,

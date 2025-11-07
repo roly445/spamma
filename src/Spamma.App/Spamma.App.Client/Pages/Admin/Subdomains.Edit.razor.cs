@@ -23,7 +23,7 @@ public partial class Subdomains
         }
 
         this._editSubdomain.Open(new EditSubdomain.DataModel(
-            subdomain.Id,
+            subdomain.SubdomainId,
             subdomain.Description,
             subdomain.SubdomainName,
             subdomain.SubdomainName,

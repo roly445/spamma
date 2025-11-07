@@ -32,4 +32,10 @@ public class CampaignSummaryProjection : EventProjection
             .Increment(x => x.TotalCaptured)
             .Set(x => x.LastReceivedAt, @event.Data.CapturedAt);
     }
+
+    [UsedImplicitly]
+    public void Project(IEvent<Domain.CampaignAggregate.Events.CampaignDeleted> @event, IDocumentOperations ops)
+    {
+        ops.Delete<CampaignSummary>(@event.StreamId);
+    }
 }

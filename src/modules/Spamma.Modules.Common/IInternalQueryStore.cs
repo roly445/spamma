@@ -5,22 +5,22 @@ namespace Spamma.Modules.Common;
 
 public interface IInternalQueryStore
 {
-    Result AddReferenceForObject(object obj);
+    Result StoreQueryRef(object obj);
 
-    bool IsStoringReferenceForObject(object obj);
+    bool IsQueryStored(object obj);
 }
 
 public class InternalQueryStore : IInternalQueryStore
 {
     private readonly ConditionalWeakTable<object, BoolWrapper> _table = new();
 
-    public Result AddReferenceForObject(object obj)
+    public Result StoreQueryRef(object obj)
     {
         this._table.AddOrUpdate(obj, new BoolWrapper());
         return Result.Ok();
     }
 
-    public bool IsStoringReferenceForObject(object obj)
+    public bool IsQueryStored(object obj)
     {
         return this._table.TryGetValue(obj, out var d) && d.Value;
     }

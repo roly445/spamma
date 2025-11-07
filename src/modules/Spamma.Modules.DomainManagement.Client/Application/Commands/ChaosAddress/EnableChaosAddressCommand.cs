@@ -1,7 +1,7 @@
 using BluQube.Attributes;
 using BluQube.Commands;
 
-namespace Spamma.Modules.DomainManagement.Client.Application.Commands.EnableChaosAddress;
+namespace Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
 [BluQubeCommand(Path = "api/domain-management/enable-chaos-address")]
-public record EnableChaosAddressCommand(Guid Id, Guid ActorId) : ICommand;
+public record EnableChaosAddressCommand(Guid ChaosAddressId) : ICommand;

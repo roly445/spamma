@@ -1,5 +1,6 @@
 using FluentValidation;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.EnableChaosAddress;
+using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
 namespace Spamma.Modules.DomainManagement.Application.Validators.ChaosAddress;
 
@@ -7,6 +8,9 @@ internal class EnableChaosAddressCommandValidator : AbstractValidator<EnableChao
 {
     public EnableChaosAddressCommandValidator()
     {
-        this.RuleFor(x => x.Id).NotEmpty();
+        this.RuleFor(x => x.ChaosAddressId)
+            .NotEmpty()
+            .WithErrorCode(CommonValidationCodes.Required)
+            .WithMessage("ID is required.");
     }
 }

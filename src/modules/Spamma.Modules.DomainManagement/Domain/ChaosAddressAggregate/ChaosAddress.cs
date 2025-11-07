@@ -1,14 +1,15 @@
-using System;
 using BluQube.Commands;
 using ResultMonad;
-using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
-using Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
+/// <summary>
+/// Aggregate root for managing chaos addresses used to trap spam.
+/// </summary>
 public partial class ChaosAddress : AggregateRoot
 {
     private readonly List<ChaosAddressSuspensionAudit> _suspensionAudits = new();
@@ -84,36 +85,6 @@ public partial class ChaosAddress : AggregateRoot
     {
         var @event = new ChaosAddressDeleted(when);
         this.RaiseEvent(@event);
-        return ResultWithError.Ok<BluQubeErrorData>();
-    }
-
-    public ResultWithError<BluQubeErrorData> Edit(Guid newDomainId, Guid newSubdomainId, string newLocalPart, SmtpResponseCode newSmtpCode)
-    {
-        if (this.TotalReceived > 0)
-        {
-            return ResultWithError.Fail(new BluQubeErrorData(
-                DomainManagementErrorCodes.CannotEditAfterReceive,
-                "Cannot edit chaos address after emails have been received"));
-        }
-
-        if (this.DomainId != newDomainId || this.SubdomainId != newSubdomainId)
-        {
-            var subdomainEvent = new ChaosAddressSubdomainChanged(newDomainId, newSubdomainId);
-            this.RaiseEvent(subdomainEvent);
-        }
-
-        if (this.LocalPart != newLocalPart)
-        {
-            var localPartEvent = new ChaosAddressLocalPartChanged(newLocalPart);
-            this.RaiseEvent(localPartEvent);
-        }
-
-        if (this.ConfiguredSmtpCode != newSmtpCode)
-        {
-            var smtpEvent = new ChaosAddressSmtpCodeChanged(newSmtpCode);
-            this.RaiseEvent(smtpEvent);
-        }
-
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 }

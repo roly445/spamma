@@ -2,6 +2,7 @@
 @using Spamma.App.Client.Layout
 @using Spamma.Modules.DomainManagement.Client.Application.Queries
 @using Microsoft.AspNetCore.Components.Web
+@using Spamma.Modules.EmailInbox.Client.Application.Commands
 @layout AppLayout
 
 @attribute [Authorize]
@@ -27,7 +28,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Subdomain</label>
                     <select value="@_selectedSubdomainId" @onchange="OnSubdomainChanged"
@@ -71,7 +72,7 @@
                 </div>
             </div>
         }
-        else if (_campaigns == null || _campaigns.Items.Count == 0)
+        else if (_campaigns != null && _campaigns.Items.Count == 0)
         {
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
                 <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +82,7 @@
                 <p class="text-gray-500">Select a subdomain or send emails with the x-spamma-camp header to get started</p>
             </div>
         }
-        else
+        else if (_campaigns != null)
         {
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -97,9 +98,19 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach (var campaign in _campaigns.Items)
                         {
-                            <tr class="hover:bg-gray-50">
+                            <tr class="@(_deletingCampaignValue == campaign.CampaignValue ? "opacity-50 bg-gray-100" : "hover:bg-gray-50")">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    @campaign.CampaignValue
+                                    @if (_deletingCampaignValue == campaign.CampaignValue)
+                                    {
+                                        <div class="flex items-center space-x-2">
+                                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                                            <span>@campaign.CampaignValue</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @campaign.CampaignValue
+                                    }
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                     @campaign.TotalCaptured
@@ -112,9 +123,21 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                                     <a href="/campaigns/@campaign.CampaignId"
-                                       class="text-blue-600 hover:text-blue-900 font-medium">
+                                       class="text-blue-600 hover:text-blue-900 font-medium @(_deletingCampaignValue == campaign.CampaignValue ? "pointer-events-none opacity-50" : "")">
                                         View Details
                                     </a>
+                                    <button @onclick="() => DeleteCampaign(campaign.CampaignId, campaign.CampaignValue)"
+                                            disabled="@(_deletingCampaignValue != null)"
+                                            class="text-red-600 hover:text-red-900 font-medium @(_deletingCampaignValue != null ? "opacity-50 cursor-not-allowed" : "")">
+                                        @if (_deletingCampaignValue == campaign.CampaignValue)
+                                        {
+                                            <span>Deleting...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Delete</span>
+                                        }
+                                    </button>
                                 </td>
                             </tr>
                         }

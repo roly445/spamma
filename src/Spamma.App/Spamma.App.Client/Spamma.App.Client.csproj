@@ -93,6 +93,8 @@
 
     <ItemGroup>
       <_ContentIncludedByDefault Remove="Pages\Auth\PasskeyLogin.razor" />
+      <_ContentIncludedByDefault Remove="Components\ChaosAddress\ChaosAddressList.razor" />
+      <_ContentIncludedByDefault Remove="Components\ChaosAddress\CreateChaosAddress.razor" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />

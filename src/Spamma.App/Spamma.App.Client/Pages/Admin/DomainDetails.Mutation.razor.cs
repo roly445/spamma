@@ -26,7 +26,7 @@ public partial class DomainDetails
             return;
         }
 
-        this._unsuspendDomain.Open(new UnsuspendDomain.DataModel(this.domain.Id, this.domain.DomainName));
+        this._unsuspendDomain.Open(new UnsuspendDomain.DataModel(this.domain.DomainId, this.domain.DomainName));
     }
 
     private void OpenSuspendDomain()
@@ -36,7 +36,7 @@ public partial class DomainDetails
             return;
         }
 
-        this._suspendDomain.Open(new SuspendDomain.DataModel(this.domain.Id, this.domain.DomainName));
+        this._suspendDomain.Open(new SuspendDomain.DataModel(this.domain.DomainId, this.domain.DomainName));
     }
 
     private Task HandleSubdomainSuspended()
@@ -52,7 +52,7 @@ public partial class DomainDetails
         }
 
         this._editDomain.Open(new EditDomain.DataModel(
-            this.domain.Id,
+            this.domain.DomainId,
             this.domain.DomainName,
             this.domain.PrimaryContact,
             this.domain.Description,
@@ -75,7 +75,7 @@ public partial class DomainDetails
 
         if (this.domain != null)
         {
-            var result = await commander.Send(new VerifyDomainCommand(this.domain.Id));
+            var result = await commander.Send(new VerifyDomainCommand(this.domain.DomainId));
 
             if (result.Status == CommandResultStatus.Succeeded)
             {

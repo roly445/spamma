@@ -80,7 +80,7 @@ public partial class Subdomains(IQuerier querier, NavigationManager navigation) 
                 IsVerified: true, Page: 1, PageSize: 100, SortBy: "domainname", SortDescending: false));
             if (result.Status == QueryResultStatus.Succeeded)
             {
-                this.availableDomains = result.Data.Items.Select(d => new DomainOption(d.Id, d.DomainName)).ToList();
+                this.availableDomains = result.Data.Items.Select(d => new DomainOption(d.DomainId, d.DomainName)).ToList();
             }
             else
             {
@@ -93,7 +93,7 @@ public partial class Subdomains(IQuerier querier, NavigationManager navigation) 
             if (result.Status == QueryResultStatus.Succeeded)
             {
                 var domain = result.Data;
-                this.availableDomains = new List<DomainOption> { new DomainOption(domain.Id, domain.DomainName) };
+                this.availableDomains = new List<DomainOption> { new DomainOption(domain.DomainId, domain.DomainName) };
             }
             else
             {

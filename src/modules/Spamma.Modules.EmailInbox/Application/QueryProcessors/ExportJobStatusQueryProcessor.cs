@@ -7,7 +7,6 @@ public class ExportJobStatusQueryProcessor : IQueryProcessor<ExportJobStatusQuer
 {
     public async Task<QueryResult<ExportJobStatusQueryResult>> Handle(ExportJobStatusQuery request, CancellationToken cancellationToken)
     {
-        // Placeholder: query job store for export status
         var result = new ExportJobStatusQueryResult(request.JobId, "Pending", 0, null);
         return await Task.FromResult(QueryResult<ExportJobStatusQueryResult>.Succeeded(result));
     }

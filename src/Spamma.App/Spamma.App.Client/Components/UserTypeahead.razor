@@ -28,21 +28,7 @@
                     <div @onclick="() => SelectUser(user)"
                          @onmousedown:preventDefault
                          class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0">
-                                <div class="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <span class="text-sm font-medium text-white">
-                                        @(user.DisplayName?.Substring(0, 1).ToUpper() ?? user.Email.Substring(0, 1).ToUpper())
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="ml-3">
-                                <div class="text-sm font-medium text-gray-900">
-                                    @(user.DisplayName ?? "No Name")
-                                </div>
-                                <div class="text-sm text-gray-500">@user.Email</div>
-                            </div>
-                        </div>
+                        <UserListItem UserName="@user.DisplayName" UserEmail="@user.Email" ShowName="true" Size="8" />
                     </div>
                 }
             }

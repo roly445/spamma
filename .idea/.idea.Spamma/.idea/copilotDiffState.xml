@@ -11,14 +11,6 @@
             </PendingDiffInfo>
           </value>
         </entry>
-        <entry key="$PROJECT_DIR$/tools/EmailLoadTester/README.md">
-          <value>
-            <PendingDiffInfo>
-              <option name="filePath" value="$PROJECT_DIR$/tools/EmailLoadTester/README.md" />
-              <option name="updatedContent" value="EmailLoadTester&#10;&#10;Simple .NET 9 console app to send bulk emails to a local SMTP server for Spamma testing.&#10;&#10;Usage (Windows cmd.exe):&#10;&#10;    cd tools\EmailLoadTester&#10;    dotnet run -- --host localhost --port 20 --from tester@localhost --to test@spamma.io --batch 50 --batches 2&#10;&#10;Options:&#10;  --host     SMTP host (default: localhost)&#10;  --port     SMTP port (default: 20)&#10;  --from     From address&#10;  --to       To address&#10;  --batch    Number of emails per batch (1-100)&#10;  --batches  Number of batches to send&#10;  --subject  Email subject prefix&#10;  --html     HTML body content&#10;  --text     Text body content&#10;&#10;Each batch sets the header X-Spamma-Comp: {guid} on every message in that batch.&#10;" />
-            </PendingDiffInfo>
-          </value>
-        </entry>
       </map>
     </option>
   </component>

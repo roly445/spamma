@@ -1,6 +1,7 @@
 using BluQube.Commands;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
 using OpenTelemetry.Exporter;
@@ -73,6 +74,8 @@ builder.Services.AddAuthorizationCore(options =>
 });
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
+builder.Services.AddScoped<RefreshableAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<RefreshableAuthenticationStateProvider>());
 
 builder.Services.AddScoped<IAuthorizationHandler, BitwiseRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();

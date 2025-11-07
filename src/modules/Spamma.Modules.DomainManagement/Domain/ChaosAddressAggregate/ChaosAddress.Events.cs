@@ -1,8 +1,10 @@
-using System;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
+/// <summary>
+/// Event application logic for ChaosAddress aggregate.
+/// </summary>
 public partial class ChaosAddress
 {
     protected override void ApplyEvent(object @event)
@@ -23,15 +25,6 @@ public partial class ChaosAddress
                 break;
             case ChaosAddressDeleted e:
                 Apply(e);
-                break;
-            case ChaosAddressLocalPartChanged e:
-                this.Apply(e);
-                break;
-            case ChaosAddressSubdomainChanged e:
-                this.Apply(e);
-                break;
-            case ChaosAddressSmtpCodeChanged e:
-                this.Apply(e);
                 break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
@@ -72,21 +65,5 @@ public partial class ChaosAddress
     {
         this.TotalReceived += 1;
         this.LastReceivedAt = @event.When;
-    }
-
-    private void Apply(ChaosAddressLocalPartChanged @event)
-    {
-        this.LocalPart = @event.NewLocalPart;
-    }
-
-    private void Apply(ChaosAddressSubdomainChanged @event)
-    {
-        this.DomainId = @event.NewDomainId;
-        this.SubdomainId = @event.NewSubdomainId;
-    }
-
-    private void Apply(ChaosAddressSmtpCodeChanged @event)
-    {
-        this.ConfiguredSmtpCode = @event.NewSmtpCode;
     }
 }

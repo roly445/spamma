@@ -30,7 +30,7 @@ public sealed class AcmeChallengeServer : IAcmeChallengeResponder
     /// <param name="keyAuthorization">The key authorization string for the token.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public Task RegisterChallengeAsync(string token, string keyAuthorization, CancellationToken cancellationToken)
+    public Task RegisterChallengeAsync(string token, string keyAuthorization, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(token))
         {
@@ -48,7 +48,7 @@ public sealed class AcmeChallengeServer : IAcmeChallengeResponder
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public Task ClearChallengesAsync(CancellationToken cancellationToken)
+    public Task ClearChallengesAsync(CancellationToken cancellationToken = default)
     {
         this._challenges.Clear();
         this._logger.LogInformation("Cleared all challenge tokens");

@@ -1,15 +1,11 @@
-using System;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using ResultMonad;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Application.Repositories;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.DisableChaosAddress;
-using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
-namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.DisableChaosAddress;
+namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.ChaosAddress;
 
 internal class DisableChaosAddressCommandHandler(
     IChaosAddressRepository repository,
@@ -19,10 +15,10 @@ internal class DisableChaosAddressCommandHandler(
 {
     protected override async Task<CommandResult> HandleInternal(DisableChaosAddressCommand request, CancellationToken cancellationToken)
     {
-        var chaosMaybe = await repository.GetByIdAsync(request.Id, cancellationToken);
+        var chaosMaybe = await repository.GetByIdAsync(request.ChaosAddressId, cancellationToken);
         if (chaosMaybe.HasNoValue)
         {
-            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Chaos address with ID {request.Id} not found"));
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Chaos address with ID {request.ChaosAddressId} not found"));
         }
 
         var chaos = chaosMaybe.Value;

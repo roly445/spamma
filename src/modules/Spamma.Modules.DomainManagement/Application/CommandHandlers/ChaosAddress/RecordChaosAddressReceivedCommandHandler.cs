@@ -1,15 +1,11 @@
-using System;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using ResultMonad;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Application.Repositories;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
-using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
-namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.RecordChaosAddressReceived;
+namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.ChaosAddress;
 
 internal class RecordChaosAddressReceivedCommandHandler(
     IChaosAddressRepository repository,

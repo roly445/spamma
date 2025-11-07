@@ -1,3 +1,5 @@
+using Spamma.Modules.Common.Client;
+
 namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class ChaosAddressLookup
@@ -10,7 +12,7 @@ public class ChaosAddressLookup
 
     public string LocalPart { get; set; } = string.Empty;
 
-    public Spamma.Modules.Common.SmtpResponseCode ConfiguredSmtpCode { get; set; }
+    public SmtpResponseCode ConfiguredSmtpCode { get; set; }
 
     public bool Enabled { get; set; }
 

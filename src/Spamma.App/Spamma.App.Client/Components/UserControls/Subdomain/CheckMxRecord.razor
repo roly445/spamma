@@ -1,134 +1,117 @@
-﻿@using Spamma.Modules.DomainManagement.Client.Contracts
+@using Spamma.Modules.DomainManagement.Client.Contracts
 @using Microsoft.AspNetCore.Components
 @using Spamma.App.Client.Pages.Admin
 
 <!-- MX Records Check Modal -->
-@if (isVisible && _dataModel != null)
-{
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @onclick="Close"></div>
-
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <!-- Header -->
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-lg font-medium text-gray-900" id="modal-title">
-                                MX Records Check
-                            </h3>
-                            <p class="text-sm text-gray-500">@_dataModel.FullName</p>
-                        </div>
-                    </div>
-                    <button @onclick="Close" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
+<ModalBase IsVisible="isVisible && _dataModel != null"
+           OnClose="@Close"
+           AllowBackdropClose="false"
+           WidthClass="sm:max-w-lg"
+           AriaLabelledBy="modal-title">
+    <!-- Header -->
+    <div class="border-b border-gray-200 bg-gray-50 px-4 py-4 sm:px-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
                 </div>
-
-                <!-- Content -->
-                <div class="mt-4">
-                    @if (isProcessing)
+                <div class="ml-3">
+                    <h3 id="modal-title" class="text-lg font-medium text-gray-900">MX Records Check</h3>
+                    @if (_dataModel != null)
                     {
-                        <!-- Loading State -->
-                        <div class="flex items-center justify-center py-8">
-                            <svg class="animate-spin h-8 w-8 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <span class="text-gray-600">Checking MX records...</span>
-                        </div>
+                        <p class="text-sm text-gray-500">@_dataModel.FullName</p>
                     }
-                    
-                        else
-                        {
-                            <!-- Error State -->
-                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                                <div class="flex items-start">
-                                    <svg class="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                    <div class="flex-1">
-                                        <h4 class="text-sm font-medium text-red-800">No MX Records Found</h4>
-                                        <p class="text-sm text-red-700 mt-1">
-                                            No MX records were found for this subdomain. Email delivery may not work properly.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Recommendations -->
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <div class="flex items-start">
-                                    <svg class="h-5 w-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                    </svg>
-                                    <div class="flex-1">
-                                        <h4 class="text-sm font-medium text-yellow-800">Recommendation</h4>
-                                        <p class="text-sm text-yellow-700 mt-1">
-                                            Configure MX records in your DNS settings to enable email delivery for this subdomain.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
-                        <!-- Last Checked -->
-                        <div class="mt-4 text-xs text-gray-500 text-center">
-                            Last checked: @DateTime.Now.ToString("MMM dd, yyyy HH:mm:ss")
-                        </div>
-                    }
-                    else
-                    {
-                        <!-- Initial State -->
-                        <div class="text-center py-8">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <p class="text-gray-500 mt-2">Click "Check MX Records" to verify email configuration</p>
-                        </div>
-                    }
-                </div>
-
-                <!-- Footer -->
-                <div class="mt-6 flex items-center justify-between">
-                    <button @onclick="CheckMxRecords" 
-                            disabled="@isProcessing"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        @if (isProcessing)
-                        {
-                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <span>Checking...</span>
-                        }
-                        else
-                        {
-                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            
-                        }
-                    </button>
-
-                    <button @onclick="Close" 
-                            class="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Close
-                    </button>
                 </div>
             </div>
+            <button @onclick="Close" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
     </div>
-}
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+        @if (isProcessing)
+        {
+            <!-- Loading State -->
+            <div class="flex items-center justify-center py-8">
+                <svg class="animate-spin h-8 w-8 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span class="text-gray-600">Checking MX records...</span>
+            </div>
+        }
+        else
+        {
+            <!-- Error State -->
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div class="flex items-start">
+                    <svg class="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-red-800">No MX Records Found</h4>
+                        <p class="text-sm text-red-700 mt-1">
+                            No MX records were found for this subdomain. Email delivery may not work properly.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <svg class="h-5 w-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-yellow-800">Recommendation</h4>
+                        <p class="text-sm text-yellow-700 mt-1">
+                            Configure MX records in your DNS settings to enable email delivery for this subdomain.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Checked -->
+            <div class="mt-4 text-xs text-gray-500 text-center">
+                Last checked: @DateTime.Now.ToString("MMM dd, yyyy HH:mm:ss")
+            </div>
+        }
+    </div>
+
+    <!-- Footer -->
+    <div class="flex space-x-3 border-t border-gray-200 px-4 py-4 sm:px-6">
+        <button @onclick="CheckMxRecords" 
+                disabled="@isProcessing"
+                class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (isProcessing)
+            {
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span>Checking...</span>
+            }
+            else
+            {
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Check MX Records</span>
+            }
+        </button>
+        <button @onclick="Close" 
+                class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Close
+        </button>
+    </div>
+</ModalBase>
 
 @code {
     

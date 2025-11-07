@@ -22,6 +22,6 @@ public partial class Subdomains
             return;
         }
 
-        this._unsuspendSubdomain.Open(new UnsuspendSubdomain.DataModel(subdomain.Id, subdomain.FullDomainName, subdomain.CreatedAt));
+        this._unsuspendSubdomain.Open(new UnsuspendSubdomain.DataModel(subdomain.SubdomainId, subdomain.FullDomainName, subdomain.CreatedAt));
     }
 }

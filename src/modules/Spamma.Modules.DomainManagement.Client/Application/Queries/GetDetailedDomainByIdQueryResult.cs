@@ -4,7 +4,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 namespace Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 public record GetDetailedDomainByIdQueryResult(
-    Guid Id,
+    Guid DomainId,
     string DomainName,
     DomainStatus Status,
     bool IsVerified,

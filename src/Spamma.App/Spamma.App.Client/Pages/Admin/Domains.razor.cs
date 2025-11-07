@@ -119,7 +119,7 @@ public partial class Domains(
         }
 
         this._editDomain.Open(new EditDomain.DataModel(
-            domain.Id,
+            domain.DomainId,
             domain.DomainName,
             domain.PrimaryContact,
             domain.Description,
@@ -137,7 +137,7 @@ public partial class Domains(
 
     private void OpenSuspendDomain(SearchDomainsQueryResult.DomainSummary domain)
     {
-        this._suspendDomain!.Open(new SuspendDomain.DataModel(domain.Id, domain.DomainName));
+        this._suspendDomain!.Open(new SuspendDomain.DataModel(domain.DomainId, domain.DomainName));
     }
 
     private Task HandleDomainSuspended()
@@ -152,7 +152,7 @@ public partial class Domains(
             return;
         }
 
-        this._unsuspendDomain.Open(new UnsuspendDomain.DataModel(domain.Id, domain.DomainName));
+        this._unsuspendDomain.Open(new UnsuspendDomain.DataModel(domain.DomainId, domain.DomainName));
     }
 
     private Task HandleDomainUnsuspended()
@@ -174,7 +174,7 @@ public partial class Domains(
         }
 
         this._verifyDomain.Open(new VerifyDomain.DataModel(
-            domain.Id,
+            domain.DomainId,
             domain.DomainName,
             domain.VerificationToken));
     }

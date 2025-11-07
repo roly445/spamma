@@ -4,17 +4,12 @@ using DotNetCore.CAP;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.IntegrationEvents;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers;
 
-/// <summary>
-/// Handles EmailReceivedIntegrationEvent asynchronously via CAP.
-/// Decouples email acceptance from expensive database writes and secondary operations.
-/// Allows SMTP to accept thousands of concurrent emails without blocking on database operations.
-/// </summary>
 public class PersistReceivedEmailHandler(
     ILogger<PersistReceivedEmailHandler> logger,
     ICommander commander) : ICapSubscribe
@@ -26,12 +21,10 @@ public class PersistReceivedEmailHandler(
         {
             logger.LogDebug("Persisting received email {EmailId} for subdomain {SubdomainId}", ev.EmailId, ev.SubdomainId);
 
-            // Convert EmailReceivedAddress to ReceivedEmailCommand.EmailAddress
             var addresses = ev.Recipients
                 .Select(x => new ReceivedEmailCommand.EmailAddress(x.Address, x.DisplayName ?? string.Empty, (EmailAddressType)x.Type))
                 .ToList();
 
-            // Save email and metadata to database
             var saveResult = await commander.Send(
                 new ReceivedEmailCommand(
                     ev.EmailId,
@@ -73,9 +66,6 @@ public class PersistReceivedEmailHandler(
                             ev.SubdomainId,
                             ev.EmailId,
                             ev.CampaignValue,
-                            ev.Subject ?? string.Empty,
-                            ev.FromAddress,
-                            ev.ToAddress,
                             DateTimeOffset.UtcNow),
                         CancellationToken.None);
                 }

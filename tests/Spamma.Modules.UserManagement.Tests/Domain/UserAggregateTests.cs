@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Domain.UserAggregate;
 using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;

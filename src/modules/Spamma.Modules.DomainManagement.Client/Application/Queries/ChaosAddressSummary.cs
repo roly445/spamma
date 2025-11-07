@@ -1,9 +1,9 @@
-using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 public record ChaosAddressSummary(
-    Guid Id,
+    Guid ChaosAddressId,
     Guid DomainId,
     Guid SubdomainId,
     string LocalPart,
@@ -11,5 +11,4 @@ public record ChaosAddressSummary(
     bool Enabled,
     int TotalReceived,
     DateTime? LastReceivedAt,
-    DateTime CreatedAt,
-    Guid CreatedBy);
+    DateTime CreatedAt);

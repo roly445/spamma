@@ -10,7 +10,7 @@ public class CreateUserCommandAuthorizer(IInternalQueryStore internalQueryStore)
 {
     public override void BuildPolicy(CreateUserCommand request)
     {
-        if (internalQueryStore.IsStoringReferenceForObject(request))
+        if (internalQueryStore.IsQueryStored(request))
         {
             return;
         }

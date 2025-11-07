@@ -162,7 +162,7 @@ internal static class AuthenticationEndpoints
 
             // Query user details to get email and name
             var userQuery = new GetUserByIdQuery(userId);
-            internalQueryStore.AddReferenceForObject(userQuery);
+            internalQueryStore.StoreQueryRef(userQuery);
             var userResult = await querier.Send(userQuery);
 
             if (userResult.Status != QueryResultStatus.Succeeded)

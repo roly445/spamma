@@ -10,12 +10,6 @@ using StackExchange.Redis;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
-/// <summary>
-/// Redis-backed cache for chaos address lookups by subdomain ID and local part.
-/// Uses direct IConnectionMultiplexer for full Redis capabilities including pattern-based invalidation.
-/// Cache keys: chaos:{subdomainId}:{localPart}
-/// TTL: 1 hour (or until invalidated by CAP event)
-/// </summary>
 public class ChaosAddressCache(
     IConnectionMultiplexer redisMultiplexer,
     IQuerier querier,
@@ -60,20 +54,18 @@ public class ChaosAddressCache(
             }
         }
 
-        // Cache miss or forceRefresh: query database
         logger.LogDebug("Cache MISS for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
         var query = new GetChaosAddressBySubdomainAndLocalPartQuery(subdomainId, localPart);
-        internalQueryStore.AddReferenceForObject(query);
+        internalQueryStore.StoreQueryRef(query);
         var result = await querier.Send(query, cancellationToken);
 
-        if (result.Status != QueryResultStatus.Succeeded || result.Data == null)
+        if (result.Status != QueryResultStatus.Succeeded)
         {
             return Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Nothing;
         }
 
         var chaosAddress = result.Data;
 
-        // Cache the result (even if not enabled, to avoid repeated queries)
         try
         {
             await this.SetChaosAddressAsync(subdomainId, localPart, chaosAddress, cancellationToken);
@@ -81,8 +73,6 @@ public class ChaosAddressCache(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to cache chaos address for {SubdomainId}:{LocalPart}", subdomainId, localPart);
-
-            // Continue despite cache failure - fallback to uncached operation
         }
 
         return Maybe.From(chaosAddress);

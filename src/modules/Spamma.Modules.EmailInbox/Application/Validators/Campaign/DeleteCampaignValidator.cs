@@ -8,16 +8,9 @@ public class DeleteCampaignValidator : AbstractValidator<DeleteCampaignCommand>
 {
     public DeleteCampaignValidator()
     {
-        this.RuleFor(x => x.SubdomainId)
+        this.RuleFor(x => x.CampaignId)
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)
-            .WithMessage("SubdomainId is required.");
-
-        this.RuleFor(x => x.CampaignValue)
-            .NotEmpty()
-            .WithErrorCode(CommonValidationCodes.Required)
-            .WithMessage("CampaignValue is required.")
-            .MaximumLength(255)
-            .WithMessage("CampaignValue must not exceed 255 characters.");
+            .WithMessage("CampaignId is required.");
     }
 }

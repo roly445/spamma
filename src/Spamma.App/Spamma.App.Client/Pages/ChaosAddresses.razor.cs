@@ -6,19 +6,18 @@ using Microsoft.JSInterop;
 
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.CreateChaosAddress;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.DeleteChaosAddress;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.DisableChaosAddress;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.EditChaosAddress;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.EnableChaosAddress;
+using Spamma.Modules.Common.Client;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
-namespace Spamma.App.Client.Pages.Subdomains;
+namespace Spamma.App.Client.Pages;
 
+/// <summary>
+/// Component for managing chaos addresses.
+/// </summary>
 public partial class ChaosAddresses(IQuerier querier,
     ICommander commander,
-    INotificationService notificationService,
-    IJSRuntime jsRuntime)
+    INotificationService notificationService)
 {
     private bool isLoading = true;
 
@@ -51,17 +50,6 @@ public partial class ChaosAddresses(IQuerier querier,
     private bool isDeleteProcessing;
     private ChaosAddressSummary? deleteConfirmData;
     private Guid deleteIdToProcess;
-
-    // Edit Slideout
-    private bool showEditSlideout;
-    private bool isEditSaving;
-    private ChaosAddressSummary? editChaosAddress;
-    private string editDescription = string.Empty;
-    private string editLocalPart = string.Empty;
-    private string editSmtpCodeString = string.Empty;
-    private string editSubdomainIdString = string.Empty;
-    private string? outsideClickHandlerId;
-    private DotNetObjectReference<ChaosAddresses>? dotNetRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,7 +105,7 @@ public partial class ChaosAddresses(IQuerier querier,
                 .ToDictionary(
                     g => g.Key,
                     g => g
-                        .Select(x => new SubdomainOption { Id = x.Id, DomainId = x.ParentDomainId, SubdomainName = x.SubdomainName })
+                        .Select(x => new SubdomainOption { Id = x.SubdomainId, DomainId = x.ParentDomainId, SubdomainName = x.SubdomainName })
                         .OrderBy(x => x.SubdomainName)
                         .ToList());
         }
@@ -155,7 +143,7 @@ public partial class ChaosAddresses(IQuerier querier,
 
     private void ToggleChaosAddress(Guid id, bool enable)
     {
-        var chaos = this.chaosAddresses?.FirstOrDefault(x => x.Id == id);
+        var chaos = this.chaosAddresses?.FirstOrDefault(x => x.ChaosAddressId == id);
         if (chaos != null)
         {
             if (enable)
@@ -178,7 +166,7 @@ public partial class ChaosAddresses(IQuerier querier,
         this.isSuspendProcessing = true;
         this.StateHasChanged();
 
-        var command = new DisableChaosAddressCommand(this.suspendIdToProcess, Guid.NewGuid());
+        var command = new DisableChaosAddressCommand(this.suspendIdToProcess);
         var result = await commander.Send(command);
 
         if (result.Status == CommandResultStatus.Succeeded)
@@ -200,7 +188,7 @@ public partial class ChaosAddresses(IQuerier querier,
         this.isEnableProcessing = true;
         this.StateHasChanged();
 
-        var command = new EnableChaosAddressCommand(this.enableIdToProcess, Guid.NewGuid());
+        var command = new EnableChaosAddressCommand(this.enableIdToProcess);
         var result = await commander.Send(command);
 
         if (result.Status == CommandResultStatus.Succeeded)
@@ -219,7 +207,7 @@ public partial class ChaosAddresses(IQuerier querier,
 
     private void DeleteChaosAddress(Guid id)
     {
-        var chaos = this.chaosAddresses?.FirstOrDefault(x => x.Id == id);
+        var chaos = this.chaosAddresses?.FirstOrDefault(x => x.ChaosAddressId == id);
         if (chaos != null)
         {
             this.deleteConfirmData = chaos;
@@ -283,106 +271,6 @@ public partial class ChaosAddresses(IQuerier querier,
         this.deleteIdToProcess = Guid.Empty;
     }
 
-    private void OpenEdit(ChaosAddressSummary chaos)
-    {
-        this.editChaosAddress = chaos;
-        this.editDescription = string.Empty;
-        this.editLocalPart = chaos.LocalPart;
-        this.editSmtpCodeString = ((int)chaos.ConfiguredSmtpCode).ToString();
-        this.editSubdomainIdString = chaos.SubdomainId == Guid.Empty ? string.Empty : chaos.SubdomainId.ToString();
-        this.showEditSlideout = true;
-        try
-        {
-            this.dotNetRef = DotNetObjectReference.Create(this);
-            _ = jsRuntime.InvokeAsync<string>("registerOutsideClickHandler", "#chaos-edit-panel", this.dotNetRef, "CloseEditSlideout")
-                .AsTask().ContinueWith(t =>
-                {
-                    if (t.Status == TaskStatus.RanToCompletion)
-                    {
-                        this.outsideClickHandlerId = t.Result;
-                    }
-                });
-        }
-        catch
-        {
-            // swallow - non-fatal if JS not available
-        }
-    }
-
-    private void CloseEditSlideout()
-    {
-        this.showEditSlideout = false;
-        this.editChaosAddress = null;
-        this.editDescription = string.Empty;
-        this.editLocalPart = string.Empty;
-        this.editSmtpCodeString = string.Empty;
-        this.editSubdomainIdString = string.Empty;
-        try
-        {
-            if (!string.IsNullOrEmpty(this.outsideClickHandlerId))
-            {
-                _ = jsRuntime.InvokeVoidAsync("removeOutsideClickHandler", this.outsideClickHandlerId);
-                this.outsideClickHandlerId = null;
-            }
-
-            this.dotNetRef?.Dispose();
-            this.dotNetRef = null;
-        }
-        catch
-        {
-            // ignore
-        }
-    }
-
-    private async Task SaveEditChanges()
-    {
-        this.isEditSaving = true;
-        this.StateHasChanged();
-
-        if (this.editChaosAddress == null)
-        {
-            this.isEditSaving = false;
-            return;
-        }
-
-        if (!int.TryParse(this.editSmtpCodeString, out var smtpCodeValue))
-        {
-            notificationService.ShowError("Invalid SMTP code selected");
-            this.isEditSaving = false;
-            this.StateHasChanged();
-            return;
-        }
-
-        // determine selected subdomain and domain id
-        Guid selectedSubdomainId = string.IsNullOrEmpty(this.editSubdomainIdString) ? this.editChaosAddress.SubdomainId : Guid.Parse(this.editSubdomainIdString);
-        var selectedSubdomain = this.subdomainsByDomain?.SelectMany(x => x.Value).FirstOrDefault(x => x.Id == selectedSubdomainId);
-        Guid domainId = selectedSubdomain?.DomainId ?? this.editChaosAddress.DomainId;
-
-        var command = new EditChaosAddressCommand(
-            this.editChaosAddress.Id,
-            domainId,
-            selectedSubdomainId,
-            this.editLocalPart,
-            (SmtpResponseCode)smtpCodeValue,
-            string.IsNullOrWhiteSpace(this.editDescription) ? null : this.editDescription);
-
-        var result = await commander.Send(command);
-
-        if (result.Status == CommandResultStatus.Succeeded)
-        {
-            notificationService.ShowSuccess("Chaos address updated successfully");
-            this.CloseEditSlideout();
-            await this.LoadChaosAddresses();
-        }
-        else
-        {
-            notificationService.ShowError("Failed to update chaos address");
-        }
-
-        this.isEditSaving = false;
-        this.StateHasChanged();
-    }
-
     private async Task HandleCreate()
     {
         this.isCreating = true;
@@ -396,8 +284,7 @@ public partial class ChaosAddresses(IQuerier querier,
             domainId, // DomainId (looked up from subdomain)
             this.model.SubdomainId, // SubdomainId
             this.model.LocalPart,
-            (SmtpResponseCode)this.model.SmtpCode,
-            Guid.Empty); // CreatedBy (to be set by backend from auth context)
+            (SmtpResponseCode)this.model.SmtpCode);
 
         var result = await commander.Send(command);
 

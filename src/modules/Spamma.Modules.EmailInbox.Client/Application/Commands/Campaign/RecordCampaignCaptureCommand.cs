@@ -8,7 +8,4 @@ public record RecordCampaignCaptureCommand(
     Guid SubdomainId,
     Guid MessageId,
     string CampaignValue,
-    string Subject,
-    string From,
-    string To,
     DateTimeOffset ReceivedAt) : ICommand;

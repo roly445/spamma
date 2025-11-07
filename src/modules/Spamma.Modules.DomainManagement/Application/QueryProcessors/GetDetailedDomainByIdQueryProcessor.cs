@@ -42,11 +42,6 @@ public class GetDetailedDomainByIdQueryProcessor(IDocumentSession session) : IQu
             return DomainStatus.Suspended;
         }
 
-        if (!domain.IsVerified)
-        {
-            return DomainStatus.Pending;
-        }
-
-        return DomainStatus.Active;
+        return !domain.IsVerified ? DomainStatus.Pending : DomainStatus.Active;
     }
 }

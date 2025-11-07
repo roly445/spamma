@@ -1,19 +1,43 @@
 ﻿using System.Linq.Expressions;
 using BluQube.Queries;
 using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class SearchSubdomainViewersQueryProcessor(IDocumentSession session) : IQueryProcessor<SearchSubdomainViewersQuery, SearchSubdomainViewersQueryResult>
+public class SearchSubdomainViewersQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchSubdomainViewersQuery, SearchSubdomainViewersQueryResult>
 {
     public async Task<QueryResult<SearchSubdomainViewersQueryResult>> Handle(SearchSubdomainViewersQuery request, CancellationToken cancellationToken)
     {
-        var baseQuery = session.Query<SubdomainLookup>()
-            .Where(d => d.Id == request.SubdomainId)
-            .SelectMany(d => d.Viewers)
-            .AsQueryable();
+        var baseQuery = session.Query<SubdomainLookup>();
+        var baseWhereConditions = new List<Expression<Func<SubdomainLookup, bool>>>
+        {
+            d => d.Id == request.SubdomainId,
+        };
+
+        var skipDomains = false;
+        var user = accessor.HttpContext.ToUserAuthInfo();
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement))
+        {
+            skipDomains = true;
+        }
+
+        if (!skipDomains)
+        {
+            baseWhereConditions.Add(u =>
+                user.ModeratedDomains.Contains(u.DomainId) ||
+                user.ModeratedSubdomains.Contains(u.Id));
+        }
+
+        IQueryable<SubdomainLookup> filteredBaseQuery = baseQuery;
+        foreach (var condition in baseWhereConditions)
+        {
+            filteredBaseQuery = filteredBaseQuery.Where(condition);
+        }
 
         var whereConditions = new List<Expression<Func<Viewer, bool>>>();
 
@@ -24,11 +48,10 @@ public class SearchSubdomainViewersQueryProcessor(IDocumentSession session) : IQ
                 m.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
-        IQueryable<Viewer> filteredQuery = baseQuery;
-        foreach (var condition in whereConditions)
-        {
-            filteredQuery = filteredQuery.Where(condition);
-        }
+        var filteredQuery = filteredBaseQuery
+            .SelectMany(d => d.Viewers)
+            .AsQueryable();
+        filteredQuery = whereConditions.Aggregate(filteredQuery, (current, condition) => current.Where(condition));
 
         IOrderedQueryable<Viewer> orderedQuery = request.SortBy.ToLowerInvariant() switch
         {

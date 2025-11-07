@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ResultMonad;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.UserManagement;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.User;

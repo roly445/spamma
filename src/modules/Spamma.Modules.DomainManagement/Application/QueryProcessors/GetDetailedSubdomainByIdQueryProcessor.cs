@@ -35,11 +35,6 @@ public class GetDetailedSubdomainByIdQueryProcessor(IDocumentSession session) : 
 
     private static SubdomainStatus GetStatus(SubdomainLookup domain)
     {
-        if (domain.IsSuspended)
-        {
-            return SubdomainStatus.Suspended;
-        }
-
-        return SubdomainStatus.Active;
+        return domain.IsSuspended ? SubdomainStatus.Suspended : SubdomainStatus.Active;
     }
 }

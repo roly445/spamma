@@ -10,7 +10,7 @@ public class SearchSubdomainsQueryAuthorizer(IInternalQueryStore internalQuerySt
 {
     public override void BuildPolicy(SearchSubdomainsQuery request)
     {
-        if (!internalQueryStore.IsStoringReferenceForObject(request))
+        if (!internalQueryStore.IsQueryStored(request))
         {
             this.UseRequirement(new MustBeAuthenticatedRequirement());
             this.UseRequirement(new MustBeModeratorToAtLeastOneSubdomainRequirement());

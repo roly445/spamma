@@ -91,13 +91,13 @@ public partial class Campaign : AggregateRoot
                 "MessageId cannot be empty."));
         }
 
-        var @event = new CampaignCaptured(this.Id, messageId, capturedAt);
+        var @event = new CampaignCaptured(messageId, capturedAt);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> Delete(DateTimeOffset deletedAt, bool force = false)
+    internal ResultWithError<BluQubeErrorData> Delete(DateTimeOffset deletedAt)
     {
         if (this.DeletedAt.HasValue)
         {
@@ -106,7 +106,7 @@ public partial class Campaign : AggregateRoot
                 $"Campaign '{this.Id}' has already been deleted."));
         }
 
-        var @event = new CampaignDeleted(this.Id, deletedAt, force);
+        var @event = new CampaignDeleted(deletedAt);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();

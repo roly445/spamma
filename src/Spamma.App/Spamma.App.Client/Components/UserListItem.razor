@@ -1,0 +1,98 @@
+@using Microsoft.AspNetCore.Components
+@using System.Security.Cryptography
+@using System.Text
+
+<div class="flex items-center">
+    @if (!string.IsNullOrEmpty(_gravatarUrl))
+    {
+        <img src="@_gravatarUrl" alt="@UserEmail" class="h-@Size w-@Size rounded-full object-cover" @onerror="ShowInitials" />
+    }
+    else
+    {
+        <div class="h-@Size w-@Size bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+            <span class="@GetInitialsFontSize() font-medium text-white">@_userInitials</span>
+        </div>
+    }
+    @if (ShowName)
+    {
+        <div class="ml-4">
+            <div class="text-sm font-medium text-gray-900">@(UserName ?? "No Name")</div>
+            <div class="text-sm text-gray-500">@UserEmail</div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string? UserName { get; set; }
+
+    [Parameter]
+    public string UserEmail { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool ShowName { get; set; } = false;
+
+    [Parameter]
+    public string Size { get; set; } = "10";
+
+    private string _userInitials = "U";
+    private string? _gravatarUrl;
+
+    protected override void OnInitialized()
+    {
+        // Calculate user initials
+        if (!string.IsNullOrEmpty(UserName))
+        {
+            var parts = UserName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            _userInitials = parts.Length > 1
+                ? $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[^1][0])}"
+                : $"{char.ToUpper(parts[0][0])}";
+        }
+        else if (!string.IsNullOrEmpty(UserEmail))
+        {
+            _userInitials = UserEmail[0].ToString().ToUpper();
+        }
+
+        // Generate Gravatar URL
+        if (!string.IsNullOrEmpty(UserEmail))
+        {
+            var hash = ComputeSimpleHash(UserEmail);
+            var sizeParam = Size switch
+            {
+                "10" => 40,
+                "8" => 32,
+                _ => 40
+            };
+            _gravatarUrl = $"https://www.gravatar.com/avatar/{hash}?s={sizeParam}&d=404";
+        }
+    }
+
+    private void ShowInitials()
+    {
+        _gravatarUrl = null;
+        StateHasChanged();
+    }
+
+    private string GetInitialsFontSize() => Size switch
+    {
+        "8" => "text-xs",
+        "10" => "text-sm",
+        "12" => "text-base",
+        "16" => "text-lg",
+        "20" => "text-xl",
+        _ => "text-sm"
+    };
+
+    private static string ComputeSimpleHash(string email)
+    {
+        var emailLower = email.Trim().ToLowerInvariant();
+        var bytes = Encoding.UTF8.GetBytes(emailLower);
+        var hash = 0;
+        foreach (var b in bytes)
+        {
+            hash = ((hash << 5) - hash) + b;
+        }
+
+        return Math.Abs(hash).ToString("x8");
+    }
+}

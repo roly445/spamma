@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Spamma.Modules.UserManagement.Client.Contracts;
+namespace Spamma.Modules.Common.Client;
 
 [Flags]
 public enum SystemRole

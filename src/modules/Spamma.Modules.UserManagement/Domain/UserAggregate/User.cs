@@ -1,5 +1,6 @@
 ﻿using BluQube.Commands;
 using ResultMonad;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;

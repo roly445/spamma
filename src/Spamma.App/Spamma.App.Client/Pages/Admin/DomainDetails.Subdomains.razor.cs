@@ -27,6 +27,6 @@ public partial class DomainDetails
             return;
         }
 
-        this._addSubdomain?.Open(new AddSubdomain.DataModel(this.domain.Id, this.domain.DomainName, null));
+        this._addSubdomain?.Open(new AddSubdomain.DataModel(this.domain.DomainId, this.domain.DomainName, null));
     }
 }
