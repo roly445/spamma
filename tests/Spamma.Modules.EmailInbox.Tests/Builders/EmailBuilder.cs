@@ -1,0 +1,69 @@
+using Spamma.Modules.EmailInbox.Client;
+using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
+using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
+
+namespace Spamma.Modules.EmailInbox.Tests.Builders;
+
+internal class EmailBuilder
+{
+    private Guid _emailId = Guid.NewGuid();
+    private Guid _domainId = Guid.NewGuid();
+    private Guid _subdomainId = Guid.NewGuid();
+    private string _subject = "Test Subject";
+    private DateTime _whenSent = DateTime.UtcNow;
+    private List<EmailReceived.EmailAddress> _emailAddresses = new()
+    {
+        new("test@example.com", "Test User", EmailAddressType.To),
+    };
+
+    internal EmailBuilder WithEmailId(Guid emailId)
+    {
+        this._emailId = emailId;
+        return this;
+    }
+
+    internal EmailBuilder WithDomainId(Guid domainId)
+    {
+        this._domainId = domainId;
+        return this;
+    }
+
+    internal EmailBuilder WithSubdomainId(Guid subdomainId)
+    {
+        this._subdomainId = subdomainId;
+        return this;
+    }
+
+    internal EmailBuilder WithSubject(string subject)
+    {
+        this._subject = subject;
+        return this;
+    }
+
+    internal EmailBuilder WithWhenSent(DateTime whenSent)
+    {
+        this._whenSent = whenSent;
+        return this;
+    }
+
+    internal EmailBuilder WithEmailAddresses(List<EmailReceived.EmailAddress> emailAddresses)
+    {
+        this._emailAddresses = emailAddresses;
+        return this;
+    }
+
+    internal Email Build()
+    {
+        var result = Email.Create(
+            this._emailId,
+            this._domainId,
+            this._subdomainId,
+            this._subject,
+            this._whenSent,
+            this._emailAddresses);
+
+        var email = result.Value;
+        return email;
+    }
+}

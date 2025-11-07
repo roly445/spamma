@@ -9,12 +9,12 @@ namespace Spamma.Modules.EmailInbox.Application.AuthorizationRequirements;
 public class MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement : IAuthorizationRequirement
 {
     [UsedImplicitly]
-    private sealed class MustHaveAccessToAtLeastOneCampaignRequirementHandler(
+    private sealed class MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirementHandler(
         IHttpContextAccessor httpContextAccessor)
-        : IAuthorizationHandler<MustHaveAccessToAtLeastOneCampaignRequirement>
+        : IAuthorizationHandler<MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement>
     {
         public Task<AuthorizationResult> Handle(
-            MustHaveAccessToAtLeastOneCampaignRequirement requirement,
+            MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement requirement,
             CancellationToken cancellationToken = default)
         {
             var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
