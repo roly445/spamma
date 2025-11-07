@@ -1,0 +1,1014 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\andre\\Code\\spamma\\tests\\Spamma.Modules.EmailInbox.Tests.E2E\\Spamma.Modules.EmailInbox.Tests.E2E.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj",
+        "projectName": "Spamma.Modules.Common.Client",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj",
+        "projectName": "Spamma.Modules.Common",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "DotNetCore.CAP": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "JetBrains.Annotations": {
+              "target": "Package",
+              "version": "[2025.2.2, )"
+            },
+            "Marten": {
+              "target": "Package",
+              "version": "[8.13.3, )"
+            },
+            "MaybeMonad": {
+              "target": "Package",
+              "version": "[1.0.1.1, )"
+            },
+            "MediatR.Behaviors.Authorization": {
+              "target": "Package",
+              "version": "[12.5.0, )"
+            },
+            "Microsoft.AspNetCore.Http.Abstractions": {
+              "target": "Package",
+              "version": "[2.3.0, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "ResultMonad": {
+              "target": "Package",
+              "version": "[1.0.1, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.14.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj",
+        "projectName": "Spamma.Modules.DomainManagement.Client",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "BluQube": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement\\Spamma.Modules.DomainManagement.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement\\Spamma.Modules.DomainManagement.csproj",
+        "projectName": "Spamma.Modules.DomainManagement",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement\\Spamma.Modules.DomainManagement.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement\\Spamma.Modules.UserManagement.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement\\Spamma.Modules.UserManagement.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "BluQube": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "DnsClient": {
+              "target": "Package",
+              "version": "[1.8.0, )"
+            },
+            "DotNetCore.CAP": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "FluentValidation.DependencyInjectionExtensions": {
+              "target": "Package",
+              "version": "[12.0.0, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "Nager.PublicSuffix": {
+              "target": "Package",
+              "version": "[3.7.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj",
+        "projectName": "Spamma.Modules.EmailInbox.Client",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "BluQube": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj",
+        "projectName": "Spamma.Modules.EmailInbox",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "BluQube": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "Certes": {
+              "target": "Package",
+              "version": "[3.0.4, )"
+            },
+            "FluentValidation.DependencyInjectionExtensions": {
+              "target": "Package",
+              "version": "[12.0.0, )"
+            },
+            "MimeKit": {
+              "target": "Package",
+              "version": "[4.14.0, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "ResultMonad": {
+              "target": "Package",
+              "version": "[1.0.1, )"
+            },
+            "SmtpServer": {
+              "target": "Package",
+              "version": "[11.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement.Client\\Spamma.Modules.UserManagement.Client.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement.Client\\Spamma.Modules.UserManagement.Client.csproj",
+        "projectName": "Spamma.Modules.UserManagement.Client",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement.Client\\Spamma.Modules.UserManagement.Client.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement.Client\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "BluQube": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement\\Spamma.Modules.UserManagement.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement\\Spamma.Modules.UserManagement.csproj",
+        "projectName": "Spamma.Modules.UserManagement",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement\\Spamma.Modules.UserManagement.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common.Client\\Spamma.Modules.Common.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.Common\\Spamma.Modules.Common.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement.Client\\Spamma.Modules.UserManagement.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.UserManagement.Client\\Spamma.Modules.UserManagement.Client.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "BluQube": {
+              "target": "Package",
+              "version": "[1.0.3, )"
+            },
+            "DotNetCore.CAP": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
+            "Fido2": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
+            "Fido2.AspNet": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
+            "FluentValidation.DependencyInjectionExtensions": {
+              "target": "Package",
+              "version": "[12.0.0, )"
+            },
+            "MinVer": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[2.9.32, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.AspNetCore.App": {
+              "privateAssets": "none"
+            },
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\Users\\andre\\Code\\spamma\\tests\\Spamma.Modules.EmailInbox.Tests.E2E\\Spamma.Modules.EmailInbox.Tests.E2E.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\andre\\Code\\spamma\\tests\\Spamma.Modules.EmailInbox.Tests.E2E\\Spamma.Modules.EmailInbox.Tests.E2E.csproj",
+        "projectName": "Spamma.Modules.EmailInbox.Tests.E2E",
+        "projectPath": "C:\\Users\\andre\\Code\\spamma\\tests\\Spamma.Modules.EmailInbox.Tests.E2E\\Spamma.Modules.EmailInbox.Tests.E2E.csproj",
+        "packagesPath": "C:\\Users\\andre\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\andre\\Code\\spamma\\tests\\Spamma.Modules.EmailInbox.Tests.E2E\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\andre\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement.Client\\Spamma.Modules.DomainManagement.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement\\Spamma.Modules.DomainManagement.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.DomainManagement\\Spamma.Modules.DomainManagement.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox.Client\\Spamma.Modules.EmailInbox.Client.csproj"
+              },
+              "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj": {
+                "projectPath": "C:\\Users\\andre\\Code\\spamma\\src\\modules\\Spamma.Modules.EmailInbox\\Spamma.Modules.EmailInbox.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "allWarningsAsErrors": true,
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.66, )"
+            },
+            "FluentAssertions": {
+              "target": "Package",
+              "version": "[8.8.0, )"
+            },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.14.1, )"
+            },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[18.0.0, )"
+            },
+            "SonarAnalyzer.CSharp": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.15.0.120848, )"
+            },
+            "StyleCop.Analyzers": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.2.0-beta.556, )"
+            },
+            "Testcontainers": {
+              "target": "Package",
+              "version": "[4.8.1, )"
+            },
+            "Testcontainers.PostgreSql": {
+              "target": "Package",
+              "version": "[4.8.1, )"
+            },
+            "Weasel.Core": {
+              "target": "Package",
+              "version": "[8.2.0, )"
+            },
+            "coverlet.collector": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.4, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.9.3, )"
+            },
+            "xunit.runner.visualstudio": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[3.1.5, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
