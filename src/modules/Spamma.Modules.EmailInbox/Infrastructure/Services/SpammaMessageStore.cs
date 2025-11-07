@@ -135,6 +135,7 @@ public class SpammaMessageStore : MessageStore
                 var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
 
                 var job = new Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob(
+                    foundSubdomain.ParentDomainId,
                     foundSubdomain.SubdomainId,
                     messageId,
                     campaignValue,

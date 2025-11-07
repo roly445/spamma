@@ -4,6 +4,8 @@ public class CampaignSummary
 {
     public Guid CampaignId { get; set; }
 
+    public Guid DomainId { get; set; }
+
     public Guid SubdomainId { get; set; }
 
     public string CampaignValue { get; set; } = string.Empty;

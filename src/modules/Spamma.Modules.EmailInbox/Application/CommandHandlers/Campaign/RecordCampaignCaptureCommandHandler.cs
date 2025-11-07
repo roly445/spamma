@@ -34,6 +34,7 @@ public class RecordCampaignCaptureCommandHandler(
                 {
                     var createResult = Domain.CampaignAggregate.Campaign.Create(
                         campaignId,
+                        request.DomainId,
                         request.SubdomainId,
                         request.CampaignValue,
                         request.MessageId,

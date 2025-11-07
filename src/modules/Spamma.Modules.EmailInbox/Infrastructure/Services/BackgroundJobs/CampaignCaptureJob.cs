@@ -5,6 +5,7 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 /// Captured before scope disposal to avoid ObjectDisposedException.
 /// </summary>
 public sealed record CampaignCaptureJob(
+    Guid DomainId,
     Guid SubdomainId,
     Guid EmailId,
     string CampaignValue,

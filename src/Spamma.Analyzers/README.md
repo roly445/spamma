@@ -52,16 +52,16 @@ Add reference to analyzer project in your csproj:
 
 ### SPAMMA002: Command Should Have Authorizer
 
-**Severity**: Info (informational, non-blocking)
+**Severity**: Warning
 
 **Rule**: Every CQRS command decorated with `[BluQubeCommand]` should have at least one corresponding `AbstractRequestAuthorizer<T>` implementation.
 
-**Purpose**: Encourages explicit authorization logic for CQRS commands. Commands should define who can execute them before handlers run.
+**Purpose**: Ensures explicit authorization logic for CQRS commands. Commands should define who can execute them before handlers run.
 
 **Example - Violation**:
 
 ```csharp
-// ⚠️ INFO - No authorizer for this command (allowed but discouraged)
+// ❌ WARNING - No authorizer for this command
 [BluQubeCommand(Path = "api/users/update-profile")]
 public record UpdateUserProfileCommand(Guid UserId, string Name) : ICommand;
 
@@ -79,19 +79,46 @@ public record UpdateUserProfileCommand(Guid UserId, string Name) : ICommand;
 // Authorizer ensures only the user themselves can update their profile
 public class UpdateUserProfileAuthorizer : AbstractRequestAuthorizer<UpdateUserProfileCommand>
 {
-    protected override Task<AuthorizationResult> AuthorizeAsync(
-        UpdateUserProfileCommand request,
-        AuthorizationHandlerContext context,
-        CancellationToken cancellationToken)
+    public override void BuildPolicy(UpdateUserProfileCommand request)
     {
-        // Check if current user is updating their own profile
-        var currentUserId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (Guid.TryParse(currentUserId, out var userId) && userId == request.UserId)
-        {
-            return Task.FromResult(AuthorizationResult.Success());
-        }
+        UseRequirement(new MustBeAuthenticatedRequirement());
+        UseRequirement(new MustBeOwnerRequirement(request.UserId));
+    }
+}
+```
 
-        return Task.FromResult(AuthorizationResult.Failed());
+### SPAMMA003: Query Should Have Authorizer
+
+**Severity**: Warning
+
+**Rule**: Every CQRS query decorated with `[BluQubeQuery]` should have at least one corresponding `AbstractRequestAuthorizer<T>` implementation.
+
+**Purpose**: Ensures explicit authorization logic for CQRS queries. Queries should define who can execute them before handlers run.
+
+**Example - Violation**:
+
+```csharp
+// ❌ WARNING - No authorizer for this query
+[BluQubeQuery(Path = "api/users/profile")]
+public record GetUserProfileQuery(Guid UserId) : IQuery<GetUserProfileQueryResult>;
+
+// Query handler will execute without explicit authorization checks
+public class GetUserProfileQueryHandler : QueryProcessor<GetUserProfileQuery, GetUserProfileQueryResult> { }
+```
+
+**Example - Compliance**:
+
+```csharp
+// ✅ PASSES - Query has corresponding authorizer
+[BluQubeQuery(Path = "api/users/profile")]
+public record GetUserProfileQuery(Guid UserId) : IQuery<GetUserProfileQueryResult>;
+
+// Authorizer ensures proper access control
+public class GetUserProfileQueryAuthorizer : AbstractRequestAuthorizer<GetUserProfileQuery>
+{
+    public override void BuildPolicy(GetUserProfileQuery request)
+    {
+        UseRequirement(new MustBeAuthenticatedRequirement());
     }
 }
 ```
@@ -102,7 +129,9 @@ Add reference to analyzer project in your csproj:
 
 ```xml
 <ItemGroup>
-    <ProjectReference Include="../../src/Spamma.Analyzers/Spamma.Analyzers.csproj" />
+    <ProjectReference Include="../../src/Spamma.Analyzers/Spamma.Analyzers.csproj" 
+                      OutputItemType="Analyzer" 
+                      ReferenceOutputAssembly="false"/>
 </ItemGroup>
 ```
 
@@ -111,18 +140,21 @@ Add reference to analyzer project in your csproj:
 Configure severity in `.editorconfig`:
 
 ```editorconfig
-# SPAMMA001 - Command Must Have Validator (default: warning)
+# SPAMMA001 - Command Must Have Validator (default: error)
 dotnet_diagnostic.SPAMMA001.severity = error
 
-# SPAMMA002 - Command Should Have Authorizer (default: info)
-dotnet_diagnostic.SPAMMA002.severity = info
+# SPAMMA002 - Command Should Have Authorizer (default: warning)
+dotnet_diagnostic.SPAMMA002.severity = warning
 
-# Or disable
+# SPAMMA003 - Query Should Have Authorizer (default: warning)
+dotnet_diagnostic.SPAMMA003.severity = warning
+
+# Or disable specific rules
 dotnet_diagnostic.SPAMMA002.severity = silent
+dotnet_diagnostic.SPAMMA003.severity = silent
 ```
 
 ## Future Rules
 
-- **SPAMMA003**: Module Isolation (prevent cross-module internal references)
-- **SPAMMA004**: Aggregate ID Type Safety
-- **SPAMMA005**: CQRS Attribute Validation
+- **SPAMMA004**: Module Isolation (prevent cross-module internal references)
+- **SPAMMA005**: Aggregate ID Type Safety

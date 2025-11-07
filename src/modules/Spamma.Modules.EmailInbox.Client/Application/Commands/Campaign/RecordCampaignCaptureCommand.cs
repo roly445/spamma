@@ -5,6 +5,7 @@ namespace Spamma.Modules.EmailInbox.Client.Application.Commands;
 
 [BluQubeCommand(Path = "api/email-inbox/campaigns/record-capture")]
 public record RecordCampaignCaptureCommand(
+    Guid DomainId,
     Guid SubdomainId,
     Guid MessageId,
     string CampaignValue,

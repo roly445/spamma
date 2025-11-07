@@ -7,25 +7,25 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Spamma.Analyzers;
 
 /// <summary>
-/// Analyzer that checks if all CQRS commands have corresponding authorization handlers.
-/// Commands should have an AbstractRequestAuthorizer implementation to enforce authorization rules.
+/// Analyzer that checks if all CQRS queries have corresponding authorization handlers.
+/// Queries should have an AbstractRequestAuthorizer implementation to enforce authorization rules.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
+public sealed class QueryAuthorizerAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "SPAMMA002";
+    public const string DiagnosticId = "SPAMMA003";
 
     private const string Category = "CQRS";
 
-    private static readonly LocalizableString Title = "Command should have authorizer";
+    private static readonly LocalizableString Title = "Query should have authorizer";
 
     private static readonly LocalizableString MessageFormat =
-        "Command '{0}' does not have a corresponding AbstractRequestAuthorizer<{0}> implementation. " +
-        "Commands should have authorization handlers to enforce access control.";
+        "Query '{0}' does not have a corresponding AbstractRequestAuthorizer<{0}> implementation. " +
+        "Queries should have authorization handlers to enforce access control.";
 
     private static readonly LocalizableString Description =
-        "CQRS commands should have authorization handlers that inherit from AbstractRequestAuthorizer. " +
-        "This ensures that authorization logic is explicitly defined and enforced before command processing.";
+        "CQRS queries should have authorization handlers that inherit from AbstractRequestAuthorizer. " +
+        "This ensures that authorization logic is explicitly defined and enforced before query processing.";
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
         DiagnosticId,
@@ -55,17 +55,17 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
 
         if (!compilationName.EndsWith(".Client"))
         {
-            var commandsWithAuthorizers = BuildAuthorizerMap(context.Compilation);
+            var queriesWithAuthorizers = BuildAuthorizerMap(context.Compilation);
 
-            context.RegisterSymbolAction(ctx => CheckCommandsHaveAuthorizers(ctx, commandsWithAuthorizers, context.Compilation), SymbolKind.NamedType);
+            context.RegisterSymbolAction(ctx => CheckQueriesHaveAuthorizers(ctx, queriesWithAuthorizers, context.Compilation), SymbolKind.NamedType);
         }
     }
 
     private static HashSet<string> BuildAuthorizerMap(Compilation compilation)
     {
-        var commandsWithAuthorizers = new HashSet<string>();
+        var queriesWithAuthorizers = new HashSet<string>();
 
-        var visitor = new AuthorizerCollector(commandsWithAuthorizers, compilation);
+        var visitor = new AuthorizerCollector(queriesWithAuthorizers, compilation);
 
         foreach (var syntaxTree in compilation.SyntaxTrees)
         {
@@ -73,10 +73,10 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
             visitor.Visit(root);
         }
 
-        return commandsWithAuthorizers;
+        return queriesWithAuthorizers;
     }
 
-    private static void CheckCommandsHaveAuthorizers(SymbolAnalysisContext context, HashSet<string> commandsWithAuthorizers, Compilation compilation)
+    private static void CheckQueriesHaveAuthorizers(SymbolAnalysisContext context, HashSet<string> queriesWithAuthorizers, Compilation compilation)
     {
         var compilationName = compilation.AssemblyName ?? "Unknown";
 
@@ -86,17 +86,17 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
             {
                 CheckedAssemblies.Add(compilationName);
 
-                var missingAuthorizers = FindMissingAuthorizers(compilation, commandsWithAuthorizers);
-                foreach (var commandName in missingAuthorizers)
+                var missingAuthorizers = FindMissingAuthorizers(compilation, queriesWithAuthorizers);
+                foreach (var queryName in missingAuthorizers)
                 {
-                    var diagnostic = Diagnostic.Create(Rule, Location.None, commandName);
+                    var diagnostic = Diagnostic.Create(Rule, Location.None, queryName);
                     context.ReportDiagnostic(diagnostic);
                 }
             }
         }
     }
 
-    private static List<string> FindMissingAuthorizers(Compilation compilation, HashSet<string> commandsWithAuthorizers)
+    private static List<string> FindMissingAuthorizers(Compilation compilation, HashSet<string> queriesWithAuthorizers)
     {
         var missingAuthorizers = new List<string>();
         var currentAssemblyName = compilation.AssemblyName ?? "Unknown";
@@ -107,20 +107,20 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
         {
             if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly && (assembly.Name == currentAssemblyName || assembly.Name == clientAssemblyName || assembly.Name == serverAssemblyName))
             {
-                FindMissingInNamespace(assembly.GlobalNamespace, commandsWithAuthorizers, missingAuthorizers);
+                FindMissingInNamespace(assembly.GlobalNamespace, queriesWithAuthorizers, missingAuthorizers);
             }
         }
 
         return missingAuthorizers;
     }
 
-    private static void FindMissingInNamespace(INamespaceSymbol namespaceSymbol, HashSet<string> commandsWithAuthorizers, List<string> missing)
+    private static void FindMissingInNamespace(INamespaceSymbol namespaceSymbol, HashSet<string> queriesWithAuthorizers, List<string> missing)
     {
         // Check all types in this namespace
-        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => HasBluQubeCommandAttribute(t)))
+        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => HasBluQubeQueryAttribute(t)))
         {
-            var commandFullName = type.GetFullyQualifiedName();
-            if (!commandsWithAuthorizers.Contains(commandFullName))
+            var queryFullName = type.GetFullyQualifiedName();
+            if (!queriesWithAuthorizers.Contains(queryFullName))
             {
                 missing.Add(type.Name);
             }
@@ -128,18 +128,18 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
 
         foreach (var nestedNamespace in namespaceSymbol.GetNamespaceMembers())
         {
-            FindMissingInNamespace(nestedNamespace, commandsWithAuthorizers, missing);
+            FindMissingInNamespace(nestedNamespace, queriesWithAuthorizers, missing);
         }
     }
 
-    private static bool HasBluQubeCommandAttribute(INamedTypeSymbol typeSymbol)
+    private static bool HasBluQubeQueryAttribute(INamedTypeSymbol typeSymbol)
     {
         return typeSymbol.GetAttributes().Any(a =>
-            a.AttributeClass?.Name == "BluQubeCommandAttribute" ||
-            a.AttributeClass?.Name == "BluQubeCommand");
+            a.AttributeClass?.Name == "BluQubeQueryAttribute" ||
+            a.AttributeClass?.Name == "BluQubeQuery");
     }
 
-    private sealed class AuthorizerCollector(HashSet<string> commandsWithAuthorizers, Compilation compilation)
+    private sealed class AuthorizerCollector(HashSet<string> queriesWithAuthorizers, Compilation compilation)
         : CSharpSyntaxWalker
     {
         private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModels = new();
@@ -155,11 +155,11 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
 
             if (semanticModel.GetDeclaredSymbol(node) is { } typeInfo && IsAuthorizerType(typeInfo))
             {
-                // Extract the command type this authorizer authorizes
-                var commandType = ExtractAuthorizedCommandType(typeInfo);
-                if (commandType != null)
+                // Extract the query type this authorizer authorizes
+                var queryType = ExtractAuthorizedQueryType(typeInfo);
+                if (queryType != null)
                 {
-                    commandsWithAuthorizers.Add(commandType.GetFullyQualifiedName());
+                    queriesWithAuthorizers.Add(queryType.GetFullyQualifiedName());
                 }
             }
 
@@ -183,9 +183,9 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
             return false;
         }
 
-        private static ITypeSymbol? ExtractAuthorizedCommandType(INamedTypeSymbol authorizerType)
+        private static ITypeSymbol? ExtractAuthorizedQueryType(INamedTypeSymbol authorizerType)
         {
-            // Check base class for AbstractRequestAuthorizer<TCommand>
+            // Check base class for AbstractRequestAuthorizer<TQuery>
             var baseClass = authorizerType.BaseType;
             while (baseClass is not null)
             {

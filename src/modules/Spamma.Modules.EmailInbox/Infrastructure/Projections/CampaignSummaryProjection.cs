@@ -16,6 +16,7 @@ public class CampaignSummaryProjection : EventProjection
         return new CampaignSummary
         {
             CampaignId = @event.CampaignId,
+            DomainId = @event.DomainId,
             SubdomainId = @event.SubdomainId,
             CampaignValue = @event.CampaignValue,
             SampleMessageId = @event.MessageId,

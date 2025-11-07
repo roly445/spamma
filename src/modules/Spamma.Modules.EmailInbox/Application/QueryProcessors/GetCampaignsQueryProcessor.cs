@@ -27,6 +27,8 @@ public class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProces
             Items: items
                 .Select(c => new GetCampaignsQueryResult.CampaignSummary(
                     c.CampaignId,
+                    c.DomainId,
+                    c.SubdomainId,
                     c.CampaignValue,
                     c.FirstReceivedAt,
                     c.LastReceivedAt,

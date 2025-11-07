@@ -63,6 +63,7 @@ public class PersistReceivedEmailHandler(
                 {
                     await commander.Send(
                         new RecordCampaignCaptureCommand(
+                            ev.DomainId,
                             ev.SubdomainId,
                             ev.EmailId,
                             ev.CampaignValue,

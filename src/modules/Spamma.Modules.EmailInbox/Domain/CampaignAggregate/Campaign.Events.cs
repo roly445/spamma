@@ -24,6 +24,7 @@ public partial class Campaign
     private void Apply(Events.CampaignCreated @event)
     {
         this.Id = @event.CampaignId;
+        this.DomainId = @event.DomainId;
         this.SubdomainId = @event.SubdomainId;
         this.CampaignValue = @event.CampaignValue;
         this.CreatedAt = @event.CreatedAt;

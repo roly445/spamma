@@ -40,6 +40,7 @@ public sealed class BackgroundJobProcessor(
 
                     await commander.Send(
                         new RecordCampaignCaptureCommand(
+                            job.DomainId,
                             job.SubdomainId,
                             job.EmailId,
                             job.CampaignValue,
