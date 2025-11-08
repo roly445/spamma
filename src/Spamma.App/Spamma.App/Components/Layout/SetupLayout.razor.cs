@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-
-namespace Spamma.App.Components.Layout;
+﻿namespace Spamma.App.Components.Layout;
 
 public partial class SetupLayout
 {
