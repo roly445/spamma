@@ -48,12 +48,12 @@ public class ChangeDetailsCommandValidatorTests
     {
         // Arrange
         var repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        
+
         // FluentValidation runs ALL validators in chain, so set up email mock
         repositoryMock
             .Setup(x => x.GetByEmailAddressAsync("john@example.com", It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<User>.Nothing);
-        
+
         var validator = new ChangeDetailsCommandValidator(repositoryMock.Object);
         var command = new ChangeDetailsCommand(
             UserId: Guid.Empty,
@@ -74,12 +74,12 @@ public class ChangeDetailsCommandValidatorTests
     {
         // Arrange
         var repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        
+
         // FluentValidation runs ALL validators in chain even if one fails
         repositoryMock
             .Setup(x => x.GetByEmailAddressAsync(string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<User>.Nothing);
-        
+
         var validator = new ChangeDetailsCommandValidator(repositoryMock.Object);
         var command = new ChangeDetailsCommand(
             UserId: Guid.NewGuid(),
@@ -163,6 +163,7 @@ public class ChangeDetailsCommandValidatorTests
     }
 
     [Fact]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Sonar Code Smell", "S4144:Methods should not have identical implementations", Justification = "Test methods validate different scenarios despite similar structure")]
     public async Task ValidateAsync_SameUserChangingEmailToSameAddress_IsValid()
     {
         // Arrange

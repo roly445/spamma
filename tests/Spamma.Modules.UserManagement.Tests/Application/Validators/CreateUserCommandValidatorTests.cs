@@ -90,13 +90,13 @@ public class CreateUserCommandValidatorTests
     {
         // Arrange
         var repositoryMock = new Mock<IUserRepository>(MockBehavior.Strict);
-        
+
         // FluentValidation runs ALL validators in chain even if one fails
         // So MustAsync will be called even though NotEmpty should fail first
         repositoryMock
             .Setup(x => x.GetByEmailAddressAsync(string.Empty, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<User>.Nothing);
-        
+
         var validator = new CreateUserCommandValidator(repositoryMock.Object);
         var command = new CreateUserCommand(
             UserId: Guid.NewGuid(),
