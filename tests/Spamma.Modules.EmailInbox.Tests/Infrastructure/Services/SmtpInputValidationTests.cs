@@ -82,6 +82,7 @@ public class SmtpInputValidationTests
 
         var buffer = CreateBufferFromMimeMessage(message);
         var (serviceProvider, mocks) = CreateMockServiceProvider();
+        var ingestionChannel = serviceProvider.GetRequiredService<Channel<EmailIngestionJob>>();
 
         var subdomain = CreateSubdomainSummary("test.spamma.io");
 
@@ -97,19 +98,15 @@ public class SmtpInputValidationTests
             .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
 
-        mocks.CommanderMock
-            .Setup(x => x.Send(It.Is<ReceivedEmailCommand>(cmd => cmd.Subject == maliciousSubject), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Succeeded());
-
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
         result.Should().Be(SmtpResponse.Ok, "valid email should be accepted regardless of subject content");
-        mocks.CommanderMock.Verify(
-            x => x.Send(It.Is<ReceivedEmailCommand>(cmd => cmd.Subject == maliciousSubject), It.IsAny<CancellationToken>()),
-            Times.Once,
-            "SQL injection characters should be stored as-is (event sourcing handles escaping)");
+
+        // Verify job was queued with correct subject (SQL injection characters preserved)
+        ingestionChannel.Reader.TryRead(out var job).Should().BeTrue();
+        job!.Message.Subject.Should().Be(maliciousSubject, "SQL injection characters should be stored as-is (event sourcing handles escaping)");
     }
 
     [Fact]
@@ -173,6 +170,7 @@ public class SmtpInputValidationTests
 
         var buffer = CreateBufferFromMimeMessage(message);
         var (serviceProvider, mocks) = CreateMockServiceProvider();
+        var ingestionChannel = serviceProvider.GetRequiredService<Channel<EmailIngestionJob>>();
 
         var subdomain = CreateSubdomainSummary("test.spamma.io");
 
@@ -188,22 +186,15 @@ public class SmtpInputValidationTests
             .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
 
-        mocks.CommanderMock
-            .Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Succeeded());
-
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
         result.Should().Be(SmtpResponse.Ok, "MimeKit should handle CRLF in headers safely");
-        mocks.CommanderMock.Verify(
-            x => x.Send(
-                It.Is<ReceivedEmailCommand>(cmd =>
-                    cmd.Subject.Contains(crlfSubject) || cmd.Subject.Contains("Legitimate Subject")),
-                It.IsAny<CancellationToken>()),
-            Times.Once,
-            "subject should be stored (MimeKit handles CRLF sanitization)");
+
+        // Verify job was queued and subject was stored (MimeKit handles CRLF sanitization)
+        ingestionChannel.Reader.TryRead(out var job).Should().BeTrue();
+        job!.Message.Subject.Should().Contain("Legitimate Subject", "subject should be stored (MimeKit handles CRLF sanitization)");
     }
 
     [Fact]
@@ -242,6 +233,7 @@ public class SmtpInputValidationTests
 
         var buffer = CreateBufferFromMimeMessage(message);
         var (serviceProvider, mocks) = CreateMockServiceProvider();
+        var ingestionChannel = serviceProvider.GetRequiredService<Channel<EmailIngestionJob>>();
 
         var subdomain = CreateSubdomainSummary("test.spamma.io");
 
@@ -258,35 +250,18 @@ public class SmtpInputValidationTests
             .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
 
-        mocks.CommanderMock
-            .Setup(
-                x => x.Send(
-                    It.Is<ReceivedEmailCommand>(cmd =>
-                        cmd.EmailAddresses.Count == 5 && // 4 recipients + 1 sender
-                        cmd.EmailAddresses.Any(a => a.Address == "user1@test.spamma.io" && a.EmailAddressType == EmailAddressType.To) &&
-                        cmd.EmailAddresses.Any(a => a.Address == "user2@test.spamma.io" && a.EmailAddressType == EmailAddressType.To) &&
-                        cmd.EmailAddresses.Any(a => a.Address == "user3@test.spamma.io" && a.EmailAddressType == EmailAddressType.Cc) &&
-                        cmd.EmailAddresses.Any(a => a.Address == "user4@test.spamma.io" && a.EmailAddressType == EmailAddressType.Bcc) &&
-                        cmd.EmailAddresses.Any(a => a.Address == "sender@example.com" && a.EmailAddressType == EmailAddressType.From)),
-                    It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Succeeded());
-
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
         result.Should().Be(SmtpResponse.Ok, "all recipients should be extracted and stored");
-        mocks.CommanderMock.Verify(
-            x => x.Send(
-                It.Is<ReceivedEmailCommand>(cmd =>
-                    cmd.EmailAddresses.Count == 5 &&
-                    cmd.EmailAddresses.Any(a => a.EmailAddressType == EmailAddressType.To) &&
-                    cmd.EmailAddresses.Any(a => a.EmailAddressType == EmailAddressType.Cc) &&
-                    cmd.EmailAddresses.Any(a => a.EmailAddressType == EmailAddressType.Bcc) &&
-                    cmd.EmailAddresses.Any(a => a.EmailAddressType == EmailAddressType.From)),
-                It.IsAny<CancellationToken>()),
-            Times.Once,
-            "recipient extraction should preserve email address types");
+
+        // Verify job was queued with message containing all recipients
+        ingestionChannel.Reader.TryRead(out var job).Should().BeTrue();
+        job!.Message.To.Count.Should().Be(2, "should have 2 To recipients");
+        job.Message.Cc.Count.Should().Be(1, "should have 1 Cc recipient");
+        job.Message.Bcc.Count.Should().Be(1, "should have 1 Bcc recipient");
+        job.Message.From.Count.Should().Be(1, "should have 1 From address");
     }
 
     [Fact]
@@ -301,6 +276,7 @@ public class SmtpInputValidationTests
 
         var buffer = CreateBufferFromMimeMessage(message);
         var (serviceProvider, mocks) = CreateMockServiceProvider();
+        var ingestionChannel = serviceProvider.GetRequiredService<Channel<EmailIngestionJob>>();
 
         var subdomain = CreateSubdomainSummary("test.spamma.io");
 
@@ -316,19 +292,16 @@ public class SmtpInputValidationTests
             .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
 
-        mocks.CommanderMock
-            .Setup(x => x.Send(It.Is<ReceivedEmailCommand>(cmd => cmd.EmailAddresses.All(a => a.Name != null)), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Succeeded());
-
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
         result.Should().Be(SmtpResponse.Ok, "null display names should be handled gracefully");
-        mocks.CommanderMock.Verify(
-            x => x.Send(It.Is<ReceivedEmailCommand>(cmd => cmd.EmailAddresses.All(a => a.Name != null)), It.IsAny<CancellationToken>()),
-            Times.Once,
-            "display names should be converted to empty string when null");
+
+        // Verify job was queued with message (MimeKit handles null display names)
+        ingestionChannel.Reader.TryRead(out var job).Should().BeTrue();
+        job!.Message.From.Count.Should().Be(1, "should have sender");
+        job.Message.To.Count.Should().Be(1, "should have recipient");
     }
 
     /// <summary>
@@ -384,6 +357,7 @@ public class SmtpInputValidationTests
         services.AddSingleton(chaosAddressCacheMock.Object);
 
         // Register background job channels
+        services.AddSingleton(Channel.CreateUnbounded<EmailIngestionJob>());
         services.AddSingleton(Channel.CreateUnbounded<CampaignCaptureJob>());
         services.AddSingleton(Channel.CreateUnbounded<ChaosAddressReceivedJob>());
 

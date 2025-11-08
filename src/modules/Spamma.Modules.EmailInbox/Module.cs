@@ -31,9 +31,16 @@ public static class Module
         services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
-        // Background job queues for campaign and chaos address recording (non-blocking operations)
+        // Background job queues
+        // Email ingestion queue - for storing files and executing ReceivedEmailCommand (offloads SMTP bottleneck)
+        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.EmailIngestionJob>());
+
+        // Campaign and chaos address recording queues (non-blocking operations)
         services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob>());
         services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob>());
+
+        // Background job processors
+        services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.EmailIngestionProcessor>();
         services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.BackgroundJobProcessor>();
 
         // CAP integration event handlers

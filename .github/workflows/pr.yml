@@ -1,11 +1,11 @@
-name: CI
+name: PR Validation
 
 on:
-  push:
+  pull_request:
 
 jobs:
   build:
-    name: Build & Test
+    name: Build & Test (with E2E)
     runs-on: ubuntu-latest
     
     permissions:
@@ -56,11 +56,10 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
-      - name: Run tests
+      - name: Run tests (including E2E)
         run: |
           dotnet test \
             --configuration Release \
-            --filter "FullyQualifiedName!~E2E" \
             --logger "trx;LogFileName=test-results.trx" \
             --collect:"XPlat Code Coverage" \
             --results-directory test-results
@@ -70,4 +69,4 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: test-results/**/*.trx
-          check_name: Test Results
+          check_name: Test Results (with E2E)

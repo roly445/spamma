@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Sockets;
-using Dapper;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -53,6 +52,11 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         builder.Services.AddMarten(options =>
         {
             options.Connection(this.PostgresContainer.GetConnectionString());
+            options.DatabaseSchemaName = "public";
+
+            // Configure module projections
+            Spamma.Modules.DomainManagement.Module.ConfigureDomainManagement(options);
+            Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(options);
         });
 
         // Register TimeProvider (required by background services)
@@ -72,6 +76,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         // 3. Apply Marten schema migrations
         var store = this._host.Services.GetRequiredService<IDocumentStore>();
         await store.Advanced.Clean.CompletelyRemoveAllAsync();
+        await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
 
         // 4. Start hosted services (including SMTP server)
         await this._host.StartAsync();
@@ -120,7 +125,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
     }
 
     /// <summary>
-    /// Seeds test data for E2E tests using direct SQL.
+    /// Seeds test data for E2E tests using Marten session with typed domain events.
     /// Creates: domain "example.com", subdomain "spamma.example.com", chaos addresses.
     /// </summary>
     private async Task SeedTestDataAsync()
@@ -135,49 +140,64 @@ public class SmtpEndToEndFixture : IAsyncLifetime
 
         await using var session = documentStore.LightweightSession();
 
-        // Create test domain and subdomain using direct SQL
+        // Create test domain and subdomain IDs
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid();
+        var now = DateTime.UtcNow;
 
-        // Insert domain events
-        await session.Connection.ExecuteAsync(
-            @"INSERT INTO public.mt_events (id, seq_id, stream_id, version, data, type, timestamp, tenant_id, mt_dotnet_type)
-              VALUES (@EventId1, nextval('public.mt_events_sequence'), @StreamId, 1, @Data1, 'domain_created', @Timestamp, '*DEFAULT*', 'Spamma.Modules.DomainManagement.Domain.DomainAggregate.DomainCreated, Spamma.Modules.DomainManagement'),
-                     (@EventId2, nextval('public.mt_events_sequence'), @StreamId, 2, @Data2, 'subdomain_created', @Timestamp, '*DEFAULT*', 'Spamma.Modules.DomainManagement.Domain.DomainAggregate.SubdomainCreated, Spamma.Modules.DomainManagement')",
-            new
-            {
-                EventId1 = Guid.NewGuid(),
-                EventId2 = Guid.NewGuid(),
-                StreamId = domainId,
-                Data1 = $@"{{""DomainId"":""{domainId}"",""Hostname"":""example.com"",""CreatedBy"":""{userId}"",""CreatedAt"":""{DateTime.UtcNow:O}""}}",
-                Data2 = $@"{{""DomainId"":""{domainId}"",""SubdomainId"":""{subdomainId}"",""Subdomain"":""spamma"",""Status"":1,""CreatedBy"":""{userId}"",""CreatedAt"":""{DateTime.UtcNow:O}""}}",
-                Timestamp = DateTime.UtcNow,
-            });
+        // Create test domain stream with typed event
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(
+            domainId,
+            new Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events.DomainCreated(
+                DomainId: domainId,
+                Name: "example.com",
+                PrimaryContactEmail: null,
+                Description: "Test domain for E2E tests",
+                VerificationToken: Guid.NewGuid().ToString("N"),
+                WhenCreated: now));
 
-        // Create chaos addresses using direct SQL
+        // Create test subdomain stream with typed event
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(
+            subdomainId,
+            new Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events.SubdomainCreated(
+                SubdomainId: subdomainId,
+                DomainId: domainId,
+                Name: "spamma",
+                WhenCreated: now,
+                Description: "Test subdomain for E2E tests"));
+
+        // Create enabled chaos address
         var chaosAddressEnabledId = Guid.NewGuid();
-        var chaosAddressDisabledId = Guid.NewGuid();
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
+            chaosAddressEnabledId,
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
+                Id: chaosAddressEnabledId,
+                DomainId: domainId,
+                SubdomainId: subdomainId,
+                LocalPart: "chaos",
+                ConfiguredSmtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
+                CreatedAt: now));
 
-        await session.Connection.ExecuteAsync(
-            @"INSERT INTO public.mt_events (id, seq_id, stream_id, version, data, type, timestamp, tenant_id, mt_dotnet_type)
-              VALUES (@EventId1, nextval('public.mt_events_sequence'), @StreamId1, 1, @Data1, 'chaos_address_created', @Timestamp, '*DEFAULT*', 'Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddressCreated, Spamma.Modules.DomainManagement'),
-                     (@EventId2, nextval('public.mt_events_sequence'), @StreamId2, 1, @Data2, 'chaos_address_created', @Timestamp, '*DEFAULT*', 'Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddressCreated, Spamma.Modules.DomainManagement'),
-                     (@EventId3, nextval('public.mt_events_sequence'), @StreamId2, 2, @Data3, 'chaos_address_disabled', @Timestamp, '*DEFAULT*', 'Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddressDisabled, Spamma.Modules.DomainManagement')",
-            new
-            {
-                EventId1 = Guid.NewGuid(),
-                EventId2 = Guid.NewGuid(),
-                EventId3 = Guid.NewGuid(),
-                StreamId1 = chaosAddressEnabledId,
-                StreamId2 = chaosAddressDisabledId,
-                Data1 = $@"{{""ChaosAddressId"":""{chaosAddressEnabledId}"",""SubdomainId"":""{subdomainId}"",""LocalPart"":""chaos"",""SmtpResponseCode"":450,""SmtpResponseMessage"":""Mailbox unavailable"",""CreatedBy"":""{userId}"",""CreatedAt"":""{DateTime.UtcNow:O}""}}",
-                Data2 = $@"{{""ChaosAddressId"":""{chaosAddressDisabledId}"",""SubdomainId"":""{subdomainId}"",""LocalPart"":""disabled"",""SmtpResponseCode"":450,""SmtpResponseMessage"":""Mailbox unavailable"",""CreatedBy"":""{userId}"",""CreatedAt"":""{DateTime.UtcNow:O}""}}",
-                Data3 = $@"{{""ChaosAddressId"":""{chaosAddressDisabledId}"",""DisabledBy"":""{userId}"",""DisabledAt"":""{DateTime.UtcNow:O}""}}",
-                Timestamp = DateTime.UtcNow,
-            });
+        // Create disabled chaos address
+        var chaosAddressDisabledId = Guid.NewGuid();
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
+            chaosAddressDisabledId,
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
+                Id: chaosAddressDisabledId,
+                DomainId: domainId,
+                SubdomainId: subdomainId,
+                LocalPart: "disabled",
+                ConfiguredSmtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
+                CreatedAt: now),
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressDisabled(
+                When: now));
 
         await session.SaveChangesAsync();
+
+        // Trigger projection daemon to process events and update lookup tables
+        var daemon = await documentStore.BuildProjectionDaemonAsync();
+        await daemon.StartAllAsync();
+        await daemon.WaitForNonStaleData(TimeSpan.FromSeconds(5));
     }
 }
 

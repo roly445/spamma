@@ -31,9 +31,9 @@ public class SpammaMessageStore : MessageStore
 
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SpammaMessageStore>>();
         var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
-        var commander = scope.ServiceProvider.GetRequiredService<ICommander>();
         var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
         var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
+        var ingestionChannel = scope.ServiceProvider.GetRequiredService<Channel<Infrastructure.Services.BackgroundJobs.EmailIngestionJob>>();
 
         using var stream = new MemoryStream();
 
@@ -99,90 +99,57 @@ public class SpammaMessageStore : MessageStore
             return SmtpResponse.MailboxNameNotAllowed;
         }
 
+        // Check if this is a campaign email (has x-spamma-camp header)
+        var campaignHeader = message.Headers.FirstOrDefault(x => x.Field.Equals("x-spamma-camp", StringComparison.InvariantCultureIgnoreCase));
+        var isCampaignEmail = campaignHeader != null && !string.IsNullOrEmpty(campaignHeader.Value);
+
         var messageId = Guid.NewGuid();
-        var saveFileResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
-        if (!saveFileResult.IsSuccess)
+
+        // CRITICAL: For non-campaign emails, write file SYNCHRONOUSLY before returning OK
+        // This ensures email is durable even if server crashes before background processing
+        // Trade-off: Blocks SMTP for ~5-20ms (file I/O), but prevents data loss
+        if (!isCampaignEmail)
         {
-            return SmtpResponse.TransactionFailed;
+            var saveFileResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
+            if (!saveFileResult.IsSuccess)
+            {
+                logger.LogError("Failed to store message file for {MessageId}", messageId);
+                return SmtpResponse.TransactionFailed;
+            }
+
+            logger.LogDebug("Stored file for non-campaign email {MessageId}", messageId);
         }
 
-        var addresses = message.To.Mailboxes.Select(x => new ReceivedEmailCommand.EmailAddress(x.Address, x.Name, EmailAddressType.To)).ToList();
-        addresses.AddRange(message.Cc.Mailboxes.Select(x => new ReceivedEmailCommand.EmailAddress(x.Address, x.Name, EmailAddressType.Cc)));
-        addresses.AddRange(message.Bcc.Mailboxes.Select(x => new ReceivedEmailCommand.EmailAddress(x.Address, x.Name, EmailAddressType.Bcc)));
-        addresses.AddRange(message.From.Mailboxes.Select(x => new ReceivedEmailCommand.EmailAddress(x.Address, x.Name, EmailAddressType.From)));
+        // Queue background job for command execution (DB write) and downstream jobs
+        // Even if this fails or server crashes, file is safe on disk for non-campaign emails
+        var ingestionJob = new Infrastructure.Services.BackgroundJobs.EmailIngestionJob(
+            messageId,
+            message,
+            foundSubdomain.ParentDomainId,
+            foundSubdomain.SubdomainId,
+            chaosAddressId,
+            isCampaignEmail);
 
-        var saveDataResult = await commander.Send(
-            new ReceivedEmailCommand(
-                messageId,
-                foundSubdomain.ParentDomainId,
-                foundSubdomain.SubdomainId,
-                message.Subject,
-                message.Date.DateTime,
-                addresses), cancellationToken);
-
-        if (saveDataResult.Status != CommandResultStatus.Failed)
+        try
         {
-            // Get background job channels (singleton registered in DI)
-            var campaignChannel = scope.ServiceProvider.GetRequiredService<Channel<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob>>();
-            var chaosChannel = scope.ServiceProvider.GetRequiredService<Channel<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob>>();
-
-            // Queue campaign capture job if header present (non-blocking, returns immediately)
-            var campaignHeader = message.Headers.FirstOrDefault(x => x.Field.Equals("x-spamma-camp", StringComparison.InvariantCultureIgnoreCase));
-            if (campaignHeader != null && !string.IsNullOrEmpty(campaignHeader.Value))
-            {
-                var campaignValue = campaignHeader.Value.Trim().ToLowerInvariant();
-                var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
-                var toAddress = message.To.Mailboxes.FirstOrDefault()?.Address ?? "unknown";
-
-                var job = new Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob(
-                    foundSubdomain.ParentDomainId,
-                    foundSubdomain.SubdomainId,
-                    messageId,
-                    campaignValue,
-                    message.Subject ?? string.Empty,
-                    fromAddress,
-                    toAddress,
-                    DateTimeOffset.UtcNow);
-
-                try
-                {
-                    // Queue for background processing - this never blocks for long
-                    await campaignChannel.Writer.WriteAsync(job, cancellationToken);
-                }
-                catch (ChannelClosedException ex)
-                {
-                    logger.LogWarning(ex, "Campaign job channel closed, background processor may have stopped");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Failed to queue campaign capture job for email {EmailId}", messageId);
-                }
-            }
-
-            // Queue chaos address job if applicable (non-blocking, returns immediately)
-            if (chaosAddressId.HasValue)
-            {
-                var job = new Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob(chaosAddressId.Value, DateTime.UtcNow);
-
-                try
-                {
-                    // Queue for background processing - this never blocks for long
-                    await chaosChannel.Writer.WriteAsync(job, cancellationToken);
-                }
-                catch (ChannelClosedException ex)
-                {
-                    logger.LogWarning(ex, "Chaos address job channel closed, background processor may have stopped");
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Failed to queue chaos address job for {ChaosAddressId}", chaosAddressId);
-                }
-            }
-
+            await ingestionChannel.Writer.WriteAsync(ingestionJob, cancellationToken);
+            logger.LogDebug("Queued email ingestion job for message {MessageId} (Campaign: {IsCampaign})", messageId, isCampaignEmail);
             return SmtpResponse.Ok;
         }
+        catch (ChannelClosedException ex)
+        {
+            logger.LogError(ex, "Email ingestion channel closed, background processor may have stopped");
 
-        await messageStoreProvider.DeleteMessageContentAsync(messageId, cancellationToken);
-        return SmtpResponse.TransactionFailed;
+            // If channel write fails for non-campaign email, we already saved the file
+            // Background recovery will pick it up on restart
+            return isCampaignEmail ? SmtpResponse.TransactionFailed : SmtpResponse.Ok;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to queue email ingestion job for message {MessageId}", messageId);
+
+            // Same as above - file is safe, just log the queue failure
+            return isCampaignEmail ? SmtpResponse.TransactionFailed : SmtpResponse.Ok;
+        }
     }
 }

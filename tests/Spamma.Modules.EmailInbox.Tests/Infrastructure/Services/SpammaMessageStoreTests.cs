@@ -26,7 +26,7 @@ namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 public class SpammaMessageStoreTests
 {
     [Fact]
-    public async Task SaveAsync_ValidEmailWithActiveSubdomain_StoresMessageAndReturnsOk()
+    public async Task SaveAsync_ValidEmailWithActiveSubdomain_QueuesIngestionJobAndReturnsOk()
     {
         // Arrange
         var domainId = Guid.NewGuid();
@@ -44,6 +44,7 @@ public class SpammaMessageStoreTests
         var buffer = CreateBufferFromMimeMessage(mimeMessage);
 
         var (serviceProvider, mocks) = CreateMockServiceProvider();
+        var ingestionChannel = serviceProvider.GetRequiredService<Channel<EmailIngestionJob>>();
 
         // Mock subdomain cache to return active subdomain
         mocks.SubdomainCacheMock
@@ -65,30 +66,34 @@ public class SpammaMessageStoreTests
             .Setup(x => x.GetChaosAddressAsync(subdomainId, "test", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Nothing);
 
-        // Mock message store provider
+        // Mock message storage (synchronous for non-campaign emails)
         mocks.MessageStoreProviderMock
             .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
-
-        // Mock commander
-        mocks.CommanderMock
-            .Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Succeeded());
 
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
         result.Should().Be(SmtpResponse.Ok);
-        mocks.MessageStoreProviderMock.Verify(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()), Times.Once);
-        mocks.CommanderMock.Verify(
-            x => x.Send(
-                It.Is<ReceivedEmailCommand>(cmd =>
-                    cmd.DomainId == domainId &&
-                    cmd.SubdomainId == subdomainId &&
-                    cmd.Subject == "Test Email"),
-                It.IsAny<CancellationToken>()),
-            Times.Once);
+
+        // Verify job was queued
+        ingestionChannel.Reader.TryRead(out var job).Should().BeTrue();
+        job.Should().NotBeNull();
+        job!.ParentDomainId.Should().Be(domainId);
+        job.SubdomainId.Should().Be(subdomainId);
+        job.Message.Subject.Should().Be("Test Email");
+        job.ChaosAddressId.Should().BeNull();
+        job.IsCampaignEmail.Should().BeFalse();
+
+        // Verify file was written synchronously (for data durability)
+        mocks.MessageStoreProviderMock.Verify(
+            x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()),
+            Times.Once,
+            "non-campaign emails should write file synchronously for data durability");
+
+        // Verify commander is NOT called (happens in background now)
+        mocks.CommanderMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -173,7 +178,7 @@ public class SpammaMessageStoreTests
     }
 
     [Fact]
-    public async Task SaveAsync_CommandHandlerFails_DeletesStoredContentAndReturnsTransactionFailed()
+    public async Task SaveAsync_FileStorageFailure_ReturnsTransactionFailed()
     {
         // Arrange
         var domainId = Guid.NewGuid();
@@ -211,26 +216,17 @@ public class SpammaMessageStoreTests
             .Setup(x => x.GetChaosAddressAsync(subdomainId, "test", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Nothing);
 
-        // Mock message store provider to succeed
+        // Mock message store provider to fail (disk full, permissions, etc.)
         mocks.MessageStoreProviderMock
             .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok());
-
-        mocks.MessageStoreProviderMock
-            .Setup(x => x.DeleteMessageContentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok());
-
-        // Mock commander to fail
-        mocks.CommanderMock
-            .Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed, "Test failure")));
+            .ReturnsAsync(Result.Fail());
 
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
-        result.Should().Be(SmtpResponse.TransactionFailed);
-        mocks.MessageStoreProviderMock.Verify(x => x.DeleteMessageContentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Once, "Should rollback by deleting stored content");
+        result.Should().Be(SmtpResponse.TransactionFailed, "file storage failure should reject email to avoid data loss");
+        mocks.MessageStoreProviderMock.Verify(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -349,7 +345,7 @@ public class SpammaMessageStoreTests
     }
 
     [Fact]
-    public async Task SaveAsync_WithCampaignHeader_QueuesBackgroundJob()
+    public async Task SaveAsync_WithCampaignHeader_QueuesEmailIngestionJobWithCampaignFlag()
     {
         // Arrange
         var domainId = Guid.NewGuid();
@@ -368,6 +364,7 @@ public class SpammaMessageStoreTests
         var buffer = CreateBufferFromMimeMessage(mimeMessage);
 
         var (serviceProvider, mocks) = CreateMockServiceProvider();
+        var ingestionChannel = serviceProvider.GetRequiredService<Channel<EmailIngestionJob>>();
 
         // Mock subdomain cache
         mocks.SubdomainCacheMock
@@ -389,27 +386,28 @@ public class SpammaMessageStoreTests
             .Setup(x => x.GetChaosAddressAsync(subdomainId, "test", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Nothing);
 
-        // Mock message store and commander
-        mocks.MessageStoreProviderMock
-            .Setup(x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Ok());
-
-        mocks.CommanderMock
-            .Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CommandResult.Succeeded());
-
         // Act
         var result = await SpammaMessageStore.SaveAsyncWithProvider(serviceProvider, buffer, CancellationToken.None);
 
         // Assert
         result.Should().Be(SmtpResponse.Ok);
 
-        // Verify campaign job was queued
-        var campaignChannel = serviceProvider.GetRequiredService<Channel<CampaignCaptureJob>>();
-        campaignChannel.Reader.TryRead(out var job).Should().BeTrue("Campaign job should be queued");
-        job!.CampaignValue.Should().Be("testcampaign123", "Campaign value should be lowercase");
-        job.DomainId.Should().Be(domainId);
+        // Verify email ingestion job was queued with campaign flag
+        ingestionChannel.Reader.TryRead(out var job).Should().BeTrue("EmailIngestionJob should be queued");
+        job!.ParentDomainId.Should().Be(domainId);
         job.SubdomainId.Should().Be(subdomainId);
+        job.Message.Subject.Should().Be("Test Campaign Email");
+        job.IsCampaignEmail.Should().BeTrue("Campaign header should set IsCampaignEmail flag");
+        job.ChaosAddressId.Should().BeNull();
+
+        // Verify file is NOT written synchronously for campaign emails (handled by background processor)
+        mocks.MessageStoreProviderMock.Verify(
+            x => x.StoreMessageContentAsync(It.IsAny<Guid>(), It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()),
+            Times.Never,
+            "campaign emails should NOT write file synchronously");
+
+        // Verify commander is NOT called (happens in background processor)
+        mocks.CommanderMock.VerifyNoOtherCalls();
     }
 
     private static ReadOnlySequence<byte> CreateBufferFromMimeMessage(MimeMessage message)
@@ -439,6 +437,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(chaosAddressCacheMock.Object);
 
         // Register background job channels
+        services.AddSingleton(Channel.CreateUnbounded<EmailIngestionJob>());
         services.AddSingleton(Channel.CreateUnbounded<CampaignCaptureJob>());
         services.AddSingleton(Channel.CreateUnbounded<ChaosAddressReceivedJob>());
 
