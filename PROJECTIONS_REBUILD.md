@@ -2,26 +2,24 @@
 
 When you need to repopulate the Marten event store projections (read models), you have several options:
 
-## Option 1: Using the CLI Command (Recommended for Development)
+## Option 1: Using the Standalone Tool (Recommended)
 
-The application includes a maintenance command to clear projection data. After clearing, the application automatically rebuilds projections on restart:
+The `ProjectionsRebuildTool` is a dedicated command-line utility that clears projection data without starting the web application:
 
 ```bash
 # From the root directory
-dotnet run --project src/Spamma.App/Spamma.App/Spamma.App.csproj -- projections rebuild
-
-# Or from the app directory
-cd src/Spamma.App/Spamma.App
-dotnet run -- projections rebuild
+cd tools/ProjectionsRebuildTool
+dotnet run
 ```
 
 **What it does:**
 
+- Connects directly to PostgreSQL using settings from `appsettings.json` in the tool directory
 - Clears all projection/read model documents from the database
-- Displays a success message
+- Displays a success message and exits immediately
 - The application then automatically rebuilds all projections when you start it normally
 
-**Note:** The command may take a moment to complete. Press `Ctrl+C` if it hangs after showing the success message.
+**Note:** Make sure your database credentials in `tools/ProjectionsRebuildTool/appsettings.json` match your PostgreSQL setup.
 
 ## Option 2: Using Docker Compose with PostgreSQL
 
@@ -64,10 +62,6 @@ The application automatically rebuilds these projections on startup:
 7. **CampaignSummaryProjection** - Email campaign summaries
 
 ## Troubleshooting
-
-### Command hangs after completion
-
-The application startup sequence may keep running background services. You can safely press `Ctrl+C` after seeing the success message.
 
 ### Projections not rebuilding
 

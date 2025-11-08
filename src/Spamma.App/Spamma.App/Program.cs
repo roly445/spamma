@@ -40,7 +40,6 @@ using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
 using Spamma.App.Infrastructure.Endpoints;
 using Spamma.App.Infrastructure.Hubs;
-using Spamma.App.Infrastructure.Maintenance;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
