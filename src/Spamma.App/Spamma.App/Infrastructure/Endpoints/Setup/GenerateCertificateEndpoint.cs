@@ -15,6 +15,7 @@ public static class GenerateCertificateEndpoint
 
         return routeBuilder;
     }
+
     private static async Task<IResult> GenerateCertificate(
         GenerateCertificateRequest request,
         ICertesLetsEncryptService certService,

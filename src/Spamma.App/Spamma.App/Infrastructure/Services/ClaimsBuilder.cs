@@ -40,6 +40,7 @@ internal static class ClaimsBuilder
 
         return claims;
     }
+
     internal static List<Claim> BuildClaims(
         Guid userId,
         string emailAddress,

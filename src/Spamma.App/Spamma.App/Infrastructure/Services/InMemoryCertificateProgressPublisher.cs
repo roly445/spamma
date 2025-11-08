@@ -7,6 +7,7 @@ public sealed class InMemoryCertificateProgressPublisher : ICertificateProgressP
 {
     private static readonly ConcurrentDictionary<string, Channel<CertificateProgressEvent>> ActiveChannels =
         new();
+
     public static ChannelReader<CertificateProgressEvent> CreateProgressChannel(string sessionId)
     {
         var channel = Channel.CreateUnbounded<CertificateProgressEvent>();

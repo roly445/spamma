@@ -33,6 +33,7 @@ internal static class GeneralApiEndpoints
             .Produces(StatusCodes.Status500InternalServerError)
             .DisableAntiforgery(); // OTEL collector doesn't use CSRF tokens
     }
+
     private static IResult GetDynamicSettings(IOptions<Settings> settings)
     {
         return Results.Json(new
@@ -44,6 +45,7 @@ internal static class GeneralApiEndpoints
             },
         });
     }
+
     private static async Task<IResult> GetCurrentUser(
         HttpContext httpContext,
         UserStatusCache userStatusCache)
@@ -84,6 +86,7 @@ internal static class GeneralApiEndpoints
 
         return Results.Json(userResult.Value);
     }
+
     private static async Task<IResult> ForwardOtelTraces(
         HttpContext httpContext,
         IHttpClientFactory httpClientFactory,

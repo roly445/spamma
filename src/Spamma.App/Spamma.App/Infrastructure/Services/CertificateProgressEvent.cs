@@ -7,6 +7,8 @@ public sealed class CertificateProgressEvent
     public int TotalSteps { get; set; }
 
     public int ProgressPercentage => (this.Step * 100) / this.TotalSteps;
+
     public string Message { get; set; } = string.Empty;
+
     public bool IsComplete => this.Step >= this.TotalSteps;
 }

@@ -26,6 +26,7 @@ internal static class AuthenticationEndpoints
             .WithName("MakeAssertion")
             .Produces(StatusCodes.Status200OK);
     }
+
     private static IResult GetAssertionOptions(HttpContext httpContext, ILogger<Program> logger)
     {
         try
@@ -62,6 +63,7 @@ internal static class AuthenticationEndpoints
             return Results.Json(new { status = "error", errorMessage = ex.Message }, statusCode: 400);
         }
     }
+
     private static async Task<IResult> MakeAssertion(
         HttpContext httpContext,
         ILogger<Program> logger,

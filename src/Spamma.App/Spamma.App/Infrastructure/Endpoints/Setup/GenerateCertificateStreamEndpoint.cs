@@ -14,6 +14,7 @@ public static class GenerateCertificateStreamEndpoint
 
         return routeBuilder;
     }
+
     private static async Task GenerateCertificateStream(
         GenerateCertificateRequest request,
         HttpContext httpContext,
@@ -105,6 +106,7 @@ public static class GenerateCertificateStreamEndpoint
             await httpContext.Response.CompleteAsync();
         }
     }
+
     private static async Task WriteProgressEventAsync(
         HttpResponse response,
         string message,
