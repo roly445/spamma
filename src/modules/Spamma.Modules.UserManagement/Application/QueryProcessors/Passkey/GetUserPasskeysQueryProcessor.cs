@@ -6,9 +6,6 @@ using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.UserManagement.Application.QueryProcessors;
 
-/// <summary>
-/// Processor for retrieving a specific user's passkeys from the read model projection (admin only).
-/// </summary>
 internal class GetUserPasskeysQueryProcessor(
     IDocumentSession documentSession,
     ILogger<GetUserPasskeysQueryProcessor> logger) : IQueryProcessor<GetUserPasskeysQuery, GetUserPasskeysQueryResult>

@@ -4,9 +4,6 @@ using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Infrastructure.Services;
 
-/// <summary>
-/// Service for mapping error codes to user-friendly error messages.
-/// </summary>
 public class ErrorMessageMapperService : IErrorMessageMapperService
 {
     public string GetErrorMessage(CommandResult result)

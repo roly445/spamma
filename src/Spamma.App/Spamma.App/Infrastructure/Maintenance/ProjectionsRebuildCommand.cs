@@ -2,22 +2,11 @@ using Marten;
 
 namespace Spamma.App.Infrastructure.Maintenance;
 
-/// <summary>
-/// JasperFx maintenance command to rebuild all Marten projections from the event store.
-/// Usage: dotnet run --project src/Spamma.App/Spamma.App/Spamma.App.csproj -- projections rebuild.
-/// </summary>
 public class ProjectionsRebuildCommand
 {
     private readonly IDocumentStore _documentStore;
     private readonly ILogger<ProjectionsRebuildCommand> _logger;
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProjectionsRebuildCommand"/> class.
-    /// </summary>
-    /// <param name="documentStore">The Marten document store.</param>
-    /// <param name="logger">The logger instance.</param>
-    /// <param name="hostApplicationLifetime">Host application lifetime for graceful shutdown.</param>
     public ProjectionsRebuildCommand(
         IDocumentStore documentStore,
         ILogger<ProjectionsRebuildCommand> logger,
@@ -28,10 +17,6 @@ public class ProjectionsRebuildCommand
         this._hostApplicationLifetime = hostApplicationLifetime;
     }
 
-    /// <summary>
-    /// Executes the projection rebuild command.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task Execute()
     {
         this._logger.LogInformation("Starting projection rebuild from event store...");
@@ -64,7 +49,4 @@ public class ProjectionsRebuildCommand
         }
     }
 }
-
-
-
 

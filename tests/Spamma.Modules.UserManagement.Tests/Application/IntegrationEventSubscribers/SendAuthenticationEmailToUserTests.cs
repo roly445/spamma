@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using ResultMonad;
 using Spamma.Modules.Common;
-using Spamma.Modules.Common.Application;
 using Spamma.Modules.Common.IntegrationEvents.UserManagement;
 using Spamma.Modules.UserManagement.Application.IntegrationEventSubscribers;
 

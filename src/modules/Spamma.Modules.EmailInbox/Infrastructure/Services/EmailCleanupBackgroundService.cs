@@ -8,10 +8,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-/// <summary>
-/// Background service that automatically deletes emails older than 24 hours to prevent storage overflow.
-/// Runs every hour to check for emails that need cleanup.
-/// </summary>
 public class EmailCleanupBackgroundService(
     IServiceProvider serviceProvider,
     ILogger<EmailCleanupBackgroundService> logger,

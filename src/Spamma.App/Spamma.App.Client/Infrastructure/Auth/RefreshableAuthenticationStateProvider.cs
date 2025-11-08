@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using MaybeMonad;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -7,9 +7,6 @@ using Spamma.Modules.Common.Client.Infrastructure.Constants;
 
 namespace Spamma.App.Client.Infrastructure.Auth;
 
-/// <summary>
-/// Provides authentication state management and refresh capability for Blazor WebAssembly client.
-/// </summary>
 public class RefreshableAuthenticationStateProvider(
     HttpClient httpClient,
     ILogger<RefreshableAuthenticationStateProvider> logger)
@@ -17,10 +14,6 @@ public class RefreshableAuthenticationStateProvider(
 {
     private ClaimsPrincipal? _currentUser;
 
-    /// <summary>
-    /// Gets the current authentication state asynchronously.
-    /// </summary>
-    /// <returns>The current authentication state.</returns>
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         if (this._currentUser != null)
@@ -45,10 +38,6 @@ public class RefreshableAuthenticationStateProvider(
         return currentAuthenticationState;
     }
 
-    /// <summary>
-    /// Refreshes the authentication state by fetching updated user information from the server.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task RefreshAuthenticationStateAsync()
     {
         var maybe = await this.FetchUserAuthInfoAsync();
@@ -66,11 +55,6 @@ public class RefreshableAuthenticationStateProvider(
         this.NotifyAuthenticationStateChanged(Task.FromResult(currentAuthenticationState));
     }
 
-    /// <summary>
-    /// Creates a claims identity from user authentication information.
-    /// </summary>
-    /// <param name="userInfo">The user authentication information.</param>
-    /// <returns>A claims identity populated with user information.</returns>
     private static ClaimsIdentity CreateClaimsIdentity(UserAuthInfo userInfo)
     {
         var claims = new List<Claim>
@@ -93,10 +77,6 @@ public class RefreshableAuthenticationStateProvider(
         return new ClaimsIdentity(claims, "ServerAuth");
     }
 
-    /// <summary>
-    /// Fetches current user authentication information from the server.
-    /// </summary>
-    /// <returns>User authentication information if available; otherwise, Nothing.</returns>
     private async Task<Maybe<UserAuthInfo>> FetchUserAuthInfoAsync()
     {
         try

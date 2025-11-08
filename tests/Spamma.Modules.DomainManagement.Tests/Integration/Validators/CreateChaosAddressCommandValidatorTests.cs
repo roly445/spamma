@@ -2,7 +2,6 @@ using FluentValidation.TestHelper;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Application.Validators.ChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
-using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Tests.Integration.Validators;

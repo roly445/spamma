@@ -10,9 +10,6 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.UserManagement.Application.CommandHandlers.Passkey;
 
-/// <summary>
-/// Handler for revoking a user's passkey (admin/user management role only).
-/// </summary>
 internal class RevokeUserPasskeyCommandHandler(
     IPasskeyRepository passkeyRepository,
     TimeProvider timeProvider,

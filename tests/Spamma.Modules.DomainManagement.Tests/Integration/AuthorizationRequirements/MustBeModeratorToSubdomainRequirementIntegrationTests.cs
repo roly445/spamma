@@ -3,12 +3,9 @@ using Marten;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
-using Spamma.Modules.DomainManagement.Tests.Fixtures;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Tests.Integration.AuthorizationRequirements;
 

@@ -2,10 +2,8 @@ using FluentAssertions;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements;
 

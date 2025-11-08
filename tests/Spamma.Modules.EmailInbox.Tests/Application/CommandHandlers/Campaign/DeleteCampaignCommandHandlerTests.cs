@@ -7,7 +7,6 @@ using ResultMonad;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
-using Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;
 using CampaignAggregate = Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Campaign;

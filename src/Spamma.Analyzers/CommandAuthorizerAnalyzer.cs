@@ -6,10 +6,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Spamma.Analyzers;
 
-/// <summary>
-/// Analyzer that checks if all CQRS commands have corresponding authorization handlers.
-/// Commands should have an AbstractRequestAuthorizer implementation to enforce authorization rules.
-/// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
 {

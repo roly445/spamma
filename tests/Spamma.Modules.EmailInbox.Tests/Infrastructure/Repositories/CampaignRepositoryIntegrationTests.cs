@@ -1,7 +1,6 @@
 using FluentAssertions;
 using Spamma.Modules.Common.Infrastructure;
 using Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
-using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Tests.Integration;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Repositories;

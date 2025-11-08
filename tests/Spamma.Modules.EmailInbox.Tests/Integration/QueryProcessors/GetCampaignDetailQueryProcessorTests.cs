@@ -1,6 +1,4 @@
 using FluentAssertions;
-using Marten;
-using MediatR;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;

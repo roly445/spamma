@@ -1,9 +1,5 @@
-using System;
 using System.Buffers;
-using System.IO;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using BluQube.Commands;
 using FluentAssertions;
 using MaybeMonad;
@@ -20,7 +16,6 @@ using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
-using Xunit;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 

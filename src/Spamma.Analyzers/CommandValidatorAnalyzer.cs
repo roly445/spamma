@@ -128,9 +128,6 @@ public sealed class CommandValidatorAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>
-    /// Checks if a type has the BluQubeCommand attribute.
-    /// </summary>
     private static bool HasBluQubeCommandAttribute(INamedTypeSymbol typeSymbol)
     {
         return typeSymbol.GetAttributes().Select(a => a.AttributeClass?.Name).Any(name =>

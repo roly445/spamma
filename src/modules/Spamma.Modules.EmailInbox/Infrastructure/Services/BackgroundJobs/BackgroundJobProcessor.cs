@@ -8,10 +8,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
-/// <summary>
-/// Background job processor for recording campaign captures and chaos address events.
-/// Reads from channels and dispatches commands with fresh scopes to avoid ObjectDisposedException.
-/// </summary>
 public sealed class BackgroundJobProcessor(
     Channel<CampaignCaptureJob> campaignChannel,
     Channel<ChaosAddressReceivedJob> chaosChannel,

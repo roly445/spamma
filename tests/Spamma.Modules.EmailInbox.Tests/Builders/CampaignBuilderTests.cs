@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Builders;
 

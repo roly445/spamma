@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using BluQube.Queries;
 using Marten;
 using MediatR;
 using MediatR.Behaviors.Authorization;
@@ -7,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.EmailInbox.Application;
 using Spamma.Modules.EmailInbox.Application.AuthorizationRequirements;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 

@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.DomainManagement.Client;
-using Spamma.Modules.EmailInbox;
-using Spamma.Modules.EmailInbox.Client;
 using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E.Fixtures;

@@ -3,10 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
 
-/// <summary>
-/// JSON converter for byte arrays to ensure consistent base64 serialization.
-/// Handles WebAuthn credential data (CredentialId, PublicKey) properly for Marten event storage.
-/// </summary>
 public class ByteArrayJsonConverter : JsonConverter<byte[]>
 {
     public override byte[]? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

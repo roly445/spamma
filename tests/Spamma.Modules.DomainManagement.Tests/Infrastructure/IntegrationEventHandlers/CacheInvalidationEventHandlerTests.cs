@@ -1,4 +1,3 @@
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;

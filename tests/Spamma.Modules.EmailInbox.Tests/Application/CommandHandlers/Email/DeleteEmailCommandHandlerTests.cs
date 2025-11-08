@@ -1,9 +1,7 @@
-using BluQube.Commands;
 using BluQube.Constants;
 using FluentAssertions;
 using FluentValidation;
 using MaybeMonad;
-using Microsoft.Extensions.Logging;
 using Moq;
 using ResultMonad;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -13,7 +11,6 @@ using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Client.Contracts;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;
 using EmailAggregate = Spamma.Modules.EmailInbox.Domain.EmailAggregate.Email;

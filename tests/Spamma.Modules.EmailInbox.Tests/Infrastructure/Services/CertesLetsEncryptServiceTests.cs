@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
-using Xunit;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 

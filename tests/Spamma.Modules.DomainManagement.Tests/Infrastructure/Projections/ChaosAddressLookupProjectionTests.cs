@@ -1,13 +1,7 @@
-using System.Linq.Expressions;
 using FluentAssertions;
-using JasperFx.Events;
-using Marten;
-using Marten.Patching;
-using Moq;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
-using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Tests.Infrastructure.Projections;
 

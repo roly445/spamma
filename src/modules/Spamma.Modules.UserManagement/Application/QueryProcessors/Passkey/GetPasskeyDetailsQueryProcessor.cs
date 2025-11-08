@@ -5,9 +5,6 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.QueryProcessors;
 
-/// <summary>
-/// Processor for retrieving detailed information about a passkey.
-/// </summary>
 internal class GetPasskeyDetailsQueryProcessor(
     IPasskeyRepository passkeyRepository,
     ILogger<GetPasskeyDetailsQueryProcessor> logger) : IQueryProcessor<GetPasskeyDetailsQuery, PasskeyDetailsResult>

@@ -1,4 +1,3 @@
-using BluQube.Queries;
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;

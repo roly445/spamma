@@ -4,9 +4,6 @@ using System.Resources;
 
 namespace Spamma.Analyzers;
 
-/// <summary>
-/// Resource strings for analyzer diagnostics.
-/// </summary>
 [GeneratedCode("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
 [System.Diagnostics.DebuggerNonUserCode()]
 [System.Runtime.CompilerServices.CompilerGenerated()]

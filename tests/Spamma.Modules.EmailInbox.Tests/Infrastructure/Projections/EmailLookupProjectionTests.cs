@@ -1,13 +1,7 @@
-using System.Linq.Expressions;
 using FluentAssertions;
-using JasperFx.Events;
-using Marten;
-using Marten.Patching;
-using Moq;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.Projections;
-using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections;
 

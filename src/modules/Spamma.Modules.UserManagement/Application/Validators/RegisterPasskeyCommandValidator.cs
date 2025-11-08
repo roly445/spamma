@@ -5,15 +5,8 @@ using Spamma.Modules.UserManagement.Client.Application.Commands;
 
 namespace Spamma.Modules.UserManagement.Application.Validators;
 
-/// <summary>
-/// Validator for RegisterPasskeyCommand to ensure credential uniqueness and valid input.
-/// </summary>
 internal class RegisterPasskeyCommandValidator : AbstractValidator<RegisterPasskeyCommand>
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RegisterPasskeyCommandValidator"/> class.
-    /// </summary>
-    /// <param name="passkeyRepository">Repository for checking existing passkeys.</param>
     public RegisterPasskeyCommandValidator(IPasskeyRepository passkeyRepository)
     {
         this.RuleFor(x => x.CredentialId)

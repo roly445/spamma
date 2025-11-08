@@ -1,7 +1,4 @@
 using FluentAssertions;
-using Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Domain;

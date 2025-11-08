@@ -39,8 +39,8 @@ using Spamma.App.Infrastructure.Contracts;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
 using Spamma.App.Infrastructure.Endpoints;
-using Spamma.App.Infrastructure.Endpoints.Maintenance;
 using Spamma.App.Infrastructure.Hubs;
+using Spamma.App.Infrastructure.Maintenance;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
@@ -383,7 +383,6 @@ app.AddUserManagementApi()
 // Map API endpoints organized by feature
 app.MapGeneralApiEndpoints();
 app.MapAuthenticationEndpoints();
-app.MapMaintenanceEndpoints();
 
 app.MapHub<NotifierHub>($"/{Lookups.NotificationHubName}");
 
