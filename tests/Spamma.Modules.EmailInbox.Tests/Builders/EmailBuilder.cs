@@ -17,7 +17,10 @@ internal class EmailBuilder
         new("test@example.com", "Test User", EmailAddressType.To),
     };
 
-    internal EmailBuilder WithEmailId(Guid emailId)
+    private Guid? _campaignId = null;
+    private bool _isFavorite = false;
+
+    internal EmailBuilder WithId(Guid emailId)
     {
         this._emailId = emailId;
         return this;
@@ -53,6 +56,18 @@ internal class EmailBuilder
         return this;
     }
 
+    internal EmailBuilder WithCampaignId(Guid? campaignId)
+    {
+        this._campaignId = campaignId;
+        return this;
+    }
+
+    internal EmailBuilder WithIsFavorite(bool isFavorite)
+    {
+        this._isFavorite = isFavorite;
+        return this;
+    }
+
     internal Email Build()
     {
         var result = Email.Create(
@@ -64,6 +79,23 @@ internal class EmailBuilder
             this._emailAddresses);
 
         var email = result.Value;
+
+        // Apply campaign ID directly (it's a settable property)
+        if (this._campaignId.HasValue)
+        {
+            email.CampaignId = this._campaignId.Value;
+        }
+
+        // Apply favorite status if set
+        if (this._isFavorite)
+        {
+            var favoriteResult = email.MarkAsFavorite(DateTime.UtcNow);
+            if (favoriteResult.IsFailure)
+            {
+                throw new InvalidOperationException($"Failed to mark as favorite: {favoriteResult.Error}");
+            }
+        }
+
         return email;
     }
 }

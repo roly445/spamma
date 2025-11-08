@@ -4,77 +4,70 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Queries;
 
+/// <summary>
+/// Tests for SearchEmailsQueryAuthorizer to verify authorization requirements.
+/// </summary>
 public class SearchEmailsQueryAuthorizerTests
 {
     [Fact]
-    public void SearchEmailsQueryAuthorizer_CanBeInstantiated()
-    {
-        // Arrange & Act
-        var authorizer = new SearchEmailsQueryAuthorizer();
-
-        // Verify
-        authorizer.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void SearchEmailsQueryAuthorizer_BuildPolicyDoesNotThrow()
+    public void BuildPolicy_AddsAuthenticationRequirement()
     {
         // Arrange
-        var authorizer = new SearchEmailsQueryAuthorizer();
         var query = new SearchEmailsQuery();
+        var authorizer = new SearchEmailsQueryAuthorizer();
 
-        // Act & Verify
-        var action = () => authorizer.BuildPolicy(query);
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        var requirements = authorizer.Requirements;
+        requirements.Should().HaveCount(2);
+        requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
     }
 
     [Fact]
-    public void SearchEmailsQueryAuthorizer_BuildPolicyWithSearchText()
+    public void BuildPolicy_AddsSubdomainAccessRequirement()
     {
         // Arrange
+        var query = new SearchEmailsQuery();
         var authorizer = new SearchEmailsQueryAuthorizer();
-        var query = new SearchEmailsQuery(SearchText: "test@example.com");
 
-        // Act & Verify
-        var action = () => authorizer.BuildPolicy(query);
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        var requirements = authorizer.Requirements;
+        requirements.Should().HaveCount(2);
+        requirements.Should().ContainSingle(r => r.GetType().Name == "MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement");
     }
 
     [Fact]
-    public void SearchEmailsQueryAuthorizer_BuildPolicyWithDateFilters()
+    public void BuildPolicy_RequiresExactlyTwoRequirements()
     {
         // Arrange
+        var query = new SearchEmailsQuery();
         var authorizer = new SearchEmailsQueryAuthorizer();
-        var query = new SearchEmailsQuery(SearchText: "recent emails");
 
-        // Act & Verify
-        var action = () => authorizer.BuildPolicy(query);
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        authorizer.Requirements.Should().HaveCount(2);
     }
 
     [Fact]
-    public void SearchEmailsQueryAuthorizer_BuildPolicyWithPagination()
+    public void BuildPolicy_WorksWithDifferentQueryParameters()
     {
         // Arrange
-        var authorizer = new SearchEmailsQueryAuthorizer();
-        var query = new SearchEmailsQuery(Page: 2, PageSize: 25);
+        var authorizer1 = new SearchEmailsQueryAuthorizer();
+        var authorizer2 = new SearchEmailsQueryAuthorizer();
 
-        // Act & Verify
-        var action = () => authorizer.BuildPolicy(query);
-        action.Should().NotThrow();
-    }
+        // Act
+        authorizer1.BuildPolicy(new SearchEmailsQuery(SearchText: "test", Page: 1, PageSize: 20));
+        authorizer2.BuildPolicy(new SearchEmailsQuery(SearchText: null, Page: 2, PageSize: 50));
 
-    [Fact]
-    public void SearchEmailsQueryAuthorizer_BuildPolicyMultipleTimes()
-    {
-        // Arrange
-        var authorizer = new SearchEmailsQueryAuthorizer();
-
-        // Act & Verify
-        var action1 = () => authorizer.BuildPolicy(new SearchEmailsQuery());
-        var action2 = () => authorizer.BuildPolicy(new SearchEmailsQuery(SearchText: "test"));
-
-        action1.Should().NotThrow();
-        action2.Should().NotThrow();
+        // Assert
+        authorizer1.Requirements.Should().HaveCount(2);
+        authorizer2.Requirements.Should().HaveCount(2);
     }
 }

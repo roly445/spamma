@@ -40,6 +40,7 @@
   <ItemGroup>
     <ProjectReference Include="../../tests/Spamma.Tests.Common/Spamma.Tests.Common.csproj" />
     <ProjectReference Include="../../src/modules/Spamma.Modules.EmailInbox/Spamma.Modules.EmailInbox.csproj" />
+    <ProjectReference Include="../../src/modules/Spamma.Modules.EmailInbox.Client/Spamma.Modules.EmailInbox.Client.csproj" />
     <ProjectReference Include="../../src/modules/Spamma.Modules.DomainManagement.Client/Spamma.Modules.DomainManagement.Client.csproj" />
   </ItemGroup>
 

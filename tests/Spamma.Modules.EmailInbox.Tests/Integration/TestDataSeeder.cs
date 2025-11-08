@@ -48,18 +48,27 @@ public static class TestDataSeeder
         CancellationToken cancellationToken = default)
     {
         var campaigns = new List<CampaignSummary>();
+        var baseTime = DateTime.UtcNow.AddDays(-10);
 
         for (int i = 0; i < count; i++)
         {
-            var campaign = await CreateCampaignAsync(
-                session,
-                subdomainId: subdomainId,
-                campaignValue: $"campaign-{i:D3}",
-                totalCaptured: (i + 1) * 3,
-                cancellationToken: cancellationToken);
+            // Create campaigns with distinct timestamps for sorting tests
+            var campaign = new CampaignSummary
+            {
+                CampaignId = Guid.NewGuid(),
+                DomainId = Guid.NewGuid(),
+                SubdomainId = subdomainId,
+                CampaignValue = $"campaign-{i:D3}",
+                FirstReceivedAt = baseTime.AddHours(i),
+                LastReceivedAt = baseTime.AddDays(10).AddHours(i),  // Distinct timestamps for each campaign
+                TotalCaptured = (i + 1) * 3,
+            };
 
+            session.Store(campaign);
             campaigns.Add(campaign);
         }
+
+        await session.SaveChangesAsync(cancellationToken);
 
         return campaigns;
     }

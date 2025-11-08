@@ -16,19 +16,19 @@ internal class ChangeDetailsCommandValidator :
             .WithMessage("User ID is required.");
 
         this.RuleFor(x => x.EmailAddress)
-            .MustAsync(async (c, s, token) =>
-            {
-                var result = await userRepository.GetByEmailAddressAsync(s, token);
-                return result.HasValue && result.Value.Id == c.UserId;
-            })
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)
             .WithMessage("Email Address is required.")
-            .WithErrorCode(CommonValidationCodes.NotUnique)
-            .WithMessage("Email address is already in use.")
             .EmailAddress()
             .WithErrorCode(CommonValidationCodes.InvalidFormat)
-            .WithMessage("Email address format is invalid.");
+            .WithMessage("Email address format is invalid.")
+            .MustAsync(async (c, s, token) =>
+            {
+                var result = await userRepository.GetByEmailAddressAsync(s, token);
+                return !result.HasValue || result.Value.Id == c.UserId;
+            })
+            .WithErrorCode(CommonValidationCodes.NotUnique)
+            .WithMessage("Email address is already in use.");
 
         this.RuleFor(x => x.Name)
             .NotEmpty()

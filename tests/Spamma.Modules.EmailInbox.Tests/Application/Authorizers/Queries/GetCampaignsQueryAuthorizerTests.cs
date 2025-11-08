@@ -4,53 +4,72 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Queries;
 
+/// <summary>
+/// Tests for GetCampaignsQueryAuthorizer to verify authorization requirements.
+/// </summary>
 public class GetCampaignsQueryAuthorizerTests
 {
     [Fact]
-    public void GetCampaignsQueryAuthorizer_CanBeInstantiated()
-    {
-        // Arrange & Act
-        var authorizer = new GetCampaignsQueryAuthorizer();
-
-        // Verify
-        authorizer.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void GetCampaignsQueryAuthorizer_ImplementsAbstractAuthorizer()
-    {
-        // Arrange & Act
-        var authorizer = new GetCampaignsQueryAuthorizer();
-
-        // Verify - Should be an AbstractRequestAuthorizer for GetCampaignsQuery
-        authorizer.Should().BeAssignableTo<GetCampaignsQueryAuthorizer>();
-    }
-
-    [Fact]
-    public void GetCampaignsQueryAuthorizer_BuildPolicyDoesNotThrow()
+    public void BuildPolicy_AddsAuthenticationRequirement()
     {
         // Arrange
-        var authorizer = new GetCampaignsQueryAuthorizer();
         var query = new GetCampaignsQuery(Guid.NewGuid());
+        var authorizer = new GetCampaignsQueryAuthorizer();
 
-        // Act & Verify - BuildPolicy should execute without exception
-        var action = () => authorizer.BuildPolicy(query);
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        var requirements = authorizer.Requirements;
+        requirements.Should().HaveCount(2);
+        requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
     }
 
     [Fact]
-    public void GetCampaignsQueryAuthorizer_BuildPolicyWithDifferentSubdomains()
+    public void BuildPolicy_AddsCampaignAccessRequirement()
     {
         // Arrange
+        var query = new GetCampaignsQuery(Guid.NewGuid());
         var authorizer = new GetCampaignsQueryAuthorizer();
+
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        var requirements = authorizer.Requirements;
+        requirements.Should().HaveCount(2);
+        requirements.Should().ContainSingle(r => r.GetType().Name == "MustHaveAccessToAtLeastOneCampaignRequirement");
+    }
+
+    [Fact]
+    public void BuildPolicy_RequiresExactlyTwoRequirements()
+    {
+        // Arrange
+        var query = new GetCampaignsQuery(Guid.NewGuid());
+        var authorizer = new GetCampaignsQueryAuthorizer();
+
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        authorizer.Requirements.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void BuildPolicy_WorksWithDifferentSubdomainIds()
+    {
+        // Arrange
         var subdomainId1 = Guid.NewGuid();
         var subdomainId2 = Guid.NewGuid();
+        var authorizer1 = new GetCampaignsQueryAuthorizer();
+        var authorizer2 = new GetCampaignsQueryAuthorizer();
 
-        // Act & Verify - BuildPolicy should work with different subdomain IDs
-        var action1 = () => authorizer.BuildPolicy(new GetCampaignsQuery(subdomainId1));
-        var action2 = () => authorizer.BuildPolicy(new GetCampaignsQuery(subdomainId2));
+        // Act
+        authorizer1.BuildPolicy(new GetCampaignsQuery(subdomainId1));
+        authorizer2.BuildPolicy(new GetCampaignsQuery(subdomainId2));
 
-        action1.Should().NotThrow();
-        action2.Should().NotThrow();
+        // Assert
+        authorizer1.Requirements.Should().HaveCount(2);
+        authorizer2.Requirements.Should().HaveCount(2);
     }
 }

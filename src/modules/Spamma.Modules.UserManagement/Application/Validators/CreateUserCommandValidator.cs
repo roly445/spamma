@@ -17,18 +17,19 @@ internal class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
             .WithMessage("Name must not exceed 100 characters.");
 
         this.RuleFor(x => x.EmailAddress)
-            .MustAsync(async (s, token) =>
-            {
-                var result = await userRepository.GetByEmailAddressAsync(s, token);
-                return result.HasValue;
-            })
-            .WithMessage("Email address is already in use.")
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)
             .WithMessage("Email address is required.")
             .EmailAddress()
             .WithErrorCode(CommonValidationCodes.InvalidFormat)
-            .WithMessage("Invalid email address format.");
+            .WithMessage("Invalid email address format.")
+            .MustAsync(async (s, token) =>
+            {
+                var result = await userRepository.GetByEmailAddressAsync(s, token);
+                return !result.HasValue;
+            })
+            .WithErrorCode(CommonValidationCodes.NotUnique)
+            .WithMessage("Email address is already in use.");
 
         this.RuleFor(x => x.UserId)
             .NotEmpty()

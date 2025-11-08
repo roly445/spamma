@@ -15,6 +15,8 @@ public class PostgreSqlFixture : IAsyncLifetime
 
     public IDocumentSession? Session { get; private set; }
 
+    public string? ConnectionString { get; private set; }
+
     public async Task InitializeAsync()
     {
         this._container = new PostgreSqlBuilder()
@@ -26,17 +28,17 @@ public class PostgreSqlFixture : IAsyncLifetime
 
         await this._container.StartAsync();
 
-        var connectionString = this._container.GetConnectionString();
+        this.ConnectionString = this._container.GetConnectionString();
 
         // Configure Marten with the test database
         var services = new ServiceCollection();
         services.AddMarten(opts =>
         {
-            opts.Connection(connectionString);
+            opts.Connection(this.ConnectionString);
             opts.DatabaseSchemaName = "public";
 
-            // Allow Marten to auto-create projections for read models
-            // by discovering event-sourced aggregates
+            // Configure EmailInbox projections and document identity mappings
+            Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(opts);
         });
 
         var provider = services.BuildServiceProvider();

@@ -4,65 +4,72 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Queries;
 
+/// <summary>
+/// Tests for GetCampaignDetailQueryAuthorizer to verify authorization requirements.
+/// </summary>
 public class GetCampaignDetailQueryAuthorizerTests
 {
     [Fact]
-    public void GetCampaignDetailQueryAuthorizer_CanBeInstantiated()
-    {
-        // Arrange & Act
-        var authorizer = new GetCampaignDetailQueryAuthorizer();
-
-        // Verify
-        authorizer.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void GetCampaignDetailQueryAuthorizer_BuildPolicyDoesNotThrow()
+    public void BuildPolicy_AddsAuthenticationRequirement()
     {
         // Arrange
-        var authorizer = new GetCampaignDetailQueryAuthorizer();
         var query = new GetCampaignDetailQuery(Guid.NewGuid(), Guid.NewGuid());
+        var authorizer = new GetCampaignDetailQueryAuthorizer();
 
-        // Act & Verify
-        var action = () => authorizer.BuildPolicy(query);
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        var requirements = authorizer.Requirements;
+        requirements.Should().HaveCount(2);
+        requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
     }
 
     [Fact]
-    public void GetCampaignDetailQueryAuthorizer_BuildPolicyWithValidIds()
+    public void BuildPolicy_AddsCampaignAccessRequirement()
     {
         // Arrange
+        var query = new GetCampaignDetailQuery(Guid.NewGuid(), Guid.NewGuid());
         var authorizer = new GetCampaignDetailQueryAuthorizer();
-        var subdomainId = Guid.NewGuid();
-        var campaignId = Guid.NewGuid();
 
-        // Act & Verify
-        var action = () => authorizer.BuildPolicy(new GetCampaignDetailQuery(subdomainId, campaignId));
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        var requirements = authorizer.Requirements;
+        requirements.Should().HaveCount(2);
+        requirements.Should().ContainSingle(r => r.GetType().Name == "MustHaveAccessToCampaignRequirement");
     }
 
     [Fact]
-    public void GetCampaignDetailQueryAuthorizer_BuildPolicyWithOptionalParameters()
+    public void BuildPolicy_RequiresExactlyTwoRequirements()
     {
         // Arrange
+        var query = new GetCampaignDetailQuery(Guid.NewGuid(), Guid.NewGuid());
         var authorizer = new GetCampaignDetailQueryAuthorizer();
 
-        // Act & Verify - BuildPolicy should handle optional DaysBucket parameter
-        var action = () => authorizer.BuildPolicy(new GetCampaignDetailQuery(Guid.NewGuid(), Guid.NewGuid(), 14));
-        action.Should().NotThrow();
+        // Act
+        authorizer.BuildPolicy(query);
+
+        // Assert
+        authorizer.Requirements.Should().HaveCount(2);
     }
 
     [Fact]
-    public void GetCampaignDetailQueryAuthorizer_BuildPolicyMultipleTimes()
+    public void BuildPolicy_WorksWithDifferentCampaignIds()
     {
         // Arrange
-        var authorizer = new GetCampaignDetailQueryAuthorizer();
+        var campaignId1 = Guid.NewGuid();
+        var campaignId2 = Guid.NewGuid();
+        var authorizer1 = new GetCampaignDetailQueryAuthorizer();
+        var authorizer2 = new GetCampaignDetailQueryAuthorizer();
 
-        // Act & Verify - Should be callable multiple times with different campaigns
-        var action1 = () => authorizer.BuildPolicy(new GetCampaignDetailQuery(Guid.NewGuid(), Guid.NewGuid()));
-        var action2 = () => authorizer.BuildPolicy(new GetCampaignDetailQuery(Guid.NewGuid(), Guid.NewGuid()));
+        // Act
+        authorizer1.BuildPolicy(new GetCampaignDetailQuery(Guid.NewGuid(), campaignId1));
+        authorizer2.BuildPolicy(new GetCampaignDetailQuery(Guid.NewGuid(), campaignId2));
 
-        action1.Should().NotThrow();
-        action2.Should().NotThrow();
+        // Assert
+        authorizer1.Requirements.Should().HaveCount(2);
+        authorizer2.Requirements.Should().HaveCount(2);
     }
 }

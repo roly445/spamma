@@ -19,7 +19,7 @@ public class EmailBuilderTests
     {
         var emailId = Guid.NewGuid();
         var email = new EmailBuilder()
-            .WithEmailId(emailId)
+            .WithId(emailId)
             .Build();
 
         email.Id.Should().Be(emailId);
@@ -55,7 +55,7 @@ public class EmailBuilderTests
         var subdomainId = Guid.NewGuid();
 
         var email = new EmailBuilder()
-            .WithEmailId(emailId)
+            .WithId(emailId)
             .WithDomainId(domainId)
             .WithSubdomainId(subdomainId)
             .WithSubject("Chained Subject")

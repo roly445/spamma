@@ -150,4 +150,25 @@ public class DeleteFileWhenEmailIsDeletedTests
 
         await action.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task Process_DeletionFails_DoesNotThrow()
+    {
+        // Arrange - Deletion failure should be handled gracefully
+        var emailId = Guid.NewGuid();
+        var messageStoreProviderMock = new Mock<IMessageStoreProvider>(MockBehavior.Strict);
+        messageStoreProviderMock
+            .Setup(x => x.DeleteMessageContentAsync(emailId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail());
+
+        var subscriber = new DeleteFileWhenEmailIsDeleted(messageStoreProviderMock.Object);
+        var ev = new EmailDeletedIntegrationEvent(emailId);
+
+        // Act
+        var action = async () => await subscriber.Process(ev);
+
+        // Assert - Should complete without throwing even if deletion fails
+        await action.Should().NotThrowAsync();
+    }
 }
+
