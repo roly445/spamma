@@ -17,6 +17,10 @@ public class SubdomainCache(
     ILogger<SubdomainCache> logger, IInternalQueryStore internalQueryStore) : ISubdomainCache
 {
     private const string CacheKeyPrefix = "subdomain:";
+
+    // Prevents cache stampede: Only one thread queries DB per domain at a time
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
+
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
     private readonly TimeSpan _ttl = TimeSpan.FromHours(1);
 
@@ -55,34 +59,70 @@ public class SubdomainCache(
         }
 
         logger.LogDebug("Cache MISS for subdomain: {Domain}", domain);
-        var query = new SearchSubdomainsQuery(
-            SearchTerm: domain.ToLowerInvariant(),
-            ParentDomainId: null,
-            Status: SubdomainStatus.Active,
-            Page: 1,
-            PageSize: 1,
-            SortBy: "domainname",
-            SortDescending: false);
-        internalQueryStore.StoreQueryRef(query);
-        var result = await querier.Send(query, cancellationToken);
 
-        if (result.Status != QueryResultStatus.Succeeded || result.Data.TotalCount == 0)
-        {
-            return Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing;
-        }
-
-        var subdomain = result.Data.Items[0];
+        // STAMPEDE PROTECTION: Only one thread queries DB per domain
+        var domainLock = _locks.GetOrAdd(cacheKey, _ => new SemaphoreSlim(1, 1));
+        await domainLock.WaitAsync(cancellationToken);
 
         try
         {
-            await this.SetSubdomainAsync(domain, subdomain, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Failed to cache subdomain for {Domain}", domain);
-        }
+            // Double-check cache after acquiring lock (another thread may have populated it)
+            var cachedValueAfterLock = this._redis.StringGet(cacheKey);
+            if (cachedValueAfterLock.HasValue)
+            {
+                try
+                {
+                    var cachedSubdomain = JsonSerializer.Deserialize<SearchSubdomainsQueryResult.SubdomainSummary?>(cachedValueAfterLock.ToString());
+                    if (cachedSubdomain != null)
+                    {
+                        logger.LogDebug("Cache HIT after lock for subdomain: {Domain}", domain);
+                        return Maybe.From(cachedSubdomain);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to deserialize cached subdomain after lock for {Domain}", domain);
+                }
+            }
 
-        return Maybe.From(subdomain);
+            // Still a miss - query the database
+            var query = new SearchSubdomainsQuery(
+                SearchTerm: domain.ToLowerInvariant(),
+                ParentDomainId: null,
+                Status: null,
+                Page: 1,
+                PageSize: 1,
+                SortBy: "domainname",
+                SortDescending: false);
+            internalQueryStore.StoreQueryRef(query);
+            var result = await querier.Send(query, cancellationToken);
+
+            if (result.Status != QueryResultStatus.Succeeded || result.Data.TotalCount == 0)
+            {
+                return Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing;
+            }
+
+            var subdomain = result.Data.Items[0];
+            if (subdomain.Status == SubdomainStatus.Suspended)
+            {
+                return Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing;
+            }
+
+            try
+            {
+                await this.SetSubdomainAsync(domain, subdomain, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to cache subdomain for {Domain}", domain);
+            }
+
+            return Maybe.From(subdomain);
+        }
+        finally
+        {
+            domainLock.Release();
+        }
     }
 
     public async Task SetSubdomainAsync(
