@@ -1,5 +1,10 @@
-name: Publish & Build Multi-Arch
+name: Release
 on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       tag:
@@ -13,8 +18,57 @@ permissions:
   packages: write
 
 jobs:
+  test:
+    name: Test & Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: tree:0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Restore NuGet packages
+        run: dotnet restore
+
+      - name: Install MinVer CLI
+        run: dotnet tool install --global minver-cli
+
+      - name: Get version from MinVer
+        id: version
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          VERSION=$(minver --tag-prefix v -v e)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Run tests
+        run: |
+          dotnet test \
+            --configuration Release \
+            --filter "FullyQualifiedName!~E2E" \
+            --logger "trx;LogFileName=test-results.trx" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory test-results
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: test-results/**/*.trx
+          check_name: Test Results
+
   publish:
     name: Build & Test & Publish artifacts for multiple RIDs
+    needs: test
     runs-on: ${{ matrix.runs-on }}
     strategy:
       matrix:
@@ -29,6 +83,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          filter: tree:0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
