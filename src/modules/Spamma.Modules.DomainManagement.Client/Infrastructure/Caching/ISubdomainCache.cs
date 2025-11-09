@@ -8,6 +8,7 @@ public interface ISubdomainCache
     Task<Maybe<SearchSubdomainsQueryResult.SubdomainSummary>> GetSubdomainAsync(
         string domain,
         bool forceRefresh = false,
+        bool cacheOnly = false,
         CancellationToken cancellationToken = default);
 
     Task SetSubdomainAsync(

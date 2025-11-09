@@ -27,6 +27,7 @@ public class SubdomainCache(
     public async Task<Maybe<SearchSubdomainsQueryResult.SubdomainSummary>> GetSubdomainAsync(
         string domain,
         bool forceRefresh = false,
+        bool cacheOnly = false,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(domain))
@@ -56,6 +57,13 @@ public class SubdomainCache(
                     await this.InvalidateAsync(domain, cancellationToken);
                 }
             }
+        }
+
+        // If cacheOnly mode, return Nothing on cache miss (don't query DB)
+        if (cacheOnly)
+        {
+            logger.LogDebug("Cache MISS for subdomain (cache-only mode): {Domain}", domain);
+            return Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing;
         }
 
         logger.LogDebug("Cache MISS for subdomain: {Domain}", domain);

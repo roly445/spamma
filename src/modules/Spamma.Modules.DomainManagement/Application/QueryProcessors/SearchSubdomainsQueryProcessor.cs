@@ -42,16 +42,19 @@ public class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpConte
 
         var skipDomains = false;
         var user = accessor.HttpContext.ToUserAuthInfo();
-        if (user.SystemRole.HasFlag(SystemRole.DomainManagement))
+        if (user.IsAuthenticated)
         {
-            skipDomains = true;
-        }
+            if (user.SystemRole.HasFlag(SystemRole.DomainManagement))
+            {
+                skipDomains = true;
+            }
 
-        if (!skipDomains)
-        {
-            whereConditions.Add(u =>
-                user.ModeratedDomains.Contains(u.DomainId) ||
-                user.ModeratedSubdomains.Contains(u.Id));
+            if (!skipDomains)
+            {
+                whereConditions.Add(u =>
+                    user.ModeratedDomains.Contains(u.DomainId) ||
+                    user.ModeratedSubdomains.Contains(u.Id));
+            }
         }
 
         var filteredQuery = whereConditions.Aggregate<Expression<Func<SubdomainLookup, bool>>, IQueryable<SubdomainLookup>>(baseQuery, (current, condition) => current.Where(condition ?? (x => true)));

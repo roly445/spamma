@@ -62,9 +62,10 @@ public class SpammaMessageStore : MessageStore
             .Distinct()
             .ToList();
 
-        // Fetch all subdomains concurrently (cache should handle this efficiently)
+        // Fetch all subdomains concurrently
+        // Cache has stampede protection - first request queries DB, others wait for cache population
         var subdomainTasks = uniqueDomains
-            .Select(async domain => new { Domain = domain, Subdomain = await subdomainCache.GetSubdomainAsync(domain, cancellationToken: cancellationToken) })
+            .Select(async domain => new { Domain = domain, Subdomain = await subdomainCache.GetSubdomainAsync(domain, forceRefresh: false, cacheOnly: false, cancellationToken: cancellationToken) })
             .ToList();
 
         var subdomainResults = await Task.WhenAll(subdomainTasks);
