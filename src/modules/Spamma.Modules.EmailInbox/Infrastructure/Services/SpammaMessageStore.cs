@@ -30,12 +30,12 @@ public class SpammaMessageStore : MessageStore
         using var scope = provider.CreateScope();
 
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SpammaMessageStore>>();
-        var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
         var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
         var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
         var ingestionChannel = scope.ServiceProvider.GetRequiredService<Channel<Infrastructure.Services.BackgroundJobs.EmailIngestionJob>>();
 
-        using var stream = new MemoryStream();
+        // OPTIMIZATION: Pre-size MemoryStream to avoid reallocations
+        using var stream = new MemoryStream((int)buffer.Length);
 
         var position = buffer.GetPosition(0);
         while (buffer.TryGet(ref position, out var memory))
@@ -56,19 +56,32 @@ public class SpammaMessageStore : MessageStore
         SearchSubdomainsQueryResult.SubdomainSummary? foundSubdomain = null;
         Guid? chaosAddressId = null;
 
+        // OPTIMIZATION: Extract unique domains FIRST, then batch cache lookups
+        var uniqueDomains = recipients
+            .Select(r => r.Domain.ToLowerInvariant())
+            .Distinct()
+            .ToList();
+
+        // Fetch all subdomains concurrently (cache should handle this efficiently)
+        var subdomainTasks = uniqueDomains
+            .Select(async domain => new { Domain = domain, Subdomain = await subdomainCache.GetSubdomainAsync(domain, cancellationToken: cancellationToken) })
+            .ToList();
+
+        var subdomainResults = await Task.WhenAll(subdomainTasks);
+        var subdomainMap = subdomainResults
+            .Where(r => r.Subdomain.HasValue)
+            .ToDictionary(r => r.Domain, r => r.Subdomain.Value);
+
         // First-match semantics: iterate recipients in delivery order and return the configured SMTP response
         foreach (var recipient in recipients)
         {
             var recipientDomain = recipient.Domain.ToLowerInvariant();
 
-            var subdomainMaybe = await subdomainCache.GetSubdomainAsync(recipientDomain, cancellationToken: cancellationToken);
-            if (!subdomainMaybe.HasValue)
+            if (!subdomainMap.TryGetValue(recipientDomain, out var subdomain))
             {
                 // No active subdomain for this recipient, continue to next recipient
                 continue;
             }
-
-            var subdomain = subdomainMaybe.Value;
 
             // keep the first discovered subdomain for later ReceivedEmailCommand if no chaos address matches
             foundSubdomain ??= subdomain;
@@ -110,6 +123,7 @@ public class SpammaMessageStore : MessageStore
         // Trade-off: Blocks SMTP for ~5-20ms (file I/O), but prevents data loss
         if (!isCampaignEmail)
         {
+            var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
             var saveFileResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
             if (!saveFileResult.IsSuccess)
             {
