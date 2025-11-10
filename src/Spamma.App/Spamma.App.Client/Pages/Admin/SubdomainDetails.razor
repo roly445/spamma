@@ -1,13 +1,9 @@
 @page "/admin/subdomains/{id:guid}"
 @page "/admin/domains/{domainId:guid}/subdomains/{id:guid}"
-@using System.ComponentModel.DataAnnotations
-@using BluQube.Constants
-@using Microsoft.AspNetCore.Authorization
 @using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Components.UserControls.Subdomain
 @using Spamma.App.Client.Infrastructure.Helpers
 @using Spamma.App.Client.Layout
-@using Spamma.Modules.DomainManagement.Client.Application.Queries
 @using Spamma.Modules.DomainManagement.Client.Contracts
 @layout AppLayout
 @attribute [Authorize]

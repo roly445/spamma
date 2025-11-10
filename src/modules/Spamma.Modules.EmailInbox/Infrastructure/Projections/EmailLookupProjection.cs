@@ -5,7 +5,6 @@ using Marten.Events.Projections;
 using Marten.Patching;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
-using CampaignAggregateEvents = Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Projections;
 

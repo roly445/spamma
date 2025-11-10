@@ -1,5 +1,4 @@
 using MaybeMonad;
-using SmtpServer.Protocol;
 using Spamma.Modules.Common.Client;
 
 namespace Spamma.Modules.Common.Caching;

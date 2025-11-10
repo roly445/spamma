@@ -1,5 +1,3 @@
-using Spamma.App.Infrastructure.Services;
-
 namespace Spamma.App.Infrastructure.Contracts.Services;
 
 public interface IAppConfigurationService

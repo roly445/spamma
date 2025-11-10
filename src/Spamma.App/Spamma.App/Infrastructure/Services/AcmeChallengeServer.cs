@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 
 namespace Spamma.App.Infrastructure.Services;

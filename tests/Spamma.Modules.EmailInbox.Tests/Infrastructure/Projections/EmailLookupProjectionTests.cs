@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.Projections;

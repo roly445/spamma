@@ -5,7 +5,6 @@ using MaybeMonad;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
-using Spamma.Modules.UserManagement.Client.Contracts;
 using StackExchange.Redis;
 
 namespace Spamma.App.Infrastructure.Services;

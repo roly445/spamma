@@ -1,11 +1,9 @@
 ﻿using System.Linq.Expressions;
-using System.Security.Claims;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
-using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
@@ -57,7 +55,7 @@ public class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpConte
             }
         }
 
-        var filteredQuery = whereConditions.Aggregate<Expression<Func<SubdomainLookup, bool>>, IQueryable<SubdomainLookup>>(baseQuery, (current, condition) => current.Where(condition ?? (x => true)));
+        var filteredQuery = whereConditions.Aggregate<Expression<Func<SubdomainLookup, bool>>, IQueryable<SubdomainLookup>>(baseQuery, (current, condition) => current.Where(condition));
 
         var orderedQuery = request.SortBy.ToLowerInvariant() switch
          {

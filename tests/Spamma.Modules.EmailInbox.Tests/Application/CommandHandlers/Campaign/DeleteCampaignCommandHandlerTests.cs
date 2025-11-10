@@ -6,7 +6,6 @@ using Moq;
 using ResultMonad;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 using Spamma.Modules.EmailInbox.Application.Repositories;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;

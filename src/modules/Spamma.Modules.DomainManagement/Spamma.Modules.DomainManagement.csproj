@@ -58,6 +58,7 @@
     <ItemGroup>
       <InternalsVisibleTo Include="Spamma.Modules.DomainManagement.Tests" />
       <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+        <InternalsVisibleTo Include="Spamma.Modules.EmailInbox.Tests.E2E" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />

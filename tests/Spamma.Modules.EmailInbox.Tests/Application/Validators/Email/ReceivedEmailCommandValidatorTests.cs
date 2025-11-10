@@ -1,7 +1,5 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Application.Validators.Email;
-using Spamma.Modules.EmailInbox.Client;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 

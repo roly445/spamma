@@ -1,4 +1,3 @@
-using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 

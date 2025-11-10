@@ -1,5 +1,3 @@
-using System;
-
 namespace Spamma.App.Infrastructure;
 
 public static class RedisKeys

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MimeKit;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 

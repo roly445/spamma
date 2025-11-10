@@ -2,7 +2,6 @@ using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;

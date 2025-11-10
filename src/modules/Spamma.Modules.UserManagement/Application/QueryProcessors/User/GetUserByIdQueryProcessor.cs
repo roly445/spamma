@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
-using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.UserManagement.Application.QueryProcessors.User;

@@ -1,5 +1,4 @@
 ﻿using Spamma.Modules.Common.Client;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 

@@ -3,10 +3,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Email;
 
-/// <summary>
-/// Authorizer for CampaignEmailReceivedCommand.
-/// This is an internal system command that doesn't require user authentication.
-/// </summary>
 public class CampaignEmailReceivedCommandAuthorizer : AbstractRequestAuthorizer<CampaignEmailReceivedCommand>
 {
     public override void BuildPolicy(CampaignEmailReceivedCommand request)

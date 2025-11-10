@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using BluQube.Attributes;
-using Fido2NetLib;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;

@@ -1,6 +1,5 @@
 ﻿using BluQube.Constants;
 using Spamma.App.Client.Components.UserControls.Domain;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Pages.Admin;

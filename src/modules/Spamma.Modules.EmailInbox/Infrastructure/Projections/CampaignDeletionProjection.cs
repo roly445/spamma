@@ -1,6 +1,5 @@
 using JasperFx.Events;
 using Marten;
-using Marten.Events;
 using Marten.Events.Projections;
 using Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Events;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;

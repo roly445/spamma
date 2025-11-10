@@ -4,10 +4,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Weasel.Core;
 using Marten;
-using Npgsql;
-using Spamma.App.Infrastructure.Configuration;
 using Spamma.Modules.DomainManagement;
 using Spamma.Modules.EmailInbox;
 using Spamma.Modules.UserManagement;
