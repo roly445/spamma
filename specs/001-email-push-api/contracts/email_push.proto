@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package spamma.email_push;
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Spamma.Modules.EmailInbox.Client.Application.Grpc";
+
+// Service for real-time email push notifications
+service EmailPushService {
+  // Subscribe to email notifications for configured integrations
+  rpc SubscribeToEmails (SubscribeRequest) returns (stream EmailNotification);
+}
+
+// Request to subscribe to email notifications
+message SubscribeRequest {
+  // JWT token for authentication
+  string jwt_token = 1;
+}
+
+// Email notification payload
+message EmailNotification {
+  // Unique email identifier
+  string email_id = 1;
+  // Recipient email address
+  string to = 2;
+  // Sender email address
+  string from = 3;
+  // Email subject (truncated to 200 chars)
+  string subject = 4;
+  // When the email was received
+  google.protobuf.Timestamp received_at = 5;
+}

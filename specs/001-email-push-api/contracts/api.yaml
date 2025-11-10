@@ -1,0 +1,181 @@
+openapi: 3.0.3
+info:
+  title: Spamma Email Push API
+  description: REST API for managing push integrations and retrieving email content
+  version: 1.0.0
+servers:
+  - url: https://api.spamma.local
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/email-push/integrations:
+    get:
+      summary: Get push integrations
+      description: Retrieve all push integrations for the authenticated user
+      responses:
+        '200':
+          description: List of push integrations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  integrations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PushIntegration'
+    post:
+      summary: Create push integration
+      description: Create a new push integration for email notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePushIntegrationRequest'
+      responses:
+        '201':
+          description: Push integration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushIntegration'
+
+  /api/email-push/integrations/{integrationId}:
+    put:
+      summary: Update push integration
+      description: Update an existing push integration
+      parameters:
+        - name: integrationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePushIntegrationRequest'
+      responses:
+        '200':
+          description: Push integration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushIntegration'
+    delete:
+      summary: Delete push integration
+      description: Delete an existing push integration
+      parameters:
+        - name: integrationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Push integration deleted
+
+  /api/emails/{emailId}/content:
+    get:
+      summary: Get email content
+      description: Retrieve the full MIME content of an email as EML file
+      parameters:
+        - name: emailId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Email content as EML file
+          content:
+            message/rfc822:
+              schema:
+                type: string
+                format: binary
+
+components:
+  schemas:
+    PushIntegration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        subdomainId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        filterType:
+          type: string
+          enum: [AllEmails, SingleEmail, Regex]
+        filterValue:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - subdomainId
+        - filterType
+        - isActive
+        - createdAt
+        - updatedAt
+
+    CreatePushIntegrationRequest:
+      type: object
+      properties:
+        subdomainId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        filterType:
+          type: string
+          enum: [AllEmails, SingleEmail, Regex]
+        filterValue:
+          type: string
+          nullable: true
+      required:
+        - subdomainId
+        - filterType
+
+    UpdatePushIntegrationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        filterType:
+          type: string
+          enum: [AllEmails, SingleEmail, Regex]
+        filterValue:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+      required:
+        - filterType
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
