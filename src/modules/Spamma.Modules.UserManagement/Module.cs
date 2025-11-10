@@ -10,7 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
 using Spamma.Modules.UserManagement.Infrastructure.Projections;
+using Spamma.Modules.UserManagement.Infrastructure.Projections.ApiKeys;
 using Spamma.Modules.UserManagement.Infrastructure.Repositories;
+using Spamma.Modules.UserManagement.Infrastructure.Repositories.ApiKeys;
 
 namespace Spamma.Modules.UserManagement;
 
@@ -26,6 +28,8 @@ public static class Module
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasskeyRepository, PasskeyRepository>();
+        services.AddScoped<IApiKeyRepository, Spamma.Modules.UserManagement.Infrastructure.Repositories.ApiKeys.ApiKeyRepository>();
+        services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyValidationService, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyValidationService>();
 
         services.AddFido2(options =>
         {
@@ -58,6 +62,7 @@ public static class Module
 
         options.Projections.Add<UserLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<PasskeyProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<Spamma.Modules.UserManagement.Infrastructure.Projections.ApiKeys.ApiKeyProjection>(ProjectionLifecycle.Inline);
         return options;
     }
 }

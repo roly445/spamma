@@ -44,6 +44,7 @@ using Spamma.Modules.EmailInbox;
 using Spamma.Modules.UserManagement;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
+using Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys;
 using StackExchange.Redis;
 using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
@@ -275,7 +276,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 await context.HttpContext.SignOutAsync();
             }
         };
-    });
+    })
+    .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>("ApiKey", options => { });
 
 builder.Services.AddAuthorization(options =>
 {
