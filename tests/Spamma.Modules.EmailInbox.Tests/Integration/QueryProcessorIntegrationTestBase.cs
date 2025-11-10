@@ -223,9 +223,10 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         private void UpdateHttpContext()
         {
             var claims = this._subdomainIds.Select(id => new Claim(Lookups.ViewableSubdomainClaim, id.ToString())).ToList();
+            var identity = new ClaimsIdentity(claims, "TestAuthentication"); // Specify authentication type to set IsAuthenticated = true
             this.HttpContext = new DefaultHttpContext
             {
-                User = new ClaimsPrincipal(new ClaimsIdentity(claims)),
+                User = new ClaimsPrincipal(identity),
             };
         }
     }

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
@@ -14,13 +15,14 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
         var emailId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
         var campaignId = Guid.NewGuid();
+        var expectedWhenSent = DateTime.UtcNow.AddDays(-5);
 
         var email = new EmailLookup
         {
             Id = emailId,
             SubdomainId = subdomainId,
             Subject = "Test Email Subject",
-            WhenSent = DateTime.UtcNow.AddDays(-5),
+            WhenSent = expectedWhenSent,
             IsFavorite = true,
             CampaignId = campaignId,
             EmailAddresses = new List<EmailAddress>
@@ -44,7 +46,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
         result.Data.Subject.Should().Be("Test Email Subject");
         result.Data.IsFavorite.Should().BeTrue();
         result.Data.CampaignId.Should().Be(campaignId);
-        result.Data.WhenSent.Should().BeCloseTo(DateTime.UtcNow.AddDays(-5), TimeSpan.FromSeconds(1));
+        result.Data.WhenSent.Should().BeCloseTo(expectedWhenSent, TimeSpan.FromSeconds(1));
     }
 
     [Fact]

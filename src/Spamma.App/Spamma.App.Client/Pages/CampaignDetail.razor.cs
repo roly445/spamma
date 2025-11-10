@@ -67,7 +67,8 @@ public partial class CampaignDetail
                             "Email",
                             emailResult.Data.WhenSent,
                             emailResult.Data.IsFavorite,
-                            emailResult.Data.CampaignId);
+                            emailResult.Data.CampaignId,
+                            this._campaignDetail?.CampaignValue);
                     }
                 }
             }
@@ -84,26 +85,5 @@ public partial class CampaignDetail
         {
             this._isLoading = false;
         }
-    }
-
-    private string GetDurationText()
-    {
-        if (this._campaignDetail == null)
-        {
-            return "N/A";
-        }
-
-        var duration = this._campaignDetail.LastReceivedAt - this._campaignDetail.FirstReceivedAt;
-        if (duration.TotalDays > 1)
-        {
-            return $"{(int)duration.TotalDays} days";
-        }
-
-        if (duration.TotalHours > 1)
-        {
-            return $"{(int)duration.TotalHours}h";
-        }
-
-        return $"{(int)duration.TotalMinutes}m";
     }
 }

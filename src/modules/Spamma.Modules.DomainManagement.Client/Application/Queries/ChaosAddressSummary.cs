@@ -10,5 +10,5 @@ public record ChaosAddressSummary(
     SmtpResponseCode ConfiguredSmtpCode,
     bool Enabled,
     int TotalReceived,
-    DateTime? LastReceivedAt,
+    DateTimeOffset? LastReceivedAt,
     DateTime CreatedAt);

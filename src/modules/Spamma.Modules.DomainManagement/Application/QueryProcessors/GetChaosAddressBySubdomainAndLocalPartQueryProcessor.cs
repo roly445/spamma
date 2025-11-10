@@ -17,7 +17,13 @@ public class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSessi
             return Task.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Failed());
         }
 
-        var summary = new GetChaosAddressBySubdomainAndLocalPartQueryResult(match.Id, match.SubdomainId, match.LocalPart, match.ConfiguredSmtpCode, match.Enabled);
+        var summary = new GetChaosAddressBySubdomainAndLocalPartQueryResult(
+            match.Id,
+            match.SubdomainId,
+            match.DomainId,
+            match.LocalPart,
+            match.ConfiguredSmtpCode,
+            match.Enabled);
         return Task.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Succeeded(summary));
     }
 }

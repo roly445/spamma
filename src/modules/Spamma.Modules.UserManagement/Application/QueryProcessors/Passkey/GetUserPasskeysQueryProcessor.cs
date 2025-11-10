@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
-namespace Spamma.Modules.UserManagement.Application.QueryProcessors;
+namespace Spamma.Modules.UserManagement.Application.QueryProcessors.Passkey;
 
 internal class GetUserPasskeysQueryProcessor(
     IDocumentSession documentSession,

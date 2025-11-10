@@ -9,11 +9,12 @@ using MimeKit;
 using Moq;
 using ResultMonad;
 using SmtpServer.Protocol;
+using Spamma.Modules.Common.Caching;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 

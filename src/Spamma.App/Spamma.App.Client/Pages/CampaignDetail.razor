@@ -43,7 +43,7 @@
         else
         {
             <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <p class="text-sm text-gray-500 mb-1">Total Captured</p>
                     <p class="text-2xl font-bold text-gray-900">@_campaignDetail.TotalCaptured</p>
@@ -56,47 +56,6 @@
                     <p class="text-sm text-gray-500 mb-1">Last Received</p>
                     <p class="text-sm font-mono text-gray-600">@_campaignDetail.LastReceivedAt.ToString("g")</p>
                 </div>
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <p class="text-sm text-gray-500 mb-1">Duration</p>
-                    <p class="text-sm font-mono text-gray-600">@GetDurationText()</p>
-                </div>
-            </div>
-
-            <!-- Chart (placeholder for ApexCharts) -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Timeline</h2>
-                @if (_campaignDetail?.TimeBuckets != null && _campaignDetail.TimeBuckets.Count > 0)
-                {
-                    <div class="space-y-4">
-                        @foreach (var bucket in _campaignDetail.TimeBuckets)
-                        {
-                            var maxCaptures = _campaignDetail.TimeBuckets.Max(b => b.Count);
-                            var barWidth = maxCaptures > 0 ? (bucket.Count * 100 / maxCaptures) : 0;
-                            
-                            <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <p class="text-sm text-gray-600">@bucket.StartTime.ToString("MMM dd") - @bucket.EndTime.ToString("MMM dd")</p>
-                                    <p class="text-sm font-medium text-gray-900">@bucket.Count captures</p>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-8">
-                                    <div class="bg-blue-600 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" 
-                                         style="width: @barWidth%;">
-                                        @if (barWidth > 15)
-                                        {
-                                            <span>@bucket.Count</span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="w-full h-96 bg-gray-50 border border-gray-200 rounded flex items-center justify-center">
-                        <p class="text-gray-400">No timeline data available</p>
-                    </div>
-                }
             </div>
 
             <!-- Sample Message -->
@@ -106,8 +65,8 @@
                     <div class="border-b border-gray-200 p-6">
                         <h2 class="text-lg font-semibold text-gray-900">Sample Message</h2>
                     </div>
-                    <div class="h-96">
-                        <EmailViewer Email="_emailSummary" />
+                    <div>
+                        <EmailViewer Email="_emailSummary" HideCampaignInfo="true" />
                     </div>
                 </div>
             }

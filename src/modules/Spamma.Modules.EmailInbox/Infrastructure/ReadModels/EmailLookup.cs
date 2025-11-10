@@ -12,11 +12,13 @@ public class EmailLookup
 
     public string Subject { get; set; } = string.Empty;
 
-    public DateTime WhenSent { get; set; }
+    public DateTimeOffset WhenSent { get; set; }
 
     public DateTime? WhenDeleted { get; set; }
 
     public bool IsFavorite { get; set; }
 
     public Guid? CampaignId { get; set; }
+
+    public string? CampaignValue { get; set; }
 }

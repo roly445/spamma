@@ -2,6 +2,8 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Application.Validators.Email;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators.Email;
 
@@ -23,7 +25,7 @@ public class ReceivedEmailCommandValidatorTests
             Guid.NewGuid(),
             "Test Subject",
             DateTime.UtcNow,
-            new[] { new ReceivedEmailCommand.EmailAddress("test@example.com", "Test User", EmailAddressType.To) });
+            new[] { new EmailAddress("test@example.com", "Test User", EmailAddressType.To) });
 
         var result = await this._validator.ValidateAsync(command);
 
@@ -39,7 +41,7 @@ public class ReceivedEmailCommandValidatorTests
             Guid.NewGuid(),
             "Test Subject",
             DateTime.UtcNow,
-            Array.Empty<ReceivedEmailCommand.EmailAddress>());
+            Array.Empty<EmailAddress>());
 
         var result = await this._validator.ValidateAsync(command);
 

@@ -35,7 +35,6 @@ internal class RevokeUserPasskeyCommandHandler(
 
         var passkey = passkeyMaybe.Value;
 
-        // Verify the passkey belongs to the requested user
         if (passkey.UserId != request.UserId)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, "Passkey not found"));

@@ -1,9 +1,11 @@
 ﻿using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
@@ -12,18 +14,16 @@ public class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpC
 {
     public async Task<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
-        var domainClaims = accessor.HttpContext?.User.FindAll(Lookups.ViewableSubdomainClaim).Select(x =>
-        {
-            if (Guid.TryParse(x.Value, out var d))
-            {
-                return d;
-            }
-
-            return (Guid?)null;
-        }).Where(x => x.HasValue).Select(x => x!.Value).ToList();
+        var user = accessor.HttpContext.ToUserAuthInfo();
 
         var query = documentSession.Query<EmailLookup>()
-            .Where(x => domainClaims != null && domainClaims.Contains(x.SubdomainId) && x.WhenDeleted == null);
+            .Where(x => user.ViewableSubdomains.Contains(x.SubdomainId) && x.WhenDeleted == null);
+
+        // Apply campaign email filter - hide campaign emails by default unless user wants to see them
+        if (!request.ShowCampaignEmails)
+        {
+            query = query.Where(x => x.CampaignId == null);
+        }
 
         // Apply search filtering if search text is provided
         if (!string.IsNullOrWhiteSpace(request.SearchText))
@@ -53,7 +53,7 @@ public class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpC
             .ToListAsync(token: cancellationToken);
 
         var result = new SearchEmailsQueryResult(
-            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.WhenSent, x.IsFavorite, x.CampaignId)).ToList(),
+            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.WhenSent, x.IsFavorite, x.CampaignId, x.CampaignValue)).ToList(),
             TotalCount: totalCount,
             Page: page,
             PageSize: pageSize,

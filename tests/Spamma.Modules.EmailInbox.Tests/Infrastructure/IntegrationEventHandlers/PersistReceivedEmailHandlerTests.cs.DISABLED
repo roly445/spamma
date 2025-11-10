@@ -4,6 +4,8 @@ using Moq;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.IntegrationEventHandlers;

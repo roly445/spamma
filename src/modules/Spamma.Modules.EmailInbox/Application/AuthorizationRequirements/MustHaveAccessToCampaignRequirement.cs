@@ -4,8 +4,6 @@ using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
-using Spamma.Modules.DomainManagement.Client.Contracts;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.AuthorizationRequirements;

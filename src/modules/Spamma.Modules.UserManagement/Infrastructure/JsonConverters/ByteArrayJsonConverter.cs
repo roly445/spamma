@@ -21,7 +21,7 @@ public class ByteArrayJsonConverter : JsonConverter<byte[]>
         throw new JsonException("Expected string token for byte array");
     }
 
-    public override void Write(Utf8JsonWriter writer, byte[] value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, byte[]? value, JsonSerializerOptions options)
     {
         if (value == null)
         {

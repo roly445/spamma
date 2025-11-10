@@ -10,10 +10,11 @@ using ResultMonad;
 using SmtpServer.Protocol;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
+using Spamma.Modules.Common.Caching;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
@@ -48,7 +49,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache to return active subdomain
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("spamma.io", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("spamma.io", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe.From(new SearchSubdomainsQueryResult.SubdomainSummary(
                 SubdomainId: subdomainId,
                 ParentDomainId: domainId,
@@ -114,7 +115,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache to return no subdomain
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("unknown.com", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("unknown.com", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing);
 
         // Act
@@ -146,7 +147,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("spamma.io", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("spamma.io", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe.From(new SearchSubdomainsQueryResult.SubdomainSummary(
                 SubdomainId: subdomainId,
                 ParentDomainId: domainId,
@@ -198,7 +199,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("spamma.io", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("spamma.io", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe.From(new SearchSubdomainsQueryResult.SubdomainSummary(
                 SubdomainId: subdomainId,
                 ParentDomainId: domainId,
@@ -251,7 +252,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("spamma.io", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("spamma.io", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe.From(new SearchSubdomainsQueryResult.SubdomainSummary(
                 SubdomainId: subdomainId,
                 ParentDomainId: domainId,
@@ -304,7 +305,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("spamma.io", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("spamma.io", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe.From(new SearchSubdomainsQueryResult.SubdomainSummary(
                 SubdomainId: subdomainId,
                 ParentDomainId: domainId,
@@ -368,7 +369,7 @@ public class SpammaMessageStoreTests
 
         // Mock subdomain cache
         mocks.SubdomainCacheMock
-            .Setup(x => x.GetSubdomainAsync("spamma.io", false, It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetSubdomainAsync("spamma.io", false, false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Maybe.From(new SearchSubdomainsQueryResult.SubdomainSummary(
                 SubdomainId: subdomainId,
                 ParentDomainId: domainId,

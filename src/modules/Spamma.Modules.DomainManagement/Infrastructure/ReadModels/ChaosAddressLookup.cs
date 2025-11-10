@@ -20,7 +20,7 @@ public class ChaosAddressLookup
 
     public int TotalReceived { get; set; }
 
-    public DateTime? LastReceivedAt { get; set; }
+    public DateTimeOffset? LastReceivedAt { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

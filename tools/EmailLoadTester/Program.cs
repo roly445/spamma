@@ -10,7 +10,7 @@ var port = int.TryParse(parser.Get("port"), out var p) ? p : 25;
 var from = parser.Get("from") ?? "tester@localhost";
 var to = parser.Get("to") ?? "test@mail.spamma.dev";
 var batchSize = int.TryParse(parser.Get("batch"), out var b) ? Math.Clamp(b, 1, 100) : 100;
-var batches = int.TryParse(parser.Get("batches"), out var bs) ? Math.Max(1, bs) : 1;
+var batches = int.TryParse(parser.Get("batches"), out var bs) ? Math.Max(1, bs) :1;
 var subject = parser.Get("subject") ?? "Spamma Load Test";
 var htmlBody = parser.Get("html") ?? "<p>This is the <strong>HTML</strong> part</p>";
 var textBody = parser.Get("text") ?? "This is the text part";
@@ -28,7 +28,7 @@ for (var batchIndex = 0; batchIndex < batches; batchIndex++)
         message.From.Add(MailboxAddress.Parse(from));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject + " " + (i + 1);
-        message.Headers.Add("X-Spamma-Camp", batchId.ToString());
+        message.Headers.Add("X-Spamma-Camp", $"Sample Campaign {batchId}");
 
         var builder = new BodyBuilder
         {
@@ -38,6 +38,13 @@ for (var batchIndex = 0; batchIndex < batches; batchIndex++)
         message.Body = builder.ToMessageBody();
 
         tasks.Add(SendAsync(host, port, message));
+        
+        // Add random delay between 0 and 100ms to mimic real SMTP server timing
+        if (i < batchSize - 1) // Don't delay after last email
+        {
+            var delayMs = Random.Shared.Next(0, 1001); // 0-1000ms (1 second)
+            await Task.Delay(delayMs);
+        }
     }
     Console.WriteLine($"Sending batch {batchIndex + 1}/{batches} with X-Spamma-Comp: {batchId}");
     await Task.WhenAll(tasks);

@@ -3,6 +3,8 @@ using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Application.Validators.Email;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
@@ -18,7 +20,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
     public void Validate_WithEmptyDomainId_ReturnsInvalid()
     {
         // Arrange
-        var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
+        var emailAddresses = new List<EmailAddress>
         {
             new("recipient@example.com", "Recipient", EmailAddressType.To),
         };
@@ -45,7 +47,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
     public void Validate_WithEmptySubdomainId_ReturnsInvalid()
     {
         // Arrange
-        var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
+        var emailAddresses = new List<EmailAddress>
         {
             new("recipient@example.com", "Recipient", EmailAddressType.To),
         };
@@ -78,7 +80,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
             SubdomainId: Guid.Empty,
             Subject: "Test",
             WhenSent: DateTime.UtcNow,
-            EmailAddresses: Array.Empty<ReceivedEmailCommand.EmailAddress>());
+            EmailAddresses: Array.Empty<EmailAddress>());
 
         // Act
         var result = _validator.Validate(command);
@@ -95,7 +97,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
     public void Validate_WithSingleEmailAddress_ReturnsValid()
     {
         // Arrange - minimum valid scenario
-        var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
+        var emailAddresses = new List<EmailAddress>
         {
             new("to@example.com", "To User", EmailAddressType.To),
         };
@@ -119,7 +121,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
     public void Validate_WithMultipleEmailAddresses_ReturnsValid()
     {
         // Arrange - complex scenario with multiple recipients
-        var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
+        var emailAddresses = new List<EmailAddress>
         {
             new("to1@example.com", "To User 1", EmailAddressType.To),
             new("to2@example.com", "To User 2", EmailAddressType.To),

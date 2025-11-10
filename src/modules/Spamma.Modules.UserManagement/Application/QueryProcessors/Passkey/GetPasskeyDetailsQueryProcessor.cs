@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
-namespace Spamma.Modules.UserManagement.Application.QueryProcessors;
+namespace Spamma.Modules.UserManagement.Application.QueryProcessors.Passkey;
 
 internal class GetPasskeyDetailsQueryProcessor(
     IPasskeyRepository passkeyRepository,

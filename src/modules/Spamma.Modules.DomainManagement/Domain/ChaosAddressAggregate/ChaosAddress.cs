@@ -28,7 +28,7 @@ public partial class ChaosAddress : AggregateRoot
 
     public int TotalReceived { get; private set; }
 
-    public DateTime? LastReceivedAt { get; private set; }
+    public DateTimeOffset? LastReceivedAt { get; private set; }
 
     internal IReadOnlyList<ChaosAddressSuspensionAudit> SuspensionAudits => this._suspensionAudits;
 
@@ -74,9 +74,9 @@ public partial class ChaosAddress : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> RecordReceive(DateTime when)
+    public ResultWithError<BluQubeErrorData> RecordReceive(DateTimeOffset when)
     {
-        var @event = new ChaosAddressReceived(this.Id, when);
+        var @event = new ChaosAddressReceived(when);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }

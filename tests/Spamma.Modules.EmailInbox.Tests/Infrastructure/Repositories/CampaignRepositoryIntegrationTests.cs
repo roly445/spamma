@@ -72,9 +72,9 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         retrievedMaybe.HasValue.Should().BeTrue();
         var retrieved = retrievedMaybe.Value;
-        retrieved.MessageIds.Should().Contain(messageId1);
-        retrieved.MessageIds.Should().Contain(messageId2);
-        retrieved.MessageIds.Should().Contain(messageId3);
+
+        // Campaign creation doesn't count as a capture, only explicit RecordCapture calls do
+        retrieved.TotalCaptures.Should().Be(2); // Verify captures were recorded
     }
 
     [Fact]
@@ -136,7 +136,8 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         retrieved.HasValue.Should().BeTrue();
         retrieved.Value.DeletedAt.Should().NotBeNull();
-        retrieved.Value.MessageIds.Should().Contain(messageId1);
-        retrieved.Value.MessageIds.Should().Contain(messageId2);
+
+        // Campaign creation doesn't count as a capture, only explicit RecordCapture calls do
+        retrieved.Value.TotalCaptures.Should().Be(1); // Verify capture was recorded
     }
 }

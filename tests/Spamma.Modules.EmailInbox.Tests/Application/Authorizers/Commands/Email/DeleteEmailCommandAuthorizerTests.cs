@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Application.Authorizers.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Commands.Email;
 

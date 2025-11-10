@@ -92,7 +92,7 @@ public partial class User : AggregateRoot
     {
         if (!this.IsSuspended)
         {
-            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(UserManagementErrorCodes.NotSuspended, $"User with ID {this.Id} is not suspended"));
+            return ResultWithError.Fail(new BluQubeErrorData(UserManagementErrorCodes.NotSuspended, $"User with ID {this.Id} is not suspended"));
         }
 
         var @event = new AccountUnsuspended(whenUnSuspended, Guid.NewGuid());

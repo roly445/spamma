@@ -8,6 +8,7 @@ using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Application.Validators.Email;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;

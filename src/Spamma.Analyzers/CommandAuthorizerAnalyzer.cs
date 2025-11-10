@@ -113,7 +113,7 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
     private static void FindMissingInNamespace(INamespaceSymbol namespaceSymbol, HashSet<string> commandsWithAuthorizers, List<string> missing)
     {
         // Check all types in this namespace
-        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => HasBluQubeCommandAttribute(t)))
+        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => ImplementsICommand(t)))
         {
             var commandFullName = type.GetFullyQualifiedName();
             if (!commandsWithAuthorizers.Contains(commandFullName))
@@ -128,11 +128,10 @@ public sealed class CommandAuthorizerAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool HasBluQubeCommandAttribute(INamedTypeSymbol typeSymbol)
+    private static bool ImplementsICommand(INamedTypeSymbol typeSymbol)
     {
-        return typeSymbol.GetAttributes().Any(a =>
-            a.AttributeClass?.Name == "BluQubeCommandAttribute" ||
-            a.AttributeClass?.Name == "BluQubeCommand");
+        // Check if the type implements ICommand interface
+        return typeSymbol.AllInterfaces.Any(i => i.Name == "ICommand" && i.ContainingNamespace?.ToString() == "BluQube.Commands");
     }
 
     private sealed class AuthorizerCollector(HashSet<string> commandsWithAuthorizers, Compilation compilation)

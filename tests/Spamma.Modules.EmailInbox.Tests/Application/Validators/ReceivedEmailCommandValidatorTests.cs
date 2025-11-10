@@ -2,6 +2,8 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Application.Validators.Email;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
@@ -19,7 +21,7 @@ public class ReceivedEmailCommandValidatorTests
         // Arrange
         var emailAddresses = new[]
         {
-            new ReceivedEmailCommand.EmailAddress("test@example.com", "Test User", EmailAddressType.To),
+            new EmailAddress("test@example.com", "Test User", EmailAddressType.To),
         };
         var command = new ReceivedEmailCommand(
             Guid.NewGuid(),
@@ -43,7 +45,7 @@ public class ReceivedEmailCommandValidatorTests
         // Arrange
         var emailAddresses = new[]
         {
-            new ReceivedEmailCommand.EmailAddress("test@example.com", "Test User", EmailAddressType.To),
+            new EmailAddress("test@example.com", "Test User", EmailAddressType.To),
         };
         var command = new ReceivedEmailCommand(
             Guid.NewGuid(),
@@ -67,7 +69,7 @@ public class ReceivedEmailCommandValidatorTests
         // Arrange
         var emailAddresses = new[]
         {
-            new ReceivedEmailCommand.EmailAddress("test@example.com", "Test User", EmailAddressType.To),
+            new EmailAddress("test@example.com", "Test User", EmailAddressType.To),
         };
         var command = new ReceivedEmailCommand(
             Guid.NewGuid(),
@@ -95,7 +97,7 @@ public class ReceivedEmailCommandValidatorTests
             Guid.NewGuid(),
             "Test Subject",
             DateTime.UtcNow,
-            Array.Empty<ReceivedEmailCommand.EmailAddress>()); // Empty email addresses
+            Array.Empty<EmailAddress>()); // Empty email addresses
 
         // Act
         var result = this._validator.Validate(command);
@@ -111,7 +113,7 @@ public class ReceivedEmailCommandValidatorTests
         // Arrange
         var emailAddresses = new[]
         {
-            new ReceivedEmailCommand.EmailAddress("test@example.com", "Test User", EmailAddressType.To),
+            new EmailAddress("test@example.com", "Test User", EmailAddressType.To),
         };
         var command = new ReceivedEmailCommand(
             Guid.NewGuid(),

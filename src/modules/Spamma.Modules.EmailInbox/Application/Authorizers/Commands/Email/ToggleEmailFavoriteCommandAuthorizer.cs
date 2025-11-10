@@ -2,6 +2,7 @@
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.EmailInbox.Application.AuthorizationRequirements;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Commands.Email;
 

@@ -175,7 +175,6 @@ public class CampaignAggregateTests
         result.IsSuccess.Should().BeTrue();
         campaign.ShouldHaveRaisedEvent<CampaignCaptured>(e =>
         {
-            e.MessageId.Should().Be(newMessageId);
             e.CapturedAt.Should().Be(capturedAt);
         });
     }

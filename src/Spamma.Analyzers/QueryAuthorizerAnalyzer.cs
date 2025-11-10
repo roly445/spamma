@@ -113,7 +113,7 @@ public sealed class QueryAuthorizerAnalyzer : DiagnosticAnalyzer
     private static void FindMissingInNamespace(INamespaceSymbol namespaceSymbol, HashSet<string> queriesWithAuthorizers, List<string> missing)
     {
         // Check all types in this namespace
-        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => HasBluQubeQueryAttribute(t)))
+        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => ImplementsIQuery(t)))
         {
             var queryFullName = type.GetFullyQualifiedName();
             if (!queriesWithAuthorizers.Contains(queryFullName))
@@ -128,11 +128,13 @@ public sealed class QueryAuthorizerAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static bool HasBluQubeQueryAttribute(INamedTypeSymbol typeSymbol)
+    private static bool ImplementsIQuery(INamedTypeSymbol typeSymbol)
     {
-        return typeSymbol.GetAttributes().Any(a =>
-            a.AttributeClass?.Name == "BluQubeQueryAttribute" ||
-            a.AttributeClass?.Name == "BluQubeQuery");
+        // Check if the type implements IQuery<TResult> interface
+        return typeSymbol.AllInterfaces.Any(i =>
+            i.Name == "IQuery" &&
+            i.IsGenericType &&
+            i.ContainingNamespace?.ToString() == "BluQube.Queries");
     }
 
     private sealed class AuthorizerCollector(HashSet<string> queriesWithAuthorizers, Compilation compilation)

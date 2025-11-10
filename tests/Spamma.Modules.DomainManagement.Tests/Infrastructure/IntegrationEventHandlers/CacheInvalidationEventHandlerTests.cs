@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Moq;
+using Spamma.Modules.Common.Caching;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 
 namespace Spamma.Modules.DomainManagement.Tests.Infrastructure.IntegrationEventHandlers;

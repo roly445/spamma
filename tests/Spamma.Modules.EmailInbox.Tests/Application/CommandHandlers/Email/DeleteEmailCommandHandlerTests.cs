@@ -10,6 +10,7 @@ using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;
@@ -83,16 +84,15 @@ public class DeleteEmailCommandHandlerTests
         var campaignId = Guid.NewGuid();
         var command = new DeleteEmailCommand(emailId);
 
+        // Create email with campaign association
         var email = EmailAggregate.Create(
             emailId,
             domainId,
             subdomainId,
             "Test Subject",
             DateTime.UtcNow,
-            new List<EmailReceived.EmailAddress>()).Value;
-
-        // Capture campaign to set CampaignId
-        email.CaptureCampaign(campaignId, DateTime.UtcNow);
+            new List<EmailReceived.EmailAddress>(),
+            campaignId).Value;
 
         var repositoryMock = new Mock<IEmailRepository>(MockBehavior.Strict);
         repositoryMock

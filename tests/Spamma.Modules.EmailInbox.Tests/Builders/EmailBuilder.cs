@@ -1,4 +1,5 @@
 using Spamma.Modules.EmailInbox.Client;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
@@ -69,21 +70,25 @@ internal class EmailBuilder
 
     internal Email Build()
     {
-        var result = Email.Create(
-            this._emailId,
-            this._domainId,
-            this._subdomainId,
-            this._subject,
-            this._whenSent,
-            this._emailAddresses);
+        // Use the appropriate Create method based on whether we have a campaignId
+        var result = this._campaignId.HasValue
+            ? Email.Create(
+                this._emailId,
+                this._domainId,
+                this._subdomainId,
+                this._subject,
+                this._whenSent,
+                this._emailAddresses,
+                this._campaignId.Value)
+            : Email.Create(
+                this._emailId,
+                this._domainId,
+                this._subdomainId,
+                this._subject,
+                this._whenSent,
+                this._emailAddresses);
 
         var email = result.Value;
-
-        // Apply campaign ID directly (it's a settable property)
-        if (this._campaignId.HasValue)
-        {
-            email.CampaignId = this._campaignId.Value;
-        }
 
         // Apply favorite status if set
         if (this._isFavorite)

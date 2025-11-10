@@ -7,6 +7,7 @@ using Microsoft.JSInterop;
 using MimeKit;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls;
@@ -53,6 +54,12 @@ public partial class EmailViewer(
 
     [Parameter]
     public EventCallback<SearchEmailsQueryResult.EmailSummary> OnEmailUpdated { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to hide campaign indicators and controls. Useful when displaying email samples on campaign pages.
+    /// </summary>
+    [Parameter]
+    public bool HideCampaignInfo { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {

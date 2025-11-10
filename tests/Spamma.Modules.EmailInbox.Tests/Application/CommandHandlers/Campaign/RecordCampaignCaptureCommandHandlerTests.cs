@@ -7,6 +7,7 @@ using ResultMonad;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 using CampaignAggregate = Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Campaign;
 
@@ -105,8 +106,9 @@ public class RecordCampaignCaptureCommandHandlerTests
             new Mock<ILogger<RecordCampaignCaptureCommandHandler>>().Object,
             repoMock.Object);
 
-        var result = await handler.Handle(cmd, CancellationToken.None);
-
-        result.Should().NotBeNull();
+        // Act & Assert - expect exception to be thrown
+        await FluentActions.Invoking(async () => await handler.Handle(cmd, CancellationToken.None))
+            .Should().ThrowAsync<Exception>()
+            .WithMessage("DB error");
     }
 }

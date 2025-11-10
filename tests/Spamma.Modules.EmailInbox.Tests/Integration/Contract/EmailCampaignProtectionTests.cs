@@ -11,6 +11,7 @@ using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;
@@ -75,7 +76,7 @@ public class EmailCampaignProtectionTests
         var campaignId = Guid.NewGuid();
         var command = new DeleteEmailCommand(emailId);
 
-        // Create email with campaign binding
+        // Create email with campaign association
         var email = EmailAggregate.Create(
             emailId,
             Guid.NewGuid(),
@@ -85,10 +86,8 @@ public class EmailCampaignProtectionTests
             new List<EmailReceived.EmailAddress>
             {
                 new("test@example.com", "Test User", EmailAddressType.To),
-            }).Value;
-
-        // Capture campaign
-        email.CaptureCampaign(campaignId, DateTime.UtcNow);
+            },
+            campaignId).Value;
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(emailId, It.IsAny<CancellationToken>()))
@@ -129,7 +128,7 @@ public class EmailCampaignProtectionTests
         var campaignId = Guid.NewGuid();
         var command = new ToggleEmailFavoriteCommand(emailId);
 
-        // Create email with campaign binding
+        // Create email with campaign association
         var email = EmailAggregate.Create(
             emailId,
             Guid.NewGuid(),
@@ -139,10 +138,8 @@ public class EmailCampaignProtectionTests
             new List<EmailReceived.EmailAddress>
             {
                 new("test@example.com", "Test User", EmailAddressType.To),
-            }).Value;
-
-        // Capture campaign
-        email.CaptureCampaign(campaignId, DateTime.UtcNow);
+            },
+            campaignId).Value;
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(emailId, It.IsAny<CancellationToken>()))
@@ -314,12 +311,10 @@ public class EmailCampaignProtectionTests
         var campaignId = Guid.NewGuid();
 
         var email1 = EmailAggregate.Create(emailId1, Guid.NewGuid(), Guid.NewGuid(), "Email 1", DateTime.UtcNow,
-            new List<EmailReceived.EmailAddress> { new("test1@example.com", "Test 1", EmailAddressType.To) }).Value;
-        email1.CaptureCampaign(campaignId, DateTime.UtcNow);
+            new List<EmailReceived.EmailAddress> { new("test1@example.com", "Test 1", EmailAddressType.To) }, campaignId).Value;
 
         var email2 = EmailAggregate.Create(emailId2, Guid.NewGuid(), Guid.NewGuid(), "Email 2", DateTime.UtcNow,
-            new List<EmailReceived.EmailAddress> { new("test2@example.com", "Test 2", EmailAddressType.To) }).Value;
-        email2.CaptureCampaign(campaignId, DateTime.UtcNow);
+            new List<EmailReceived.EmailAddress> { new("test2@example.com", "Test 2", EmailAddressType.To) }, campaignId).Value;
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(emailId1, It.IsAny<CancellationToken>()))

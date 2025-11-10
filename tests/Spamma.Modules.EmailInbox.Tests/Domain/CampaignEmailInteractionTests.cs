@@ -10,13 +10,15 @@ public class CampaignEmailInteractionTests
     {
         // Arrange
         var campaign = new CampaignBuilder().Build();
-        var email = new EmailBuilder().Build();
 
-        // Act - CaptureCampaign is void, just verify no exception
-        email.CaptureCampaign(campaign.Id, DateTime.UtcNow);
+        // Act - Email is created with campaignId directly
+        var email = new EmailBuilder()
+            .WithCampaignId(campaign.Id)
+            .Build();
 
         // Verify
         email.Should().NotBeNull();
+        email.CampaignId.Should().Be(campaign.Id);
     }
 
     [Fact]
@@ -57,16 +59,17 @@ public class CampaignEmailInteractionTests
     {
         // Arrange
         var campaign = new CampaignBuilder().Build();
-        var email = new EmailBuilder().Build();
+
+        // Create email associated with campaign and mark as favorite
+        var email = new EmailBuilder()
+            .WithCampaignId(campaign.Id)
+            .Build();
 
         // Act
         email.MarkAsFavorite(DateTime.UtcNow);
-
-        // Email marked as favorite, but capture campaign doesn't check favorite status
-        email.CaptureCampaign(campaign.Id, DateTime.UtcNow.AddSeconds(1));
         var deleteResult = email.Delete(DateTime.UtcNow.AddSeconds(2));
 
-        // Verify - delete should succeed even after capturing
+        // Verify - delete should succeed even for favorited campaign emails
         deleteResult.IsSuccess.Should().BeTrue();
     }
 

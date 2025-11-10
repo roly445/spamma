@@ -1,5 +1,6 @@
 using Marten;
 using Spamma.Modules.EmailInbox.Client;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;

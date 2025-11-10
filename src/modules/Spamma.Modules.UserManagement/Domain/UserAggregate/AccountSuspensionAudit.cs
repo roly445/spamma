@@ -5,7 +5,7 @@ namespace Spamma.Modules.UserManagement.Domain.UserAggregate;
 public class AccountSuspensionAudit
 {
     private readonly AccountSuspensionReason _reason;
-    private readonly string? _notes = null;
+    private readonly string? _notes;
 
     private AccountSuspensionAudit(DateTime whenHappened, AccountSuspensionAuditType type, AccountSuspensionReason reason = AccountSuspensionReason.Unknown,  string? notes = null)
     {
@@ -19,7 +19,7 @@ public class AccountSuspensionAudit
 
     public string Notes => this.Type == AccountSuspensionAuditType.Unsuspend ? throw new InvalidOperationException("Notes are not applicable for unsuspension.") : this._notes!;
 
-    public AccountSuspensionReason Reason => this.Type == AccountSuspensionAuditType.Unsuspend ? throw new InvalidOperationException("Reason is not applicable for unsuspension.") : this._reason!;
+    public AccountSuspensionReason Reason => this.Type == AccountSuspensionAuditType.Unsuspend ? throw new InvalidOperationException("Reason is not applicable for unsuspension.") : this._reason;
 
     public AccountSuspensionAuditType Type { get; private set; }
 

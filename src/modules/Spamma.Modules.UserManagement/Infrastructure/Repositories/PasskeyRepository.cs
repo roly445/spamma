@@ -11,11 +11,10 @@ namespace Spamma.Modules.UserManagement.Infrastructure.Repositories;
 public class PasskeyRepository(IDocumentSession session, ILogger<PasskeyRepository> logger) : GenericRepository<Passkey>(session), IPasskeyRepository
 {
     private readonly IDocumentSession _session = session;
-    private readonly ILogger<PasskeyRepository> _logger = logger;
 
     public async Task<Maybe<Passkey>> GetByCredentialIdAsync(byte[] credentialId, CancellationToken cancellationToken = default)
     {
-        this._logger.LogInformation(
+        logger.LogInformation(
             "Looking up passkey by credential ID: {CredentialIdHex} (length: {Length})",
             string.Join(" ", credentialId.Select(b => b.ToString("X2"))),
             credentialId.Length);
@@ -38,7 +37,7 @@ public class PasskeyRepository(IDocumentSession session, ILogger<PasskeyReposito
 
             if (foundLookup == null)
             {
-                this._logger.LogWarning("No passkey lookup found for credential ID");
+                logger.LogWarning("No passkey lookup found for credential ID");
 
                 // Let's also check if there are any passkeys at all
                 var allPasskeys = await this._session
@@ -46,10 +45,10 @@ public class PasskeyRepository(IDocumentSession session, ILogger<PasskeyReposito
                     .Take(5)
                     .ToListAsync(cancellationToken);
 
-                this._logger.LogInformation("Found {Count} passkey lookup records in database", allPasskeys.Count);
+                logger.LogInformation("Found {Count} passkey lookup records in database", allPasskeys.Count);
                 foreach (var pk in allPasskeys)
                 {
-                    this._logger.LogInformation(
+                    logger.LogInformation(
                         "Existing passkey: ID={PasskeyId}, CredentialId={CredentialIdHex}, IsRevoked={IsRevoked}",
                         pk.Id,
                         string.Join(" ", pk.CredentialId.Select(b => b.ToString("X2"))),
@@ -59,14 +58,14 @@ public class PasskeyRepository(IDocumentSession session, ILogger<PasskeyReposito
                 return Maybe<Passkey>.Nothing;
             }
 
-            this._logger.LogInformation("Found passkey lookup: ID={PasskeyId}, loading aggregate", foundLookup.Id);
+            logger.LogInformation("Found passkey lookup: ID={PasskeyId}, loading aggregate", foundLookup.Id);
 
             // Load the aggregate by its ID using the base class method (event sourcing)
             return await this.GetByIdAsync(foundLookup.Id, cancellationToken);
         }
         catch (Exception ex)
         {
-            this._logger.LogError(ex, "Error during passkey lookup query - likely malformed JSON in database");
+            logger.LogError(ex, "Error during passkey lookup query - likely malformed JSON in database");
 
             // Try to get raw data to see what's wrong
             try
@@ -75,11 +74,11 @@ public class PasskeyRepository(IDocumentSession session, ILogger<PasskeyReposito
                     .Query<PasskeyLookup>()
                     .CountAsync(cancellationToken);
 
-                this._logger.LogInformation("Total PasskeyLookup records in database: {Count}", rawCount);
+                logger.LogInformation("Total PasskeyLookup records in database: {Count}", rawCount);
             }
             catch (Exception countEx)
             {
-                this._logger.LogError(countEx, "Even basic count query failed - database schema issue");
+                logger.LogError(countEx, "Even basic count query failed - database schema issue");
             }
 
             return Maybe<Passkey>.Nothing;

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
@@ -11,6 +12,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_WithSubdomainClaim_ReturnsOnlyEmailsForThatSubdomain()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId1 = Guid.NewGuid();
         var subdomainId2 = Guid.NewGuid();
 
@@ -18,6 +20,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         {
             Id = Guid.NewGuid(),
             Subject = "Email for subdomain 1",
+            DomainId = domainId,
             SubdomainId = subdomainId1,
             WhenSent = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
@@ -30,6 +33,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         {
             Id = Guid.NewGuid(),
             Subject = "Email for subdomain 2",
+            DomainId = domainId,
             SubdomainId = subdomainId2,
             WhenSent = DateTime.UtcNow.AddDays(-2),
             EmailAddresses = new List<EmailAddress>
@@ -62,12 +66,14 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_WithSearchText_FiltersEmailsBySubject()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         var email1 = new EmailLookup
         {
             Id = Guid.NewGuid(),
             Subject = "Important meeting notes",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
@@ -80,6 +86,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         {
             Id = Guid.NewGuid(),
             Subject = "Random message",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-2),
             EmailAddresses = new List<EmailAddress>
@@ -110,12 +117,14 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_WithSearchText_FiltersEmailsByEmailAddress()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         var email1 = new EmailLookup
         {
             Id = Guid.NewGuid(),
             Subject = "Email 1",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
@@ -128,6 +137,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         {
             Id = Guid.NewGuid(),
             Subject = "Email 2",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-2),
             EmailAddresses = new List<EmailAddress>
@@ -158,6 +168,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_WithPagination_ReturnsCorrectPage()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         // Create 5 emails
@@ -167,6 +178,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             {
                 Id = Guid.NewGuid(),
                 Subject = $"Email {i}",
+                DomainId = domainId,
                 SubdomainId = subdomainId,
                 WhenSent = DateTime.UtcNow.AddDays(-i),
                 EmailAddresses = new List<EmailAddress>
@@ -202,12 +214,14 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_WithNoSubdomainClaims_ReturnsEmptyResults()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         var email = new EmailLookup
         {
             Id = Guid.NewGuid(),
             Subject = "Test Email",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow,
             EmailAddresses = new List<EmailAddress>
@@ -235,12 +249,14 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_OrdersByWhenSentDescending_NewestFirst()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         var oldEmail = new EmailLookup
         {
             Id = Guid.NewGuid(),
             Subject = "Old Email",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-10),
             EmailAddresses = new List<EmailAddress>
@@ -253,6 +269,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         {
             Id = Guid.NewGuid(),
             Subject = "New Email",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
@@ -283,12 +300,14 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_ExcludesDeletedEmails_OnlyReturnsNonDeleted()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         var activeEmail = new EmailLookup
         {
             Id = Guid.NewGuid(),
             Subject = "Active Email",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-1),
             WhenDeleted = null,
@@ -302,6 +321,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         {
             Id = Guid.NewGuid(),
             Subject = "Deleted Email",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow.AddDays(-2),
             WhenDeleted = DateTime.UtcNow.AddHours(-1),
@@ -333,12 +353,14 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
     public async Task Handle_WithCaseInsensitiveSearch_FindsMatches()
     {
         // Arrange
+        var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
         var email = new EmailLookup
         {
             Id = Guid.NewGuid(),
             Subject = "IMPORTANT MESSAGE",
+            DomainId = domainId,
             SubdomainId = subdomainId,
             WhenSent = DateTime.UtcNow,
             EmailAddresses = new List<EmailAddress>

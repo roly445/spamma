@@ -6,14 +6,36 @@
             <div class="flex items-center justify-between mb-4">
                 <h1 class="text-xl font-semibold text-gray-900">@_mimeMessage.Subject</h1>
                 <div class="flex items-center space-x-2">
-                    @if (Email?.CampaignId != null)
+                    @if (Email?.CampaignId != null && !HideCampaignInfo)
                     {
                         <!-- Campaign email indicator -->
-                        <div class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded" title="This email is part of a campaign and cannot be modified">
-                            📌 Campaign Email
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-purple-100 text-purple-800" title="This email is part of a campaign">
+                                <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 100 4v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a2 2 0 100-4V6z"/>
+                                </svg>
+                                @if (!string.IsNullOrEmpty(Email?.CampaignValue))
+                                {
+                                    <span>@Email.CampaignValue</span>
+                                }
+                                else
+                                {
+                                    <span>Campaign Email</span>
+                                }
+                            </span>
+                            <a href="/campaigns/@Email!.CampaignId"
+                               class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                               title="View campaign details">
+                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                View Campaign
+                            </a>
+                            <span class="text-xs text-gray-500">(Read-only)</span>
                         </div>
                     }
-                    else
+                    else if (Email?.CampaignId == null)
                     {
                         <!-- Favorite button - only visible for non-campaign emails -->
                         <button class="@GetFavoriteButtonClasses()"

@@ -29,7 +29,9 @@ public partial class Campaign : AggregateRoot
 
     internal DateTimeOffset? DeletedAt { get; private set; }
 
-    internal List<Guid> MessageIds { get; private set; } = new();
+    internal int TotalCaptures { get; private set; }
+
+    internal DateTimeOffset LastCapturedAt { get; private set; }
 
     internal static Result<Campaign, BluQubeErrorData> Create(
         Guid campaignId,
@@ -102,7 +104,7 @@ public partial class Campaign : AggregateRoot
                 "MessageId cannot be empty."));
         }
 
-        var @event = new CampaignCaptured(messageId, capturedAt);
+        var @event = new CampaignCaptured(capturedAt);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();
@@ -112,7 +114,7 @@ public partial class Campaign : AggregateRoot
     {
         if (this.DeletedAt.HasValue)
         {
-            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(
+            return ResultWithError.Fail(new BluQubeErrorData(
                 EmailInboxErrorCodes.CampaignAlreadyDeleted,
                 $"Campaign '{this.Id}' has already been deleted."));
         }

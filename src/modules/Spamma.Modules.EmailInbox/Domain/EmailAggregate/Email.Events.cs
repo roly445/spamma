@@ -28,6 +28,11 @@ public partial class Email
         }
     }
 
+    private void Apply(CampaignCaptured @event)
+    {
+       this.CampaignId = @event.CampaignId;
+    }
+
     private void Apply(EmailDeleted @event)
     {
         this.WhenDeleted = @event.WhenDeleted;
@@ -53,10 +58,5 @@ public partial class Email
     {
         _ = unused;
         this.IsFavorite = false;
-    }
-
-    private void Apply(CampaignCaptured @event)
-    {
-        this.CampaignId = @event.CampaignId;
     }
 }

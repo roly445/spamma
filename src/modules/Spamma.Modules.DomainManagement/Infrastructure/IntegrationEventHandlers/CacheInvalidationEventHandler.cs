@@ -1,8 +1,9 @@
 using DotNetCore.CAP;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common.Caching;
 using Spamma.Modules.Common.IntegrationEvents;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
+using Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 

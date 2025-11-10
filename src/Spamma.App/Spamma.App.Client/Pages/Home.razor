@@ -62,6 +62,18 @@
                             </button>
                         }
                     </div>
+                    
+                    <!-- Campaign Filter Toggle -->
+                    <div class="mt-2 flex items-center">
+                        <label class="flex items-center cursor-pointer text-sm text-gray-700 hover:text-gray-900">
+                            <input type="checkbox" 
+                                   class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                   checked="@_showCampaignEmails"
+                                   @onchange="ToggleCampaignFilter">
+                            <span class="ml-2">Show campaign emails</span>
+                        </label>
+                    </div>
+                    
                     @if (!string.IsNullOrWhiteSpace(_searchText) || _searchResult != null)
                     {
                         <div class="mt-2 text-xs text-gray-500">
@@ -140,6 +152,24 @@
                                                 </div>
                                             </div>
                                             <p class="text-sm text-gray-900 font-medium truncate mt-1">@HighlightSearchTerm(email.Subject, _searchText)</p>
+                                            @if (email.CampaignId.HasValue)
+                                            {
+                                                <div class="mt-1.5">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800" title="Campaign: @email.CampaignValue">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 100 4v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2a2 2 0 100-4V6z"/>
+                                                        </svg>
+                                                        @if (!string.IsNullOrEmpty(email.CampaignValue))
+                                                        {
+                                                            <span class="truncate max-w-[150px]">@email.CampaignValue</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>Campaign</span>
+                                                        }
+                                                    </span>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>
