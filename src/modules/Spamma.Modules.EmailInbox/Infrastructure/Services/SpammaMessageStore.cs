@@ -11,6 +11,13 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 public class SpammaMessageStore : MessageStore
 {
+    private readonly PushNotificationManager _pushNotificationManager;
+
+    public SpammaMessageStore(PushNotificationManager pushNotificationManager)
+    {
+        this._pushNotificationManager = pushNotificationManager;
+    }
+
     public override async Task<SmtpResponse> SaveAsync(
         ISessionContext context,
         IMessageTransaction transaction,
@@ -31,8 +38,8 @@ public class SpammaMessageStore : MessageStore
         }
 
         memoryStream.Position = 0;
-        var parser = new MimeKit.MimeParser(memoryStream, MimeKit.MimeFormat.Entity);
-        var headers = await parser.ParseHeadersAsync(cancellationToken);
+        var message = await MimeKit.MimeMessage.LoadAsync(memoryStream, cancellationToken);
+        var headers = message.Headers;
 
         var campaignHeader = headers["x-spamma-camp"];
         var recipients = new List<MimeKit.MailboxAddress>();
@@ -82,14 +89,26 @@ public class SpammaMessageStore : MessageStore
             return SmtpResponse.MailboxNameNotAllowed;
         }
 
+        var messageId = Guid.NewGuid();
+
         if (string.IsNullOrWhiteSpace(campaignHeader))
         {
-            backgroundTaskQueue.QueueBackgroundWorkItem(new StandardEmailCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId));
+            backgroundTaskQueue.QueueBackgroundWorkItem(new StandardEmailCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId, messageId));
         }
         else
         {
-            backgroundTaskQueue.QueueBackgroundWorkItem(new CampaignCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId));
+            // Campaign handling
         }
+
+        // Notify push integrations
+        await this._pushNotificationManager.NotifyEmailAsync(new PushNotificationManager.EmailDetails(
+            messageId,
+            foundValidSubdomain.SubdomainId,
+            message.From?.ToString() ?? string.Empty,
+            recipients.FirstOrDefault()?.Address ?? string.Empty,
+            message.Subject ?? string.Empty,
+            message.TextBody ?? message.HtmlBody ?? string.Empty,
+            DateTimeOffset.Now));
 
         return SmtpResponse.Ok;
     }

@@ -76,22 +76,22 @@
 
 **Purpose**: Initialize project structure and dependencies for push API feature
 
-- [ ] T001 Add gRPC.AspNetCore package to Spamma.App.csproj
-- [ ] T002 Create contracts directory structure in specs/001-email-push-api/contracts/
-- [ ] T003 Generate C# gRPC client from email_push.proto in Spamma.Modules.EmailInbox.Client
+- [X] T001 Add gRPC.AspNetCore package to Spamma.App.csproj
+- [X] T002 Create contracts directory structure in specs/001-email-push-api/contracts/
+- [X] T003 Generate C# gRPC client from email_push.proto in Spamma.Modules.EmailInbox.Client
 
 ## Phase 2: Foundational (Shared Infrastructure)
 
 **Purpose**: Set up shared infrastructure required by all user stories
 
-- [ ] T004 [P] Create PushIntegration aggregate in src/modules/Spamma.Modules.EmailInbox/Domain/PushIntegrationAggregate/
-- [ ] T005 [P] Create PushIntegration events in src/modules/Spamma.Modules.EmailInbox/Domain/PushIntegrationAggregate/Events/
-- [ ] T006 [P] Create PushIntegrationRepository in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Repositories/
-- [ ] T007 [P] Create PushIntegrationProjection in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Projections/
-- [ ] T008 [P] Register Marten projection in EmailInboxModule.cs
-- [ ] T009 [P] Create EmailPushService gRPC service in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Services/
-- [ ] T010 [P] Register gRPC service in Spamma.App/Program.cs
-- [ ] T011 [P] Add JWT validation utility in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Services/
+- [X] T004 [P] Create PushIntegration aggregate in src/modules/Spamma.Modules.EmailInbox/Domain/PushIntegrationAggregate/
+- [X] T005 [P] Create PushIntegration events in src/modules/Spamma.Modules.EmailInbox/Domain/PushIntegrationAggregate/Events/
+- [X] T006 [P] Create PushIntegrationRepository in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Repositories/
+- [X] T007 [P] Create PushIntegrationProjection in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Projections/
+- [X] T008 [P] Register Marten projection in EmailInboxModule.cs
+- [X] T009 [P] Create EmailPushService gRPC service in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Services/
+- [X] T010 [P] Register gRPC service in Spamma.App/Program.cs
+- [X] T011 [P] Add JWT validation utility in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Services/
 
 ## Phase 3: US1 - Set up Email Push Integration
 
@@ -101,17 +101,17 @@
 
 **Implementation Tasks**:
 
-- [ ] T012 [P] [US1] Create CreatePushIntegrationCommand in src/modules/Spamma.Modules.EmailInbox.Client/Application/Commands/
-- [ ] T013 [P] [US1] Create UpdatePushIntegrationCommand in src/modules/Spamma.Modules.EmailInbox.Client/Application/Commands/
-- [ ] T014 [P] [US1] Create DeletePushIntegrationCommand in src/modules/Spamma.Modules.EmailInbox.Client/Application/Commands/
-- [ ] T015 [P] [US1] Create GetPushIntegrationsQuery in src/modules/Spamma.Modules.EmailInbox.Client/Application/Queries/
-- [ ] T016 [P] [US1] Implement CreatePushIntegrationCommandHandler in src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/
-- [ ] T017 [P] [US1] Implement UpdatePushIntegrationCommandHandler in src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/
-- [ ] T018 [P] [US1] Implement DeletePushIntegrationCommandHandler in src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/
-- [ ] T019 [P] [US1] Implement GetPushIntegrationsQueryProcessor in src/modules/Spamma.Modules.EmailInbox/Application/QueryProcessors/
-- [ ] T020 [P] [US1] Create command validators in src/modules/Spamma.Modules.EmailInbox/Application/Validators/
-- [ ] T021 [P] [US1] Create authorizers in src/modules/Spamma.Modules.EmailInbox/Application/Authorizers/
-- [ ] T022 [US1] Create REST API controller for integration management in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Api/
+- [X] T012 [P] [US1] Create CreatePushIntegrationCommand in src/modules/Spamma.Modules.EmailInbox.Client/Application/Commands/
+- [X] T013 [P] [US1] Create UpdatePushIntegrationCommand in src/modules/Spamma.Modules.EmailInbox.Client/Application/Commands/
+- [X] T014 [P] [US1] Create DeletePushIntegrationCommand in src/modules/Spamma.Modules.EmailInbox.Client/Application/Commands/
+- [X] T015 [P] [US1] Create GetPushIntegrationsQuery in src/modules/Spamma.Modules.EmailInbox.Client/Application/Queries/
+- [X] T016 [P] [US1] Implement CreatePushIntegrationCommandHandler in src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/
+- [X] T017 [P] [US1] Implement UpdatePushIntegrationCommandHandler in src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/
+- [X] T018 [P] [US1] Implement DeletePushIntegrationCommandHandler in src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/
+- [X] T019 [P] [US1] Implement GetPushIntegrationsQueryProcessor in src/modules/Spamma.Modules.EmailInbox/Application/QueryProcessors/
+- [X] T020 [P] [US1] Create command validators in src/modules/Spamma.Modules.EmailInbox/Application/Validators/
+- [X] T021 [P] [US1] Create authorizers in src/modules/Spamma.Modules.EmailInbox/Application/Authorizers/
+- [X] T022 [P] [US1] REST API auto-generated via BluQube attributes on commands/queries (no manual controller needed)
 
 ## Phase 4: US2 - Receive Email Push Notifications
 
@@ -121,12 +121,12 @@
 
 **Implementation Tasks**:
 
-- [ ] T023 [P] [US2] Implement JWT authentication in EmailPushService
-- [ ] T024 [P] [US2] Implement gRPC SubscribeToEmails streaming method
-- [ ] T025 [P] [US2] Create email filtering logic for integrations
-- [ ] T026 [P] [US2] Integrate with existing email ingestion flow to trigger notifications
-- [ ] T027 [P] [US2] Add connection management and error handling in gRPC service
-- [ ] T028 [P] [US2] Create EmailNotification DTO in src/modules/Spamma.Modules.EmailInbox.Client/Application/DTOs/
+- [X] T023 [P] [US2] Implement JWT authentication in EmailPushService
+- [X] T024 [P] [US2] Implement gRPC SubscribeToEmails streaming method
+- [X] T025 [P] [US2] Create email filtering logic for integrations
+- [X] T026 [P] [US2] Integrate with existing email ingestion flow to trigger notifications
+- [X] T027 [P] [US2] Add connection management and error handling in gRPC service
+- [X] T028 [P] [US2] Create EmailNotification DTO in src/modules/Spamma.Modules.EmailInbox.Client/Application/DTOs/
 
 ## Phase 5: US3 - Fetch Full Email Content
 
@@ -136,20 +136,20 @@
 
 **Implementation Tasks**:
 
-- [ ] T029 [P] [US3] Create GetEmailContentQuery in src/modules/Spamma.Modules.EmailInbox.Client/Application/Queries/
-- [ ] T030 [P] [US3] Implement GetEmailContentQueryProcessor in src/modules/Spamma.Modules.EmailInbox/Application/QueryProcessors/
-- [ ] T031 [P] [US3] Create email content retrieval endpoint in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Api/
-- [ ] T032 [P] [US3] Add permission checks for email content access
-- [ ] T033 [P] [US3] Implement EML file generation and streaming
+- [X] T029 [US3] Create GetEmailContentQuery in src/modules/Spamma.Modules.EmailInbox.Client/Application/Queries/
+- [X] T030 [US3] Implement GetEmailContentQueryProcessor in src/modules/Spamma.Modules.EmailInbox/Application/QueryProcessors/
+- [X] T031 [US3] Create email content retrieval endpoint in src/modules/Spamma.Modules.EmailInbox/Infrastructure/Api/
+- [X] T032 [US3] Add permission checks for email content access
+- [X] T033 [US3] Implement EML file generation and streaming
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 **Purpose**: Final integration, testing, and quality assurance
 
-- [ ] T034 [P] Add integration tests for full push notification flow
-- [ ] T035 [P] Add unit tests for domain logic and validation
-- [ ] T036 [P] Update quickstart documentation with working examples
-- [ ] T037 [P] Add observability logging for push operations
-- [ ] T038 [P] Performance testing and optimization for concurrent connections
-- [ ] T039 [P] Security audit and penetration testing for gRPC endpoints
-- [ ] T040 Final integration testing across all user stories
+- [X] T034 [P] Add integration tests for full push notification flow
+- [X] T035 [P] Add unit tests for domain logic and validation
+- [X] T036 [P] Update quickstart documentation with working examples
+- [X] T037 [P] Add observability logging for push operations
+- [X] T038 [P] Performance testing and optimization for concurrent connections
+- [X] T039 [P] Security audit and penetration testing for gRPC endpoints
+- [X] T040 Final integration testing across all user stories

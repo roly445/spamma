@@ -19,7 +19,8 @@ Real-time push API for email notifications using gRPC, allowing developers to su
 **Project Type**: Modular monolith with Blazor WASM frontend  
 **Performance Goals**: Push notifications delivered within 1 second of email receipt for 99% of messages  
 **Constraints**: JWT authentication, subdomain viewer permissions, gRPC streaming  
-**Scale/Scope**: Unlimited integrations per user and emails per subdomain (operational limits apply)
+**Scale/Scope**: Unlimited integrations per user and emails per subdomain (operational limits apply)  
+**API Generation**: REST APIs auto-generated from BluQube attributes on CQRS commands/queries; no manual controllers required
 
 ## Constitution Check
 

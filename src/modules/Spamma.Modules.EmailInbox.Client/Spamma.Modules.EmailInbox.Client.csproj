@@ -12,6 +12,9 @@
 
     <ItemGroup>
       <PackageReference Include="BluQube" Version="1.0.3" />
+      <PackageReference Include="Grpc.Tools" Version="2.67.0" />
+      <PackageReference Include="Google.Protobuf" Version="3.29.2" />
+      <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
       <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -24,6 +27,10 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="Application/Grpc/email_push.proto" GrpcServices="Both" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
