@@ -3,12 +3,12 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ResultMonad;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.UserManagement;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
-using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Tests.Fixtures;
 using UserAggregate = Spamma.Modules.UserManagement.Domain.UserAggregate.User;
 

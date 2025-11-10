@@ -3,7 +3,9 @@ using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
@@ -22,13 +24,25 @@ public partial class Campaigns
     private int _currentPage = 1;
     private int _pageSize = 50;
     private bool _isLoading;
+    private string? _deletingCampaignValue;
 
     [Inject]
     public IQuerier Querier { get; set; } = null!;
 
+    [Inject]
+    public ICommander Commander { get; set; } = null!;
+
+    [Inject]
+    public INotificationService NotificationService { get; set; } = null!;
+
+    [Inject]
+    public IErrorMessageMapperService ErrorMessageMapperService { get; set; } = null!;
+
     protected override async Task OnInitializedAsync()
     {
+        this._isLoading = true;
         await this.LoadSubdomains();
+        this._isLoading = false;
     }
 
     private async Task LoadSubdomains()
@@ -43,7 +57,7 @@ public partial class Campaigns
                 this._subdomains = result.Data.Items
                     .Select(s => new SubdomainSummary
                     {
-                        Id = s.Id,
+                        Id = s.SubdomainId,
                         SubdomainName = s.SubdomainName,
                     })
                     .ToList();
@@ -89,6 +103,7 @@ public partial class Campaigns
         }
 
         this._isLoading = true;
+        this.StateHasChanged();
         try
         {
             var query = new GetCampaignsQuery(
@@ -111,6 +126,7 @@ public partial class Campaigns
         finally
         {
             this._isLoading = false;
+            this.StateHasChanged();
         }
     }
 
@@ -136,6 +152,45 @@ public partial class Campaigns
     {
         this._currentPage = pageNumber;
         await this.RefreshCampaigns();
+    }
+
+    private async Task DeleteCampaign(Guid campaignId, string campaignValue)
+    {
+        this._deletingCampaignValue = campaignValue;
+        this.StateHasChanged();
+
+        try
+        {
+            var command = new DeleteCampaignCommand(campaignId);
+            var result = await this.Commander.Send(command);
+
+            if (result.Status == CommandResultStatus.Succeeded)
+            {
+                // If current page is empty after deletion and not on first page, go back a page
+                if (this._campaigns != null && this._currentPage > 1)
+                {
+                    this._currentPage--;
+                }
+
+                // Refresh the campaigns list
+                await this.RefreshCampaigns();
+                this.NotificationService.ShowSuccess($"Campaign '{campaignValue}' deleted successfully");
+            }
+            else
+            {
+                // Show error notification
+                this.NotificationService.ShowError($"Failed to delete campaign '{campaignValue}'. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            this.NotificationService.ShowError($"An error occurred while deleting the campaign: {ex.Message}");
+        }
+        finally
+        {
+            this._deletingCampaignValue = null;
+            this.StateHasChanged();
+        }
     }
 
     private sealed class SubdomainSummary

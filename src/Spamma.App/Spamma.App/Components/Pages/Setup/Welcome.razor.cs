@@ -3,6 +3,9 @@ using Spamma.App.Components.Layout;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the welcome setup page.
+/// </summary>
 public partial class Welcome
 {
     [CascadingParameter]

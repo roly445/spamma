@@ -3,7 +3,6 @@ using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;

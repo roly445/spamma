@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Infrastructure.Auth;
 

@@ -1,13 +1,11 @@
 using BluQube.Commands;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Microsoft.JSInterop;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Spamma.App.Client.Infrastructure.Auth;
-using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Client.Infrastructure.Contracts;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.App.Client.Infrastructure.Services;
@@ -16,7 +14,6 @@ using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.DomainManagement.Client;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.UserManagement.Client;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 await LoadAppSettingsAsync(builder);
@@ -73,12 +70,15 @@ builder.Services.AddAuthorizationCore(options =>
 });
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
+builder.Services.AddScoped<RefreshableAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<RefreshableAuthenticationStateProvider>());
 
 builder.Services.AddScoped<IAuthorizationHandler, BitwiseRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnySubdomainHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CanModerationChaosAddressesHandler>();
 builder.Services.AddSingleton<INotificationService, NotificationService>();
+builder.Services.AddSingleton<IErrorMessageMapperService, ErrorMessageMapperService>();
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 

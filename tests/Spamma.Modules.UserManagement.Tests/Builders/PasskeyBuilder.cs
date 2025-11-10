@@ -1,4 +1,3 @@
-using ResultMonad;
 using Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
 namespace Spamma.Modules.UserManagement.Tests.Builders;

@@ -1,4 +1,4 @@
-using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 

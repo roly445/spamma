@@ -1,14 +1,10 @@
-using System;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using ResultMonad;
 using Spamma.Modules.DomainManagement.Application.Repositories;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.CreateChaosAddress;
-using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
-namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.CreateChaosAddress;
+namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.ChaosAddress;
 
 internal class CreateChaosAddressCommandHandler(
     IChaosAddressRepository repository,
@@ -20,7 +16,7 @@ internal class CreateChaosAddressCommandHandler(
     {
         var when = timeProvider.GetUtcNow().UtcDateTime;
 
-        var createResult = ChaosAddress.Create(request.Id, request.DomainId, request.SubdomainId, request.LocalPart, request.ConfiguredSmtpCode, when);
+        var createResult = DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress.Create(request.ChaosAddressId, request.DomainId, request.SubdomainId, request.LocalPart, request.ConfiguredSmtpCode, when);
         if (createResult.IsFailure)
         {
             return CommandResult.Failed(createResult.Error);
@@ -29,7 +25,7 @@ internal class CreateChaosAddressCommandHandler(
         var chaos = createResult.Value;
         var saveResult = await repository.SaveAsync(chaos, cancellationToken);
         return !saveResult.IsSuccess ?
-            CommandResult.Failed(new BluQubeErrorData(Spamma.Modules.Common.Client.Infrastructure.Constants.CommonErrorCodes.SavingChangesFailed)) :
+            CommandResult.Failed(new BluQubeErrorData(Common.Client.Infrastructure.Constants.CommonErrorCodes.SavingChangesFailed)) :
             CommandResult.Succeeded();
     }
 }

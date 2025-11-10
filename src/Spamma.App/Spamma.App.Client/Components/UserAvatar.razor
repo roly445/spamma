@@ -1,0 +1,73 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="relative group">
+    @if (!string.IsNullOrEmpty(_gravatarUrl))
+    {
+        <img src="@_gravatarUrl" alt="User Avatar" class="w-8 h-8 rounded-full" @onerror="ShowInitials" />
+    }
+    else
+    {
+        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+            <span class="text-sm font-medium text-white">@_userInitials</span>
+        </div>
+    }
+</div>
+
+@code {
+    private string? _gravatarUrl;
+    private string _userInitials = "U";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user?.Identity?.IsAuthenticated == true)
+        {
+            var email = user.FindFirst(ClaimTypes.Email)?.Value;
+            var name = user.FindFirst(ClaimTypes.Name)?.Value;
+
+            // Get user initials
+            if (!string.IsNullOrEmpty(name))
+            {
+                var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                _userInitials = parts.Length > 1
+                    ? $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[^1][0])}"
+                    : $"{char.ToUpper(parts[0][0])}";
+            }
+            else if (!string.IsNullOrEmpty(email))
+            {
+                _userInitials = email[0].ToString().ToUpper();
+            }
+
+            // Generate Gravatar URL if email exists
+            if (!string.IsNullOrEmpty(email))
+            {
+                var hash = ComputeSimpleHash(email);
+                _gravatarUrl = $"https://www.gravatar.com/avatar/{hash}?s=32&d=404";
+            }
+        }
+    }
+
+    private void ShowInitials()
+    {
+        _gravatarUrl = null;
+        StateHasChanged();
+    }
+
+    private static string ComputeSimpleHash(string email)
+    {
+        // Simple hash algorithm for Gravatar URLs
+        var emailLower = email.Trim().ToLowerInvariant();
+        var bytes = System.Text.Encoding.UTF8.GetBytes(emailLower);
+        var hash = 0;
+        foreach (var b in bytes)
+        {
+            hash = ((hash << 5) - hash) + b;
+        }
+
+        return Math.Abs(hash).ToString("x8");
+    }
+}

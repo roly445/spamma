@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using BluQube.Attributes;
-using Fido2NetLib;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;
@@ -28,7 +27,6 @@ public static class Module
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasskeyRepository, PasskeyRepository>();
 
-        // Register Fido2 for FIDO2/WebAuthn verification
         services.AddFido2(options =>
         {
             options.ServerDomain = "localhost";
@@ -41,7 +39,6 @@ public static class Module
 
     public static JsonOptions AddJsonConvertersForUserManagement(this JsonOptions jsonOptions)
     {
-        // Add converter for byte[] to handle WebAuthn credential data properly
         jsonOptions.SerializerOptions.Converters.Add(new ByteArrayJsonConverter());
         return jsonOptions;
     }
@@ -54,11 +51,9 @@ public static class Module
 
     public static StoreOptions ConfigureUserManagement(this StoreOptions options)
     {
-        // Configure JSON defaults for Marten to include our byte array converter
         var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
         jsonOptions.Converters.Add(new ByteArrayJsonConverter());
 
-        // Apply the custom JSON options to Marten
         options.UseSystemTextJsonForSerialization(jsonOptions);
 
         options.Projections.Add<UserLookupProjection>(ProjectionLifecycle.Inline);

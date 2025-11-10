@@ -6,34 +6,17 @@ using Spamma.Modules.Common.Infrastructure.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-/// <summary>
-/// Implementation of Let's Encrypt certificate generation using Certes.
-/// </summary>
 internal sealed class CertesLetsEncryptService : ICertesLetsEncryptService
 {
     private const string CertificatePassword = "letmein";
 
     private readonly ILogger<CertesLetsEncryptService> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CertesLetsEncryptService"/> class.
-    /// </summary>
-    /// <param name="logger">Logger for diagnostic information.</param>
     public CertesLetsEncryptService(ILogger<CertesLetsEncryptService> logger)
     {
         this._logger = logger;
     }
 
-    /// <summary>
-    /// Generates a Let's Encrypt certificate for the specified domain.
-    /// </summary>
-    /// <param name="domain">The domain to generate a certificate for.</param>
-    /// <param name="email">Email address for Let's Encrypt account.</param>
-    /// <param name="useStaging">Whether to use Let's Encrypt staging server (for testing).</param>
-    /// <param name="challengeResponder">Service to register challenge responses.</param>
-    /// <param name="progressPublisher">Optional service for publishing progress events.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Certificate bytes in PFX format, or error message if generation failed.</returns>
     public async Task<Result<byte[], string>> GenerateCertificateAsync(
         string domain,
         string email,

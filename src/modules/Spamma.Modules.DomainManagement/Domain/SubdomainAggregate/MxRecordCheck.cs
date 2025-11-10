@@ -2,15 +2,9 @@
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-public class MxRecordCheck
+public class MxRecordCheck(DateTime whenChecked, MxStatus mxStatus)
 {
-    public MxRecordCheck(DateTime whenChecked, MxStatus mxStatus)
-    {
-        this.WhenChecked = whenChecked;
-        this.MxStatus = mxStatus;
-    }
+    public DateTime WhenChecked { get; private set; } = whenChecked;
 
-    public DateTime WhenChecked { get; private set; }
-
-    public MxStatus MxStatus { get; private set; }
+    public MxStatus MxStatus { get; private set; } = mxStatus;
 }

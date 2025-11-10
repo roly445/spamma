@@ -1,4 +1,4 @@
-﻿@page "/admin/domains/{id:guid}"
+@page "/admin/domains/{id:guid}"
 @using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Components.UserControls.Domain
 @using Spamma.App.Client.Layout
@@ -217,7 +217,7 @@
                     
                 </div>
             </div>
-            <AddUser @ref="_addModerator" EntityName="@domain.DomainName" EntityUsage="AddUser.Usage.Domain" OnAdded="HandleModeratorAdded" EntityId="@domain.Id" />
+            <AddUser @ref="_addModerator" EntityName="@domain.DomainName" EntityUsage="AddUser.Usage.Domain" OnAdded="HandleModeratorAdded" EntityId="@domain.DomainId" />
             <EditDomain @ref="_editDomain" OnSaved="HandleDomainSaved"></EditDomain>
             <AddSubdomain @ref="_addSubdomain" OnSubdomainCreated="HandleSubdomainCreated" />
             <SuspendDomain @ref="_suspendDomain" OnSuspended="HandleSubdomainSuspended"></SuspendDomain>

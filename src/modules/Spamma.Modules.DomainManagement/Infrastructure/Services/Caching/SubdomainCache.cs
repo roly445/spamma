@@ -4,51 +4,45 @@ using BluQube.Queries;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common;
+using Spamma.Modules.Common.Caching;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using StackExchange.Redis;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
-/// <summary>
-/// Redis-backed cache for subdomain lookups by domain name.
-/// Uses direct IConnectionMultiplexer for full Redis capabilities including pattern-based invalidation.
-/// Cache keys: subdomain:{domain.ToLower()}
-/// TTL: 1 hour (or until invalidated by CAP event)
-/// </summary>
 public class SubdomainCache(
     IConnectionMultiplexer redisMultiplexer,
     IQuerier querier,
     ILogger<SubdomainCache> logger, IInternalQueryStore internalQueryStore) : ISubdomainCache
 {
     private const string CacheKeyPrefix = "subdomain:";
+
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
     private readonly TimeSpan _ttl = TimeSpan.FromHours(1);
 
-    public async Task<Maybe<SearchSubdomainsQueryResult.SubdomainSummary>> GetSubdomainAsync(
+    public async Task<Maybe<ISubdomainCache.CachedSubdomain>> GetSubdomainAsync(
         string domain,
         bool forceRefresh = false,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(domain))
         {
-            return Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing;
+            return Maybe<ISubdomainCache.CachedSubdomain>.Nothing;
         }
 
         var cacheKey = CreateCacheKey(domain);
 
         if (!forceRefresh)
         {
-            var cachedValue = this._redis.StringGet(cacheKey);
+            var cachedValue = await this._redis.StringGetAsync(cacheKey);
             if (cachedValue.HasValue)
             {
                 try
                 {
-                    var cachedSubdomain = JsonSerializer.Deserialize<SearchSubdomainsQueryResult.SubdomainSummary?>(cachedValue.ToString());
+                    var cachedSubdomain = JsonSerializer.Deserialize<ISubdomainCache.CachedSubdomain>(cachedValue.ToString());
                     if (cachedSubdomain != null)
                     {
-                        logger.LogDebug("Cache HIT for subdomain: {Domain}", domain);
                         return Maybe.From(cachedSubdomain);
                     }
                 }
@@ -60,44 +54,48 @@ public class SubdomainCache(
             }
         }
 
-        // Cache miss or forceRefresh: query database
         logger.LogDebug("Cache MISS for subdomain: {Domain}", domain);
+
+        // Query the database (no stampede protection - caller should deduplicate requests)
         var query = new SearchSubdomainsQuery(
             SearchTerm: domain.ToLowerInvariant(),
             ParentDomainId: null,
-            Status: SubdomainStatus.Active,
+            Status: null,
             Page: 1,
             PageSize: 1,
             SortBy: "domainname",
             SortDescending: false);
-        internalQueryStore.AddReferenceForObject(query);
+        internalQueryStore.StoreQueryRef(query);
         var result = await querier.Send(query, cancellationToken);
 
         if (result.Status != QueryResultStatus.Succeeded || result.Data.TotalCount == 0)
         {
-            return Maybe<SearchSubdomainsQueryResult.SubdomainSummary>.Nothing;
+            return Maybe<ISubdomainCache.CachedSubdomain>.Nothing;
         }
 
         var subdomain = result.Data.Items[0];
+        if (subdomain.Status == SubdomainStatus.Suspended)
+        {
+            return Maybe<ISubdomainCache.CachedSubdomain>.Nothing;
+        }
 
-        // Cache the result
+        var subdomainForCaching = new ISubdomainCache.CachedSubdomain(result.Data.Items[0].SubdomainId, result.Data.Items[0].ParentDomainId);
+
         try
         {
-            await this.SetSubdomainAsync(domain, subdomain, cancellationToken);
+            await this.SetSubdomainAsync(domain, subdomainForCaching, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to cache subdomain for {Domain}", domain);
-
-            // Continue despite cache failure - fallback to uncached operation
         }
 
-        return Maybe.From(subdomain);
+        return Maybe.From(subdomainForCaching);
     }
 
     public async Task SetSubdomainAsync(
         string domain,
-        SearchSubdomainsQueryResult.SubdomainSummary subdomain,
+        ISubdomainCache.CachedSubdomain subdomain,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(domain))
@@ -110,7 +108,7 @@ public class SubdomainCache(
         try
         {
             var serialized = JsonSerializer.SerializeToUtf8Bytes(subdomain);
-            this._redis.StringSet(cacheKey, serialized, this._ttl);
+            await this._redis.StringSetAsync(cacheKey, serialized, this._ttl);
             logger.LogDebug("Cached subdomain: {Domain} with TTL {TTL}", domain, this._ttl);
         }
         catch (Exception ex)

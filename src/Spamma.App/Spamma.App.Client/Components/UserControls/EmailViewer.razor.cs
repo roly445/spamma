@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MimeKit;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls;
@@ -53,6 +53,12 @@ public partial class EmailViewer(
 
     [Parameter]
     public EventCallback<SearchEmailsQueryResult.EmailSummary> OnEmailUpdated { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to hide campaign indicators and controls. Useful when displaying email samples on campaign pages.
+    /// </summary>
+    [Parameter]
+    public bool HideCampaignInfo { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -247,6 +253,7 @@ public partial class EmailViewer(
 
         if (result.Status == CommandResultStatus.Succeeded)
         {
+            notificationService.ShowSuccess("Email deleted successfully.");
             await this.OnEmailDeleted.InvokeAsync(this.Email);
         }
         else
@@ -274,6 +281,8 @@ public partial class EmailViewer(
         {
             // Update the local Email object to reflect the new favorite status
             this.Email = this.Email with { IsFavorite = !this.Email.IsFavorite };
+            var message = this.Email.IsFavorite ? "Email marked as favorite." : "Email unmarked as favorite.";
+            notificationService.ShowSuccess(message);
             await this.OnEmailUpdated.InvokeAsync(this.Email);
         }
         else

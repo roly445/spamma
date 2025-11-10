@@ -1,9 +1,9 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Application.Repositories;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
@@ -29,8 +29,6 @@ public class ReceivedEmailCommandHandler(
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
         }
 
-        // Note: EmailReceivedIntegrationEvent is now published by CAP handler (PersistReceivedEmailHandler)
-        // SMTP handler publishes with metadata, CAP subscriber handles persisting to database
         return CommandResult.Succeeded();
     }
 }

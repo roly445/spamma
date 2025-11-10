@@ -10,14 +10,20 @@ public class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSessi
     public Task<QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>> Handle(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
     {
         var match = session.Query<ChaosAddressLookup>()
-            .FirstOrDefault(x => x.SubdomainId == request.SubdomainId && x.LocalPart.Equals(request.LocalPart, System.StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(x => x.SubdomainId == request.SubdomainId && x.LocalPart.Equals(request.LocalPart, StringComparison.OrdinalIgnoreCase));
 
         if (match == null)
         {
             return Task.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Failed());
         }
 
-        var summary = new GetChaosAddressBySubdomainAndLocalPartQueryResult(match.Id, match.SubdomainId, match.LocalPart, match.ConfiguredSmtpCode, match.Enabled);
+        var summary = new GetChaosAddressBySubdomainAndLocalPartQueryResult(
+            match.Id,
+            match.SubdomainId,
+            match.DomainId,
+            match.LocalPart,
+            match.ConfiguredSmtpCode,
+            match.Enabled);
         return Task.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Succeeded(summary));
     }
 }

@@ -1,11 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Infrastructure;
 
-/// <summary>
-/// Custom validation attribute for root domain validation.
-/// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
 internal class RootDomainAttribute : ValidationAttribute
 {

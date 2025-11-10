@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Spamma.Modules.UserManagement.Client.Contracts;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.App.Client.Infrastructure.Auth;
 

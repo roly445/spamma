@@ -2,4 +2,5 @@
 
 namespace Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
 
-public record AccountSuspended(AccountSuspensionReason Reason, string? Notes, DateTime WhenSuspended, Guid SecurityStamp);
+public record AccountSuspended(
+    AccountSuspensionReason Reason, string? Notes, DateTime WhenSuspended, Guid SecurityStamp);

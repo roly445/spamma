@@ -1,24 +1,11 @@
 using System.Security.Claims;
-using Spamma.App.Client.Infrastructure.Constants;
-using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Infrastructure.Services;
 
-/// <summary>
-/// Service for building authentication claims from user data.
-/// Consolidates claim construction logic into a single reusable method.
-/// </summary>
 internal static class ClaimsBuilder
 {
-    /// <summary>
-    /// Builds a claims list from cached user data.
-    /// </summary>
-    /// <param name="user">The cached user data.</param>
-    /// <param name="authMethod">The authentication method used (e.g., "magic_link", "passkey").</param>
-    /// <returns>A list of claims for the authenticated user.</returns>
     internal static List<Claim> BuildClaims(UserStatusCache.CachedUser user, string authMethod = "magic_link")
     {
         var loginTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
@@ -51,18 +38,6 @@ internal static class ClaimsBuilder
         return claims;
     }
 
-    /// <summary>
-    /// Builds a claims list from user query result data.
-    /// </summary>
-    /// <param name="userId">The user's unique identifier.</param>
-    /// <param name="emailAddress">The user's email address.</param>
-    /// <param name="name">The user's display name.</param>
-    /// <param name="systemRole">The user's system role.</param>
-    /// <param name="moderatedDomains">Collection of domain IDs moderated by the user.</param>
-    /// <param name="moderatedSubdomains">Collection of subdomain IDs moderated by the user.</param>
-    /// <param name="viewableSubdomains">Collection of subdomain IDs viewable by the user.</param>
-    /// <param name="authMethod">The authentication method used (e.g., "magic_link", "passkey").</param>
-    /// <returns>A list of claims for the authenticated user.</returns>
     internal static List<Claim> BuildClaims(
         Guid userId,
         string emailAddress,

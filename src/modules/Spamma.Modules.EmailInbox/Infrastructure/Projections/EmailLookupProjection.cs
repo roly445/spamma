@@ -44,4 +44,11 @@ public class EmailLookupProjection : EventProjection
         ops.Patch<EmailLookup>(@event.StreamId)
             .Set(x => x.IsFavorite, false);
     }
+
+    [UsedImplicitly]
+    public void Project(IEvent<CampaignCaptured> @event, IDocumentOperations ops)
+    {
+        ops.Patch<EmailLookup>(@event.StreamId)
+            .Set(x => x.CampaignId, @event.Data.CampaignId);
+    }
 }

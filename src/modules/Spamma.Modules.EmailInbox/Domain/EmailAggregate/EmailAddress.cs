@@ -1,4 +1,4 @@
-﻿using Spamma.Modules.EmailInbox.Client;
+﻿using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 

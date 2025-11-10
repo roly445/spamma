@@ -86,7 +86,7 @@ public partial class VerifyLogin(
     {
         // Create claims for the authenticated user
         var query = new GetUserByIdQuery(userId);
-        internalQueryStore.AddReferenceForObject(query);
+        internalQueryStore.StoreQueryRef(query);
         var userResult = await querier.Send(query);
         var claims = ClaimsBuilder.BuildClaims(
             userResult.Data.Id,

@@ -11,7 +11,6 @@ public class GetChaosAddressesQueryProcessor(IDocumentSession session) : IQueryP
     {
         var baseQuery = session.Query<ChaosAddressLookup>();
 
-        // Apply subdomain filter if provided
         var filteredQuery = request.SubdomainId.HasValue
             ? baseQuery.Where(x => x.SubdomainId == request.SubdomainId.Value)
             : baseQuery;
@@ -33,8 +32,7 @@ public class GetChaosAddressesQueryProcessor(IDocumentSession session) : IQueryP
             x.Enabled,
             x.TotalReceived,
             x.LastReceivedAt,
-            x.CreatedAt,
-            x.CreatedBy)).ToList();
+            x.CreatedAt)).ToList();
 
         var result = new GetChaosAddressesQueryResult(summaries, totalCount, request.PageNumber, request.PageSize);
         return QueryResult<GetChaosAddressesQueryResult>.Succeeded(result);

@@ -13,16 +13,8 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Infrastructure.Endpoints;
 
-/// <summary>
-/// Extension methods for authentication endpoints.
-/// Handles WebAuthn challenge generation and assertion verification for passkey-based authentication.
-/// </summary>
 internal static class AuthenticationEndpoints
 {
-    /// <summary>
-    /// Maps authentication endpoints including WebAuthn assertion options and verification.
-    /// </summary>
-    /// <param name="app">The web application builder.</param>
     internal static void MapAuthenticationEndpoints(this WebApplication app)
     {
         app.MapPost("api/auth/assertion-options", GetAssertionOptions)
@@ -35,10 +27,6 @@ internal static class AuthenticationEndpoints
             .Produces(StatusCodes.Status200OK);
     }
 
-    /// <summary>
-    /// Generates a WebAuthn challenge for passkey authentication.
-    /// Stores the challenge in the HTTP session for verification in the next step.
-    /// </summary>
     private static IResult GetAssertionOptions(HttpContext httpContext, ILogger<Program> logger)
     {
         try
@@ -76,10 +64,6 @@ internal static class AuthenticationEndpoints
         }
     }
 
-    /// <summary>
-    /// Verifies a WebAuthn assertion and signs the user in with a session cookie.
-    /// Handles credential ID decoding, sign count extraction, and user authentication.
-    /// </summary>
     private static async Task<IResult> MakeAssertion(
         HttpContext httpContext,
         ILogger<Program> logger,
@@ -162,7 +146,7 @@ internal static class AuthenticationEndpoints
 
             // Query user details to get email and name
             var userQuery = new GetUserByIdQuery(userId);
-            internalQueryStore.AddReferenceForObject(userQuery);
+            internalQueryStore.StoreQueryRef(userQuery);
             var userResult = await querier.Send(userQuery);
 
             if (userResult.Status != QueryResultStatus.Succeeded)

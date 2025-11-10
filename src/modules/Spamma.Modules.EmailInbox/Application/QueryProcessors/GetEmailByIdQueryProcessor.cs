@@ -22,7 +22,8 @@ public class GetEmailByIdQueryProcessor(IDocumentSession session) : IQueryProces
             email.SubdomainId,
             email.Subject,
             email.WhenSent,
-            email.IsFavorite);
+            email.IsFavorite,
+            email.CampaignId);
 
         return QueryResult<GetEmailByIdQueryResult>.Succeeded(result);
     }

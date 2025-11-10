@@ -10,9 +10,6 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.UserManagement.Application.CommandHandlers.Passkey;
 
-/// <summary>
-/// Handler for revoking a user's passkey (admin/user management role only).
-/// </summary>
 internal class RevokeUserPasskeyCommandHandler(
     IPasskeyRepository passkeyRepository,
     TimeProvider timeProvider,
@@ -38,7 +35,6 @@ internal class RevokeUserPasskeyCommandHandler(
 
         var passkey = passkeyMaybe.Value;
 
-        // Verify the passkey belongs to the requested user
         if (passkey.UserId != request.UserId)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, "Passkey not found"));

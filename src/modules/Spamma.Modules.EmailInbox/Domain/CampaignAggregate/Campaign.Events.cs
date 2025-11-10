@@ -24,19 +24,17 @@ public partial class Campaign
     private void Apply(Events.CampaignCreated @event)
     {
         this.Id = @event.CampaignId;
+        this.DomainId = @event.DomainId;
         this.SubdomainId = @event.SubdomainId;
         this.CampaignValue = @event.CampaignValue;
         this.CreatedAt = @event.CreatedAt;
         this.SampleMessageId = @event.MessageId;
-        this.MessageIds.Add(@event.MessageId);
     }
 
     private void Apply(Events.CampaignCaptured @event)
     {
-        if (!this.MessageIds.Contains(@event.MessageId))
-        {
-            this.MessageIds.Add(@event.MessageId);
-        }
+        this.TotalCaptures++;
+        this.LastCapturedAt = @event.CapturedAt;
     }
 
     private void Apply(Events.CampaignDeleted @event)

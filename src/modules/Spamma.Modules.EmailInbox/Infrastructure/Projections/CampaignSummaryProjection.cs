@@ -16,6 +16,7 @@ public class CampaignSummaryProjection : EventProjection
         return new CampaignSummary
         {
             CampaignId = @event.CampaignId,
+            DomainId = @event.DomainId,
             SubdomainId = @event.SubdomainId,
             CampaignValue = @event.CampaignValue,
             SampleMessageId = @event.MessageId,
@@ -31,5 +32,11 @@ public class CampaignSummaryProjection : EventProjection
         ops.Patch<CampaignSummary>(@event.StreamId)
             .Increment(x => x.TotalCaptured)
             .Set(x => x.LastReceivedAt, @event.Data.CapturedAt);
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<Domain.CampaignAggregate.Events.CampaignDeleted> @event, IDocumentOperations ops)
+    {
+        ops.Delete<CampaignSummary>(@event.StreamId);
     }
 }

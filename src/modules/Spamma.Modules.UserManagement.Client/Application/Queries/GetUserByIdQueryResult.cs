@@ -1,5 +1,5 @@
 ﻿using BluQube.Queries;
-using Spamma.Modules.UserManagement.Client.Contracts;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.Modules.UserManagement.Client.Application.Queries;
 

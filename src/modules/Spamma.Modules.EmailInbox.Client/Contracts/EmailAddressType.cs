@@ -1,4 +1,4 @@
-﻿namespace Spamma.Modules.EmailInbox.Client;
+﻿namespace Spamma.Modules.EmailInbox.Client.Contracts;
 
 public enum EmailAddressType
 {

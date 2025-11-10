@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using MaybeMonad;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
@@ -9,16 +8,8 @@ using Spamma.Modules.Common;
 
 namespace Spamma.App.Infrastructure.Endpoints;
 
-/// <summary>
-/// Extension methods for general API endpoints.
-/// Includes user status queries and dynamic settings retrieval.
-/// </summary>
 internal static class GeneralApiEndpoints
 {
-    /// <summary>
-    /// Maps general API endpoints including settings and user status.
-    /// </summary>
-    /// <param name="app">The web application.</param>
     internal static void MapGeneralApiEndpoints(this WebApplication app)
     {
         app.MapGet("dynamicsettings.json", GetDynamicSettings)
@@ -42,10 +33,6 @@ internal static class GeneralApiEndpoints
             .DisableAntiforgery(); // OTEL collector doesn't use CSRF tokens
     }
 
-    /// <summary>
-    /// Returns dynamic application settings as JSON.
-    /// Includes mail server configuration.
-    /// </summary>
     private static IResult GetDynamicSettings(IOptions<Settings> settings)
     {
         return Results.Json(new
@@ -58,10 +45,6 @@ internal static class GeneralApiEndpoints
         });
     }
 
-    /// <summary>
-    /// Returns information about the currently authenticated user.
-    /// Re-authenticates with updated claims to ensure session reflects latest user state.
-    /// </summary>
     private static async Task<IResult> GetCurrentUser(
         HttpContext httpContext,
         UserStatusCache userStatusCache)
@@ -103,10 +86,6 @@ internal static class GeneralApiEndpoints
         return Results.Json(userResult.Value);
     }
 
-    /// <summary>
-    /// Proxy endpoint for WASM client OTEL traces.
-    /// Receives protobuf traces from client and forwards to configured OTLP collector endpoint.
-    /// </summary>
     private static async Task<IResult> ForwardOtelTraces(
         HttpContext httpContext,
         IHttpClientFactory httpClientFactory,

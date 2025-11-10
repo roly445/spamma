@@ -1,21 +1,21 @@
 ﻿using FluentValidation;
+using Marten;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.DomainManagement.Application.Repositories;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.DomainManagement.Infrastructure.Services;
 
-namespace Spamma.Modules.DomainManagement.Application.Validators;
+namespace Spamma.Modules.DomainManagement.Application.Validators.Subdomain;
 
 public class CreateSubdomainCommandValidator : AbstractValidator<CreateSubdomainCommand>
 {
-    private readonly IDomainRepository _domainRepository;
+    private readonly IDocumentSession _documentSession;
     private readonly IDomainParserService _domainParserService;
 
-    public CreateSubdomainCommandValidator(IDomainRepository domainRepository, IDomainParserService domainParserService)
+    public CreateSubdomainCommandValidator(IDocumentSession documentSession, IDomainParserService domainParserService)
     {
-        this._domainRepository = domainRepository ?? throw new ArgumentNullException(nameof(domainRepository));
-        this._domainParserService = domainParserService ?? throw new ArgumentNullException(nameof(domainParserService));
+        this._documentSession = documentSession;
+        this._domainParserService = domainParserService;
 
         this.RuleFor(x => x.Name)
             .NotEmpty()
@@ -51,13 +51,13 @@ public class CreateSubdomainCommandValidator : AbstractValidator<CreateSubdomain
             return false;
         }
 
-        var domain = await this._domainRepository.GetByIdAsync(command.DomainId, cancellationToken);
-        if (!domain.HasValue || string.IsNullOrWhiteSpace(domain.Value.Name))
+        var domain = await this._documentSession.Query<DomainLookup>().FirstOrDefaultAsync(x => x.Id == command.DomainId, cancellationToken);
+        if (domain == null || string.IsNullOrWhiteSpace(domain.DomainName))
         {
             return false;
         }
 
-        var fullSubdomainName = $"{command.Name}.{domain.Value.Name}";
+        var fullSubdomainName = $"{command.Name}.{domain.DomainName}";
         return this._domainParserService.IsValidDomain(fullSubdomainName);
     }
 }

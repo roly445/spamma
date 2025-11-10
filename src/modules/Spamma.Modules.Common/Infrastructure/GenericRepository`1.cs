@@ -11,22 +11,18 @@ public class GenericRepository<T>(IDocumentSession session) : IRepository<T>
 {
     public async Task<Maybe<T>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        // Use Marten's event sourcing to reconstruct the aggregate from events
         var aggregate = await session.Events.AggregateStreamAsync<T>(id, token: ct);
         return Maybe.From(aggregate!);
     }
 
     public async Task<Result> SaveAsync(T aggregate, CancellationToken ct = default)
     {
-        // Get any uncommitted events from the aggregate
         var uncommittedEvents = aggregate.GetUncommittedEvents().ToArray();
 
         if (uncommittedEvents.Any())
         {
-            // Append the events to the aggregate's event stream
             session.Events.Append(aggregate.Id, uncommittedEvents);
 
-            // Mark the events as committed so they won't be saved again
             aggregate.MarkEventsAsCommitted();
         }
 

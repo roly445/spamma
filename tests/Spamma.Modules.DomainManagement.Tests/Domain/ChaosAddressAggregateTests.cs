@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 using Spamma.Tests.Common.Verification;
 
@@ -13,12 +14,12 @@ public class ChaosAddressAggregateTests
         var domainId = Guid.NewGuid();
         var when = DateTime.UtcNow;
 
-        var result = ChaosAddress.Create(id, domainId, Guid.NewGuid(), "test", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted, when);
+        var result = ChaosAddress.Create(id, domainId, Guid.NewGuid(), "test", SmtpResponseCode.RequestedActionAborted, when);
 
         var agg = result.ShouldBeOk();
         agg.Id.Should().Be(id);
         agg.LocalPart.Should().Be("test");
-        agg.ConfiguredSmtpCode.Should().Be(Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted);
+        agg.ConfiguredSmtpCode.Should().Be(SmtpResponseCode.RequestedActionAborted);
         agg.Enabled.Should().BeFalse();
     }
 
@@ -29,7 +30,7 @@ public class ChaosAddressAggregateTests
         var domainId = Guid.NewGuid();
         var when = DateTime.UtcNow;
 
-        var result = ChaosAddress.Create(id, domainId, Guid.NewGuid(), "test", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted, when);
+        var result = ChaosAddress.Create(id, domainId, Guid.NewGuid(), "test", SmtpResponseCode.RequestedActionAborted, when);
         var agg = result.ShouldBeOk();
 
         agg.RecordReceive(when.AddSeconds(1)).ShouldBeOk();
@@ -44,7 +45,7 @@ public class ChaosAddressAggregateTests
         var domainId = Guid.NewGuid();
         var when = DateTime.UtcNow;
 
-        var result = ChaosAddress.Create(id, domainId, Guid.NewGuid(), "test", Spamma.Modules.Common.SmtpResponseCode.RequestedActionAborted, when);
+        var result = ChaosAddress.Create(id, domainId, Guid.NewGuid(), "test", SmtpResponseCode.RequestedActionAborted, when);
         var agg = result.ShouldBeOk();
 
         agg.Enable(when.AddMinutes(1)).ShouldBeOk();

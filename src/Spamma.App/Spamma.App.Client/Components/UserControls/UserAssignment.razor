@@ -1,4 +1,4 @@
-﻿<div>
+<div>
 
     @if (assignedUsers.Count == 0)
     {
@@ -96,7 +96,7 @@
 
 @if (showRemoveAssignmentModal && userToRemove is not null)
 {
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 flex items-center justify-center p-4" @onclick="CloseRemoveAssignmentModal">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" @onclick="CloseRemoveAssignmentModal">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-sm" @onclick:stopPropagation="true">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h3 class="text-lg font-medium text-gray-900">Remove User</h3>

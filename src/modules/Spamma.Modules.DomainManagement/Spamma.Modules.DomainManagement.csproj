@@ -35,11 +35,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Application\Authorizers\Commands\ChaosAddress\" />
-      <Folder Include="Application\IntegrationEventSubscribers\" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\..\Spamma.Analyzers\Spamma.Analyzers.csproj"  OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
       <ProjectReference Include="..\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
       <ProjectReference Include="..\Spamma.Modules.Common\Spamma.Modules.Common.csproj" />
@@ -63,6 +58,7 @@
     <ItemGroup>
       <InternalsVisibleTo Include="Spamma.Modules.DomainManagement.Tests" />
       <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+        <InternalsVisibleTo Include="Spamma.Modules.EmailInbox.Tests.E2E" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />

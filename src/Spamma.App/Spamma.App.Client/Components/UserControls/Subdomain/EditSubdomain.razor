@@ -1,119 +1,118 @@
-﻿@if (isVisible && _dataModel != null)
-{
-    <div class="fixed inset-0 overflow-hidden z-50" @onclick="Close">
-        <div class="absolute inset-0 overflow-hidden">
-            <!-- Background overlay -->
-            <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
-            <!-- Slide-out panel -->
-            <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex" @onclick:stopPropagation="true">
-                <div class="w-screen max-w-md">
-                    <div class="h-full flex flex-col py-6 bg-white shadow-xl overflow-y-scroll">
-                        <!-- Header -->
-                        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                            <h3 class="text-lg font-medium text-gray-900">Edit Subdomain</h3>
-                            <button @onclick="Close" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
+<!-- Edit Subdomain Slideout -->
+<SlideoutBase IsVisible="isVisible && _dataModel != null"
+              OnClose="@Close"
+              Direction="right"
+              AllowBackdropClose="true"
+              WidthClass="max-w-md"
+              AriaLabelledBy="edit-subdomain-title">
+    <!-- Header -->
+    <div class="border-b border-blue-200 bg-blue-600 px-4 py-4 sm:px-6">
+        <div class="flex items-center justify-between">
+            <h2 id="edit-subdomain-title" class="text-lg font-medium text-white">Edit Subdomain</h2>
+            <button type="button" @onclick="Close" class="text-blue-100 hover:text-white">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        @if (_dataModel != null)
+        {
+            <p class="text-sm text-blue-100 mt-2">Editing <strong>@_dataModel.FullDomainName</strong></p>
+        }
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto px-4 py-6 sm:px-6 bg-white">
+        <div class="space-y-6">
+            @if (_dataModel != null)
+            {
+                <EditForm Model="@model" OnValidSubmit="@HandleEditSubdomain" FormName="EditSubdomainForm">
+                    <DataAnnotationsValidator />
+
+                    <div class="space-y-6">
+                        <!-- Domain Card -->
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center mr-4">
+                                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">@_dataModel.FullDomainName</div>
+                                    <div class="text-sm text-gray-500">Created @_dataModel.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
                         </div>
-                        @if (_dataModel != null)
-                        {
-                            <p class="text-sm text-gray-500 mt-1 px-6">Editing <strong>@_dataModel.FullDomainName</strong></p>
-                        }
 
-                        <EditForm Model="@model" OnValidSubmit="@HandleEditSubdomain" FormName="EditSubdomainForm">
-                            <DataAnnotationsValidator />
-
-                            <div class="px-6 py-4 space-y-6">
-
-                                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                                        <div class="flex items-center">
-                                            <div class="h-10 w-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center mr-4">
-                                                <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <div class="text-sm font-medium text-gray-900">@(_dataModel?.FullDomainName ?? "Unknown Domain")</div>
-                                                <div class="text-sm text-gray-500">Created @(_dataModel?.CreatedAt.ToString("MMM dd, yyyy") ?? "Unknown Date")</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                <!-- Subdomain Name (Read-only) -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        Subdomain Name
-                                    </label>
-                                    <div class="flex items-center">
-                                        <input type="text"
-                                            value="@(_dataModel?.SubdomainName)"
-                                            disabled
-                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-gray-500 focus:outline-none" />
-                                        <span class="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-500">
-                                            .@(_dataModel?.DomainName)
-                                        </span>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-1">Subdomain name cannot be changed after creation</p>
-                                </div>
-
-                                <!-- Description -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        Description
-                                    </label>
-                                    <InputTextArea @bind-Value="model.Description"
-                                                placeholder="Optional description for this subdomain..."
-                                                rows="3"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                                    <ValidationMessage For="@(() => model.Description)" class="text-red-600 text-sm mt-1" />
-                                </div>
-
-                                <!-- Audit Information -->
-                                @if (_dataModel != null)
-                                {
-                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                        <h4 class="text-sm font-medium text-blue-800 mb-2">Audit Information</h4>
-                                        <div class="grid grid-cols-2 gap-4 text-sm">
-                                            <div>
-                                                <span class="text-blue-700 font-medium">Created:</span>
-                                                <span class="text-blue-700">@_dataModel.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
-                                            </div>
-                                            <div>
-                                                <span class="text-blue-700 font-medium">Last Modified:</span>
-                                                <span class="text-blue-700">@DateTime.Now.ToString("MMM dd, yyyy HH:mm")</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                        <!-- Subdomain Name (Read-only) -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subdomain Name</label>
+                            <div class="flex items-center">
+                                <input type="text"
+                                    value="@_dataModel.SubdomainName"
+                                    disabled
+                                    class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 text-gray-500" />
+                                <span class="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-500">
+                                    .@_dataModel.DomainName
+                                </span>
                             </div>
-                            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end space-x-3">
-                                <button type="button" @onclick="Close"
-                                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                        disabled="@isProcessing"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
-                                    @if (isProcessing)
-                                    {
-                                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        <span>Saving...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Save Changes</span>
-                                    }
-                                </button>
+                            <p class="text-xs text-gray-500 mt-1">Subdomain name cannot be changed after creation</p>
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <InputTextArea @bind-Value="model.Description"
+                                        placeholder="Optional description for this subdomain..."
+                                        rows="3"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                            <ValidationMessage For="@(() => model.Description)" class="text-red-600 text-sm mt-1" />
+                        </div>
+
+                        <!-- Audit Information -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-blue-800 mb-2">Audit Information</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-blue-700 font-medium">Created:</span>
+                                    <span class="text-blue-700">@_dataModel.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                                </div>
+                                <div>
+                                    <span class="text-blue-700 font-medium">Last Modified:</span>
+                                    <span class="text-blue-700">@DateTime.Now.ToString("MMM dd, yyyy HH:mm")</span>
+                                </div>
                             </div>
-                        </EditForm>
+                        </div>
                     </div>
-                </div>
-            </div>
+                </EditForm>
+            }
         </div>
     </div>
-}
+
+    <!-- Footer Actions -->
+    <div class="flex space-x-3 border-t border-gray-200 px-4 py-4 sm:px-6">
+        <button type="button"
+                @onclick="Close"
+                class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Cancel
+        </button>
+        <button type="button"
+                @onclick="HandleEditSubdomain"
+                disabled="@isProcessing"
+                class="flex-1 inline-flex justify-center items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (isProcessing)
+            {
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Saving...</span>
+            }
+            else
+            {
+                <span>Save Changes</span>
+            }
+        </button>
+    </div>
+</SlideoutBase>

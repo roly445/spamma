@@ -17,6 +17,8 @@ public partial class Campaign : AggregateRoot
 
     public override Guid Id { get; protected set; }
 
+    internal Guid DomainId { get; private set; }
+
     internal Guid SubdomainId { get; private set; }
 
     internal string CampaignValue { get; private set; } = string.Empty;
@@ -27,15 +29,26 @@ public partial class Campaign : AggregateRoot
 
     internal DateTimeOffset? DeletedAt { get; private set; }
 
-    internal List<Guid> MessageIds { get; private set; } = new();
+    internal int TotalCaptures { get; private set; }
+
+    internal DateTimeOffset LastCapturedAt { get; private set; }
 
     internal static Result<Campaign, BluQubeErrorData> Create(
         Guid campaignId,
+        Guid domainId,
         Guid subdomainId,
         string campaignValue,
         Guid messageId,
         DateTimeOffset createdAt)
     {
+        if (domainId == Guid.Empty)
+        {
+            return Result.Fail<Campaign, BluQubeErrorData>(
+                new BluQubeErrorData(
+                    EmailInboxErrorCodes.InvalidCampaignData,
+                    "DomainId cannot be empty."));
+        }
+
         if (subdomainId == Guid.Empty)
         {
             return Result.Fail<Campaign, BluQubeErrorData>(
@@ -69,7 +82,7 @@ public partial class Campaign : AggregateRoot
         }
 
         var campaign = new Campaign();
-        var @event = new CampaignCreated(campaignId, subdomainId, campaignValue, messageId, createdAt);
+        var @event = new CampaignCreated(campaignId, domainId, subdomainId, campaignValue, messageId, createdAt);
         campaign.RaiseEvent(@event);
 
         return Result.Ok<Campaign, BluQubeErrorData>(campaign);
@@ -91,22 +104,22 @@ public partial class Campaign : AggregateRoot
                 "MessageId cannot be empty."));
         }
 
-        var @event = new CampaignCaptured(this.Id, messageId, capturedAt);
+        var @event = new CampaignCaptured(capturedAt);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> Delete(DateTimeOffset deletedAt, bool force = false)
+    internal ResultWithError<BluQubeErrorData> Delete(DateTimeOffset deletedAt)
     {
         if (this.DeletedAt.HasValue)
         {
-            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(
+            return ResultWithError.Fail(new BluQubeErrorData(
                 EmailInboxErrorCodes.CampaignAlreadyDeleted,
                 $"Campaign '{this.Id}' has already been deleted."));
         }
 
-        var @event = new CampaignDeleted(this.Id, deletedAt, force);
+        var @event = new CampaignDeleted(deletedAt);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();

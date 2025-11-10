@@ -1,8 +1,11 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 
-namespace Spamma.Modules.EmailInbox.Client.Application.Commands;
+namespace Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
-public record ReceivedEmailCommand(Guid EmailId, Guid DomainId, Guid SubdomainId, string Subject, DateTime WhenSent, IReadOnlyList<ReceivedEmailCommand.EmailAddress> EmailAddresses) : ICommand
-{
-    public record EmailAddress(string Address, string Name, EmailAddressType EmailAddressType);
-}
+public record ReceivedEmailCommand(
+    Guid EmailId,
+    Guid DomainId,
+    Guid SubdomainId,
+    string Subject,
+    DateTimeOffset WhenSent,
+    IReadOnlyList<EmailAddress> EmailAddresses) : ICommand;

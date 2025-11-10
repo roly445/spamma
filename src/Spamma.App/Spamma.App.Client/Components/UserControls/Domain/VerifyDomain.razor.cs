@@ -2,12 +2,7 @@
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using Spamma.App.Client.Infrastructure.Contracts;
-using Spamma.App.Client.Infrastructure.Contracts.Services;
-using Spamma.App.Client.Pages.Admin;
-using Spamma.Modules.DomainManagement.Client.Application.Commands;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
-using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls.Domain;
 

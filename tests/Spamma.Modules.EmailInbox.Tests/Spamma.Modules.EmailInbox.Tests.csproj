@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);xUnit1031;CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Testcontainers" Version="4.1.0" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +40,7 @@
   <ItemGroup>
     <ProjectReference Include="../../tests/Spamma.Tests.Common/Spamma.Tests.Common.csproj" />
     <ProjectReference Include="../../src/modules/Spamma.Modules.EmailInbox/Spamma.Modules.EmailInbox.csproj" />
+    <ProjectReference Include="../../src/modules/Spamma.Modules.EmailInbox.Client/Spamma.Modules.EmailInbox.Client.csproj" />
     <ProjectReference Include="../../src/modules/Spamma.Modules.DomainManagement.Client/Spamma.Modules.DomainManagement.Client.csproj" />
   </ItemGroup>
 

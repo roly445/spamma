@@ -1,4 +1,4 @@
-﻿using System.Threading.Channels;
+using System.Threading.Channels;
 using BluQube.Attributes;
 using FluentValidation;
 using JasperFx.Events.Projections;
@@ -14,6 +14,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.Projections;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
 namespace Spamma.Modules.EmailInbox;
 
@@ -31,13 +32,9 @@ public static class Module
         services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
-        // Background job queues for campaign and chaos address recording (non-blocking operations)
-        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.CampaignCaptureJob>());
-        services.AddSingleton(Channel.CreateUnbounded<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.ChaosAddressReceivedJob>());
-        services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.BackgroundJobProcessor>();
-
-        // CAP integration event handlers
-        services.AddScoped<Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers.PersistReceivedEmailHandler>();
+        // Background job queues
+        services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.BackgroundTaskService>();
+        services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
         // Certificate generation service
         services.AddScoped<ICertesLetsEncryptService, CertesLetsEncryptService>();
@@ -94,6 +91,7 @@ public static class Module
     {
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<CampaignDeletionProjection>(ProjectionLifecycle.Async);
 
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
 

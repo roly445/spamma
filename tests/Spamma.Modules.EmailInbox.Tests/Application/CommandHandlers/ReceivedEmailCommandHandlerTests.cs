@@ -3,12 +3,11 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ResultMonad;
-using Spamma.Modules.EmailInbox.Application.CommandHandlers;
 using Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 using Spamma.Modules.EmailInbox.Application.Repositories;
-using Spamma.Modules.EmailInbox.Client;
-using Spamma.Modules.EmailInbox.Client.Application.Commands;
-using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Client.Contracts;
+using EmailAggregate = Spamma.Modules.EmailInbox.Domain.EmailAggregate.Email;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers;
 
@@ -40,7 +39,7 @@ public class ReceivedEmailCommandHandlerTests
         var subdomainId = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
-        var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
+        var emailAddresses = new List<EmailAddress>
         {
             new("test@example.com", "Test User", EmailAddressType.To),
             new("cc@example.com", "CC User", EmailAddressType.Cc),
@@ -55,7 +54,7 @@ public class ReceivedEmailCommandHandlerTests
             emailAddresses);
 
         this._repositoryMock
-            .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
+            .Setup(x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
@@ -66,7 +65,7 @@ public class ReceivedEmailCommandHandlerTests
 
         this._repositoryMock.Verify(
             x => x.SaveAsync(
-                It.Is<Email>(e => e.Id == emailId),
+                It.Is<EmailAggregate>(e => e.Id == emailId),
                 CancellationToken.None),
             Times.Once);
     }
@@ -81,13 +80,13 @@ public class ReceivedEmailCommandHandlerTests
             Guid.NewGuid(),
             "Subject",
             DateTime.UtcNow,
-            new List<ReceivedEmailCommand.EmailAddress>
+            new List<EmailAddress>
             {
                 new("test@example.com", "Test", EmailAddressType.To),
             });
 
         this._repositoryMock
-            .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
+            .Setup(x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Fail());
 
         // Act
@@ -97,7 +96,7 @@ public class ReceivedEmailCommandHandlerTests
         result.Should().NotBeNull();
 
         this._repositoryMock.Verify(
-            x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
+            x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None),
             Times.Once);
     }
 
@@ -109,7 +108,7 @@ public class ReceivedEmailCommandHandlerTests
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var emailAddresses = new List<ReceivedEmailCommand.EmailAddress>
+        var emailAddresses = new List<EmailAddress>
         {
             new("to@example.com", "To User", EmailAddressType.To),
             new("cc@example.com", "CC User", EmailAddressType.Cc),
@@ -126,7 +125,7 @@ public class ReceivedEmailCommandHandlerTests
             emailAddresses);
 
         this._repositoryMock
-            .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
+            .Setup(x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
@@ -136,7 +135,7 @@ public class ReceivedEmailCommandHandlerTests
         result.Should().NotBeNull();
 
         this._repositoryMock.Verify(
-            x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
+            x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None),
             Times.Once);
     }
 
@@ -153,7 +152,7 @@ public class ReceivedEmailCommandHandlerTests
             Guid.NewGuid(),
             "Email 1",
             DateTime.UtcNow,
-            new List<ReceivedEmailCommand.EmailAddress>
+            new List<EmailAddress>
             {
                 new("test1@example.com", "Test 1", EmailAddressType.To),
             });
@@ -164,13 +163,13 @@ public class ReceivedEmailCommandHandlerTests
             Guid.NewGuid(),
             "Email 2",
             DateTime.UtcNow,
-            new List<ReceivedEmailCommand.EmailAddress>
+            new List<EmailAddress>
             {
                 new("test2@example.com", "Test 2", EmailAddressType.To),
             });
 
         this._repositoryMock
-            .Setup(x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None))
+            .Setup(x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
         // Act
@@ -182,7 +181,7 @@ public class ReceivedEmailCommandHandlerTests
         result2.Should().NotBeNull();
 
         this._repositoryMock.Verify(
-            x => x.SaveAsync(It.IsAny<Email>(), CancellationToken.None),
+            x => x.SaveAsync(It.IsAny<EmailAggregate>(), CancellationToken.None),
             Times.Exactly(2));
     }
 }

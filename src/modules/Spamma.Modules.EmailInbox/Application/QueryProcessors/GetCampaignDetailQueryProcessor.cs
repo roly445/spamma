@@ -9,7 +9,6 @@ public class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryP
 {
     public async Task<QueryResult<GetCampaignDetailQueryResult>> Handle(GetCampaignDetailQuery request, CancellationToken cancellationToken)
     {
-        // Get the main campaign summary (by CampaignId only, we'll check authorization after)
         var campaign = await session.Query<CampaignSummary>()
             .FirstOrDefaultAsync(c => c.CampaignId == request.CampaignId, cancellationToken);
 
@@ -18,13 +17,11 @@ public class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryP
             return QueryResult<GetCampaignDetailQueryResult>.Failed();
         }
 
-        // If SubdomainId was provided, verify authorization
         if (request.SubdomainId != Guid.Empty && campaign.SubdomainId != request.SubdomainId)
         {
             return QueryResult<GetCampaignDetailQueryResult>.Failed();
         }
 
-        // Get the sample message ID from campaign (set on creation to the first message)
         var sampleMessageId = campaign.SampleMessageId;
 
         GetCampaignDetailQueryResult.SampleMessage? sampleData = null;
@@ -48,14 +45,13 @@ public class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryP
             }
         }
 
-        // Build time buckets based on actual campaign data
-        var timeBuckets = new List<GetCampaignDetailQueryResult.TimeBucket>();
-
-        // Create a single bucket spanning the campaign's lifetime
-        timeBuckets.Add(new GetCampaignDetailQueryResult.TimeBucket(
-            campaign.FirstReceivedAt,
-            campaign.LastReceivedAt,
-            campaign.TotalCaptured));
+        var timeBuckets = new List<GetCampaignDetailQueryResult.TimeBucket>
+        {
+            new(
+                campaign.FirstReceivedAt,
+                campaign.LastReceivedAt,
+                campaign.TotalCaptured),
+        };
 
         var result = new GetCampaignDetailQueryResult(
             campaign.CampaignId,

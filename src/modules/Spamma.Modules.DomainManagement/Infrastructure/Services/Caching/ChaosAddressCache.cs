@@ -4,18 +4,12 @@ using BluQube.Queries;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common;
+using Spamma.Modules.Common.Caching;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
-using Spamma.Modules.DomainManagement.Client.Infrastructure.Caching;
 using StackExchange.Redis;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
-/// <summary>
-/// Redis-backed cache for chaos address lookups by subdomain ID and local part.
-/// Uses direct IConnectionMultiplexer for full Redis capabilities including pattern-based invalidation.
-/// Cache keys: chaos:{subdomainId}:{localPart}
-/// TTL: 1 hour (or until invalidated by CAP event)
-/// </summary>
 public class ChaosAddressCache(
     IConnectionMultiplexer redisMultiplexer,
     IQuerier querier,
@@ -25,7 +19,7 @@ public class ChaosAddressCache(
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();
     private readonly TimeSpan _ttl = TimeSpan.FromHours(1);
 
-    public async Task<Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>> GetChaosAddressAsync(
+    public async Task<Maybe<IChaosAddressCache.CachedChaosAddress>> GetChaosAddressAsync(
         Guid subdomainId,
         string localPart,
         bool forceRefresh = false,
@@ -33,19 +27,19 @@ public class ChaosAddressCache(
     {
         if (subdomainId == Guid.Empty || string.IsNullOrWhiteSpace(localPart))
         {
-            return Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Nothing;
+            return Maybe<IChaosAddressCache.CachedChaosAddress>.Nothing;
         }
 
         var cacheKey = CreateCacheKey(subdomainId, localPart);
 
         if (!forceRefresh)
         {
-            var cachedValue = this._redis.StringGet(cacheKey);
+            var cachedValue = await this._redis.StringGetAsync(cacheKey);
             if (cachedValue.HasValue)
             {
                 try
                 {
-                    var cachedChaosAddress = JsonSerializer.Deserialize<GetChaosAddressBySubdomainAndLocalPartQueryResult?>(cachedValue.ToString());
+                    var cachedChaosAddress = JsonSerializer.Deserialize<IChaosAddressCache.CachedChaosAddress?>(cachedValue.ToString());
                     if (cachedChaosAddress != null)
                     {
                         logger.LogDebug("Cache HIT for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
@@ -60,20 +54,22 @@ public class ChaosAddressCache(
             }
         }
 
-        // Cache miss or forceRefresh: query database
         logger.LogDebug("Cache MISS for chaos address: {SubdomainId}:{LocalPart}", subdomainId, localPart);
         var query = new GetChaosAddressBySubdomainAndLocalPartQuery(subdomainId, localPart);
-        internalQueryStore.AddReferenceForObject(query);
+        internalQueryStore.StoreQueryRef(query);
         var result = await querier.Send(query, cancellationToken);
 
-        if (result.Status != QueryResultStatus.Succeeded || result.Data == null)
+        if (result.Status != QueryResultStatus.Succeeded)
         {
-            return Maybe<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Nothing;
+            return Maybe<IChaosAddressCache.CachedChaosAddress>.Nothing;
         }
 
-        var chaosAddress = result.Data;
+        var chaosAddress = new IChaosAddressCache.CachedChaosAddress(
+            result.Data.ChaosAddressId,
+            result.Data.DomainId,
+            result.Data.SubdomainId,
+            result.Data.ConfiguredSmtpCode);
 
-        // Cache the result (even if not enabled, to avoid repeated queries)
         try
         {
             await this.SetChaosAddressAsync(subdomainId, localPart, chaosAddress, cancellationToken);
@@ -81,8 +77,6 @@ public class ChaosAddressCache(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to cache chaos address for {SubdomainId}:{LocalPart}", subdomainId, localPart);
-
-            // Continue despite cache failure - fallback to uncached operation
         }
 
         return Maybe.From(chaosAddress);
@@ -91,7 +85,7 @@ public class ChaosAddressCache(
     public async Task SetChaosAddressAsync(
         Guid subdomainId,
         string localPart,
-        GetChaosAddressBySubdomainAndLocalPartQueryResult chaosAddress,
+        IChaosAddressCache.CachedChaosAddress chaosAddress,
         CancellationToken cancellationToken = default)
     {
         if (subdomainId == Guid.Empty || string.IsNullOrWhiteSpace(localPart))
@@ -104,7 +98,7 @@ public class ChaosAddressCache(
         try
         {
             var serialized = JsonSerializer.SerializeToUtf8Bytes(chaosAddress);
-            this._redis.StringSet(cacheKey, serialized, this._ttl);
+            await this._redis.StringSetAsync(cacheKey, serialized, this._ttl);
             logger.LogDebug("Cached chaos address: {SubdomainId}:{LocalPart} with TTL {TTL}", subdomainId, localPart, this._ttl);
         }
         catch (Exception ex)

@@ -1,4 +1,4 @@
-﻿@page "/admin/domains"
+@page "/admin/domains"
 @using Microsoft.AspNetCore.Components.Authorization
 @using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Components.UserControls.Domain
@@ -195,7 +195,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end space-x-2">
-                                            <button @onclick="() => NavigateToDomainDetails(domain.Id)" class="text-blue-600 hover:text-blue-900">View</button>
+                                            <button @onclick="() => NavigateToDomainDetails(domain.DomainId)" class="text-blue-600 hover:text-blue-900">View</button>
 
                                             <button @onclick="() => OpenEditDomain(domain)" class="text-indigo-600 hover:text-indigo-900">Edit</button>
                                             @if (!domain.IsVerified)
@@ -301,7 +301,7 @@
 <!-- Add Domain Modal -->
 @if (showAddDomainModal)
 {
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseAddDomainModal">
+    <div class="fixed inset-0 bg-black/30 transition-opacity backdrop-blur-sm z-50 flex items-center justify-center p-4" @onclick="CloseAddDomainModal">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">

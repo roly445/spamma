@@ -15,7 +15,7 @@ public record SearchDomainsQueryResult(
     public bool HasPreviousPage => this.Page > 1;
 
     public record DomainSummary(
-        Guid Id,
+        Guid DomainId,
         string DomainName,
         DomainStatus Status,
         bool IsVerified,

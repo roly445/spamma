@@ -14,9 +14,22 @@ public class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProces
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var sortedQuery = request.SortDescending
-            ? query.OrderByDescending(c => GetSortProperty(c, request.SortBy))
-            : query.OrderBy(c => GetSortProperty(c, request.SortBy));
+        // Apply sorting based on request
+        IQueryable<CampaignSummary> sortedQuery = request.SortBy switch
+        {
+            "CampaignValue" => request.SortDescending
+                ? query.OrderByDescending(c => c.CampaignValue)
+                : query.OrderBy(c => c.CampaignValue),
+            "FirstReceivedAt" => request.SortDescending
+                ? query.OrderByDescending(c => c.FirstReceivedAt)
+                : query.OrderBy(c => c.FirstReceivedAt),
+            "TotalCaptured" => request.SortDescending
+                ? query.OrderByDescending(c => c.TotalCaptured)
+                : query.OrderBy(c => c.TotalCaptured),
+            _ => request.SortDescending
+                ? query.OrderByDescending(c => c.LastReceivedAt)
+                : query.OrderBy(c => c.LastReceivedAt),
+        };
 
         var items = await sortedQuery
             .Skip((request.Page - 1) * request.PageSize)
@@ -27,6 +40,8 @@ public class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProces
             Items: items
                 .Select(c => new GetCampaignsQueryResult.CampaignSummary(
                     c.CampaignId,
+                    c.DomainId,
+                    c.SubdomainId,
                     c.CampaignValue,
                     c.FirstReceivedAt,
                     c.LastReceivedAt,
@@ -39,13 +54,4 @@ public class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProces
 
         return QueryResult<GetCampaignsQueryResult>.Succeeded(result);
     }
-
-    private static object GetSortProperty(CampaignSummary campaign, string sortBy) =>
-        sortBy switch
-        {
-            "CampaignValue" => campaign.CampaignValue,
-            "FirstReceivedAt" => campaign.FirstReceivedAt,
-            "TotalCaptured" => campaign.TotalCaptured,
-            _ => campaign.LastReceivedAt,
-        };
 }

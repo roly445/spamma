@@ -1,4 +1,4 @@
-using Spamma.Modules.UserManagement.Client.Contracts;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Domain.UserAggregate;
 
 namespace Spamma.Modules.UserManagement.Tests.Builders;

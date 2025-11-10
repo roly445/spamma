@@ -1,19 +1,10 @@
-using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.App.Infrastructure.Endpoints.Setup;
 
-/// <summary>
-/// SSE (Server-Sent Events) endpoint for streaming certificate generation progress.
-/// </summary>
 public static class GenerateCertificateStreamEndpoint
 {
-    /// <summary>
-    /// Maps the certificate generation stream endpoint.
-    /// </summary>
-    /// <param name="routeBuilder">The endpoint route builder.</param>
-    /// <returns>The route builder for chaining.</returns>
     public static IEndpointRouteBuilder MapGenerateCertificateStreamEndpoint(this IEndpointRouteBuilder routeBuilder)
     {
         routeBuilder.MapPost("/api/setup/generate-certificate-stream", GenerateCertificateStream)
@@ -23,16 +14,6 @@ public static class GenerateCertificateStreamEndpoint
         return routeBuilder;
     }
 
-    /// <summary>
-    /// Generates a Let's Encrypt certificate with progress streaming.
-    /// </summary>
-    /// <param name="request">The certificate generation request.</param>
-    /// <param name="httpContext">HTTP context for SSE response.</param>
-    /// <param name="certService">Certificate generation service.</param>
-    /// <param name="challengeResponder">ACME challenge responder.</param>
-    /// <param name="logger">Logger for diagnostic information.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>SSE response with progress events.</returns>
     private static async Task GenerateCertificateStream(
         GenerateCertificateRequest request,
         HttpContext httpContext,
@@ -125,13 +106,6 @@ public static class GenerateCertificateStreamEndpoint
         }
     }
 
-    /// <summary>
-    /// Writes a progress event to the SSE response stream.
-    /// </summary>
-    /// <param name="response">The HTTP response.</param>
-    /// <param name="message">The progress message.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     private static async Task WriteProgressEventAsync(
         HttpResponse response,
         string message,

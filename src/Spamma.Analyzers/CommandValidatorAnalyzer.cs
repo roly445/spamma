@@ -28,7 +28,7 @@ public sealed class CommandValidatorAnalyzer : DiagnosticAnalyzer
         Title,
         MessageFormat,
         Category,
-        DiagnosticSeverity.Warning,
+        DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: Description);
 
@@ -113,7 +113,7 @@ public sealed class CommandValidatorAnalyzer : DiagnosticAnalyzer
     private static void FindMissingInNamespace(INamespaceSymbol namespaceSymbol, HashSet<string> commandsWithValidators, List<string> missing)
     {
         // Check all types in this namespace
-        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => HasBluQubeCommandAttribute(t)))
+        foreach (var type in namespaceSymbol.GetTypeMembers().Where(t => ImplementsICommand(t)))
         {
             var commandFullName = type.GetFullyQualifiedName();
             if (!commandsWithValidators.Contains(commandFullName))
@@ -128,13 +128,10 @@ public sealed class CommandValidatorAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    /// <summary>
-    /// Checks if a type has the BluQubeCommand attribute.
-    /// </summary>
-    private static bool HasBluQubeCommandAttribute(INamedTypeSymbol typeSymbol)
+    private static bool ImplementsICommand(INamedTypeSymbol typeSymbol)
     {
-        return typeSymbol.GetAttributes().Select(a => a.AttributeClass?.Name).Any(name =>
-            name == "BluQubeCommandAttribute" || name == "BluQubeCommand");
+        // Check if the type implements ICommand interface
+        return typeSymbol.AllInterfaces.Any(i => i.Name == "ICommand" && i.ContainingNamespace?.ToString() == "BluQube.Commands");
     }
 
     private sealed class ValidatorCollector(HashSet<string> commandsWithValidators, Compilation compilation)

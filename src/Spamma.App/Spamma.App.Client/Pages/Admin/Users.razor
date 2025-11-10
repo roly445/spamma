@@ -1,7 +1,8 @@
-﻿@page "/admin/users"
+@page "/admin/users"
 @using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Infrastructure.Helpers
 @using Spamma.App.Client.Layout
+@using Spamma.Modules.Common.Client
 @using Spamma.Modules.UserManagement.Client.Contracts
 @layout AppLayout
 @attribute [Authorize(Policy = "UserAdministration")]
@@ -129,19 +130,7 @@
                             {
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="h-10 w-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                                                <span class="text-sm font-medium text-white">
-                                                    @(user.DisplayName?.Substring(0, 1).ToUpper() ?? user.Email.Substring(0, 1).ToUpper())
-                                                </span>
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900">@(user.DisplayName ?? "No Name")</div>
-                                                <div class="text-sm text-gray-500 flex items-center">
-                                                    @user.Email
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <UserListItem UserName="@user.DisplayName" UserEmail="@user.Email" ShowName="true" Size="10" />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="@GetStatusClasses(user.Status)">
@@ -256,7 +245,7 @@
     <div class="fixed inset-0 overflow-hidden z-50" @onclick="CloseEditPanel">
         <div class="absolute inset-0 overflow-hidden">
             <!-- Background overlay -->
-            <div class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            <div class="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"></div>
             
             <!-- Panel -->
             <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex" @onclick:stopPropagation="true">
@@ -278,12 +267,8 @@
                         <div class="mt-6 relative flex-1 px-4 sm:px-6">
                             <!-- User Avatar and Basic Info -->
                             <div class="text-center mb-6">
-                                <div class="mx-auto h-20 w-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                                    <span class="text-xl font-medium text-white">
-                                        @(selectedUser.DisplayName?.Substring(0, 1).ToUpper() ?? selectedUser.Email.Substring(0, 1).ToUpper())
-                                    </span>
-                                </div>
-                                <h3 class="mt-2 text-lg font-medium text-gray-900">@(selectedUser.DisplayName ?? "No Name")</h3>
+                                <UserListItem UserName="@selectedUser.DisplayName" UserEmail="@selectedUser.Email" ShowName="false" Size="20" />
+                                <h3 class="mt-4 text-lg font-medium text-gray-900">@(selectedUser.DisplayName ?? "No Name")</h3>
                                 <p class="text-sm text-gray-500">@selectedUser.Email</p>
                             </div>
 
@@ -383,7 +368,7 @@
 
 @if (showAddUserModal)
 {
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseAddUserModal">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseAddUserModal">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
@@ -495,7 +480,7 @@
 
 @if (showSuspendModal && userToSuspend != null)
 {
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseSuspendModal">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseSuspendModal">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
@@ -516,15 +501,7 @@
                 <div class="mb-4">
                     <p class="text-sm text-gray-500 mb-2">You are about to suspend:</p>
                     <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <div class="h-8 w-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                            <span class="text-xs font-medium text-white">
-                                @(userToSuspend.DisplayName?.Substring(0, 1).ToUpper() ?? userToSuspend.Email.Substring(0, 1).ToUpper())
-                            </span>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-900">@(userToSuspend.DisplayName ?? "No Name")</p>
-                            <p class="text-sm text-gray-500">@userToSuspend.Email</p>
-                        </div>
+                        <UserListItem UserEmail="@userToSuspend.Email" UserName="@userToSuspend.DisplayName" ShowName="true" Size="8" />
                     </div>
                 </div>
 
@@ -612,7 +589,7 @@
 <!-- Unsuspend User Confirmation Modal -->
 @if (showUnsuspendModal && userToUnsuspend != null)
 {
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseUnsuspendModal">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseUnsuspendModal">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
@@ -633,15 +610,7 @@
                 <div class="mb-4">
                     <p class="text-sm text-gray-500 mb-2">You are about to restore access for:</p>
                     <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <div class="h-8 w-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                            <span class="text-xs font-medium text-white">
-                                @(userToUnsuspend.DisplayName?.Substring(0, 1).ToUpper() ?? userToUnsuspend.Email.Substring(0, 1).ToUpper())
-                            </span>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm font-medium text-gray-900">@(userToUnsuspend.DisplayName ?? "No Name")</p>
-                            <p class="text-sm text-gray-500">@userToUnsuspend.Email</p>
-                        </div>
+                        <UserListItem UserEmail="@userToUnsuspend.Email" UserName="@userToUnsuspend.DisplayName" ShowName="true" Size="8" />
                     </div>
                 </div>
 
@@ -698,7 +667,7 @@
 <!-- Manage Passkeys Modal -->
 @if (showPasskeysModal && selectedUserForPasskeys != null)
 {
-    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-50 flex items-center justify-center p-4" @onclick="ClosePasskeysModal">
+    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="ClosePasskeysModal">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="sticky top-0 px-6 py-4 border-b border-gray-200 bg-white">

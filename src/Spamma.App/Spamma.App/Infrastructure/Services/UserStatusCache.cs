@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using BluQube.Constants;
 using BluQube.Queries;
 using MaybeMonad;
 using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
-using Spamma.Modules.UserManagement.Client.Contracts;
 using StackExchange.Redis;
 
 namespace Spamma.App.Infrastructure.Services;
@@ -23,7 +23,7 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
         if (!value.HasValue || forceRefresh)
         {
             var query = new GetUserByIdQuery(userId);
-            internalQueryStore.AddReferenceForObject(query);
+            internalQueryStore.StoreQueryRef(query);
             var result = await querier.Send(query);
             if (result.Status == QueryResultStatus.Succeeded)
             {

@@ -4,18 +4,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-/// <summary>
-/// Service for managing SMTP TLS certificates.
-/// </summary>
 public class SmtpCertificateService(ILogger<SmtpCertificateService> logger)
 {
     private const string CertificatePassword = "letmein";
     private readonly string _certificatePath = Path.Combine(Directory.GetCurrentDirectory(), "certs");
 
-    /// <summary>
-    /// Attempts to find and load a certificate from the certs directory.
-    /// </summary>
-    /// <returns>The first valid certificate found, or Nothing if none exist.</returns>
     public Maybe<X509Certificate2> FindCertificate()
     {
         if (!Directory.Exists(this._certificatePath))

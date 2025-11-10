@@ -15,6 +15,8 @@ public record GetCampaignsQueryResult(
 
     public record CampaignSummary(
         Guid CampaignId,
+        Guid DomainId,
+        Guid SubdomainId,
         string CampaignValue,
         DateTimeOffset FirstReceivedAt,
         DateTimeOffset LastReceivedAt,

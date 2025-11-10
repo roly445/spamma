@@ -1,15 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
-using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
-using StackExchange.Redis;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the admin setup page.
+/// </summary>
 public partial class Admin(
     IAppConfigurationService appConfigurationService,
     IInternalQueryStore internalQueryStore,
@@ -53,7 +54,7 @@ public partial class Admin(
         var userId = Guid.NewGuid();
         logger.LogInformation("Creating admin user with email: {Email}", this.Model.AdminEmail);
         var cmd = new CreateUserCommand(userId, this.Model.AdminName, this.Model.AdminEmail, false, 0);
-        internalQueryStore.AddReferenceForObject(cmd);
+        internalQueryStore.StoreQueryRef(cmd);
         await commander.Send(cmd);
 
         this.successMessage = "Admin user created successfully!";

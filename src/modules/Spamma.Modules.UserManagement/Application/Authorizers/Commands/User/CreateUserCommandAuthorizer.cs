@@ -1,4 +1,4 @@
-﻿using MediatR.Behaviors.Authorization;
+using MediatR.Behaviors.Authorization;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;
@@ -10,7 +10,7 @@ public class CreateUserCommandAuthorizer(IInternalQueryStore internalQueryStore)
 {
     public override void BuildPolicy(CreateUserCommand request)
     {
-        if (internalQueryStore.IsStoringReferenceForObject(request))
+        if (internalQueryStore.IsQueryStored(request))
         {
             return;
         }

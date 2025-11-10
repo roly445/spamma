@@ -5,11 +5,16 @@ using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Layout;
 
+/// <summary>
+/// Code-behind for the main application layout.
+/// </summary>
 public partial class AppLayout(
     IJSRuntime jsRuntime, ISignalRService signalRService, AuthenticationStateProvider authenticationStateProvider) : IDisposable
 {
     private bool showSettingsDropdown;
     private bool _disposed;
+    private string? outsideClickHandlerId;
+    private DotNetObjectReference<AppLayout>? dotNetRef;
 
     [JSInvokable]
     public void CloseDropdown()
@@ -52,6 +57,36 @@ public partial class AppLayout(
         {
             await jsRuntime.InvokeVoidAsync("addClickOutsideListener", DotNetObjectReference.Create(this));
             await jsRuntime.InvokeVoidAsync("window.hideSplash");
+        }
+
+        // Register outside-click handler when dropdown opens
+        if (this.showSettingsDropdown && string.IsNullOrEmpty(this.outsideClickHandlerId))
+        {
+            try
+            {
+                this.dotNetRef = DotNetObjectReference.Create(this);
+                this.outsideClickHandlerId = await jsRuntime.InvokeAsync<string>("registerOutsideClickHandler", ".settings-dropdown-container", this.dotNetRef, "CloseDropdown");
+            }
+            catch
+            {
+                // Non-fatal if JS handler fails
+            }
+        }
+
+        // Clean up outside-click handler when dropdown closes
+        if (!this.showSettingsDropdown && !string.IsNullOrEmpty(this.outsideClickHandlerId))
+        {
+            try
+            {
+                await jsRuntime.InvokeVoidAsync("removeOutsideClickHandler", this.outsideClickHandlerId);
+                this.outsideClickHandlerId = null;
+                this.dotNetRef?.Dispose();
+                this.dotNetRef = null;
+            }
+            catch
+            {
+                // Non-fatal if cleanup fails
+            }
         }
     }
 

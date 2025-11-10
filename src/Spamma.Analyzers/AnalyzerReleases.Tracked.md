@@ -5,3 +5,5 @@
 ### New Rules
 
 - SPAMMA001: Command must have validator
+- SPAMMA002: Command should have authorizer
+

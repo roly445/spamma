@@ -25,6 +25,7 @@ public partial class Passkey
 
     private void Apply(PasskeyRegistered @event)
     {
+        this.Id = @event.PasskeyId;
         this.UserId = @event.UserId;
         this.CredentialId = @event.CredentialId;
         this.PublicKey = @event.PublicKey;

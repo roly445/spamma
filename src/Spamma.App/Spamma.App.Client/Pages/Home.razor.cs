@@ -18,6 +18,7 @@ public partial class Home(IQuerier querier, ISignalRService signalRService) : ID
     private string _searchText = string.Empty;
     private bool _isLoading = false;
     private bool _isSearching = false;
+    private bool _showCampaignEmails = false;
     private System.Timers.Timer? _searchTimer;
     private SearchEmailsQueryResult? _searchResult;
     private bool _disposed;
@@ -78,7 +79,7 @@ public partial class Home(IQuerier querier, ISignalRService signalRService) : ID
 
         try
         {
-            var result = await querier.Send(new SearchEmailsQuery(searchText, page, DefaultPageSize));
+            var result = await querier.Send(new SearchEmailsQuery(searchText, page, DefaultPageSize, this._showCampaignEmails));
             if (result.Status == QueryResultStatus.Succeeded)
             {
                 this._searchResult = result.Data;
@@ -112,6 +113,12 @@ public partial class Home(IQuerier querier, ISignalRService signalRService) : ID
         }
 
         await this.LoadEmails(this._searchText, page);
+    }
+
+    private async Task ToggleCampaignFilter(ChangeEventArgs e)
+    {
+        this._showCampaignEmails = (bool)(e.Value ?? false);
+        await this.LoadEmails(this._searchText, 1);
     }
 
     private IEnumerable<int> GetVisiblePageNumbers()
