@@ -4,9 +4,13 @@ using DotNetCore.CAP;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.IntegrationEvents;
 using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
-using Spamma.Modules.DomainManagement.Client.Application.Commands.RecordChaosAddressReceived;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 using Spamma.Modules.EmailInbox.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Client.Contracts;
+using CommandEmailAddress = Spamma.Modules.EmailInbox.Client.Application.Commands.Email.EmailAddress;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers;
 
@@ -26,9 +30,9 @@ public class PersistReceivedEmailHandler(
         {
             logger.LogDebug("Persisting received email {EmailId} for subdomain {SubdomainId}", ev.EmailId, ev.SubdomainId);
 
-            // Convert EmailReceivedAddress to ReceivedEmailCommand.EmailAddress
+            // Convert EmailReceivedAddress to CommandEmailAddress
             var addresses = ev.Recipients
-                .Select(x => new ReceivedEmailCommand.EmailAddress(x.Address, x.DisplayName ?? string.Empty, (EmailAddressType)x.Type))
+                .Select(x => new CommandEmailAddress(x.Address, x.DisplayName ?? string.Empty, (EmailAddressType)x.Type))
                 .ToList();
 
             // Save email and metadata to database
@@ -70,13 +74,11 @@ public class PersistReceivedEmailHandler(
                 {
                     await commander.Send(
                         new RecordCampaignCaptureCommand(
+                            ev.DomainId,
                             ev.SubdomainId,
                             ev.EmailId,
                             ev.CampaignValue,
-                            ev.Subject ?? string.Empty,
-                            ev.FromAddress,
-                            ev.ToAddress,
-                            DateTimeOffset.UtcNow),
+                            ev.ReceivedAt),
                         CancellationToken.None);
                 }
                 catch (Exception ex)
