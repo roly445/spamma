@@ -1,4 +1,4 @@
-﻿using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.Common.Domain.Contracts;
 
 namespace Spamma.Modules.Common.IntegrationEvents.EmailInbox;
 

@@ -1,4 +1,4 @@
-﻿using BluQube.Queries;
+using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common;

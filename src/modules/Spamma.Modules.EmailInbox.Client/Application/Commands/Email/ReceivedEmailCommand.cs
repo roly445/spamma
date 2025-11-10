@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 
 namespace Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 

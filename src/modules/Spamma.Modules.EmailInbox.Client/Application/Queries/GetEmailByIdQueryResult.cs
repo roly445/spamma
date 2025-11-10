@@ -1,4 +1,4 @@
-﻿using BluQube.Queries;
+using BluQube.Queries;
 
 namespace Spamma.Modules.EmailInbox.Client.Application.Queries;
 

@@ -1,4 +1,5 @@
-﻿using BluQube.Attributes;
+using System.Threading.Channels;
+using BluQube.Attributes;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;

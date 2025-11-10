@@ -1,4 +1,4 @@
-﻿using MediatR.Behaviors.Authorization;
+using MediatR.Behaviors.Authorization;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;

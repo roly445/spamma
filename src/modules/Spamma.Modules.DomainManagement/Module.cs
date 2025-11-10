@@ -1,4 +1,4 @@
-﻿using BluQube.Attributes;
+using BluQube.Attributes;
 using DnsClient;
 using FluentValidation;
 using JasperFx.Events.Projections;

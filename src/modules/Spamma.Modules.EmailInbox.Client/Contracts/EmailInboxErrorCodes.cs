@@ -1,4 +1,4 @@
-﻿namespace Spamma.Modules.EmailInbox.Client.Contracts;
+namespace Spamma.Modules.EmailInbox.Client.Contracts;
 
 public static class EmailInboxErrorCodes
 {
