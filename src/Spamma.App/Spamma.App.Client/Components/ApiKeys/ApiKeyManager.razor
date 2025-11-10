@@ -54,6 +54,90 @@
         </EditForm>
     </div>
 
+    <!-- API Keys List Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Your API Keys</h2>
+
+        @if (isLoadingKeys)
+        {
+            <div class="flex items-center justify-center py-8">
+                <svg class="animate-spin h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span class="ml-2 text-gray-500">Loading API keys...</span>
+            </div>
+        }
+        else if (apiKeys.Count == 0)
+        {
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No API keys</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating your first API key above.</p>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-4">
+                @foreach (var apiKey in apiKeys.OrderByDescending(k => k.CreatedAt))
+                {
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg @(apiKey.IsRevoked ? "bg-gray-50" : "bg-white")">
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <h3 class="text-sm font-medium text-gray-900">@apiKey.Name</h3>
+                                @if (apiKey.IsRevoked)
+                                {
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Revoked
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Active
+                                    </span>
+                                }
+                            </div>
+                            <div class="mt-1 text-sm text-gray-500">
+                                Created @apiKey.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")
+                                @if (apiKey.IsRevoked && apiKey.RevokedAt.HasValue)
+                                {
+                                    <span>• Revoked @apiKey.RevokedAt.Value.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
+                                }
+                            </div>
+                        </div>
+                        @if (!apiKey.IsRevoked)
+                        {
+                            <div class="ml-4">
+                                <button @onclick="() => HandleRevokeApiKey(apiKey.Id)"
+                                        disabled="@isRevoking"
+                                        class="inline-flex items-center px-3 py-1.5 rounded-md text-sm text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50">
+                                    @if (isRevoking)
+                                    {
+                                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-red-700" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                        <span>Revoking…</span>
+                                    }
+                                    else
+                                    {
+                                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        <span>Revoke</span>
+                                    }
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
     <!-- Show Created Key (only displayed once) -->
     @if (!string.IsNullOrEmpty(createdKeyValue))
     {

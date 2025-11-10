@@ -10,6 +10,7 @@ using Spamma.Modules.Common.IntegrationEvents.ApiKey;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.ApiKeys;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
+using Spamma.Modules.UserManagement.Client.Application.DTOs;
 using Spamma.Modules.UserManagement.Client.Contracts;
 using ApiKeyAggregate = Spamma.Modules.UserManagement.Domain.ApiKeys.ApiKey;
 

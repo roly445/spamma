@@ -1,4 +1,4 @@
-namespace Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
+namespace Spamma.Modules.UserManagement.Client.Application.DTOs;
 
 public record ApiKeySummary(
     Guid Id,
