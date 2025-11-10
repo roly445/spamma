@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package email_push;
+
+service EmailPushService {
+  rpc SubscribeToEmails (SubscribeRequest) returns (stream EmailNotification);
+}
+
+message SubscribeRequest {
+  string jwt_token = 1;
+}
+
+message EmailNotification {
+  string id = 1;
+  string from = 2;
+  string to = 3;
+  string subject = 4;
+  int64 received_at = 5;
+}

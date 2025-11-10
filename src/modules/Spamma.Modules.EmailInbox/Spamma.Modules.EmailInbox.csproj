@@ -33,6 +33,9 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+      <PackageReference Include="Grpc.Tools" Version="2.67.0" />
+      <PackageReference Include="Google.Protobuf" Version="3.29.2" />
+      <PackageReference Include="MediatR.Behaviors.Authorization" Version="12.5.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -62,4 +65,5 @@
     <ItemGroup>
   <ProjectReference Include="..\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
     </ItemGroup>
-</Project>
+
+  </Project>

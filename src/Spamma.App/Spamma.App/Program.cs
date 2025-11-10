@@ -102,6 +102,8 @@ builder.Services.Configure<SetupSettings>(opt => builder.Configuration.GetSectio
 builder.Services.AddUserManagement()
     .AddDomainManagement().AddEmailInbox();
 
+builder.Services.AddGrpc();
+
 builder.Services.Configure<JsonOptions>(options =>
 {
     // Add global byte array converter for WebAuthn credential data

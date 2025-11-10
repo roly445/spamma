@@ -55,8 +55,8 @@ public class BackgroundTaskService(
                             new RecordChaosAddressReceivedCommand(captureJob.ChaosAddressId, message.Date),
                             stoppingToken);
                         break;
-                    case StandardEmailCaptureJob:
-                        await ExtractEmailAddressesAndSendCommand(messageId, message, commander, workItem,
+                    case StandardEmailCaptureJob standardJob:
+                        await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander, workItem,
                             hostEnv.ContentRootPath, cancellationToken: stoppingToken);
                         break;
                 }

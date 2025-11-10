@@ -27,6 +27,7 @@ public class BackgroundTaskQueueTests
         var workItem = new StandardEmailCaptureJob(
             new MemoryStream(),
             Guid.NewGuid(),
+            Guid.NewGuid(),
             Guid.NewGuid());
 
         // Act
@@ -44,6 +45,7 @@ public class BackgroundTaskQueueTests
         var queue = new BackgroundTaskQueue();
         var workItem = new StandardEmailCaptureJob(
             new MemoryStream(),
+            Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid());
 
@@ -87,6 +89,7 @@ public class BackgroundTaskQueueTests
         var workItem1 = new StandardEmailCaptureJob(
             new MemoryStream(),
             Guid.NewGuid(),
+            Guid.NewGuid(),
             Guid.NewGuid());
         var workItem2 = new ChaosEmailCaptureJob(
             new MemoryStream(),
@@ -123,6 +126,7 @@ public class BackgroundTaskQueueTests
             .Select(_ => new StandardEmailCaptureJob(
                 new MemoryStream(),
                 Guid.NewGuid(),
+                Guid.NewGuid(),
                 Guid.NewGuid()))
             .ToList();
 
@@ -157,6 +161,7 @@ public class BackgroundTaskQueueTests
         var workItems = Enumerable.Range(0, itemCount)
             .Select(_ => new StandardEmailCaptureJob(
                 new MemoryStream(),
+                Guid.NewGuid(),
                 Guid.NewGuid(),
                 Guid.NewGuid()))
             .ToList();

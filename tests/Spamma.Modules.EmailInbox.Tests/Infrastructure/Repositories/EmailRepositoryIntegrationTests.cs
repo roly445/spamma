@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Hosting;
+using Moq;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
@@ -15,17 +17,19 @@ namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Repositories;
 public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
 {
     private readonly PostgreSqlFixture _fixture;
+    private readonly IHostEnvironment _hostEnvironment;
 
     public EmailRepositoryIntegrationTests(PostgreSqlFixture fixture)
     {
         _fixture = fixture;
+        _hostEnvironment = Mock.Of<IHostEnvironment>(h => h.ContentRootPath == Path.GetTempPath());
     }
 
     [Fact]
     public async Task SaveAsync_And_GetByIdAsync_NewEmail_RoundtripSucceeds()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!);
+        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
         var emailId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
@@ -59,7 +63,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task GetByIdAsync_NonExistentEmail_ReturnsNothing()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!);
+        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -73,7 +77,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_EmailWithMultipleEvents_PersistsAllEvents()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!);
+        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
         var emailId = Guid.NewGuid();
         var addresses = new List<EmailReceived.EmailAddress>
         {
@@ -104,7 +108,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_MultipleEmails_AllPersistIndependently()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!);
+        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
         var addresses = new List<EmailReceived.EmailAddress>
         {
             new("test@example.com", "Test", EmailAddressType.To),
@@ -143,7 +147,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_EmailEventSequence_MaintainsCorrectState()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!);
+        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
         var emailId = Guid.NewGuid();
         var addresses = new List<EmailReceived.EmailAddress>
         {
@@ -178,7 +182,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_DeletedEmail_PersistsDeletedState()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!);
+        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
         var emailId = Guid.NewGuid();
         var addresses = new List<EmailReceived.EmailAddress>
         {
