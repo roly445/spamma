@@ -10,10 +10,9 @@ public class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer : AbstractReq
     public override void BuildPolicy(GetChaosAddressBySubdomainAndLocalPartQuery request)
     {
         this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustHaveAccessToSubdomainRequirement()
+        this.UseRequirement(new MustHaveAccessToSubdomainRequirement
         {
             SubdomainId = request.SubdomainId,
         });
-       
     }
 }
