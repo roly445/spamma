@@ -97,17 +97,17 @@ The project's constitution requires explicit task categories to be included in e
 
 ### Implementation for User Story 1
 
-- [ ] T022 [P] [US1] Create ApiKey entity in Spamma.Modules.UserManagement/Domain/ApiKeys/ApiKey.cs
-- [ ] T023 [P] [US1] Create ApiKeyCreated event in Spamma.Modules.UserManagement/Domain/ApiKeys/Events/ApiKeyCreated.cs
-- [ ] T024 [P] [US1] Create CreateApiKeyCommand in Spamma.Modules.UserManagement.Client/Application/Commands/ApiKeys/CreateApiKeyCommand.cs
-- [ ] T025 [P] [US1] Create CreateApiKeyCommandResult in Spamma.Modules.UserManagement.Client/Application/Commands/ApiKeys/CreateApiKeyCommandResult.cs
-- [ ] T026 [US1] Implement CreateApiKeyCommandHandler in Spamma.Modules.UserManagement/Application/CommandHandlers/ApiKeys/CreateApiKeyCommandHandler.cs
-- [ ] T027 [US1] Implement CreateApiKeyCommandValidator in Spamma.Modules.UserManagement/Application/Validators/CreateApiKeyCommandValidator.cs
-- [ ] T028 [US1] Implement CreateApiKeyCommandAuthorizer in Spamma.Modules.UserManagement/Application/Authorizers/Commands/CreateApiKeyCommandAuthorizer.cs
-- [ ] T029 [US1] Create ApiKeyProjection in Spamma.Modules.UserManagement/Infrastructure/Projections/ApiKeyProjection.cs
-- [ ] T030 [US1] Implement ApiKeyRepository in Spamma.Modules.UserManagement/Infrastructure/Repositories/ApiKeyRepository.cs
-- [ ] T031 [US1] Create ApiKeyManager Blazor component in Spamma.App/Spamma.App.Client/Components/ApiKeys/ApiKeyManager.razor
-- [ ] T032 [US1] Create ApiKeyManager code-behind in Spamma.App/Spamma.App.Client/Components/ApiKeys/ApiKeyManager.razor.cs
+- [x] T022 [P] [US1] Create ApiKey entity in Spamma.Modules.UserManagement/Domain/ApiKeys/ApiKey.cs
+- [x] T023 [P] [US1] Create ApiKeyCreated event in Spamma.Modules.UserManagement/Domain/ApiKeys/Events/ApiKeyCreated.cs
+- [x] T024 [P] [US1] Create CreateApiKeyCommand in Spamma.Modules.UserManagement.Client/Application/Commands/ApiKeys/CreateApiKeyCommand.cs
+- [x] T025 [P] [US1] Create CreateApiKeyCommandResult in Spamma.Modules.UserManagement.Client/Application/Commands/ApiKeys/CreateApiKeyCommandResult.cs
+- [x] T026 [US1] Implement CreateApiKeyCommandHandler in Spamma.Modules.UserManagement/Application/CommandHandlers/ApiKeys/CreateApiKeyCommandHandler.cs
+- [x] T027 [US1] Implement CreateApiKeyCommandValidator in Spamma.Modules.UserManagement/Application/Validators/CreateApiKeyCommandValidator.cs
+- [x] T028 [US1] Implement CreateApiKeyCommandAuthorizer in Spamma.Modules.UserManagement/Application/Authorizers/Commands/CreateApiKeyCommandAuthorizer.cs
+- [x] T029 [US1] Create ApiKeyProjection in Spamma.Modules.UserManagement/Infrastructure/Projections/ApiKeyProjection.cs
+- [x] T030 [US1] Implement ApiKeyRepository in Spamma.Modules.UserManagement/Infrastructure/Repositories/ApiKeyRepository.cs
+- [x] T031 [US1] Create ApiKeyManager Blazor component in Spamma.App/Spamma.App.Client/Components/ApiKeys/ApiKeyManager.razor
+- [x] T032 [US1] Create ApiKeyManager code-behind in Spamma.App/Spamma.App.Client/Components/ApiKeys/ApiKeyManager.razor.cs
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 

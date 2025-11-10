@@ -1,3 +1,6 @@
+using BluQube.Commands;
+using ResultMonad;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 
@@ -31,31 +34,31 @@ public class ApiKey : AggregateRoot
 
     public bool IsRevoked => this._revokedAt.HasValue;
 
-    public static ApiKey Create(Guid apiKeyId, Guid userId, string name, string keyHash, string salt, DateTimeOffset createdAt)
+    public static Result<ApiKey, BluQubeErrorData> Create(Guid apiKeyId, Guid userId, string name, string keyHash, string salt, DateTimeOffset createdAt)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Name cannot be null or empty", nameof(name));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_NAME", "API key name cannot be null or empty"));
         }
 
         if (name.Length > 100)
         {
-            throw new ArgumentException("Name cannot be longer than 100 characters", nameof(name));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_NAME", "API key name cannot be longer than 100 characters"));
         }
 
         if (string.IsNullOrWhiteSpace(keyHash))
         {
-            throw new ArgumentException("KeyHash cannot be null or empty", nameof(keyHash));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_HASH", "API key hash cannot be null or empty"));
         }
 
         if (string.IsNullOrWhiteSpace(salt))
         {
-            throw new ArgumentException("Salt cannot be null or empty", nameof(salt));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_SALT", "API key salt cannot be null or empty"));
         }
 
         var apiKey = new ApiKey();
         apiKey.RaiseEvent(new ApiKeyCreated(apiKeyId, userId, name, keyHash, salt, createdAt));
-        return apiKey;
+        return Result.Ok<ApiKey, BluQubeErrorData>(apiKey);
     }
 
     public void Revoke(DateTimeOffset revokedAt)
