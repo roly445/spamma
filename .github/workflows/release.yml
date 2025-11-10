@@ -128,7 +128,7 @@ jobs:
 
   docker:
     name: Build and push multi-arch image
-    needs: publish
+    needs: [test, publish]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -158,6 +158,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate Docker tags
+        id: meta
+        run: |
+          TAGS="ghcr.io/${{ github.repository }}:${{ needs.test.outputs.version }}"
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAGS="$TAGS,ghcr.io/${{ github.repository }}:latest"
+          fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v5
         with:
@@ -165,7 +174,4 @@ jobs:
           file: src/Spamma.App/Spamma.App/Dockerfile.runtime
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}
-            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-amd64
-            ghcr.io/${{ github.repository }}:${{ github.event.inputs.tag }}-arm
+          tags: ${{ steps.meta.outputs.tags }}
