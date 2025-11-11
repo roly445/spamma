@@ -1,7 +1,8 @@
-@if (isVisible && _dataModel != null)
+@if (_dataModel != null && isVisible)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="Close">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
+    var dataModel = _dataModel;
+    <ModalBase IsVisible="isVisible && _dataModel != null" OnClose="Close" AllowBackdropClose="true" WidthClass="sm:max-w-2xl" AriaLabelledBy="verify-domain-modal-title">
+        <div class="bg-white rounded-lg shadow-xl w-full max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
@@ -13,7 +14,7 @@
                         </div>
                         <div class="ml-4">
                             <h3 class="text-lg font-medium text-gray-900">Verify Domain Ownership</h3>
-                            <p class="text-sm text-gray-500">@_dataModel.DomainName</p>
+                            <p class="text-sm text-gray-500">@dataModel.DomainName</p>
                         </div>
                     </div>
                     <button @onclick="Close" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
@@ -40,7 +41,7 @@
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-amber-800">Domain Verification Required</h3>
                                     <div class="mt-2 text-sm text-amber-700">
-                                        <p>To verify ownership of <strong>@_dataModel.DomainName</strong>, you need to add a DNS TXT record. This will enable subdomain creation and other advanced features.</p>
+                                        <p>To verify ownership of <strong>@dataModel.DomainName</strong>, you need to add a DNS TXT record. This will enable subdomain creation and other advanced features.</p>
                                     </div>
                                 </div>
                             </div>
@@ -97,7 +98,7 @@
                         <div class="space-y-4">
                             <h4 class="text-sm font-medium text-gray-900">Instructions:</h4>
                             <ol class="list-decimal list-inside space-y-2 text-sm text-gray-700 pl-4">
-                                <li>Log in to your DNS provider's control panel (where you manage DNS for @_dataModel.DomainName)</li>
+                                <li>Log in to your DNS provider's control panel (where you manage DNS for @dataModel.DomainName)</li>
                                 <li>Navigate to the DNS management or DNS records section</li>
                                 <li>Add a new <strong>TXT record</strong> with the details shown above</li>
                                 <li>Save the changes in your DNS control panel</li>
@@ -171,7 +172,7 @@
                         <div>
                             <h3 class="text-lg font-medium text-gray-900">Domain Verified Successfully!</h3>
                             <p class="mt-2 text-sm text-gray-600">
-                                <strong>@_dataModel.DomainName</strong> has been verified and is ready for use.
+                                <strong>@dataModel.DomainName</strong> has been verified and is ready for use.
                             </p>
                         </div>
 
@@ -222,7 +223,7 @@
                         <div>
                             <h3 class="text-lg font-medium text-gray-900">Verification Not Ready</h3>
                             <p class="mt-2 text-sm text-gray-600">
-                                We couldn't find the verification TXT record for <strong>@_dataModel.DomainName</strong>.
+                                We couldn't find the verification TXT record for <strong>@dataModel.DomainName</strong>.
                             </p>
                         </div>
 
@@ -262,5 +263,5 @@
                 }
             </div>
         </div>
-    </div>
+    </ModalBase>
 }

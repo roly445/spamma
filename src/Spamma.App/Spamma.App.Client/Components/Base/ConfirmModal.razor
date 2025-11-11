@@ -1,0 +1,73 @@
+@namespace Spamma.App.Client.Components.Base
+@using Spamma.App.Client.Components.Base
+@using Microsoft.AspNetCore.Components
+
+@* ConfirmModal: a small confirm-dialog wrapper around ModalBase used for warning/confirm dialogs. *@
+
+<ModalBase IsVisible="@IsVisible" OnClose="OnClose" AllowBackdropClose="@AllowBackdropClose" WidthClass="@WidthClass" AriaLabelledBy="@AriaLabelledBy">
+    <div class="bg-white rounded-lg shadow-xl w-full" @onclick:stopPropagation="true">
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 rounded-full p-2 text-white mr-3 @IconBgClass">
+                        @if (Variant == "danger")
+                        {
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        }
+                        else if (Variant == "warning")
+                        {
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12A9 9 0 113.8 5.4"/></svg>
+                        }
+                        else if (Variant == "success")
+                        {
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        }
+                        else
+                        {
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        }
+                    </div>
+                    <div>
+                        <h3 id="@AriaLabelledBy" class="text-lg font-medium text-gray-900">@Title</h3>
+                        @if (!string.IsNullOrWhiteSpace(Subtitle))
+                        {
+                            <p class="text-sm text-gray-500">@Subtitle</p>
+                        }
+                    </div>
+                </div>
+                <button @onclick="OnClose" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="px-6 py-4">
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <p class="text-sm text-gray-700">@Message</p>
+            }
+            else
+            {
+                @ChildContent
+            }
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-white flex justify-end space-x-3">
+            <button type="button" class="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50" @onclick="OnClose">@CancelLabel</button>
+            <button type="button" disabled="@IsProcessing" @onclick="Confirm" class="px-4 py-2 rounded-md text-sm font-medium @ConfirmButtonClasses">
+                @if (IsProcessing)
+                {
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle></svg>
+                    <span>Processing...</span>
+                }
+                else
+                {
+                    <span>@ConfirmLabel</span>
+                }
+            </button>
+        </div>
+    </div>
+</ModalBase>

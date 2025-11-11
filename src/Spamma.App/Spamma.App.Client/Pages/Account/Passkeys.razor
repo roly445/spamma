@@ -1,16 +1,12 @@
-@page "/account/security"
-@layout AppLayout
+@page "/account/passkeys"
+@layout AccountSettingsLayout
 @attribute [Authorize]
 @using Spamma.App.Client.Layout
 
 <PageTitle>Security Settings - Spamma</PageTitle>
 
 <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <!-- Page Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Security Settings</h1>
-        <p class="mt-2 text-gray-600">Manage your account security and authentication methods</p>
-    </div>
+    <!-- Header provided by AccountSettingsLayout -->
 
     <!-- Security Keys / Passkeys Section -->
     <div class="bg-white rounded-lg shadow">
@@ -156,12 +152,12 @@
 <!-- Security Key Name Modal -->
 @if (showNameModal)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseNameModal">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
+    <ModalBase IsVisible="@showNameModal" OnClose="CloseNameModal" AllowBackdropClose="true" WidthClass="sm:max-w-md" AriaLabelledBy="security-key-name-modal-title">
+        <div class="bg-white rounded-lg shadow-xl w-full" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-gray-900">Name Your Security Key</h3>
+                    <h3 id="security-key-name-modal-title" class="text-lg font-medium text-gray-900">Name Your Security Key</h3>
                     <button @onclick="CloseNameModal" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -196,5 +192,5 @@
                 </button>
             </div>
         </div>
-    </div>
+    </ModalBase>
 }

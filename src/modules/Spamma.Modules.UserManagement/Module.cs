@@ -45,6 +45,7 @@ public static class Module
     public static JsonOptions AddJsonConvertersForUserManagement(this JsonOptions jsonOptions)
     {
         jsonOptions.SerializerOptions.Converters.Add(new ByteArrayJsonConverter());
+        jsonOptions.AddBluQubeJsonConverters();
         return jsonOptions;
     }
 

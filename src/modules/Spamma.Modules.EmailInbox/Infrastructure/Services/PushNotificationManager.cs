@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using EmailPush;
 using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.EmailInbox.Domain.PushIntegrationAggregate;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
@@ -15,15 +16,15 @@ public class PushNotificationManager
 {
     private readonly ConcurrentDictionary<string, (IServerStreamWriter<EmailNotification> Stream, Guid UserId, IEnumerable<PushIntegrationLookup> Integrations)> _activeConnections = new();
 
-    private readonly IPushIntegrationQueryRepository _pushIntegrationQueryRepository;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PushNotificationManager"/> class.
     /// </summary>
-    /// <param name="pushIntegrationQueryRepository">The push integration query repository.</param>
-    public PushNotificationManager(IPushIntegrationQueryRepository pushIntegrationQueryRepository)
+    /// <param name="serviceProvider">The service provider for creating scopes.</param>
+    public PushNotificationManager(IServiceProvider serviceProvider)
     {
-        this._pushIntegrationQueryRepository = pushIntegrationQueryRepository;
+        this._serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -36,7 +37,9 @@ public class PushNotificationManager
     /// <returns>A task.</returns>
     public async Task RegisterConnectionAsync(string connectionId, IServerStreamWriter<EmailNotification> stream, Guid userId, ServerCallContext context)
     {
-        var integrations = await this._pushIntegrationQueryRepository.GetByUserIdAsync(userId);
+        using var scope = this._serviceProvider.CreateScope();
+        var pushIntegrationQueryRepository = scope.ServiceProvider.GetRequiredService<IPushIntegrationQueryRepository>();
+        var integrations = await pushIntegrationQueryRepository.GetByUserIdAsync(userId);
         this._activeConnections[connectionId] = (stream, userId, integrations);
 
         // Handle disconnection

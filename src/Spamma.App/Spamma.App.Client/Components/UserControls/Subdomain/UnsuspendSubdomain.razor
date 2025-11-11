@@ -1,10 +1,22 @@
 @if (isVisible && _dataModel != null)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
+    var dataModel = _dataModel!;
+    <ConfirmModal IsVisible="@isVisible"
+                  OnClose="Close"
+                  OnConfirm="HandleUnsuspendSubdomain"
+                  AllowBackdropClose="true"
+                  WidthClass="sm:max-w-md"
+                  AriaLabelledBy="unsuspend-subdomain-title"
+                  Title="Unsuspend Subdomain"
+                  Subtitle="@dataModel!.FullName"
+                  Variant="success"
+                  IsProcessing="@isProcessing"
+                  ConfirmLabel="Unsuspend Subdomain"
+                  CancelLabel="Cancel">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-gray-900">Unsuspend Subdomain</h3>
+                    <h3 id="unsuspend-subdomain-title" class="text-lg font-medium text-gray-900">Unsuspend Subdomain</h3>
                     <button @onclick="Close" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -22,8 +34,8 @@
                         </svg>
                         <div>
                             <h4 class="text-sm font-medium text-green-800">Restore Subdomain</h4>
-                            <p class="text-sm text-green-700 mt-1">
-                                Unsuspending <strong>@_dataModel?.FullName</strong> will:
+                                    <p class="text-sm text-green-700 mt-1">
+                                        Unsuspending <strong>@dataModel!.FullName</strong> will:
                             </p>
                             <ul class="text-sm text-green-700 mt-2 list-disc list-inside space-y-1">
                                 <li>Resume email processing</li>
@@ -56,28 +68,7 @@
                 </p>
             </div>
 
-            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end space-x-3">
-                <button @onclick="Close" 
-                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Cancel
-                </button>
-                <button @onclick="HandleUnsuspendSubdomain" 
-                       disabled="@isProcessing"
-                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50">
-                    @if (isProcessing)
-                    {
-                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Unsuspending...</span>
-                    }
-                    else
-                    {
-                        <span>Unsuspend Subdomain</span>
-                    }
-                </button>
-            </div>
+            <!-- Footer is now handled by ConfirmModal -->
         </div>
-    </div>
+    </ConfirmModal>
 }

@@ -33,7 +33,6 @@ public static class Module
         services.AddScoped<IPushIntegrationRepository, PushIntegrationRepository>();
         services.AddScoped<IPushIntegrationQueryRepository, PushIntegrationQueryRepository>();
         services.AddSingleton<PushNotificationManager>();
-        services.AddScoped<JwtValidationService>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
         // Background job queues

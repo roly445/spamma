@@ -214,3 +214,15 @@ form[data-disable-form] button[type="submit"][disabled] div.disabled-show {
     /* <-- This number should always be 10 times the number up there*/
   }
 }
+
+#blazor-error-ui {
+  display: none;
+}
+
+#blazor-error-ui.show {
+  display: flex;
+}
+
+.dismiss {
+  cursor: pointer;
+}

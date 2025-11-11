@@ -14,7 +14,7 @@ namespace Spamma.App.Client.Pages.Account;
 /// <summary>
 /// Backing code for the Security keys management page.
 /// </summary>
-public partial class Security(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Security> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
+public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Passkeys> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
 {
     private const string WebAuthnUtilsWindowHandle = "WebAuthnUtils";
     private List<PasskeySummary> passkeys = new();

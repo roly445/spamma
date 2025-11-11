@@ -95,6 +95,8 @@
       <_ContentIncludedByDefault Remove="Pages\Auth\PasskeyLogin.razor" />
       <_ContentIncludedByDefault Remove="Components\ChaosAddress\ChaosAddressList.razor" />
       <_ContentIncludedByDefault Remove="Components\ChaosAddress\CreateChaosAddress.razor" />
+      <_ContentIncludedByDefault Remove="Components\ApiKeys\ApiKeyManager.razor" />
+      <_ContentIncludedByDefault Remove="Components\Passkey\PasskeyManager.razor" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />

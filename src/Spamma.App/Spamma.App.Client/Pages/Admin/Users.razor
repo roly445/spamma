@@ -368,12 +368,12 @@
 
 @if (showAddUserModal)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseAddUserModal">
+    <ModalBase IsVisible="@showAddUserModal" OnClose="CloseAddUserModal" AllowBackdropClose="true" WidthClass="sm:max-w-md w-full" AriaLabelledBy="addUserModalLabel">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-gray-900">Add New User</h3>
+                    <h3 id="addUserModalLabel" class="text-lg font-medium text-gray-900">Add New User</h3>
                     <button @onclick="CloseAddUserModal" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -474,13 +474,13 @@
                     </div>
                 </EditForm>
             </div>
-        </div>
     </div>
+</ModalBase>
 }
 
 @if (showSuspendModal && userToSuspend != null)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseSuspendModal">
+    <ModalBase IsVisible="@showSuspendModal" OnClose="CloseSuspendModal" AllowBackdropClose="false" WidthClass="sm:max-w-md w-full" AriaLabelledBy="suspendUserModalLabel">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
@@ -491,7 +491,7 @@
                         </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Suspend User</h3>
+                        <h3 id="suspendUserModalLabel" class="text-lg leading-6 font-medium text-gray-900">Suspend User</h3>
                     </div>
                 </div>
             </div>
@@ -583,97 +583,52 @@
                 </EditForm>
             </div>
         </div>
-    </div>
+    </ModalBase>
 }
 
 <!-- Unsuspend User Confirmation Modal -->
 @if (showUnsuspendModal && userToUnsuspend != null)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="CloseUnsuspendModal">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
-            <!-- Modal Header -->
-            <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                        <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Unsuspend User</h3>
-                    </div>
-                </div>
+    <ConfirmModal IsVisible="@showUnsuspendModal" OnClose="CloseUnsuspendModal" OnConfirm="HandleUnsuspendUser" AllowBackdropClose="false" Variant="success" Title="Unsuspend User" ConfirmLabel="Unsuspend User" CancelLabel="Cancel" IsProcessing="@isUnsuspendingUser" AriaLabelledBy="unsuspendUserModalTitle">
+        <div class="mb-4">
+            <p class="text-sm text-gray-500 mb-2">You are about to restore access for:</p>
+            <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <UserListItem UserEmail="@userToUnsuspend.Email" UserName="@userToUnsuspend.DisplayName" ShowName="true" Size="8" />
             </div>
-
-            <!-- Modal Body -->
-            <div class="px-6 py-4">
-                <div class="mb-4">
-                    <p class="text-sm text-gray-500 mb-2">You are about to restore access for:</p>
-                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
-                        <UserListItem UserEmail="@userToUnsuspend.Email" UserName="@userToUnsuspend.DisplayName" ShowName="true" Size="8" />
-                    </div>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
                 </div>
-
-                <!-- Info Box -->
-                <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <svg class="h-5 w-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-sm font-medium text-green-800">This action will:</h3>
-                            <div class="mt-2 text-sm text-green-700">
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li>Restore user's login access</li>
-                                    <li>Re-enable all system features</li>
-                                    <li>Send an account restored notification</li>
-                                    <li>Create an audit log entry</li>
-                                </ul>
-                            </div>
-                        </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-green-800">This action will:</h3>
+                    <div class="mt-2 text-sm text-green-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Restore user's login access</li>
+                            <li>Re-enable all system features</li>
+                            <li>Send an account restored notification</li>
+                            <li>Create an audit log entry</li>
+                        </ul>
                     </div>
-                </div>
-
-                <!-- Form Actions -->
-                <div class="flex justify-end space-x-3">
-                    <button type="button" @onclick="CloseUnsuspendModal" 
-                           class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Cancel
-                    </button>
-                    <button type="button" @onclick="HandleUnsuspendUser"
-                           disabled="@isUnsuspendingUser"
-                           class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                        @if (isUnsuspendingUser)
-                        {
-                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span>Restoring Access...</span>
-                        }
-                        else
-                        {
-                            <span>Unsuspend User</span>
-                        }
-                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </ConfirmModal>
 }
 
 <!-- Manage Passkeys Modal -->
 @if (showPasskeysModal && selectedUserForPasskeys != null)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="ClosePasskeysModal">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto" @onclick:stopPropagation="true">
+    <ModalBase IsVisible="@showPasskeysModal" OnClose="ClosePasskeysModal" AllowBackdropClose="true" WidthClass="sm:max-w-2xl w-full" AriaLabelledBy="managePasskeysModalTitle">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-auto max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="sticky top-0 px-6 py-4 border-b border-gray-200 bg-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Manage Passkeys</h3>
+                        <h3 id="managePasskeysModalTitle" class="text-lg leading-6 font-medium text-gray-900">Manage Passkeys</h3>
                         <p class="mt-1 text-sm text-gray-500">
                             User: <span class="font-medium">@(selectedUserForPasskeys.DisplayName ?? selectedUserForPasskeys.Email)</span>
                         </p>
@@ -795,5 +750,5 @@
                 </div>
             }
         </div>
-    </div>
+    </ModalBase>
 }

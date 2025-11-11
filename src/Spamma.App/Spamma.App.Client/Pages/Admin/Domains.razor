@@ -301,12 +301,12 @@
 <!-- Add Domain Modal -->
 @if (showAddDomainModal)
 {
-    <div class="fixed inset-0 bg-black/30 transition-opacity backdrop-blur-sm z-50 flex items-center justify-center p-4" @onclick="CloseAddDomainModal">
+    <ModalBase IsVisible="@showAddDomainModal" OnClose="CloseAddDomainModal" AllowBackdropClose="true" WidthClass="sm:max-w-2xl" AriaLabelledBy="add-domain-title">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-gray-900">Add New Domain</h3>
+                    <h3 id="add-domain-title" class="text-lg font-medium text-gray-900">Add New Domain</h3>
                     <button @onclick="CloseAddDomainModal" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
                         <svg class="h-6 w-6" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -390,7 +390,7 @@
                         <!-- Form Actions -->
                         <div class="mt-6 flex justify-end space-x-3">
                             <button type="button" @onclick="CloseAddDomainModal" 
-                                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Cancel
                             </button>
                             <button type="submit" 
@@ -556,7 +556,7 @@
                 }
             </div>
         </div>
-    </div>
+    </ModalBase>
 }
 
 <!-- Edit Domain Slide-out Panel -->
