@@ -35,3 +35,5 @@ Press Ctrl+C to stop the client.
 ## Notes
 - The client reads the `email_push.proto` file from the repo. If you change the proto, rebuild the project to regenerate the C# client code.
 - This sample is minimal and meant for testing and prototyping only. Production use requires robust authentication and error handling.
+
+- If `--jwt` is provided, the client will include this token both in the gRPC message payload (`SubscribeRequest.jwt_token`) and as an `Authorization: Bearer <token>` header. This helps the sample interoperate with servers that accept either approach for authentication.

@@ -70,7 +70,14 @@ public static class Program
 
         try
         {
-            using var call = client.SubscribeToEmails(request);
+            // Optionally attach JWT as metadata header for the call (Authorization Bearer)
+            Grpc.Core.Metadata? headers = null;
+            if (!string.IsNullOrWhiteSpace(jwt))
+            {
+                headers = new Grpc.Core.Metadata { { "Authorization", $"Bearer {jwt}" } };
+            }
+
+            using var call = client.SubscribeToEmails(request, headers);
             var responseStream = call.ResponseStream;
 
             using var cts = new CancellationTokenSource();
