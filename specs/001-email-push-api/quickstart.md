@@ -11,22 +11,13 @@ The Spamma Push API enables real-time email notifications via gRPC streaming. De
 ## Prerequisites
 
 - Valid Spamma account with viewer access to at least one subdomain
-- JWT token for API authentication
+- API key for API authentication (create from Account → API Keys in the web UI)
 - gRPC client library for your programming language
 - REST client for integration management
 
-## Step 1: Obtain JWT Token
+## Step 1: Generate an API Key
 
-Authenticate with Spamma to get a JWT token:
-
-```bash
-# Example: Login via API to get JWT
-curl -X POST https://api.spamma.local/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "developer@example.com", "password": "your-password"}'
-```
-
-Store the returned JWT token for use in subsequent requests.
+Generate an API key via the web UI: Account → API Keys → Create key. Make sure to copy and safely store the key because it is shown only once.
 
 ## Step 2: Create Push Integration
 
@@ -63,14 +54,14 @@ using Spamma.Modules.EmailInbox.Client.Application.Grpc;
 using var channel = GrpcChannel.ForAddress("https://api.spamma.local");
 var client = new EmailPushService.EmailPushServiceClient(channel);
 
-// Create subscription request
-var request = new SubscribeRequest
-{
-    JwtToken = "YOUR_JWT_TOKEN"
-};
+// Create subscription request (no JWT required when using API Key)
+var request = new SubscribeRequest();
 
-// Start streaming notifications
-using var call = client.SubscribeToEmails(request);
+// Attach API key as metadata header
+var headers = new Grpc.Core.Metadata { { "X-API-Key", "YOUR_API_KEY" } };
+
+// Start streaming notifications (pass headers)
+using var call = client.SubscribeToEmails(request, headers);
 await foreach (var notification in call.ResponseStream.ReadAllAsync())
 {
     Console.WriteLine($"New email: {notification.Subject} from {notification.From}");
@@ -90,11 +81,11 @@ from email_push_pb2_grpc import EmailPushServiceStub
 channel = grpc.secure_channel('api.spamma.local:443', grpc.ssl_channel_credentials())
 stub = EmailPushServiceStub(channel)
 
-# Create subscription request
-request = SubscribeRequest(jwt_token='YOUR_JWT_TOKEN')
+request = SubscribeRequest()
 
-# Start streaming
-responses = stub.SubscribeToEmails(request)
+# Use metadata to pass the API key in Python gRPC
+metadata = [('x-api-key', 'YOUR_API_KEY')]
+responses = stub.SubscribeToEmails(request, metadata=metadata)
 for notification in responses:
     print(f"New email: {notification.subject} from {notification.sender}")
     # Fetch full content if needed
