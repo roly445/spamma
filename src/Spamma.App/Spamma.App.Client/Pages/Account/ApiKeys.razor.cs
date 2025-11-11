@@ -21,6 +21,9 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
     private List<ApiKeySummary> apiKeys = new();
     private bool isLoadingKeys;
     private bool isRevoking;
+    private bool showRevokeModal;
+    private Guid? revokeApiKeyId;
+    private string? revokeApiKeyName;
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,25 +113,41 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
         this.showCreateModal = false;
     }
 
-    private async Task HandleRevokeApiKey(Guid apiKeyId)
+    private Task HandleRevokeApiKey(Guid apiKeyId)
     {
+        // Open the confirmation modal instead of using a JS confirm dialog
         var apiKey = this.apiKeys.FirstOrDefault(k => k.Id == apiKeyId);
         if (apiKey == null)
         {
             notificationService.ShowError("API key not found.");
-            return;
+            return Task.CompletedTask;
         }
 
-        var confirmed = await jsRuntime.InvokeAsync<bool>(
-            "confirm",
-            $"Are you sure you want to revoke the API key '{apiKey.Name}'? This action cannot be undone.");
+        this.revokeApiKeyId = apiKeyId;
+        this.revokeApiKeyName = apiKey.Name;
+        this.showRevokeModal = true;
+        return Task.CompletedTask;
+    }
 
-        if (!confirmed)
+    private void CloseRevokeModal()
+    {
+        this.showRevokeModal = false;
+        this.revokeApiKeyId = null;
+        this.revokeApiKeyName = null;
+    }
+
+    private async Task ConfirmRevokeApiKey()
+    {
+        if (this.revokeApiKeyId == null)
         {
+            notificationService.ShowError("No API key selected to revoke.");
+            this.showRevokeModal = false;
             return;
         }
 
+        var apiKeyId = this.revokeApiKeyId.Value;
         this.isRevoking = true;
+        this.showRevokeModal = false; // close the modal while performing the action
         try
         {
             var command = new RevokeApiKeyCommand(apiKeyId);
@@ -151,6 +170,8 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
         finally
         {
             this.isRevoking = false;
+            this.revokeApiKeyId = null;
+            this.revokeApiKeyName = null;
         }
     }
 
