@@ -14,11 +14,11 @@
 
 - Use `Grpc.AspNetCore` package (latest version compatible with .NET 9)
 - Implement server-streaming RPC where client sends subscription request and server streams email notifications
-- Handle connection lifecycle: client connects with JWT, server validates and starts streaming
+- Handle connection lifecycle: client connects with `X-API-Key` (header), server validates and starts streaming
 - Use `IServerStreamWriter<EmailNotification>` for streaming responses
 - Implement proper error handling and reconnection logic
 
-**Decision**: Use gRPC server-streaming with JWT authentication in request headers
+**Decision**: Use gRPC server-streaming with header-based API key (`X-API-Key`) authentication for public endpoints
 
 **Rationale**: Provides real-time push capability with standard .NET tooling and good performance
 
@@ -26,18 +26,18 @@
 
 ### 2. JWT Authentication in gRPC Services
 
-**Task**: Research JWT token validation in gRPC service methods.
+**Task**: Research API key validation in gRPC service methods.
 
 **Findings**:
 
 - gRPC services can access HTTP context via `ServerCallContext`
-- Extract JWT from `Authorization` header
-- Use `JwtBearer` middleware or manual validation with `JwtSecurityTokenHandler`
-- Validate token and extract claims for user identification and permissions
+- Extract API key from `X-API-Key` header
+- Use `ApiKeyAuthenticationHandler` or custom validation to verify the key and map it to a principal
+- Validate key and extract associated identity/metadata for permissions
 
-**Decision**: Manual JWT validation in gRPC service using `JwtSecurityTokenHandler`
+**Decision**: Use `ApiKeyAuthenticationHandler` or a dedicated API key validation middleware for gRPC streaming endpoints
 
-**Rationale**: Allows fine-grained control over authentication in streaming context
+**Rationale**: API keys are simpler for public integrations and provide a robust, easy-to-use authentication mechanism for streaming clients over gRPC; the `ApiKeyAuthenticationHandler` integrates with existing ASP.NET authentication pipelines and allows mapping keys to principals for permission checks
 
 **Alternatives Considered**: ASP.NET Core authentication middleware (less suitable for gRPC streaming)
 

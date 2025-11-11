@@ -105,7 +105,8 @@
 
 - Users can only create integrations for subdomains where they have viewer role
 - Email content retrieval requires viewer permission for the email's subdomain
-- JWT tokens must include user identity and validated claims
+- For server-side/internal authentication, JWT tokens must include user identity and validated claims.
+- For public endpoints (e.g., push integrations), API key authentication via the `X-API-Key` header is required and preferred; JWT tokens for public endpoints are deprecated.
 
 ### Data Lifecycle
 
