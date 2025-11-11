@@ -14,6 +14,7 @@ The Spamma Push API enables real-time email notifications via gRPC streaming. De
 - API key for API authentication (create from Account → API Keys in the web UI)
 - gRPC client library for your programming language
 - REST client for integration management
+- Optional: for the sample client, you can set the SPAMMA_API_KEY environment variable or use `--api-key-file <path>` to avoid command-line or interactive key entry.
 
 ## Step 1: Generate an API Key
 

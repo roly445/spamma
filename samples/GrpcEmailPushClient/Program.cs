@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
@@ -14,6 +15,7 @@ public static class Program
     // CLI parsing: --server <url> --api-key <key> --insecure
     var serverUrl = "https://localhost:7181";
     var apiKey = string.Empty;
+    var apiKeyFile = string.Empty;
         var acceptAnyCert = false;
         for (var i = 0; i < args.Length; i++)
         {
@@ -39,10 +41,66 @@ public static class Program
                         apiKey = args[++i];
                     }
                     break;
+                case "-f":
+                case "--api-key-file":
+                case "--key-file":
+                    if (i + 1 < args.Length)
+                    {
+                        apiKeyFile = args[++i];
+                    }
+                    break;
                 case "-i":
                 case "--insecure":
                     acceptAnyCert = true;
                     break;
+            }
+        }
+
+        // If an API key file path was provided, attempt to read it
+        if (string.IsNullOrWhiteSpace(apiKey) && !string.IsNullOrWhiteSpace(apiKeyFile))
+        {
+            try
+            {
+                if (File.Exists(apiKeyFile))
+                {
+                    apiKey = File.ReadAllText(apiKeyFile).Trim();
+                }
+                else
+                {
+                    Console.WriteLine($"API key file '{apiKeyFile}' not found.");
+                    return 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to read API key file: {ex.Message}");
+                return 1;
+            }
+        }
+
+        // If still no API key, try environment variable fallback
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            apiKey = Environment.GetEnvironmentVariable("SPAMMA_API_KEY") ?? string.Empty;
+        }
+
+        // If still none and an env file path exists, try reading file path from environment
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            var envKeyFile = Environment.GetEnvironmentVariable("SPAMMA_API_KEY_FILE") ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(envKeyFile))
+            {
+                try
+                {
+                    if (File.Exists(envKeyFile))
+                    {
+                        apiKey = File.ReadAllText(envKeyFile).Trim();
+                    }
+                }
+                catch (Exception)
+                {
+                    // silently ignore; we'll error out later if still none
+                }
             }
         }
 
