@@ -40,8 +40,6 @@ public interface IAppConfigurationService
     public record KeySettings
     {
         public string SigningKey { get; init; } = string.Empty;
-
-        public string JwtKey { get; init; } = string.Empty;
     }
 
     public record PrimaryUserSettings

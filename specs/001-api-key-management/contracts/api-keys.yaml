@@ -17,6 +17,8 @@ paths:
       summary: List user's API keys
       description: Retrieve all API keys for the authenticated user
       operationId: listApiKeys
+      security:
+        - ApiKeyAuth: []
       responses:
         '200':
           description: Successful response
@@ -39,6 +41,8 @@ paths:
       summary: Create new API key
       description: Create a new API key for the authenticated user
       operationId: createApiKey
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -76,6 +80,8 @@ paths:
       summary: Revoke API key
       description: Revoke an API key for the authenticated user
       operationId: revokeApiKey
+      security:
+        - ApiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -181,4 +187,56 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: API key for authentication
+      description: API key for authentication (can also be provided as query parameter 'api_key')
+
+# Authentication Examples
+
+## Header Authentication (Recommended)
+
+```bash
+# List API keys
+curl -X GET "https://api.spamma.local/api/user-management/api-keys" \
+  -H "X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456"
+
+# Create API key
+curl -X POST "https://api.spamma.local/api/user-management/api-keys" \
+  -H "X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My New Key"}'
+
+# Revoke API key
+curl -X DELETE "https://api.spamma.local/api/user-management/api-keys/123e4567-e89b-12d3-a456-426614174000" \
+  -H "X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456"
+```
+
+## Query Parameter Authentication (Alternative)
+
+```bash
+# List API keys
+curl -X GET "https://api.spamma.local/api/user-management/api-keys?api_key=sk-abcd1234efgh5678ijkl9012mnop3456"
+
+# Create API key
+curl -X POST "https://api.spamma.local/api/user-management/api-keys?api_key=sk-abcd1234efgh5678ijkl9012mnop3456" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My New Key"}'
+```
+
+## Error Responses
+
+### 401 Unauthorized
+```json
+{
+  "errorCode": "AUTHENTICATION_REQUIRED",
+  "message": "API key authentication required",
+  "details": null
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "errorCode": "ACCESS_DENIED",
+  "message": "API key does not belong to authenticated user",
+  "details": null
+}
+```

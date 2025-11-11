@@ -633,11 +633,33 @@ Spamma exposes RESTful APIs for programmatic access to captured emails and domai
 
 ### Authentication
 
-Include JWT token in Authorization header:
+API keys provide secure access to Spamma's public endpoints. Include your API key in the `X-API-Key` header:
 
 ```text
-Authorization: Bearer <your-jwt-token>
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
 ```
+
+**Alternative**: You can also pass the API key as a query parameter:
+
+```text
+?apiKey=sk-abcd1234efgh5678ijkl9012mnop3456
+```
+
+### Managing API Keys
+
+API keys are managed through the Spamma web interface:
+
+1. **Create Keys**: Log in and navigate to your API keys section
+2. **Secure Storage**: Keys are shown only once - store them securely
+3. **Revoke Access**: Revoke keys immediately if compromised
+4. **Monitor Usage**: Check authentication logs for usage patterns
+
+### Security Features
+
+- **Rate Limiting**: 1000 requests per hour per API key
+- **Audit Logging**: All authentication attempts are logged
+- **Key Rotation**: Create new keys and revoke old ones regularly
+- **HTTPS Required**: All API communication must use HTTPS
 
 ### Common Endpoints
 
@@ -645,35 +667,42 @@ Authorization: Bearer <your-jwt-token>
 
 ```http
 GET /api/domains
-Authorization: Bearer <token>
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
 ```
 
 **Get emails for a domain:**
 
 ```http
 GET /api/domains/{domainId}/emails?page=1&pageSize=50
-Authorization: Bearer <token>
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
 ```
 
 **Get email details:**
 
 ```http
 GET /api/emails/{emailId}
-Authorization: Bearer <token>
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
 ```
 
 **Search emails:**
 
 ```http
 GET /api/emails/search?sender=user@example.com&subject=test
-Authorization: Bearer <token>
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
 ```
 
 **Delete email:**
 
 ```http
 DELETE /api/emails/{emailId}
-Authorization: Bearer <token>
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
+```
+
+**Download MIME message:**
+
+```http
+GET /api/emails/{emailId}/download
+X-API-Key: sk-abcd1234efgh5678ijkl9012mnop3456
 ```
 
 For complete OpenAPI/Swagger documentation, visit `/swagger` on your Spamma instance after starting it.

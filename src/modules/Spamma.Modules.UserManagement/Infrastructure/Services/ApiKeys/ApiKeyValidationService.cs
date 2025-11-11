@@ -38,6 +38,17 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             return false;
         }
 
+        // Check if the key is expired
+        if (apiKeyAggregate.Value.IsExpired)
+        {
+            // Cache negative result for 5 minutes
+            await this.cache.SetStringAsync(cacheKey, "false", new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+            }, cancellationToken);
+            return false;
+        }
+
         // Verify the key by re-hashing with the stored salt
         var expectedHash = GenerateKeyHash(apiKey, apiKeyAggregate.Value.Salt);
         var isValid = expectedHash.KeyHash == apiKeyAggregate.Value.KeyHash && !apiKeyAggregate.Value.IsRevoked;

@@ -192,25 +192,8 @@ builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddHttpContextAccessor();
 
-// JWT configuration with database fallbacks
+// Configure authentication using cookies only
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddJwtBearer("jwt", options =>
-    {
-        var jwtKey = builder.Configuration["Jwt:Key"];
-        if (!string.IsNullOrEmpty(jwtKey))
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "Spamma",
-                ValidAudience = builder.Configuration["Jwt:Audience"] ?? "Spamma",
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            };
-        }
-    })
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.SessionStore = new RedisCacheTicketStore(new RedisCacheOptions

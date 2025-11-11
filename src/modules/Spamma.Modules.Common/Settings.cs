@@ -8,10 +8,6 @@ public class Settings
 
     public string LoginUri => string.Concat(this.BaseUri, "/logging-in?token={0}");
 
-    public string JwtKey { get; init; } = string.Empty;
-
-    public string JwtIssuer { get; init; } = string.Empty;
-
     public int AuthenticationTimeInMinutes { get; init; } = 15;
 
     public Guid PrimaryUserId { get; init; } = Guid.Empty;

@@ -8,4 +8,5 @@ public record ApiKeyCreated(
     string Name,
     string KeyHash,
     string Salt,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ExpiresAt);

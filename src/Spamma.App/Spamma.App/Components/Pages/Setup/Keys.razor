@@ -170,7 +170,6 @@
                 {
                     <EditForm id="keys-form" method="post" OnValidSubmit="@HandleSaveKeys" FormName="KeysForm" Model="Model">
                         <InputText type="hidden" @bind-Value="@Model.SigningKey" id="signing-key-input"/>
-                        <InputText type="hidden" @bind-Value="@Model.JwtKey" id="jwt-key-input"/>
                     </EditForm>
                 }
 

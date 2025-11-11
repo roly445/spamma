@@ -30,6 +30,7 @@ public static class Module
         services.AddScoped<IPasskeyRepository, PasskeyRepository>();
         services.AddScoped<IApiKeyRepository, Spamma.Modules.UserManagement.Infrastructure.Repositories.ApiKeys.ApiKeyRepository>();
         services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyValidationService, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyValidationService>();
+        services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyRateLimiter, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyRateLimiter>();
 
         services.AddFido2(options =>
         {

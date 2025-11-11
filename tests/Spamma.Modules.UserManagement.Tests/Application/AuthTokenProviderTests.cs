@@ -22,8 +22,6 @@ public class AuthTokenProviderTests
         this._settings = new Settings
         {
             SigningKeyBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("ThisIsAVerySecureTestKeyThatIsLongEnough123456")),
-            JwtKey = "ThisIsAVerySecureJwtKeyThatIsLongEnough123456",
-            JwtIssuer = "Spamma.Tests",
         };
 
         var options = Options.Create(this._settings);

@@ -45,7 +45,7 @@ public partial class Complete(
 
             // Check security keys
             var keySettings = await appConfigurationService.GetKeySettingsAsync();
-            this.setupStatus.HasSecurityKeys = !string.IsNullOrEmpty(keySettings.SigningKey) && !string.IsNullOrEmpty(keySettings.JwtKey);
+            this.setupStatus.HasSecurityKeys = !string.IsNullOrEmpty(keySettings.SigningKey);
 
             // Check email configuration
             var emailSettings = await appConfigurationService.GetEmailSettingsAsync();

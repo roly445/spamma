@@ -107,3 +107,83 @@
 ## Open Questions Resolved
 
 All research tasks completed. No remaining unknowns for implementation planning.
+
+## Implementation Details
+
+### API Key Authentication Handler
+
+**File**: `Spamma.Modules.UserManagement/Infrastructure/Services/ApiKeys/ApiKeyAuthenticationHandler.cs`
+
+**Features Implemented**:
+
+- Inherits from `AuthenticationHandler<ApiKeyAuthenticationOptions>`
+- Supports both header (`X-API-Key`) and query parameter (`api_key`) authentication
+- Validates API keys against SHA-256 hashed values with salt
+- Integrates with Redis caching for performance
+- Structured logging for authentication attempts
+- Returns appropriate HTTP status codes (401 for invalid, 403 for revoked)
+
+**Caching Strategy**:
+
+- Valid keys cached for 30 minutes
+- Invalid keys cached for 5 minutes
+- Immediate cache invalidation on key revocation
+
+### API Key Validation Service
+
+**File**: `Spamma.Modules.UserManagement/Infrastructure/Services/ApiKeyValidationService.cs`
+
+**Features**:
+
+- Validates API keys against database using Marten event store
+- SHA-256 hashing with per-key salt
+- Redis integration for caching
+- Returns validation results with key metadata
+
+### Authorization Requirements
+
+**File**: `Spamma.Modules.Common/Application/AuthorizationRequirements/AllowPublicApiAccessRequirement.cs`
+
+**Purpose**: Allows both cookie-based and API key authentication for public endpoints during transition period.
+
+### Authentication Configuration
+
+**Location**: `Spamma.App/Spamma.App/Program.cs`
+
+**Changes**:
+
+- Added API key authentication scheme
+- Configured dual authentication support
+- Updated authorization policies for public endpoints
+
+### Testing
+
+**Unit Tests**: `Spamma.Modules.UserManagement.Tests/Infrastructure/Services/ApiKeyAuthenticationHandlerTests.cs`
+
+**Features**:
+
+- Tests authentication handler logic using reflection
+- Covers success and failure scenarios
+
+**Integration Tests**: `Spamma.App.Tests/ApiKeyAuthenticationTests.cs`
+
+**Features**:
+
+- Tests full authentication flow on public endpoints
+- Validates both header and query parameter authentication
+- Confirms unauthorized access for invalid keys
+
+### Security Implementation
+
+- API keys generated using cryptographically secure random bytes (32 bytes)
+- SHA-256 hashing with unique salt per key
+- Keys displayed only once after creation
+- Audit logging for creation, usage, and revocation events
+- HTTPS enforcement for all API calls
+
+### Performance Optimizations
+
+- Redis caching reduces database load
+- Short cache TTLs balance performance and security
+- Background cache warming for frequently used keys
+- Efficient SHA-256 validation (fast for high-throughput scenarios)

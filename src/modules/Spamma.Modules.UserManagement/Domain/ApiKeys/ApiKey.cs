@@ -13,6 +13,7 @@ public class ApiKey : AggregateRoot
     private string _salt = string.Empty;
     private DateTimeOffset _createdAt;
     private DateTimeOffset? _revokedAt;
+    private DateTimeOffset? _expiresAt;
 
     private ApiKey()
     {
@@ -32,9 +33,13 @@ public class ApiKey : AggregateRoot
 
     public DateTimeOffset? RevokedAt => this._revokedAt;
 
+    public DateTimeOffset? ExpiresAt => this._expiresAt;
+
     public bool IsRevoked => this._revokedAt.HasValue;
 
-    public static Result<ApiKey, BluQubeErrorData> Create(Guid apiKeyId, Guid userId, string name, string keyHash, string salt, DateTimeOffset createdAt)
+    public bool IsExpired => this._expiresAt.HasValue && this._expiresAt.Value <= DateTimeOffset.UtcNow;
+
+    public static Result<ApiKey, BluQubeErrorData> Create(Guid apiKeyId, Guid userId, string name, string keyHash, string salt, DateTimeOffset createdAt, DateTimeOffset? expiresAt = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -56,8 +61,13 @@ public class ApiKey : AggregateRoot
             return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_SALT", "API key salt cannot be null or empty"));
         }
 
+        if (expiresAt.HasValue && expiresAt.Value <= createdAt)
+        {
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_EXPIRATION", "API key expiration must be after creation time"));
+        }
+
         var apiKey = new ApiKey();
-        apiKey.RaiseEvent(new ApiKeyCreated(apiKeyId, userId, name, keyHash, salt, createdAt));
+        apiKey.RaiseEvent(new ApiKeyCreated(apiKeyId, userId, name, keyHash, salt, createdAt, expiresAt));
         return Result.Ok<ApiKey, BluQubeErrorData>(apiKey);
     }
 
@@ -71,6 +81,36 @@ public class ApiKey : AggregateRoot
         this.RaiseEvent(new ApiKeyRevoked(this.Id, revokedAt));
     }
 
+    public void Expire(DateTimeOffset expiredAt)
+    {
+        if (this.IsExpired)
+        {
+            throw new InvalidOperationException("API key is already expired");
+        }
+
+        if (this.IsRevoked)
+        {
+            throw new InvalidOperationException("Cannot expire a revoked API key");
+        }
+
+        this.RaiseEvent(new ApiKeyExpired(this.Id, expiredAt));
+    }
+
+    public void Renew(string newKeyHash, string newSalt, DateTimeOffset renewedAt, DateTimeOffset newExpiresAt)
+    {
+        if (this.IsRevoked)
+        {
+            throw new InvalidOperationException("Cannot renew a revoked API key");
+        }
+
+        if (newExpiresAt <= renewedAt)
+        {
+            throw new InvalidOperationException("New expiration must be after renewal time");
+        }
+
+        this.RaiseEvent(new ApiKeyRenewed(this.Id, newKeyHash, newSalt, renewedAt, newExpiresAt));
+    }
+
     protected override void ApplyEvent(object @event)
     {
         switch (@event)
@@ -80,6 +120,12 @@ public class ApiKey : AggregateRoot
                 break;
             case ApiKeyRevoked revokedEvent:
                 this.Apply(revokedEvent);
+                break;
+            case ApiKeyExpired expiredEvent:
+                this.Apply(expiredEvent);
+                break;
+            case ApiKeyRenewed renewedEvent:
+                this.Apply(renewedEvent);
                 break;
         }
     }
@@ -92,10 +138,26 @@ public class ApiKey : AggregateRoot
         this._keyHash = @event.KeyHash;
         this._salt = @event.Salt;
         this._createdAt = @event.CreatedAt;
+        this._expiresAt = @event.ExpiresAt;
     }
 
     private void Apply(ApiKeyRevoked @event)
     {
         this._revokedAt = @event.RevokedAt;
+    }
+
+    private void Apply(ApiKeyExpired @event)
+    {
+        this._expiresAt = @event.ExpiredAt;
+    }
+
+    private void Apply(ApiKeyRenewed @event)
+    {
+        this._keyHash = @event.NewKeyHash;
+        this._salt = @event.NewSalt;
+        this._expiresAt = @event.NewExpiresAt;
+
+        // Clear revocation if it was set (renewal reactivates the key)
+        this._revokedAt = null;
     }
 }

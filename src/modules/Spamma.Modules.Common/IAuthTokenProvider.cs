@@ -22,8 +22,6 @@ public interface IAuthTokenProvider
 
     Result<AuthenticationTokenModel> ProcessAuthenticationToken(string token);
 
-    string GenerateAuthenticatedJwt(Guid userId);
-
     public record VerificationTokenModel(
         Guid UserId,
         Guid SecurityStamp,
@@ -121,28 +119,6 @@ public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
             tokenResult.Value.SecurityStamp,
             tokenResult.Value.SecurityToken.ValidFrom,
             authenticationAttemptId));
-    }
-
-    public string GenerateAuthenticatedJwt(Guid userId)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this._settings.JwtKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, userId.ToString()),
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: this._settings.JwtIssuer,
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(24), // Token expires in 24 hours
-            signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private Result<string> GetToken(Guid userId, Guid securityStamp, DateTime whenCreated,

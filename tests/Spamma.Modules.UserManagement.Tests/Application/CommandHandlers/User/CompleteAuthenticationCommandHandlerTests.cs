@@ -34,8 +34,6 @@ public class CompleteAuthenticationCommandHandlerTests
         {
             SigningKeyBase64 = "test-key",
             BaseUri = "https://localhost",
-            JwtKey = "test-jwt-key",
-            JwtIssuer = "test-issuer",
             AuthenticationTimeInMinutes = 15,
             MailServerHostname = "localhost",
         };
