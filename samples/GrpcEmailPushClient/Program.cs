@@ -12,8 +12,9 @@ public static class Program
     public static async Task<int> Main(string[] args)
     {
         // CLI parsing: --server <url> --jwt <token> --insecure
-        var serverUrl = "https://localhost:7181";
-        var jwt = string.Empty;
+    var serverUrl = "https://localhost:7181";
+    var jwt = string.Empty;
+    var apiKey = string.Empty;
         var acceptAnyCert = false;
         for (var i = 0; i < args.Length; i++)
         {
@@ -36,6 +37,14 @@ public static class Program
                     if (i + 1 < args.Length)
                     {
                         jwt = args[++i];
+                    }
+                    break;
+                case "-k":
+                case "--api-key":
+                case "--key":
+                    if (i + 1 < args.Length)
+                    {
+                        apiKey = args[++i];
                     }
                     break;
                 case "-i":
@@ -66,14 +75,21 @@ public static class Program
         using var channel = GrpcChannel.ForAddress(serverUrl, new GrpcChannelOptions { HttpClient = httpClient });
         var client = new EmailPushService.EmailPushServiceClient(channel);
 
+    // Prefer API key header; jwt will be included in the request payload only when provided
     var request = new SubscribeRequest { JwtToken = jwt };
 
         try
         {
             // Optionally attach JWT as metadata header for the call (Authorization Bearer)
             Grpc.Core.Metadata? headers = null;
-            if (!string.IsNullOrWhiteSpace(jwt))
+            if (!string.IsNullOrWhiteSpace(apiKey))
             {
+                // The server expects the API key in the X-API-Key header by default
+                headers = new Grpc.Core.Metadata { { "X-API-Key", apiKey } };
+            }
+            else if (!string.IsNullOrWhiteSpace(jwt))
+            {
+                // Fallback to JWT Authorization header if provided
                 headers = new Grpc.Core.Metadata { { "Authorization", $"Bearer {jwt}" } };
             }
 
