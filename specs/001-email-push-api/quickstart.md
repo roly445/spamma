@@ -25,7 +25,7 @@ Create a push integration to define which emails you want to receive notificatio
 
 ```bash
 curl -X POST https://api.spamma.local/api/email-push/integrations \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+   -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "subdomainId": "123e4567-e89b-12d3-a456-426614174000",
@@ -98,7 +98,7 @@ When you receive a notification, fetch the complete email as EML:
 
 ```bash
 curl -X GET https://api.spamma.local/api/emails/123e4567-e89b-12d3-a456-426614174000/content \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+   -H "X-API-Key: YOUR_API_KEY" \
   -o email.eml
 ```
 
@@ -108,14 +108,14 @@ curl -X GET https://api.spamma.local/api/emails/123e4567-e89b-12d3-a456-42661417
 
 ```bash
 curl -X GET https://api.spamma.local/api/email-push/integrations \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+   -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ### Update Integration
 
 ```bash
 curl -X PUT https://api.spamma.local/api/email-push/integrations/123e4567-e89b-12d3-a456-426614174000 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+   -H "X-API-Key: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "filterType": "Regex",
@@ -127,14 +127,14 @@ curl -X PUT https://api.spamma.local/api/email-push/integrations/123e4567-e89b-1
 
 ```bash
 curl -X DELETE https://api.spamma.local/api/email-push/integrations/123e4567-e89b-12d3-a456-426614174000 \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+  -H "X-API-Key: YOUR_API_KEY"
 ```
 
 ## Error Handling
 
 ### gRPC Status Codes
 
-- `UNAUTHENTICATED` - Invalid or expired JWT token
+- `UNAUTHENTICATED` - Invalid or missing API key
 - `PERMISSION_DENIED` - No access to requested subdomain
 - `NOT_FOUND` - Integration or email not found
 - `INVALID_ARGUMENT` - Invalid request parameters
@@ -143,13 +143,13 @@ curl -X DELETE https://api.spamma.local/api/email-push/integrations/123e4567-e89
 
 - Implement reconnection logic for network interruptions
 - Handle stream timeouts gracefully
-- Validate JWT token expiration and refresh as needed
+- Validate API key validity and implement rotation/revocation policies as needed
 
 ## Best Practices
 
 1. **Connection Management**: Maintain persistent gRPC connections for real-time delivery
 2. **Error Handling**: Implement retry logic with exponential backoff
-3. **Security**: Never log or expose JWT tokens
+3. **Security**: Never log or expose API keys or other secrets
 4. **Filtering**: Use specific filters to reduce notification volume
 5. **Rate Limiting**: Be prepared for high-volume email scenarios
 
@@ -157,7 +157,7 @@ curl -X DELETE https://api.spamma.local/api/email-push/integrations/123e4567-e89
 
 ### No Notifications Received
 
-- Verify JWT token is valid and not expired
+- Verify API key is valid and not revoked
 - Check subdomain viewer permissions
 - Confirm integration is active and filter matches emails
 
@@ -170,5 +170,5 @@ curl -X DELETE https://api.spamma.local/api/email-push/integrations/123e4567-e89
 ### Permission Errors
 
 - Confirm user has viewer role for the subdomain
-- Check JWT token contains correct user claims
+- Verify API key belongs to the expected user and integration
 - Verify integration belongs to authenticated user

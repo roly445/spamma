@@ -1,8 +1,5 @@
 @layout AppLayout
 @namespace Spamma.App.Client.Layout
-@using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Routing
-@using Spamma.App.Client.Components.UserControls
 @inherits LayoutComponentBase
 
 <AdminHeader Title="Account" Subtitle="Manage settings for your account"></AdminHeader>
@@ -18,9 +15,6 @@
             <!-- Right: Navigation Panel -->
             <div class="space-y-6">
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div class="px-5 py-4 border-b border-gray-200">
-                        <h3 class="text-sm font-medium text-gray-900">Navigation</h3>
-                    </div>
                     <div class="px-5 py-4 space-y-2">
                         <NavLink href="/account/passkeys" class="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50" ActiveClass="bg-blue-50 border-l-4 border-blue-500 text-blue-700 font-semibold" Match="NavLinkMatch.Prefix">Security</NavLink>
                         <NavLink href="/account/api-keys" class="block px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-gray-50" ActiveClass="bg-blue-50 border-l-4 border-blue-500 text-blue-700 font-semibold" Match="NavLinkMatch.Prefix">API Keys</NavLink>

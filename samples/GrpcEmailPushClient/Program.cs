@@ -11,9 +11,8 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        // CLI parsing: --server <url> --jwt <token> --insecure
+    // CLI parsing: --server <url> --api-key <key> --insecure
     var serverUrl = "https://localhost:7181";
-    var jwt = string.Empty;
     var apiKey = string.Empty;
         var acceptAnyCert = false;
         for (var i = 0; i < args.Length; i++)
@@ -23,20 +22,13 @@ public static class Program
             {
                 case "-h":
                 case "--help":
-                    Console.WriteLine("Usage: GrpcEmailPushClient [--server <url>] [--jwt <token>] [--insecure]");
+                    Console.WriteLine("Usage: GrpcEmailPushClient [--server <url>] --api-key <key> [--insecure]");
                     return 0;
                 case "-s":
                 case "--server":
                     if (i + 1 < args.Length)
                     {
                         serverUrl = args[++i];
-                    }
-                    break;
-                case "-j":
-                case "--jwt":
-                    if (i + 1 < args.Length)
-                    {
-                        jwt = args[++i];
                     }
                     break;
                 case "-k":
@@ -75,22 +67,21 @@ public static class Program
         using var channel = GrpcChannel.ForAddress(serverUrl, new GrpcChannelOptions { HttpClient = httpClient });
         var client = new EmailPushService.EmailPushServiceClient(channel);
 
-    // Prefer API key header; jwt will be included in the request payload only when provided
-    var request = new SubscribeRequest { JwtToken = jwt };
+    // Prefer API key header - do not use JWT tokens in the payload for this sample.
+    var request = new SubscribeRequest();
 
         try
         {
-            // Optionally attach JWT as metadata header for the call (Authorization Bearer)
+            // Attach API key as authentication metadata header for the call
             Grpc.Core.Metadata? headers = null;
             if (!string.IsNullOrWhiteSpace(apiKey))
             {
-                // The server expects the API key in the X-API-Key header by default
                 headers = new Grpc.Core.Metadata { { "X-API-Key", apiKey } };
             }
-            else if (!string.IsNullOrWhiteSpace(jwt))
+            else
             {
-                // Fallback to JWT Authorization header if provided
-                headers = new Grpc.Core.Metadata { { "Authorization", $"Bearer {jwt}" } };
+                Console.WriteLine("No API key provided. Please supply --api-key <key> to authenticate.");
+                return 1;
             }
 
             using var call = client.SubscribeToEmails(request, headers);

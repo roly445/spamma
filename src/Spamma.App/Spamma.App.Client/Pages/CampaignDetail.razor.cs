@@ -10,7 +10,7 @@ namespace Spamma.App.Client.Pages;
 /// Code-behind for the CampaignDetail razor component.
 /// </summary>
 [Authorize]
-public partial class CampaignDetail
+public partial class CampaignDetail(IQuerier querier, NavigationManager navigationManager)
 {
     private GetCampaignDetailQueryResult? _campaignDetail;
     private SearchEmailsQueryResult.EmailSummary? _emailSummary;
@@ -20,17 +20,11 @@ public partial class CampaignDetail
     [Parameter]
     public Guid CampaignId { get; set; }
 
-    [Inject]
-    public IQuerier Querier { get; set; } = null!;
-
-    [Inject]
-    public NavigationManager NavigationManager { get; set; } = null!;
-
     protected override async Task OnInitializedAsync()
     {
         if (this.CampaignId == Guid.Empty)
         {
-            this.NavigationManager.NavigateTo("/campaigns");
+            navigationManager.NavigateTo("/campaigns");
             return;
         }
 
@@ -45,7 +39,7 @@ public partial class CampaignDetail
             // We don't know the SubdomainId yet, so we'll use Guid.Empty for now
             // The query processor should handle this by looking up the campaign first
             var query = new GetCampaignDetailQuery(Guid.Empty, this.CampaignId);
-            var result = await this.Querier.Send(query, CancellationToken.None);
+            var result = await querier.Send(query, CancellationToken.None);
 
             if (result.Status == QueryResultStatus.Succeeded)
             {
@@ -56,7 +50,7 @@ public partial class CampaignDetail
                 if (result.Data.Sample != null)
                 {
                     var emailQuery = new GetEmailByIdQuery(result.Data.Sample.MessageId);
-                    var emailResult = await this.Querier.Send(emailQuery, CancellationToken.None);
+                    var emailResult = await querier.Send(emailQuery, CancellationToken.None);
 
                     if (emailResult.Status == QueryResultStatus.Succeeded)
                     {
@@ -73,12 +67,12 @@ public partial class CampaignDetail
             }
             else
             {
-                this.NavigationManager.NavigateTo("/campaigns");
+                navigationManager.NavigateTo("/campaigns");
             }
         }
         catch (Exception)
         {
-            this.NavigationManager.NavigateTo("/campaigns");
+            navigationManager.NavigateTo("/campaigns");
         }
         finally
         {
