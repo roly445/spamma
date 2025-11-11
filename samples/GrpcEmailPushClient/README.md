@@ -23,10 +23,7 @@ Run (default server is `https://localhost:7181`):
 
 Options:
 
-- `--server` (`-s`) - gRPC server URL (defaults to https://localhost:7181).
-- `--api-key` (`-k`) - API key used for header-based authentication (sent in the `X-API-Key` header by default). This client requires an API key to authenticate with the Push API.
-- `--insecure` (`-i`) - Accept a self-signed certificate (for local development only).
-- `--api-key-file` (`-f`) - Path to a file containing the API key. If supplied, the key will be read from this file if `--api-key` isn't provided.
+- `--json` - Output notifications in JSON format, useful for piping into other tools.
 
 Example:
 

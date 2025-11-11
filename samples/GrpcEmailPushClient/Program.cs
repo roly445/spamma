@@ -1,6 +1,8 @@
 using System;
 using System.Net.Http;
 using System.IO;
+using System.Text.Json;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
@@ -16,6 +18,7 @@ public static class Program
     var serverUrl = "https://localhost:7181";
     var apiKey = string.Empty;
     var apiKeyFile = string.Empty;
+    var jsonOutput = false;
         var acceptAnyCert = false;
         for (var i = 0; i < args.Length; i++)
         {
@@ -48,6 +51,9 @@ public static class Program
                     {
                         apiKeyFile = args[++i];
                     }
+                    break;
+                case "--json":
+                    jsonOutput = true;
                     break;
                 case "-i":
                 case "--insecure":
@@ -159,7 +165,22 @@ public static class Program
                 var receivedAt = notif.ReceivedAt != null
                     ? DateTimeOffset.FromUnixTimeSeconds(notif.ReceivedAt.Seconds).ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
                     : "Unknown";
-                Console.WriteLine($"[Email] Id={notif.EmailId}, To={notif.To}, From={notif.From}, Subject=\"{notif.Subject}\", ReceivedAt={receivedAt}");
+                if (jsonOutput)
+                {
+                    var jsonObj = new
+                    {
+                        EmailId = notif.EmailId,
+                        To = notif.To,
+                        From = notif.From,
+                        Subject = notif.Subject,
+                        ReceivedAt = receivedAt
+                    };
+                    Console.WriteLine(JsonSerializer.Serialize(jsonObj));
+                }
+                else
+                {
+                    Console.WriteLine($"[Email] Id={notif.EmailId}, To={notif.To}, From={notif.From}, Subject=\"{notif.Subject}\", ReceivedAt={receivedAt}");
+                }
             }
         }
         catch (Exception ex)
