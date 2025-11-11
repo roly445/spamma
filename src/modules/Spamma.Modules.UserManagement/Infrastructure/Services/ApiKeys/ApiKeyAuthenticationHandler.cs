@@ -22,22 +22,52 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!this.Request.Headers.TryGetValue("X-API-Key", out var apiKeyHeaderValues))
+        string? apiKey = null;
+
+        // Try header first
+        if (this.Request.Headers.TryGetValue(this.Options.HeaderName, out var apiKeyHeaderValues))
         {
+            apiKey = apiKeyHeaderValues.FirstOrDefault();
+        }
+
+        // If not found in header and query parameters are allowed, try query parameter
+        if (string.IsNullOrWhiteSpace(apiKey) && this.Options.AllowQueryParameter &&
+            this.Request.Query.TryGetValue(this.Options.QueryParameterName, out var apiKeyQueryValues))
+        {
+            apiKey = apiKeyQueryValues.FirstOrDefault();
+        }
+
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            this.Logger.LogDebug(
+                "No API key found in header '{HeaderName}' or query parameter '{QueryParameterName}'",
+                this.Options.HeaderName,
+                this.Options.QueryParameterName);
             return AuthenticateResult.NoResult();
         }
 
-        var apiKey = apiKeyHeaderValues.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            return AuthenticateResult.NoResult();
-        }
+        // Log authentication attempt (mask the key for security)
+        var maskedKey = apiKey.Length > 8 ? $"{apiKey[..4]}****{apiKey[^4..]}" : "****";
+        var authMethod = this.Request.Headers.ContainsKey(this.Options.HeaderName) ? "header" : "query parameter";
+        this.Logger.LogInformation(
+            "Attempting API key authentication for key: {MaskedApiKey} via {AuthMethod}",
+            maskedKey,
+            authMethod);
 
         var isValid = await this.apiKeyValidationService.ValidateApiKeyAsync(apiKey);
         if (!isValid)
         {
+            this.Logger.LogWarning(
+                "API key authentication failed for key: {MaskedApiKey} via {AuthMethod}",
+                maskedKey,
+                authMethod);
             return AuthenticateResult.Fail("Invalid API key");
         }
+
+        this.Logger.LogInformation(
+            "API key authentication successful for key: {MaskedApiKey} via {AuthMethod}",
+            maskedKey,
+            authMethod);
 
         // For now, create a minimal identity. In a real implementation,
         // you'd want to look up the user associated with the API key

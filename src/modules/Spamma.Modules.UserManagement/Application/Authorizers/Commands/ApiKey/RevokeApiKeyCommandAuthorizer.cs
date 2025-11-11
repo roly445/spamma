@@ -8,6 +8,6 @@ public class RevokeApiKeyCommandAuthorizer : AbstractRequestAuthorizer<RevokeApi
 {
     public override void BuildPolicy(RevokeApiKeyCommand request)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
+        this.UseRequirement(new AllowPublicApiAccessRequirement());
     }
 }

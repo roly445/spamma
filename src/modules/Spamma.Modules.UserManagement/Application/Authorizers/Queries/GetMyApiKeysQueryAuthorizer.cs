@@ -8,6 +8,6 @@ public class GetMyApiKeysQueryAuthorizer : AbstractRequestAuthorizer<GetMyApiKey
 {
     public override void BuildPolicy(GetMyApiKeysQuery request)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
+        this.UseRequirement(new AllowPublicApiAccessRequirement());
     }
 }

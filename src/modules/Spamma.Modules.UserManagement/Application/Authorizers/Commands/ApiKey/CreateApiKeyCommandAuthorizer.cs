@@ -8,6 +8,6 @@ public class CreateApiKeyCommandAuthorizer : AbstractRequestAuthorizer<CreateApi
 {
     public override void BuildPolicy(CreateApiKeyCommand request)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
+        this.UseRequirement(new AllowPublicApiAccessRequirement());
     }
 }

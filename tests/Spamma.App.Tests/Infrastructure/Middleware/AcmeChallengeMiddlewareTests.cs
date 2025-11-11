@@ -68,7 +68,7 @@ public class AcmeChallengeMiddlewareTests
         }
         catch (Exception ex)
         {
-            Assert.True(false, $"Middleware integration failed: {ex.Message}");
+            Assert.Fail($"Middleware integration failed: {ex.Message}");
         }
     }
 
