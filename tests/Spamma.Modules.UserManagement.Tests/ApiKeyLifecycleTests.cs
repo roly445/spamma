@@ -18,6 +18,7 @@ using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
 using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
+using Spamma.Modules.UserManagement.Infrastructure.Repositories;
 using Spamma.Modules.UserManagement.Tests.Fixtures;
 using Spamma.Modules.UserManagement.Tests.Integration;
 
@@ -42,7 +43,7 @@ public class ApiKeyLifecycleTests : IClassFixture<PostgreSqlFixture>
         services.AddScoped<IDocumentSession>(sp => sp.GetRequiredService<IDocumentStore>().LightweightSession());
 
         // Register real repository
-        services.AddScoped<IApiKeyRepository, Spamma.Modules.UserManagement.Infrastructure.Repositories.ApiKeys.ApiKeyRepository>();
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
 
         // Mock HTTP context accessor for authentication
         var userId = Guid.NewGuid();

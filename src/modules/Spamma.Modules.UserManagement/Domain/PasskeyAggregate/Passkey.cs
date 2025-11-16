@@ -6,37 +6,46 @@ using Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
-public partial class Passkey : AggregateRoot
+/// <summary>
+/// Business logic for Passkey aggregate.
+/// </summary>
+internal sealed partial class Passkey : AggregateRoot
 {
+    private DateTime? _lastUsedAt;
+    private DateTime? _revokedAt;
+    private Guid? _revokedByUserId;
+
     private Passkey()
     {
     }
 
     public override Guid Id { get; protected set; }
 
-    public Guid UserId { get; private set; }
+    internal Guid UserId { get; private set; }
 
-    public byte[] CredentialId { get; private set; } = [];
+    internal byte[] CredentialId { get; private set; } = [];
 
-    public byte[] PublicKey { get; private set; } = [];
+    internal byte[] PublicKey { get; private set; } = [];
 
-    public uint SignCount { get; private set; }
+    internal uint SignCount { get; private set; }
 
-    public string DisplayName { get; private set; } = string.Empty;
+    internal string DisplayName { get; private set; } = string.Empty;
 
-    public string Algorithm { get; private set; } = string.Empty;
+    internal string Algorithm { get; private set; } = string.Empty;
 
-    public bool IsRevoked { get; private set; }
+    internal DateTime RegisteredAt { get; private set; }
 
-    public DateTime RegisteredAt { get; private set; }
+    internal DateTime LastUsedAt => this._lastUsedAt ?? throw new InvalidOperationException("Passkey has never been used.");
 
-    public DateTime? LastUsedAt { get; private set; }
+    internal bool HasBeenUsed => this._lastUsedAt.HasValue;
 
-    public DateTime? RevokedAt { get; private set; }
+    internal DateTime RevokedAt => this._revokedAt ?? throw new InvalidOperationException("Passkey is not revoked.");
 
-    public Guid? RevokedByUserId { get; private set; }
+    internal Guid RevokedByUserId => this._revokedByUserId ?? throw new InvalidOperationException("Passkey is not revoked.");
 
-    public static Result<Passkey, BluQubeErrorData> Register(
+    internal bool IsRevoked => this._revokedAt.HasValue;
+
+    internal static Result<Passkey, BluQubeErrorData> Register(
         Guid userId,
         byte[] credentialId,
         byte[] publicKey,
@@ -92,7 +101,7 @@ public partial class Passkey : AggregateRoot
         return Result.Ok<Passkey, BluQubeErrorData>(passkey);
     }
 
-    public ResultWithError<BluQubeErrorData> RecordAuthentication(uint newSignCount, DateTime usedAt)
+    internal ResultWithError<BluQubeErrorData> RecordAuthentication(uint newSignCount, DateTime usedAt)
     {
         if (this.IsRevoked)
         {
@@ -116,7 +125,7 @@ public partial class Passkey : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> Revoke(Guid revokedByUserId, DateTime revokedAt)
+    internal ResultWithError<BluQubeErrorData> Revoke(Guid revokedByUserId, DateTime revokedAt)
     {
         if (this.IsRevoked)
         {

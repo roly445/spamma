@@ -2,6 +2,7 @@ using FluentAssertions;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Application.Authorizers.Commands.User;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Authorizers.Commands.User;
 

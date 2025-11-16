@@ -25,7 +25,7 @@ public class UserAggregateTests
         result.ShouldBeOk(authEvent =>
         {
             authEvent.AuthenticationAttemptId.Should().NotBe(Guid.Empty);
-            authEvent.WhenStarted.Should().Be(now);
+            authEvent.StartedAt.Should().Be(now);
         });
     }
 

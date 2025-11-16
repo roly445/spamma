@@ -1,11 +1,12 @@
-using System.Security.Claims;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.UserManagement.Application.CommandHandlers.Passkey;
@@ -19,10 +20,9 @@ internal class RevokePasskeyCommandHandler(
 {
     protected override async Task<CommandResult> HandleInternal(RevokePasskeyCommand request, CancellationToken cancellationToken)
     {
-        var context = httpContextAccessor.HttpContext;
+        var userAuthInfo = httpContextAccessor.HttpContext.ToUserAuthInfo();
 
-        var claim = context?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(claim) || !Guid.TryParse(claim, out var currentUserId))
+        if (!userAuthInfo.IsAuthenticated)
         {
             return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt));
         }
@@ -35,12 +35,12 @@ internal class RevokePasskeyCommandHandler(
 
         var passkey = passkeyMaybe.Value;
 
-        if (passkey.UserId != currentUserId)
+        if (passkey.UserId != userAuthInfo.UserId)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, "Passkey not found"));
         }
 
-        var result = passkey.Revoke(currentUserId, timeProvider.GetUtcNow().UtcDateTime);
+        var result = passkey.Revoke(userAuthInfo.UserId, timeProvider.GetUtcNow().UtcDateTime);
         if (result.IsFailure)
         {
             return CommandResult.Failed(result.Error);

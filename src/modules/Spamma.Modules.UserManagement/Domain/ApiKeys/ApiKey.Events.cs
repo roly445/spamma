@@ -1,8 +1,11 @@
-using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
+﻿using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 
-public partial class ApiKey
+/// <summary>
+/// Event handling for the ApiKey aggregate.
+/// </summary>
+internal partial class ApiKey
 {
     protected override void ApplyEvent(object @event)
     {
@@ -24,8 +27,8 @@ public partial class ApiKey
         this.Name = @event.Name;
         this.KeyHashPrefix = @event.KeyHashPrefix;
         this.KeyHash = @event.KeyHash;
-        this.WhenCreated = @event.WhenCreated;
-        this.WhenExpires = @event.WhenExpires;
+        this.CreatedAt = @event.CreatedAt;
+        this.ExpiresAt = @event.ExpiresAt;
     }
 
     private void Apply(ApiKeyRevoked @event)

@@ -37,7 +37,7 @@ public static class HttpContextExtensions
             .ToList();
 
         return UserAuthInfo.Authenticated(
-            userId ?? string.Empty,
+            string.IsNullOrWhiteSpace(userId) ? Guid.Empty : Guid.Parse(userId),
             name ?? string.Empty,
             email ?? string.Empty,
             systemRole,

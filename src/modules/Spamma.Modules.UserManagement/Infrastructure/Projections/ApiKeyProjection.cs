@@ -6,7 +6,7 @@ using Marten.Patching;
 using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
-namespace Spamma.Modules.UserManagement.Infrastructure.Projections.ApiKeys;
+namespace Spamma.Modules.UserManagement.Infrastructure.Projections;
 
 public class ApiKeyProjection : EventProjection
 {
@@ -20,8 +20,8 @@ public class ApiKeyProjection : EventProjection
             Name = @event.Name,
             KeyHashPrefix = @event.KeyHashPrefix,
             KeyHash = @event.KeyHash,
-            CreatedAt = @event.WhenCreated,
-            ExpiresAt = @event.WhenExpires,
+            CreatedAt = @event.CreatedAt,
+            ExpiresAt = @event.ExpiresAt,
         };
     }
 

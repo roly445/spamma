@@ -59,7 +59,7 @@ public class RefreshableAuthenticationStateProvider(
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, userInfo.UserId ?? string.Empty),
+            new(ClaimTypes.NameIdentifier, userInfo.UserId.ToString()),
             new(ClaimTypes.Name, userInfo.Name ?? string.Empty),
             new(ClaimTypes.Email, userInfo.EmailAddress ?? string.Empty),
             new(ClaimTypes.Role, userInfo.SystemRole.ToString()),

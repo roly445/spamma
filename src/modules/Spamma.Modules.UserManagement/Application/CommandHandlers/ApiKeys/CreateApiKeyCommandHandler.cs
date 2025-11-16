@@ -1,10 +1,10 @@
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.ApiKey;
@@ -27,9 +27,9 @@ internal class CreateApiKeyCommandHandler(
     protected override async Task<CommandResult<CreateApiKeyCommandResult>> HandleInternal(CreateApiKeyCommand request, CancellationToken cancellationToken)
     {
         // Get current authenticated user ID from claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userAuthInfo = httpContextAccessor.HttpContext.ToUserAuthInfo();
 
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var currentUserId))
+        if (!userAuthInfo.IsAuthenticated)
         {
             return CommandResult<CreateApiKeyCommandResult>.Failed(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt));
         }
@@ -43,12 +43,12 @@ internal class CreateApiKeyCommandHandler(
 
         var result = ApiKeyAggregate.Create(
             apiKeyId,
-            currentUserId,
+            userAuthInfo.UserId,
             request.Name,
             keyHashPrefix,
             keyHash,
-            now,
-            request.WhenExpires);
+            now.UtcDateTime,
+            request.ExpiresAt);
 
         if (result.IsFailure)
         {
@@ -66,7 +66,7 @@ internal class CreateApiKeyCommandHandler(
         await eventPublisher.PublishAsync(
             new ApiKeyCreatedIntegrationEvent(
                 apiKey.Id,
-                currentUserId,
+                userAuthInfo.UserId,
                 apiKey.Name,
                 now.UtcDateTime),
             cancellationToken);
@@ -76,8 +76,8 @@ internal class CreateApiKeyCommandHandler(
             apiKey.Name,
             now.UtcDateTime,
             apiKey.IsRevoked,
-            apiKey.RevokedAt.HasValue ? apiKey.RevokedAt.Value.UtcDateTime : (DateTime?)null,
-            request.WhenExpires);
+            apiKey.IsRevoked ? apiKey.RevokedAt : null,
+            request.ExpiresAt);
 
         return CommandResult<CreateApiKeyCommandResult>.Succeeded(
             new CreateApiKeyCommandResult(apiKeySummary, apiKeyValue));

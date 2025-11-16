@@ -5,6 +5,7 @@ using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Setup;
 

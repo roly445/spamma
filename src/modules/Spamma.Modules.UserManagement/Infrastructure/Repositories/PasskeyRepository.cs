@@ -8,7 +8,7 @@ using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.Repositories;
 
-public class PasskeyRepository(IDocumentSession session, ILogger<PasskeyRepository> logger) : GenericRepository<Passkey>(session), IPasskeyRepository
+internal class PasskeyRepository(IDocumentSession session, ILogger<PasskeyRepository> logger) : GenericRepository<Passkey>(session), IPasskeyRepository
 {
     private readonly IDocumentSession _session = session;
 

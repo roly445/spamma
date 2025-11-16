@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Marten;
 using MaybeMonad;
 using Spamma.Modules.Common.Infrastructure;
@@ -12,7 +7,7 @@ using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Domain.ApiKeys;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
-namespace Spamma.Modules.UserManagement.Infrastructure.Repositories.ApiKeys;
+namespace Spamma.Modules.UserManagement.Infrastructure.Repositories;
 
 internal class ApiKeyRepository(IDocumentSession session) : GenericRepository<ApiKey>(session), IApiKeyRepository
 {

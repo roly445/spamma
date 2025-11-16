@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using BluQube.Constants;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Client.Contracts;
 

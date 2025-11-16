@@ -2,8 +2,9 @@ using FluentValidation;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 
-namespace Spamma.Modules.UserManagement.Application.Validators;
+namespace Spamma.Modules.UserManagement.Application.Validators.Passkey;
 
 internal class RegisterPasskeyCommandValidator : AbstractValidator<RegisterPasskeyCommand>
 {

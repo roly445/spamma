@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.ApiKey;
@@ -23,9 +23,9 @@ internal class RevokeApiKeyCommandHandler(
     protected override async Task<CommandResult> HandleInternal(RevokeApiKeyCommand request, CancellationToken cancellationToken)
     {
         // Get current authenticated user ID from claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userAuthInfo = httpContextAccessor.HttpContext.ToUserAuthInfo();
 
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var currentUserId))
+        if (!userAuthInfo.IsAuthenticated)
         {
             return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt));
         }
@@ -40,7 +40,7 @@ internal class RevokeApiKeyCommandHandler(
         var apiKey = apiKeyResult.Value;
 
         // Verify the API key belongs to the current user
-        if (apiKey.UserId != currentUserId)
+        if (apiKey.UserId != userAuthInfo.UserId)
         {
             return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.ApiKeyNotFound));
         }
@@ -53,7 +53,7 @@ internal class RevokeApiKeyCommandHandler(
 
         // Revoke the API key
         var now = timeProvider.GetUtcNow();
-        apiKey.Revoke(now);
+        apiKey.Revoke(now.UtcDateTime);
 
         // Save the changes
         var saveResult = await apiKeyRepository.SaveAsync(apiKey, cancellationToken);
@@ -66,7 +66,7 @@ internal class RevokeApiKeyCommandHandler(
         await eventPublisher.PublishAsync(
             new ApiKeyRevokedIntegrationEvent(
                 apiKey.Id,
-                currentUserId,
+                apiKey.UserId,
                 now.UtcDateTime),
             cancellationToken);
 

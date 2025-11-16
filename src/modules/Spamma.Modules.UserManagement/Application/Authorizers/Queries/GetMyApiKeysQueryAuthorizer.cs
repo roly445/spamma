@@ -1,10 +1,10 @@
 using MediatR.Behaviors.Authorization;
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Client.Application.Queries.ApiKeys;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Queries;
 
-public class GetMyApiKeysQueryAuthorizer : AbstractRequestAuthorizer<GetMyApiKeysQuery>
+internal class GetMyApiKeysQueryAuthorizer : AbstractRequestAuthorizer<GetMyApiKeysQuery>
 {
     public override void BuildPolicy(GetMyApiKeysQuery request)
     {

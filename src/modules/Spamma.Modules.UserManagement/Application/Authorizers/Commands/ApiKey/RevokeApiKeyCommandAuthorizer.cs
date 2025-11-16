@@ -4,7 +4,7 @@ using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.ApiKey;
 
-public class RevokeApiKeyCommandAuthorizer : AbstractRequestAuthorizer<RevokeApiKeyCommand>
+internal class RevokeApiKeyCommandAuthorizer : AbstractRequestAuthorizer<RevokeApiKeyCommand>
 {
     public override void BuildPolicy(RevokeApiKeyCommand request)
     {

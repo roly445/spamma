@@ -1,13 +1,17 @@
 using BluQube.Commands;
 using ResultMonad;
 using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 
-public sealed partial class ApiKey : AggregateRoot
+/// <summary>
+/// Business logic for API keys.
+/// </summary>
+internal sealed partial class ApiKey : AggregateRoot
 {
-    private DateTimeOffset? _revokedAt;
+    private DateTime? _revokedAt;
 
     private ApiKey()
     {
@@ -15,30 +19,25 @@ public sealed partial class ApiKey : AggregateRoot
 
     public override Guid Id { get; protected set; }
 
-    public Guid UserId { get; private set; }
+    internal Guid UserId { get; private set; }
 
-    public string Name { get; private set; } = null!;
+    internal string Name { get; private set; } = null!;
 
-    public string KeyHashPrefix { get; private set; } = null!;
+    internal string KeyHashPrefix { get; private set; } = null!;
 
-    public string KeyHash { get; private set; } = null!;
+    internal string KeyHash { get; private set; } = null!;
 
-    public DateTimeOffset WhenCreated { get; private set; }
+    internal DateTime CreatedAt { get; private set; }
 
-    public DateTimeOffset WhenExpires { get; private set; }
+    internal DateTimeOffset ExpiresAt { get; private set; }
 
-    // Compatibility aliases used by tests and read-model mappings
-    public DateTimeOffset CreatedAt => this.WhenCreated;
+    internal DateTime RevokedAt => this._revokedAt ?? throw new InvalidOperationException("API key is not revoked. Check IsRevoked before accessing RevokedAt.");
 
-    public DateTimeOffset ExpiresAt => this.WhenExpires;
+    internal bool IsRevoked => this._revokedAt.HasValue;
 
-    public DateTimeOffset? RevokedAt => this._revokedAt;
+    internal bool IsExpired => DateTimeOffset.UtcNow >= this.ExpiresAt;
 
-    public bool IsRevoked => this._revokedAt.HasValue;
-
-    public bool IsExpired => DateTimeOffset.UtcNow >= this.WhenExpires;
-
-    public bool IsActive => !this.IsRevoked && !this.IsExpired;
+    internal bool IsActive => !this.IsRevoked && !this.IsExpired;
 
     internal static Result<ApiKey, BluQubeErrorData> Create(
         Guid apiKeyId,
@@ -46,36 +45,36 @@ public sealed partial class ApiKey : AggregateRoot
         string name,
         string keyHashPrefix,
         string keyHash,
-        DateTimeOffset whenCreated,
-        DateTimeOffset? whenExpires = null)
+        DateTime createdAt,
+        DateTime? expiresAt = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
-            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_NAME", "API key name cannot be null or empty"));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData(UserManagementErrorCodes.ApiKeyInvalidName, "API key name cannot be null or empty"));
         }
 
         if (name.Length > 100)
         {
-            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_NAME", "API key name cannot be longer than 100 characters"));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData(UserManagementErrorCodes.ApiKeyInvalidName, "API key name cannot be longer than 100 characters"));
         }
 
         if (string.IsNullOrWhiteSpace(keyHashPrefix))
         {
-            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_PREFIX", "API key prefix hash cannot be null or empty"));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData(UserManagementErrorCodes.ApiKeyInvalidPrefix, "API key prefix hash cannot be null or empty"));
         }
 
         if (string.IsNullOrWhiteSpace(keyHash))
         {
-            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData("API_KEY_INVALID_HASH", "API key hash cannot be null or empty"));
+            return Result.Fail<ApiKey, BluQubeErrorData>(new BluQubeErrorData(UserManagementErrorCodes.ApiKeyInvalidHash, "API key hash cannot be null or empty"));
         }
 
         var apiKey = new ApiKey();
-        var expires = whenExpires ?? whenCreated.AddYears(1);
-        apiKey.RaiseEvent(new ApiKeyCreated(apiKeyId, userId, name, keyHashPrefix, keyHash, whenCreated, expires));
+        var expires = expiresAt ?? createdAt.AddYears(1);
+        apiKey.RaiseEvent(new ApiKeyCreated(apiKeyId, userId, name, keyHashPrefix, keyHash, createdAt, expires));
         return Result.Ok<ApiKey, BluQubeErrorData>(apiKey);
     }
 
-    internal void Revoke(DateTimeOffset revokedAt)
+    internal void Revoke(DateTime revokedAt)
     {
         if (this.IsRevoked)
         {

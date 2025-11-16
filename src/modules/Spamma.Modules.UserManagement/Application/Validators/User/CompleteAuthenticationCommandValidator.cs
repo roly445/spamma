@@ -1,7 +1,8 @@
 using FluentValidation;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
-namespace Spamma.Modules.UserManagement.Application.Validators;
+namespace Spamma.Modules.UserManagement.Application.Validators.User;
 
 public class CompleteAuthenticationCommandValidator : AbstractValidator<CompleteAuthenticationCommand>
 {

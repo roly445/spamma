@@ -7,6 +7,9 @@ using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.UserAggregate;
 
+/// <summary>
+/// Business logic for User aggregate.
+/// </summary>
 public sealed partial class User : AggregateRoot
 {
     private readonly List<AuthenticationAttempt> _authenticationAttempts = new();
@@ -59,7 +62,7 @@ public sealed partial class User : AggregateRoot
         Guid authenticationAttemptId, Guid securityStamp, DateTime whenCompleted, int tokenTimeInMinutes)
     {
         var authenticationAttempt = this._authenticationAttempts.SingleOrDefault(a => a.Id == authenticationAttemptId);
-        if (authenticationAttempt is not { WhenCompleted: null } || authenticationAttempt.WhenFailed.HasValue)
+        if (authenticationAttempt is null or { HasFinalized: true })
         {
             return Result.Fail<bool, BluQubeErrorData>(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt, $"Authentication attempt with ID {authenticationAttemptId} is not valid"));
         }
@@ -70,7 +73,7 @@ public sealed partial class User : AggregateRoot
             return Result.Ok<bool, BluQubeErrorData>(false);
         }
 
-        var isSuccessful = authenticationAttempt.WhenStarted.AddMinutes(tokenTimeInMinutes) >= whenCompleted;
+        var isSuccessful = authenticationAttempt.StartedAt.AddMinutes(tokenTimeInMinutes) >= whenCompleted;
 
         this.RaiseEvent(isSuccessful
             ? new AuthenticationCompleted(authenticationAttemptId, whenCompleted, Guid.NewGuid())

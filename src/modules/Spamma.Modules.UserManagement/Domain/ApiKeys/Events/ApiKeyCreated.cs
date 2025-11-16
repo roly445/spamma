@@ -6,5 +6,5 @@ public record ApiKeyCreated(
     string Name,
     string KeyHashPrefix,
     string KeyHash,
-    DateTimeOffset WhenCreated,
-    DateTimeOffset WhenExpires);
+    DateTime CreatedAt,
+    DateTime ExpiresAt);

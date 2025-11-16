@@ -31,4 +31,10 @@ public static class UserManagementErrorCodes
     public const string ApiKeyAlreadyRevoked = "user_management.api_key_already_revoked";
 
     public const string AccessDenied = "user_management.access_denied";
+
+    public const string ApiKeyInvalidName = "user_management.api_key_invalid_name";
+
+    public const string ApiKeyInvalidPrefix = "user_management.api_key_invalid_prefix";
+
+    public const string ApiKeyInvalidHash = "user_management.api_key_invalid_hash";
 }

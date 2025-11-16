@@ -5,7 +5,7 @@ namespace Spamma.Modules.Common.Client;
 public class UserAuthInfo
 {
     [JsonConstructor]
-    private UserAuthInfo(string? userId, string? name, string? emailAddress, SystemRole systemRole, IReadOnlyList<Guid> moderatedDomains, IReadOnlyList<Guid> moderatedSubdomains, IReadOnlyList<Guid> viewableSubdomains, bool isAuthenticated)
+    private UserAuthInfo(Guid userId, string? name, string? emailAddress, SystemRole systemRole, IReadOnlyList<Guid> moderatedDomains, IReadOnlyList<Guid> moderatedSubdomains, IReadOnlyList<Guid> viewableSubdomains, bool isAuthenticated)
     {
         this.UserId = userId;
         this.Name = name;
@@ -14,10 +14,10 @@ public class UserAuthInfo
         this.ModeratedDomains = moderatedDomains;
         this.ModeratedSubdomains = moderatedSubdomains;
         this.ViewableSubdomains = viewableSubdomains;
-        this.IsAuthenticated = !string.IsNullOrEmpty(userId);
+        this.IsAuthenticated = isAuthenticated;
     }
 
-    public string? UserId { get; private set; }
+    public Guid UserId { get; private set; }
 
     public string? Name { get; private set; }
 
@@ -33,7 +33,7 @@ public class UserAuthInfo
 
     public bool IsAuthenticated { get; private set; }
 
-    public static UserAuthInfo Authenticated(string userId, string name, string emailAddress, SystemRole systemRole,
+    public static UserAuthInfo Authenticated(Guid userId, string name, string emailAddress, SystemRole systemRole,
         IReadOnlyList<Guid> moderatedDomains, IReadOnlyList<Guid> moderatedSubdomains,
         IReadOnlyList<Guid> viewableSubdomains)
     {
@@ -42,6 +42,6 @@ public class UserAuthInfo
 
     public static UserAuthInfo Unauthenticated()
     {
-        return new UserAuthInfo(null, null, null, 0, [], [], [], false);
+        return new UserAuthInfo(Guid.Empty, null, null, 0, [], [], [], false);
     }
 }

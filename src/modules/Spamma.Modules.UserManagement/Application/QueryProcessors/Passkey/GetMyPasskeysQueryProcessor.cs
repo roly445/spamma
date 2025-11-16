@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
@@ -17,29 +17,23 @@ internal class GetMyPasskeysQueryProcessor(
     {
         try
         {
-            var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userAuthInfo = httpContextAccessor.HttpContext.ToUserAuthInfo();
 
-            if (string.IsNullOrEmpty(userIdClaim))
+            if (!userAuthInfo.IsAuthenticated)
             {
                 logger.LogWarning("User ID claim not found in HTTP context");
                 return QueryResult<GetMyPasskeysQueryResult>.Failed();
             }
 
-            if (!Guid.TryParse(userIdClaim, out var currentUserId))
-            {
-                logger.LogWarning("Unable to parse user ID from claims: {UserIdClaim}", userIdClaim);
-                return QueryResult<GetMyPasskeysQueryResult>.Failed();
-            }
-
-            logger.LogInformation("Retrieving passkeys for user: {UserId}", currentUserId);
+            logger.LogInformation("Retrieving passkeys for user: {UserId}", userAuthInfo.UserId);
 
             var readModels = await documentSession
                 .Query<PasskeyLookup>()
-                .Where(p => p.UserId == currentUserId)
+                .Where(p => p.UserId == userAuthInfo.UserId)
                 .OrderByDescending(p => p.RegisteredAt)
                 .ToListAsync(cancellationToken);
 
-            logger.LogInformation("Found {PasskeyCount} passkeys for user {UserId}", readModels.Count, currentUserId);
+            logger.LogInformation("Found {PasskeyCount} passkeys for user {UserId}", readModels.Count, userAuthInfo.UserId);
 
             var summaries = readModels.Select(p => new PasskeySummary(
                 p.Id,

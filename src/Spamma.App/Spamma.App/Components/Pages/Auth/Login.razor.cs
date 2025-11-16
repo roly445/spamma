@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Auth;
 

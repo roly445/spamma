@@ -6,6 +6,7 @@ using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.UserManagement;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 

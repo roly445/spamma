@@ -61,7 +61,7 @@ public class ApiKeyBuilder
         return this;
     }
 
-    public ApiKey Build()
+    internal ApiKey Build()
     {
         var result = ApiKey.Create(
             this._apiKeyId,
@@ -69,14 +69,14 @@ public class ApiKeyBuilder
             this._name,
             this._keyHashPrefix,
             this._keyHash,
-            this._createdAt,
-            this._expiresAt);
+            this._createdAt.DateTime,
+            this._expiresAt?.DateTime);
 
         var apiKey = result.Value;
 
         if (this._revokedAt.HasValue)
         {
-            apiKey.Revoke(this._revokedAt.Value);
+            apiKey.Revoke(this._revokedAt.Value.DateTime);
         }
 
         return apiKey;

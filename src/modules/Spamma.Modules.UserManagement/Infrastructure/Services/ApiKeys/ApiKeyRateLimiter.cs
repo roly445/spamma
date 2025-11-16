@@ -7,7 +7,6 @@ internal class ApiKeyRateLimiter(IDistributedCache cache) : IApiKeyRateLimiter
     // Rate limits: 1000 requests per hour per API key
     private const int MaxRequestsPerHour = 1000;
     private static readonly TimeSpan WindowDuration = TimeSpan.FromHours(1);
-    private readonly IDistributedCache cache = cache;
 
     public async Task<bool> IsWithinRateLimitAsync(string apiKey, CancellationToken cancellationToken = default)
     {
@@ -23,7 +22,7 @@ internal class ApiKeyRateLimiter(IDistributedCache cache) : IApiKeyRateLimiter
         var currentCount = await this.GetCurrentRequestCountAsync(cacheKey, cancellationToken);
 
         // Increment and store the new count
-        await this.cache.SetStringAsync(
+        await cache.SetStringAsync(
             cacheKey,
             (currentCount + 1).ToString(),
             new DistributedCacheEntryOptions
@@ -44,7 +43,7 @@ internal class ApiKeyRateLimiter(IDistributedCache cache) : IApiKeyRateLimiter
 
     private async Task<int> GetCurrentRequestCountAsync(string cacheKey, CancellationToken cancellationToken)
     {
-        var cachedValue = await this.cache.GetStringAsync(cacheKey, cancellationToken);
+        var cachedValue = await cache.GetStringAsync(cacheKey, cancellationToken);
         return int.TryParse(cachedValue, out var count) ? count : 0;
     }
 }

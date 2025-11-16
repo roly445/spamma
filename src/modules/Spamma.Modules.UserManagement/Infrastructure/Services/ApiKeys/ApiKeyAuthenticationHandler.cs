@@ -8,26 +8,15 @@ using Spamma.Modules.Common.IntegrationEvents.ApiKey;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys;
 
-public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
+public class ApiKeyAuthenticationHandler(
+    IOptionsMonitor<ApiKeyAuthenticationOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder,
+    IApiKeyValidationService apiKeyValidationService,
+    IIntegrationEventPublisher integrationEventPublisher,
+    IApiKeyRateLimiter apiKeyRateLimiter)
+    : AuthenticationHandler<ApiKeyAuthenticationOptions>(options, logger, encoder)
 {
-    private readonly IApiKeyValidationService apiKeyValidationService;
-    private readonly IIntegrationEventPublisher integrationEventPublisher;
-    private readonly IApiKeyRateLimiter apiKeyRateLimiter;
-
-    public ApiKeyAuthenticationHandler(
-        IOptionsMonitor<ApiKeyAuthenticationOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder,
-        IApiKeyValidationService apiKeyValidationService,
-        IIntegrationEventPublisher integrationEventPublisher,
-        IApiKeyRateLimiter apiKeyRateLimiter)
-        : base(options, logger, encoder)
-    {
-        this.apiKeyValidationService = apiKeyValidationService;
-        this.integrationEventPublisher = integrationEventPublisher;
-        this.apiKeyRateLimiter = apiKeyRateLimiter;
-    }
-
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         string? apiKey = null;
@@ -63,7 +52,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             authMethod);
 
         // Check rate limits first
-        var isWithinRateLimit = await this.apiKeyRateLimiter.IsWithinRateLimitAsync(apiKey);
+        var isWithinRateLimit = await apiKeyRateLimiter.IsWithinRateLimitAsync(apiKey);
         if (!isWithinRateLimit)
         {
             this.Logger.LogWarning(
@@ -77,7 +66,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             return AuthenticateResult.Fail("Rate limit exceeded");
         }
 
-        var isValid = await this.apiKeyValidationService.ValidateApiKeyAsync(apiKey);
+        var isValid = await apiKeyValidationService.ValidateApiKeyAsync(apiKey);
         if (!isValid)
         {
             this.Logger.LogWarning(
@@ -86,7 +75,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                 authMethod);
 
             // Record the failed attempt for rate limiting
-            await this.apiKeyRateLimiter.RecordRequestAsync(apiKey);
+            await apiKeyRateLimiter.RecordRequestAsync(apiKey);
 
             // Publish audit event for failed authentication
             await this.PublishAuthenticationAuditEventAsync(maskedKey, authMethod, false, "Invalid API key");
@@ -100,7 +89,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
             authMethod);
 
         // Record the successful request for rate limiting
-        await this.apiKeyRateLimiter.RecordRequestAsync(apiKey);
+        await apiKeyRateLimiter.RecordRequestAsync(apiKey);
 
         // Publish audit event for successful authentication
         await this.PublishAuthenticationAuditEventAsync(maskedKey, authMethod, true, null);
@@ -152,7 +141,7 @@ public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthentic
                 UserAgent: this.GetUserAgent(),
                 AttemptedAt: DateTimeOffset.UtcNow);
 
-            await this.integrationEventPublisher.PublishAsync(auditEvent);
+            await integrationEventPublisher.PublishAsync(auditEvent);
         }
         catch (Exception ex)
         {

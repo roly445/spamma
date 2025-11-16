@@ -4,7 +4,7 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Queries;
 
-public class GetMyPasskeysQueryAuthorizer : AbstractRequestAuthorizer<GetMyPasskeysQuery>
+internal class GetMyPasskeysQueryAuthorizer : AbstractRequestAuthorizer<GetMyPasskeysQuery>
 {
     public override void BuildPolicy(GetMyPasskeysQuery request)
     {

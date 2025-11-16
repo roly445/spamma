@@ -18,7 +18,7 @@ public class UserLookup
 
     public bool IsSuspended { get; set; }
 
-    public DateTime? WhenSuspended { get; set; }
+    public DateTime? SuspendedAt { get; set; }
 
     public SystemRole SystemRole { get; set; }
 

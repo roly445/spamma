@@ -7,6 +7,7 @@ using ResultMonad;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.Passkey;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Tests.Builders;
 using Spamma.Modules.UserManagement.Tests.Fixtures;

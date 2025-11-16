@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Components.Pages.Auth;

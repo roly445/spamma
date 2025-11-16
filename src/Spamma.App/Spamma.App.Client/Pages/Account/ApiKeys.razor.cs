@@ -7,7 +7,7 @@ using Microsoft.JSInterop;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
 using Spamma.Modules.UserManagement.Client.Application.DTOs;
-using Spamma.Modules.UserManagement.Client.Application.Queries.ApiKeys;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Account;
 
@@ -95,11 +95,10 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
 
         try
         {
+            var expiryDate = this.CalculateExpiryDate().DateTime;
             var command = new Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys.CreateApiKeyCommand(
-                this.createModel.Name);
-
-            // Set the expiry date based on selection
-            command.WhenExpires = this.CalculateExpiryDate();
+                this.createModel.Name,
+                expiryDate);
 
             var result = await commander.Send(command);
 

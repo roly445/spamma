@@ -2,6 +2,9 @@ using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.UserAggregate;
 
+/// <summary>
+/// Event handling for the User aggregate.
+/// </summary>
 public partial class User
 {
     protected override void ApplyEvent(object @event)
@@ -45,34 +48,34 @@ public partial class User
 
     private void Apply(AuthenticationStarted @event)
     {
-        var authenticationAttempt = new AuthenticationAttempt(@event.AuthenticationAttemptId, @event.WhenStarted);
+        var authenticationAttempt = new AuthenticationAttempt(@event.AuthenticationAttemptId, @event.StartedAt);
         this._authenticationAttempts.Add(authenticationAttempt);
     }
 
     private void Apply(AuthenticationCompleted @event)
     {
         var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
-        authenticationAttempt.Complete(@event.WhenCompleted);
+        authenticationAttempt.Complete(@event.CompletedAt);
         this.SecurityStamp = @event.SecurityStamp;
     }
 
     private void Apply(AuthenticationFailed @event)
     {
         var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
-        authenticationAttempt.Fail(@event.WhenFailed);
+        authenticationAttempt.Fail(@event.FailedAt);
         this.SecurityStamp = @event.SecurityStamp;
     }
 
     private void Apply(AccountSuspended @event)
     {
-        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateSuspension(@event.WhenSuspended, @event.Reason, @event.Notes));
+        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
         this.SecurityStamp = @event.SecurityStamp;
         this.IsSuspended = true;
     }
 
     private void Apply(AccountUnsuspended @event)
     {
-        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateUnsuspension(@event.WhenSuspended));
+        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateUnsuspension(@event.SuspendedAt));
         this.SecurityStamp = @event.SecurityStamp;
         this.IsSuspended = false;
     }

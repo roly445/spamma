@@ -19,7 +19,7 @@ public class UserLookupProjection : EventProjection
             Id = @event.UserId,
             Name = @event.Name,
             EmailAddress = @event.EmailAddress,
-            CreatedAt = @event.WhenCreated,
+            CreatedAt = @event.CreatedAt,
             SystemRole = @event.SystemRole,
         };
     }
@@ -37,7 +37,7 @@ public class UserLookupProjection : EventProjection
     public void Project(IEvent<AuthenticationCompleted> @event, IDocumentOperations ops)
     {
         ops.Patch<UserLookup>(@event.StreamId)
-            .Set(x => x.LastLoginAt, @event.Data.WhenCompleted);
+            .Set(x => x.LastLoginAt, @event.Data.CompletedAt);
     }
 
     [UsedImplicitly]
@@ -45,7 +45,7 @@ public class UserLookupProjection : EventProjection
     {
         ops.Patch<UserLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, true)
-            .Set(x => x.WhenSuspended, @event.Data.WhenSuspended);
+            .Set(x => x.SuspendedAt, @event.Data.SuspendedAt);
     }
 
     [UsedImplicitly]
@@ -53,7 +53,7 @@ public class UserLookupProjection : EventProjection
     {
         ops.Patch<UserLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, false)
-            .Set(x => x.WhenSuspended, null);
+            .Set(x => x.SuspendedAt, null);
     }
 
     [UsedImplicitly]
