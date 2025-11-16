@@ -39,13 +39,15 @@ public class CampaignAggregateEdgeCaseTests
     [Fact]
     public void Create_WithMinimumValidData_Succeeds()
     {
+        var createdAt = DateTimeOffset.UtcNow;
         var result = Campaign.Create(
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
             "a",
             Guid.NewGuid(),
-            DateTime.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         result.IsSuccess.Should().BeTrue();
     }
@@ -54,6 +56,7 @@ public class CampaignAggregateEdgeCaseTests
     public void Create_WithMaxLengthCampaignValue_Succeeds()
     {
         var maxLengthValue = new string('x', 255);
+        var createdAt = DateTimeOffset.UtcNow;
 
         var result = Campaign.Create(
             Guid.NewGuid(),
@@ -61,7 +64,8 @@ public class CampaignAggregateEdgeCaseTests
             Guid.NewGuid(),
             maxLengthValue,
             Guid.NewGuid(),
-            DateTime.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         result.IsSuccess.Should().BeTrue();
     }

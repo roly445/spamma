@@ -200,6 +200,6 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
         // Assert - Deleted state persisted
         var retrievedMaybe = await repository.GetByIdAsync(emailId);
         retrievedMaybe.HasValue.Should().BeTrue();
-        retrievedMaybe.Value.WhenDeleted.HasValue.Should().BeTrue();
+        retrievedMaybe.Value.IsDeleted.Should().BeTrue();
     }
 }

@@ -25,7 +25,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var messageId = Guid.NewGuid();
         var createdAt = DateTimeOffset.UtcNow;
 
-        var createResult = Campaign.Create(campaignId, domainId, subdomainId, "test-campaign", messageId, createdAt);
+        var createResult = Campaign.Create(campaignId, domainId, subdomainId, "test-campaign", messageId, createdAt.DateTime, createdAt);
         createResult.IsSuccess.Should().BeTrue();
         var campaign = createResult.Value;
 
@@ -38,7 +38,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var retrieved = retrievedMaybe.Value;
         retrieved.Id.Should().Be(campaignId);
         retrieved.CampaignValue.Should().Be("test-campaign");
-        retrieved.DeletedAt.Should().BeNull();
+        retrieved.DeletedAt.Should().Be(DateTime.MinValue);
     }
 
     [Fact]
@@ -60,8 +60,9 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var messageId1 = Guid.NewGuid();
         var messageId2 = Guid.NewGuid();
         var messageId3 = Guid.NewGuid();
+        var createdAt = DateTimeOffset.UtcNow;
 
-        var createResult = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "multi-capture", messageId1, DateTimeOffset.UtcNow);
+        var createResult = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "multi-capture", messageId1, createdAt.DateTime, createdAt);
         var campaign = createResult.Value;
         campaign.RecordCapture(messageId2, DateTimeOffset.UtcNow);
         campaign.RecordCapture(messageId3, DateTimeOffset.UtcNow);
@@ -82,17 +83,18 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
     {
         var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaignId = Guid.NewGuid();
+        var createdAt = DateTimeOffset.UtcNow;
 
-        var createResult = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "to-delete", Guid.NewGuid(), DateTimeOffset.UtcNow);
+        var createResult = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "to-delete", Guid.NewGuid(), createdAt.DateTime, createdAt);
         var campaign = createResult.Value;
-        campaign.Delete(DateTimeOffset.UtcNow);
+        campaign.Delete(DateTimeOffset.UtcNow.DateTime);
 
         await repository.SaveAsync(campaign);
         await this._fixture.Session!.SaveChangesAsync();
         var retrievedMaybe = await repository.GetByIdAsync(campaignId);
 
         retrievedMaybe.HasValue.Should().BeTrue();
-        retrievedMaybe.Value.DeletedAt.Should().NotBeNull();
+        retrievedMaybe.Value.IsDeleted.Should().BeTrue();
     }
 
     [Fact]
@@ -101,9 +103,10 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaign1Id = Guid.NewGuid();
         var campaign2Id = Guid.NewGuid();
+        var createdAt = DateTimeOffset.UtcNow;
 
-        var campaign1 = Campaign.Create(campaign1Id, Guid.NewGuid(), Guid.NewGuid(), "campaign-1", Guid.NewGuid(), DateTimeOffset.UtcNow).Value;
-        var campaign2 = Campaign.Create(campaign2Id, Guid.NewGuid(), Guid.NewGuid(), "campaign-2", Guid.NewGuid(), DateTimeOffset.UtcNow).Value;
+        var campaign1 = Campaign.Create(campaign1Id, Guid.NewGuid(), Guid.NewGuid(), "campaign-1", Guid.NewGuid(), createdAt.DateTime, createdAt).Value;
+        var campaign2 = Campaign.Create(campaign2Id, Guid.NewGuid(), Guid.NewGuid(), "campaign-2", Guid.NewGuid(), createdAt.DateTime, createdAt).Value;
 
         await repository.SaveAsync(campaign1);
         await repository.SaveAsync(campaign2);
@@ -125,17 +128,18 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var campaignId = Guid.NewGuid();
         var messageId1 = Guid.NewGuid();
         var messageId2 = Guid.NewGuid();
+        var createdAt = DateTimeOffset.UtcNow;
 
-        var campaign = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "event-sequence", messageId1, DateTimeOffset.UtcNow).Value;
+        var campaign = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "event-sequence", messageId1, createdAt.DateTime, createdAt).Value;
         campaign.RecordCapture(messageId2, DateTimeOffset.UtcNow);
-        campaign.Delete(DateTimeOffset.UtcNow);
+        campaign.Delete(DateTimeOffset.UtcNow.DateTime);
 
         await repository.SaveAsync(campaign);
         await this._fixture.Session!.SaveChangesAsync();
         var retrieved = await repository.GetByIdAsync(campaignId);
 
         retrieved.HasValue.Should().BeTrue();
-        retrieved.Value.DeletedAt.Should().NotBeNull();
+        retrieved.Value.IsDeleted.Should().BeTrue();
 
         // Campaign creation doesn't count as a capture, only explicit RecordCapture calls do
         retrieved.Value.TotalCaptures.Should().Be(1); // Verify capture was recorded
