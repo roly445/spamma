@@ -6,7 +6,7 @@ using Spamma.Modules.EmailInbox.Application.Repositories;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 
-public class EmailRepository(IDocumentSession session, IHostEnvironment hostEnvironment) : GenericRepository<Domain.EmailAggregate.Email>(session), IEmailRepository
+internal class EmailRepository(IDocumentSession session, IHostEnvironment hostEnvironment) : GenericRepository<Domain.EmailAggregate.Email>(session), IEmailRepository
 {
     public async Task<MimeMessage?> GetMimeMessageAsync(Guid emailId, CancellationToken cancellationToken)
     {

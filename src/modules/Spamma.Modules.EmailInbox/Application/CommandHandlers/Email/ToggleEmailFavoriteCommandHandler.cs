@@ -8,7 +8,7 @@ using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 
-public class ToggleEmailFavoriteCommandHandler(
+internal class ToggleEmailFavoriteCommandHandler(
     IEmailRepository repository,
     TimeProvider timeProvider,
     IEnumerable<IValidator<ToggleEmailFavoriteCommand>> validators,
@@ -26,7 +26,7 @@ public class ToggleEmailFavoriteCommandHandler(
 
         var email = emailMaybe.Value;
 
-        if (email.CampaignId != null)
+        if (email.IsPartOfCampaign)
         {
             logger.LogWarning("Email {EmailId} is part of campaign {CampaignId}, favorite toggle rejected", email.Id, email.CampaignId);
             return CommandResult.Failed(new BluQubeErrorData(EmailInboxErrorCodes.EmailIsPartOfCampaign, "Email is part of a campaign and cannot be favorited or unfavorited."));

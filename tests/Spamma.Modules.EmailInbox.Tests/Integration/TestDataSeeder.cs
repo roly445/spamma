@@ -78,7 +78,7 @@ public static class TestDataSeeder
             SubdomainId = subdomainId ?? Guid.NewGuid(),
             DomainId = domainId ?? Guid.NewGuid(),
             Subject = subject ?? $"Test Email {Guid.NewGuid():N}".Substring(0, 50),
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
             EmailAddresses = new()
             {

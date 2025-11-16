@@ -7,10 +7,11 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 
-public class RecordCampaignCaptureCommandHandler(
+internal class RecordCampaignCaptureCommandHandler(
     IEnumerable<IValidator<RecordCampaignCaptureCommand>> validators,
     ILogger<RecordCampaignCaptureCommandHandler> logger,
-    ICampaignRepository campaignRepository)
+    ICampaignRepository campaignRepository,
+    TimeProvider timeProvider)
     : CommandHandler<RecordCampaignCaptureCommand, RecordCampaignCaptureCommandResult>(validators, logger)
 {
     protected override async Task<CommandResult<RecordCampaignCaptureCommandResult>> HandleInternal(RecordCampaignCaptureCommand request, CancellationToken cancellationToken)
@@ -29,6 +30,7 @@ public class RecordCampaignCaptureCommandHandler(
                 request.SubdomainId,
                 request.CampaignValue,
                 request.MessageId,
+                timeProvider.GetUtcNow().UtcDateTime,
                 request.ReceivedAt);
 
             if (createResult.IsFailure)

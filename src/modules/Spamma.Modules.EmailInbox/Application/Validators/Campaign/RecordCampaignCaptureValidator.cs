@@ -4,7 +4,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Application.Validators.Campaign;
 
-public class RecordCampaignCaptureValidator : AbstractValidator<RecordCampaignCaptureCommand>
+internal class RecordCampaignCaptureValidator : AbstractValidator<RecordCampaignCaptureCommand>
 {
     public RecordCampaignCaptureValidator()
     {

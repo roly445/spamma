@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Commands.Email;
 
-public class ToggleEmailFavoriteCommandAuthorizer : AbstractRequestAuthorizer<ToggleEmailFavoriteCommand>
+internal class ToggleEmailFavoriteCommandAuthorizer : AbstractRequestAuthorizer<ToggleEmailFavoriteCommand>
 {
     public override void BuildPolicy(ToggleEmailFavoriteCommand request)
     {

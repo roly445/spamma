@@ -7,7 +7,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 
-public class DeleteCampaignCommandHandler(
+internal class DeleteCampaignCommandHandler(
     ICampaignRepository campaignRepository,
     TimeProvider timeProvider,
     IEnumerable<IValidator<DeleteCampaignCommand>> validators,
@@ -24,7 +24,7 @@ public class DeleteCampaignCommandHandler(
         }
 
         var campaign = campaignMaybe.Value;
-        var deleteResult = campaign.Delete(timeProvider.GetUtcNow());
+        var deleteResult = campaign.Delete(timeProvider.GetUtcNow().UtcDateTime);
 
         if (deleteResult.IsFailure)
         {

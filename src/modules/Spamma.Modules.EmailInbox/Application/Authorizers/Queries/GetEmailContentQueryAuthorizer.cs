@@ -4,7 +4,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Queries;
 
-public class GetEmailContentQueryAuthorizer : AbstractRequestAuthorizer<GetEmailContentQuery>
+internal class GetEmailContentQueryAuthorizer : AbstractRequestAuthorizer<GetEmailContentQuery>
 {
     public override void BuildPolicy(GetEmailContentQuery request)
     {

@@ -24,14 +24,14 @@ public class CampaignDeletionProjection : EventProjection
 
         // Find all emails for this campaign that haven't been deleted yet
         var emailIds = await querySession.Query<EmailLookup>()
-            .Where(e => e.CampaignId == campaignId && e.WhenDeleted == null)
+            .Where(e => e.CampaignId == campaignId && e.DeletedAt == null)
             .Select(e => e.Id)
             .ToListAsync();
 
         // Append EmailDeleted events for each email
         foreach (var emailId in emailIds)
         {
-            ops.Events.Append(emailId, new EmailDeleted(deletedAt.DateTime));
+            ops.Events.Append(emailId, new EmailDeleted(deletedAt));
         }
     }
 }

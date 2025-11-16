@@ -27,7 +27,7 @@ public class CampaignSummaryProjection : EventProjection
     }
 
     [UsedImplicitly]
-    public void Project(IEvent<Domain.CampaignAggregate.Events.CampaignCaptured> @event, IDocumentOperations ops)
+    public void Project(IEvent<CampaignCaptured> @event, IDocumentOperations ops)
     {
         ops.Patch<CampaignSummary>(@event.StreamId)
             .Increment(x => x.TotalCaptured)
@@ -35,7 +35,7 @@ public class CampaignSummaryProjection : EventProjection
     }
 
     [UsedImplicitly]
-    public void Project(IEvent<Domain.CampaignAggregate.Events.CampaignDeleted> @event, IDocumentOperations ops)
+    public void Project(IEvent<CampaignDeleted> @event, IDocumentOperations ops)
     {
         ops.Delete<CampaignSummary>(@event.StreamId);
     }

@@ -4,7 +4,7 @@ using Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 
 namespace Spamma.Modules.EmailInbox.Application.Repositories;
 
-public interface IEmailRepository : IRepository<Email>
+internal interface IEmailRepository : IRepository<Email>
 {
     Task<MimeMessage?> GetMimeMessageAsync(Guid emailId, CancellationToken cancellationToken);
 }

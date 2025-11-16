@@ -12,9 +12,9 @@ public class EmailLookup
 
     public string Subject { get; set; } = string.Empty;
 
-    public DateTimeOffset WhenSent { get; set; }
+    public DateTimeOffset SentAt { get; set; }
 
-    public DateTime? WhenDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     public bool IsFavorite { get; set; }
 

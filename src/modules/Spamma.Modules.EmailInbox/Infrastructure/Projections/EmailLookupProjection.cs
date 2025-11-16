@@ -20,7 +20,7 @@ public class EmailLookupProjection : EventProjection
             SubdomainId = @event.SubdomainId,
             EmailAddresses = @event.EmailAddresses.Select(x => new ReadModels.EmailAddress(x.Address, x.Name, x.EmailAddressType)).ToList(),
             Subject = @event.Subject,
-            WhenSent = @event.WhenSent,
+            SentAt = @event.SentAt,
         };
     }
 
@@ -28,7 +28,7 @@ public class EmailLookupProjection : EventProjection
     public void Project(IEvent<EmailDeleted> @event, IDocumentOperations ops)
     {
         ops.Patch<EmailLookup>(@event.StreamId)
-            .Set(x => x.WhenDeleted, @event.Data.WhenDeleted);
+            .Set(x => x.DeletedAt, @event.Data.DeletedAt);
     }
 
     [UsedImplicitly]

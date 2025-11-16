@@ -33,9 +33,9 @@ public class EmailLookupProjectionTests
         readModel.DomainId.Should().Be(domainId);
         readModel.SubdomainId.Should().Be(subdomainId);
         readModel.Subject.Should().Be("Test Subject");
-        readModel.WhenSent.Should().Be(whenSent);
+        readModel.SentAt.Should().Be(whenSent);
         readModel.IsFavorite.Should().BeFalse();
-        readModel.WhenDeleted.Should().BeNull();
+        readModel.DeletedAt.Should().BeNull();
         readModel.CampaignId.Should().BeNull();
         readModel.EmailAddresses.Should().HaveCount(2);
     }
@@ -110,7 +110,7 @@ public class EmailLookupProjectionTests
         readModel.DomainId.Should().Be(domainId);
         readModel.SubdomainId.Should().Be(subdomainId);
         readModel.Subject.Should().Be("Subject Line");
-        readModel.WhenSent.Should().Be(whenSent);
+        readModel.SentAt.Should().Be(whenSent);
         readModel.EmailAddresses.Should().ContainSingle(x => x.Address == "test@example.com");
     }
 
@@ -130,7 +130,7 @@ public class EmailLookupProjectionTests
         // Assert
         readModel.EmailAddresses.Should().BeEmpty();
         readModel.IsFavorite.Should().BeFalse();
-        readModel.WhenDeleted.Should().BeNull();
+        readModel.DeletedAt.Should().BeNull();
     }
 
     [Fact]

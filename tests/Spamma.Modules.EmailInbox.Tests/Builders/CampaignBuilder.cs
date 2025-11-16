@@ -47,7 +47,7 @@ public class CampaignBuilder
         return this;
     }
 
-    public Campaign Build()
+    internal Campaign Build()
     {
         var result = Campaign.Create(
             this._campaignId,
@@ -55,6 +55,7 @@ public class CampaignBuilder
             this._subdomainId,
             this._campaignValue,
             this._messageId,
+            this._createdAt.DateTime,
             this._createdAt);
 
         return result.Value;

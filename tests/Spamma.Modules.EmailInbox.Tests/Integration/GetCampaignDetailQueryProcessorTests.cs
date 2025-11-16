@@ -22,7 +22,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
             SubdomainId = subdomainId,
             DomainId = Guid.NewGuid(),
             Subject = "Sample Email Subject",
-            WhenSent = DateTime.UtcNow.AddDays(-5),
+            SentAt = DateTime.UtcNow.AddDays(-5),
             IsFavorite = false,
             EmailAddresses = new()
             {

@@ -63,7 +63,7 @@ public class EmailAggregateTests
         result.IsSuccess.Should().BeTrue();
         email.ShouldHaveRaisedEvent<EmailDeleted>(e =>
         {
-            e.WhenDeleted.Should().Be(now);
+            e.DeletedAt.Should().Be(now);
         });
     }
 

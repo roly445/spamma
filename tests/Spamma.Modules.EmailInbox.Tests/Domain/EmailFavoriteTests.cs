@@ -33,7 +33,7 @@ public class EmailFavoriteTests
         email.IsFavorite.Should().BeTrue();
         email.ShouldHaveRaisedEvent<EmailMarkedAsFavorite>(e =>
         {
-            e.WhenMarked.Should().Be(now);
+            e.MarkedAt.Should().Be(now);
         });
     }
 
@@ -88,7 +88,7 @@ public class EmailFavoriteTests
         email.IsFavorite.Should().BeFalse();
         email.ShouldHaveRaisedEvent<EmailUnmarkedAsFavorite>(e =>
         {
-            e.WhenUnmarked.Should().Be(now);
+            e.UnmarkedAt.Should().Be(now);
         });
     }
 
@@ -194,7 +194,7 @@ public class EmailFavoriteTests
         result.IsSuccess.Should().BeTrue();
         email.ShouldHaveRaisedEvent<EmailDeleted>(e =>
         {
-            e.WhenDeleted.Should().Be(now);
+            e.DeletedAt.Should().Be(now);
         });
     }
 

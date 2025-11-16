@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Grpc.Core;
-using Spamma.Modules.EmailInbox.Client.Application.Grpc;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -49,7 +48,7 @@ public class PushNotificationManager
                 ReceivedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(email.ReceivedAt),
             };
 
-            notifications.Add(connection.Stream.WriteAsync(notification));
+            notifications.Add(connection.Stream.WriteAsync(notification, cancellationToken));
         }
 
         // Notify SignalR web clients via IClientNotifierService
@@ -58,7 +57,7 @@ public class PushNotificationManager
             var method = this._clientNotifier.GetType().GetMethod("NotifyNewEmailForSubdomain");
             if (method != null)
             {
-                var task = method.Invoke(this._clientNotifier, new object[] { email.SubdomainId }) as Task;
+                var task = method.Invoke(this._clientNotifier, [email.SubdomainId]) as Task;
                 if (task != null)
                 {
                     notifications.Add(task);

@@ -6,8 +6,13 @@ using Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 
-public partial class Campaign : AggregateRoot
+/// <summary>
+/// Business logic for Campaign aggregate.
+/// </summary>
+internal partial class Campaign : AggregateRoot
 {
+    private DateTime? _deletedAt;
+
     private Campaign()
     {
     }
@@ -22,9 +27,11 @@ public partial class Campaign : AggregateRoot
 
     internal Guid? SampleMessageId { get; private set; }
 
-    internal DateTimeOffset CreatedAt { get; private set; }
+    internal DateTime CreatedAt { get; private set; }
 
-    internal DateTimeOffset? DeletedAt { get; private set; }
+    internal DateTime DeletedAt => this._deletedAt ?? throw new InvalidOperationException("Campaign is not deleted. Check IsDeleted before accessing DeletedAt.");
+
+    internal bool IsDeleted => this._deletedAt.HasValue;
 
     internal int TotalCaptures { get; private set; }
 
@@ -36,7 +43,8 @@ public partial class Campaign : AggregateRoot
         Guid subdomainId,
         string campaignValue,
         Guid messageId,
-        DateTimeOffset createdAt)
+        DateTime createdAt,
+        DateTimeOffset receivedAt)
     {
         if (domainId == Guid.Empty)
         {
@@ -79,7 +87,7 @@ public partial class Campaign : AggregateRoot
         }
 
         var campaign = new Campaign();
-        var @event = new CampaignCreated(campaignId, domainId, subdomainId, campaignValue, messageId, createdAt);
+        var @event = new CampaignCreated(campaignId, domainId, subdomainId, campaignValue, messageId, createdAt, receivedAt);
         campaign.RaiseEvent(@event);
 
         return Result.Ok<Campaign, BluQubeErrorData>(campaign);
@@ -87,16 +95,16 @@ public partial class Campaign : AggregateRoot
 
     internal ResultWithError<BluQubeErrorData> RecordCapture(Guid messageId, DateTimeOffset capturedAt)
     {
-        if (this.DeletedAt.HasValue)
+        if (this.IsDeleted)
         {
-            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(
+            return ResultWithError.Fail(new BluQubeErrorData(
                 EmailInboxErrorCodes.CampaignAlreadyDeleted,
                 $"Campaign '{this.Id}' has already been deleted."));
         }
 
         if (messageId == Guid.Empty)
         {
-            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(
+            return ResultWithError.Fail(new BluQubeErrorData(
                 EmailInboxErrorCodes.InvalidCampaignData,
                 "MessageId cannot be empty."));
         }
@@ -107,9 +115,9 @@ public partial class Campaign : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> Delete(DateTimeOffset deletedAt)
+    internal ResultWithError<BluQubeErrorData> Delete(DateTime deletedAt)
     {
-        if (this.DeletedAt.HasValue)
+        if (this.IsDeleted)
         {
             return ResultWithError.Fail(new BluQubeErrorData(
                 EmailInboxErrorCodes.CampaignAlreadyDeleted,

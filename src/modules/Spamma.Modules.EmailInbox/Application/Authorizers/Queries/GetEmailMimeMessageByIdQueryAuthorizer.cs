@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Queries;
 
-public class GetEmailMimeMessageByIdQueryAuthorizer : AbstractRequestAuthorizer<GetEmailMimeMessageByIdQuery>
+internal class GetEmailMimeMessageByIdQueryAuthorizer : AbstractRequestAuthorizer<GetEmailMimeMessageByIdQuery>
 {
     public override void BuildPolicy(GetEmailMimeMessageByIdQuery request)
     {

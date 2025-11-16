@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Queries;
 
-public class GetCampaignDetailQueryAuthorizer : AbstractRequestAuthorizer<GetCampaignDetailQuery>
+internal class GetCampaignDetailQueryAuthorizer : AbstractRequestAuthorizer<GetCampaignDetailQuery>
 {
     public override void BuildPolicy(GetCampaignDetailQuery request)
     {

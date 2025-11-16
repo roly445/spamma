@@ -26,7 +26,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
                 SubdomainId = subdomainId,
                 DomainId = domainId,
                 Subject = $"Test Email {i}",
-                WhenSent = DateTime.UtcNow.AddHours(-i),
+                SentAt = DateTime.UtcNow.AddHours(-i),
                 IsFavorite = false,
                 EmailAddresses = new List<EmailAddress>
                 {
@@ -71,7 +71,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Important meeting notes",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -87,7 +87,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Random topic",
-            WhenSent = DateTime.UtcNow.AddHours(-1),
+            SentAt = DateTime.UtcNow.AddHours(-1),
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -130,7 +130,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Test Subject",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -146,7 +146,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Other Subject",
-            WhenSent = DateTime.UtcNow.AddHours(-1),
+            SentAt = DateTime.UtcNow.AddHours(-1),
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -188,7 +188,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Test Subject",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -204,7 +204,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Other Subject",
-            WhenSent = DateTime.UtcNow.AddHours(-1),
+            SentAt = DateTime.UtcNow.AddHours(-1),
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -248,7 +248,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
                 SubdomainId = subdomainId,
                 DomainId = domainId,
                 Subject = $"Email {i:D3}",
-                WhenSent = DateTime.UtcNow.AddMinutes(-i),
+                SentAt = DateTime.UtcNow.AddMinutes(-i),
                 IsFavorite = false,
                 EmailAddresses = new List<EmailAddress>
                 {
@@ -296,8 +296,8 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Active Email",
-            WhenSent = DateTime.UtcNow,
-            WhenDeleted = null,
+            SentAt = DateTime.UtcNow,
+            DeletedAt = null,
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -313,8 +313,8 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Deleted Email",
-            WhenSent = DateTime.UtcNow.AddHours(-1),
-            WhenDeleted = DateTime.UtcNow.AddMinutes(-30),
+            SentAt = DateTime.UtcNow.AddHours(-1),
+            DeletedAt = DateTime.UtcNow.AddMinutes(-30),
             IsFavorite = false,
             EmailAddresses = new List<EmailAddress>
             {
@@ -384,7 +384,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
                 SubdomainId = subdomainId,
                 DomainId = domainId,
                 Subject = emailData.Subject,
-                WhenSent = emailData.WhenSent,
+                SentAt = emailData.WhenSent,
                 IsFavorite = false,
                 EmailAddresses = new List<EmailAddress>
                 {

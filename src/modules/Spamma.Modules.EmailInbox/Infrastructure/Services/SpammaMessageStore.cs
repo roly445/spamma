@@ -9,15 +9,8 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-public class SpammaMessageStore : MessageStore
+public class SpammaMessageStore(PushNotificationManager pushNotificationManager) : MessageStore
 {
-    private readonly PushNotificationManager _pushNotificationManager;
-
-    public SpammaMessageStore(PushNotificationManager pushNotificationManager)
-    {
-        this._pushNotificationManager = pushNotificationManager;
-    }
-
     public override async Task<SmtpResponse> SaveAsync(
         ISessionContext context,
         IMessageTransaction transaction,
@@ -101,7 +94,7 @@ public class SpammaMessageStore : MessageStore
         }
 
         // Notify push integrations
-        await this._pushNotificationManager.NotifyEmailAsync(
+        await pushNotificationManager.NotifyEmailAsync(
             new PushNotificationManager.EmailDetails(
                 messageId,
                 foundValidSubdomain.SubdomainId,

@@ -16,9 +16,9 @@ public class EmailReadModelTests
             DomainId = Guid.NewGuid(),
             SubdomainId = Guid.NewGuid(),
             Subject = "Test Subject",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
-            WhenDeleted = null,
+            DeletedAt = null,
             CampaignId = null,
             EmailAddresses = new(),
         };
@@ -28,7 +28,7 @@ public class EmailReadModelTests
         emailLookup.Id.Should().NotBe(Guid.Empty);
         emailLookup.Subject.Should().Be("Test Subject");
         emailLookup.IsFavorite.Should().BeFalse();
-        emailLookup.WhenDeleted.Should().BeNull();
+        emailLookup.DeletedAt.Should().BeNull();
     }
 
     [Fact]
@@ -41,9 +41,9 @@ public class EmailReadModelTests
             DomainId = Guid.NewGuid(),
             SubdomainId = Guid.NewGuid(),
             Subject = "Favorite Email",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = true,
-            WhenDeleted = null,
+            DeletedAt = null,
             CampaignId = null,
             EmailAddresses = new(),
         };
@@ -63,9 +63,9 @@ public class EmailReadModelTests
             DomainId = Guid.NewGuid(),
             SubdomainId = Guid.NewGuid(),
             Subject = "Campaign Email",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
-            WhenDeleted = null,
+            DeletedAt = null,
             CampaignId = campaignId,
             EmailAddresses = new(),
         };
@@ -87,15 +87,15 @@ public class EmailReadModelTests
             DomainId = Guid.NewGuid(),
             SubdomainId = Guid.NewGuid(),
             Subject = "Deleted Email",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
-            WhenDeleted = deletedTime,
+            DeletedAt = deletedTime,
             CampaignId = null,
             EmailAddresses = new(),
         };
 
         // Verify
-        emailLookup.WhenDeleted.Should().Be(deletedTime);
+        emailLookup.DeletedAt.Should().Be(deletedTime);
     }
 
     [Fact]
@@ -114,9 +114,9 @@ public class EmailReadModelTests
             DomainId = Guid.NewGuid(),
             SubdomainId = Guid.NewGuid(),
             Subject = "Email with Recipients",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = false,
-            WhenDeleted = null,
+            DeletedAt = null,
             CampaignId = null,
             EmailAddresses = emailAddresses,
         };

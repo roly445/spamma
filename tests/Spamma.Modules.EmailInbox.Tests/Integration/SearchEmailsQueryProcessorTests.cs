@@ -21,7 +21,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Email for subdomain 1",
             DomainId = domainId,
             SubdomainId = subdomainId1,
-            WhenSent = DateTime.UtcNow.AddDays(-1),
+            SentAt = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("to1@example.com", "To Name", EmailAddressType.To),
@@ -34,7 +34,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Email for subdomain 2",
             DomainId = domainId,
             SubdomainId = subdomainId2,
-            WhenSent = DateTime.UtcNow.AddDays(-2),
+            SentAt = DateTime.UtcNow.AddDays(-2),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("to2@example.com", "To Name", EmailAddressType.To),
@@ -74,7 +74,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Important meeting notes",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-1),
+            SentAt = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
@@ -87,7 +87,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Random message",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-2),
+            SentAt = DateTime.UtcNow.AddDays(-2),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
@@ -125,7 +125,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Email 1",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-1),
+            SentAt = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("john.doe@example.com", "John Doe", EmailAddressType.To),
@@ -138,7 +138,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Email 2",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-2),
+            SentAt = DateTime.UtcNow.AddDays(-2),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("jane.smith@example.com", "Jane Smith", EmailAddressType.To),
@@ -179,7 +179,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
                 Subject = $"Email {i}",
                 DomainId = domainId,
                 SubdomainId = subdomainId,
-                WhenSent = DateTime.UtcNow.AddDays(-i),
+                SentAt = DateTime.UtcNow.AddDays(-i),
                 EmailAddresses = new List<EmailAddress>
                 {
                     new EmailAddress($"to{i}@example.com", "To Name", EmailAddressType.To),
@@ -222,7 +222,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Test Email",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
@@ -257,7 +257,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Old Email",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-10),
+            SentAt = DateTime.UtcNow.AddDays(-10),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("old@example.com", "Old", EmailAddressType.To),
@@ -270,7 +270,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "New Email",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-1),
+            SentAt = DateTime.UtcNow.AddDays(-1),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("new@example.com", "New", EmailAddressType.To),
@@ -308,8 +308,8 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Active Email",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-1),
-            WhenDeleted = null,
+            SentAt = DateTime.UtcNow.AddDays(-1),
+            DeletedAt = null,
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("active@example.com", "Active", EmailAddressType.To),
@@ -322,8 +322,8 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "Deleted Email",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow.AddDays(-2),
-            WhenDeleted = DateTime.UtcNow.AddHours(-1),
+            SentAt = DateTime.UtcNow.AddDays(-2),
+            DeletedAt = DateTime.UtcNow.AddHours(-1),
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("deleted@example.com", "Deleted", EmailAddressType.To),
@@ -361,7 +361,7 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
             Subject = "IMPORTANT MESSAGE",
             DomainId = domainId,
             SubdomainId = subdomainId,
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             EmailAddresses = new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),

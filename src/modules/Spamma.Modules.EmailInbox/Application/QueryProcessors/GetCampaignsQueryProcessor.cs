@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
-public class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProcessor<GetCampaignsQuery, GetCampaignsQueryResult>
+internal class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProcessor<GetCampaignsQuery, GetCampaignsQueryResult>
 {
     public async Task<QueryResult<GetCampaignsQueryResult>> Handle(GetCampaignsQuery request, CancellationToken cancellationToken)
     {
