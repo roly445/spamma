@@ -28,28 +28,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         await this.LoadUsers();
     }
 
-    private static string GetStatusClasses(UserStatus status)
-    {
-        return status switch
-        {
-            UserStatus.Active => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800",
-            UserStatus.Inactive => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-            UserStatus.Suspended => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800",
-            _ => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-        };
-    }
-
-    private static string GetStatusText(UserStatus status)
-    {
-        return status switch
-        {
-            UserStatus.Active => "Active",
-            UserStatus.Inactive => "Inactive",
-            UserStatus.Suspended => "Suspended",
-            _ => "Unknown",
-        };
-    }
-
     private static bool IsRoleSelected(SystemRole role, SystemRole roles)
     {
         return (roles & role) == role;

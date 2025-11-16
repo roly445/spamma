@@ -133,8 +133,8 @@
                                         <UserListItem UserName="@user.DisplayName" UserEmail="@user.Email" ShowName="true" Size="10" />
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="@GetStatusClasses(user.Status)">
-                                            @GetStatusText(user.Status)
+                                        <span class="@StyleHelpers.GetStatusClasses(user.Status)">
+                                            @StyleHelpers.GetStatusText(user.Status)
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

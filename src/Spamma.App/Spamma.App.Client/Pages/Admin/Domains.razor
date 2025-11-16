@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Components.UserControls.Domain
+@using Spamma.App.Client.Infrastructure.Helpers
 @using Spamma.App.Client.Layout
 @using Spamma.Modules.DomainManagement.Client.Contracts
 @layout AppLayout
@@ -153,8 +154,8 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="@GetStatusClasses(domain.Status)">
-                                            @GetStatusText(domain.Status)
+                                        <span class="@StyleHelpers.GetStatusClasses(domain.Status)">
+                                            @StyleHelpers.GetStatusText(domain.Status)
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">

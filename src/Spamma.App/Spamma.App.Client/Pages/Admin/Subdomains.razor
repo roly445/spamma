@@ -2,6 +2,7 @@
 @page "/admin/domains/{domainId:guid}/subdomains/"
 @using Spamma.App.Client.Components.UserControls
 @using Spamma.App.Client.Components.UserControls.Subdomain
+@using Spamma.App.Client.Infrastructure.Helpers
 @using Spamma.App.Client.Layout
 @using Spamma.Modules.DomainManagement.Client.Contracts
 @layout AppLayout
@@ -196,8 +197,8 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="@GetStatusClasses(subdomain.Status)">
-                                        @GetStatusText(subdomain.Status)
+                                    <span class="@StyleHelpers.GetStatusClasses(subdomain.Status)">
+                                        @StyleHelpers.GetStatusText(subdomain.Status)
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

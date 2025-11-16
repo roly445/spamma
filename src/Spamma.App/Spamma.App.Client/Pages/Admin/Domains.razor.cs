@@ -38,28 +38,6 @@ public partial class Domains(
         await this.LoadDomains();
     }
 
-    private static string GetStatusClasses(DomainStatus status)
-    {
-        return status switch
-        {
-            DomainStatus.Active => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800",
-            DomainStatus.Pending => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-            DomainStatus.Suspended => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800",
-            _ => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-        };
-    }
-
-    private static string GetStatusText(DomainStatus status)
-    {
-        return status switch
-        {
-            DomainStatus.Active => "Active",
-            DomainStatus.Pending => "Pending",
-            DomainStatus.Suspended => "Suspended",
-            _ => "Unknown",
-        };
-    }
-
     private async Task HandleSearch()
     {
         this.searchRequest.Page = 1;
