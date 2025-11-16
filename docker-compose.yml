@@ -37,4 +37,23 @@ services:
     ports:
       - 1025:1025 # smtp server
       - 8025:8025 # web ui
+    restart: unless-stopped
+  
+  # Jaeger - trace collection and visualization
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: spamma-jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+      - "9411:9411"     # Zipkin receiver (for compatibility)
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:14269/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 

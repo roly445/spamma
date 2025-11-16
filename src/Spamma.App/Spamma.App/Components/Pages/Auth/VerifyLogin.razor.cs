@@ -12,9 +12,6 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Components.Pages.Auth;
 
-/// <summary>
-/// Backing code for the VerifyLogin component, which handles magic link authentication verification.
-/// </summary>
 public partial class VerifyLogin(
     ICommander commander,
     NavigationManager navigation,

@@ -12,10 +12,6 @@ using Spamma.Modules.UserManagement.Tests.Fixtures;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.CommandHandlers.Passkey;
 
-/// <summary>
-/// Tests for RegisterPasskeyCommandHandler.
-/// Tests the passkey registration flow including user authentication verification and save operations.
-/// </summary>
 public class RegisterPasskeyCommandHandlerTests
 {
     private readonly Mock<IPasskeyRepository> _passkeyRepositoryMock;

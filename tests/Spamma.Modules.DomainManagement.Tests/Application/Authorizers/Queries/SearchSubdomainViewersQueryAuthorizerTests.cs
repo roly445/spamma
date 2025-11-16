@@ -4,9 +4,6 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.Authorizers.Queries;
 
-/// <summary>
-/// Tests for SearchSubdomainViewersQueryAuthorizer to verify authorization requirements.
-/// </summary>
 public class SearchSubdomainViewersQueryAuthorizerTests
 {
     [Fact]

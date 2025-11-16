@@ -86,5 +86,3 @@ public static class AuthenticationStateExtensions
             viewableSubdomains);
     }
 }
-
-

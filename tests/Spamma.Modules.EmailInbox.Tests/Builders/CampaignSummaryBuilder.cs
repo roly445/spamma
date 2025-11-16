@@ -2,9 +2,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Builders;
 
-/// <summary>
-/// Fluent builder for CampaignSummary read model to support test data setup.
-/// </summary>
 public class CampaignSummaryBuilder
 {
     private Guid _campaignId = Guid.NewGuid();

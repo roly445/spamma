@@ -31,6 +31,7 @@
     </PackageReference>
     <PackageReference Include="Testcontainers" Version="4.1.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
+  <PackageReference Include="Grpc.Core" Version="2.46.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,5 +46,10 @@
   </ItemGroup>
 
   <Import Project="..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
+
+  <ItemGroup>
+    <!-- Exclude corrupted test file; replaced by IntegrationNotifierHttpTests and IntegrationNotifierGrpcTests -->
+    <Compile Remove="Infrastructure/Services/PushNotificationService/IntegrationNotifierTests.cs" />
+  </ItemGroup>
 
 </Project>

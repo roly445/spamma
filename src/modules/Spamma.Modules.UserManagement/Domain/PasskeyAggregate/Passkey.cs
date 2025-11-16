@@ -6,10 +6,6 @@ using Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
-/// <summary>
-/// Aggregate root for managing user passkeys.
-/// Represents a WebAuthn credential bound to a user account, enabling passwordless authentication.
-/// </summary>
 public partial class Passkey : AggregateRoot
 {
     private Passkey()

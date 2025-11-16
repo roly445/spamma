@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.Base;
 
-/// <summary>
-/// Code-behind for the confirm modal wrapper component.
-/// </summary>
 public partial class ConfirmModal
 {
     [Parameter]
@@ -49,7 +46,7 @@ public partial class ConfirmModal
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    private string IconBgClass => Variant switch
+    private string IconBgClass => this.Variant switch
     {
         "danger" => "bg-red-600",
     "warning" => "bg-yellow-500",
@@ -57,7 +54,7 @@ public partial class ConfirmModal
         _ => "bg-blue-600",
     };
 
-    private string ConfirmButtonClasses => Variant switch
+    private string ConfirmButtonClasses => this.Variant switch
     {
         "danger" => "bg-red-600 hover:bg-red-700 text-white",
     "warning" => "bg-yellow-500 hover:bg-yellow-600 text-white",
@@ -67,13 +64,13 @@ public partial class ConfirmModal
 
     private async Task Confirm()
     {
-        if (OnConfirm.HasDelegate)
+        if (this.OnConfirm.HasDelegate)
         {
-            await OnConfirm.InvokeAsync();
+            await this.OnConfirm.InvokeAsync();
         }
         else
         {
-            await OnClose.InvokeAsync();
+            await this.OnClose.InvokeAsync();
         }
     }
 }

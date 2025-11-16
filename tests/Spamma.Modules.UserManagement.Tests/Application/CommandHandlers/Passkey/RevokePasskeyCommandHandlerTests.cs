@@ -14,10 +14,6 @@ using Spamma.Modules.UserManagement.Tests.Fixtures;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.CommandHandlers.Passkey;
 
-/// <summary>
-/// Tests for RevokePasskeyCommandHandler.
-/// Tests the passkey revocation flow including authorization checks and save operations.
-/// </summary>
 public class RevokePasskeyCommandHandlerTests
 {
     private readonly Mock<IPasskeyRepository> _passkeyRepositoryMock;

@@ -24,10 +24,41 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
     private bool showRevokeModal;
     private Guid? revokeApiKeyId;
     private string? revokeApiKeyName;
+    private string selectedExpiry = "never";
+    private string? customExpiryDate;
+    private KeyFilter filterStatus = KeyFilter.All;
+
+    private enum KeyFilter
+    {
+        All,
+        Active,
+        Expired,
+        Revoked,
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await this.LoadApiKeys();
+    }
+
+    private static bool IsExpired(ApiKeySummary apiKey)
+    {
+        return apiKey.WhenExpires != DateTimeOffset.MaxValue && DateTimeOffset.UtcNow > apiKey.WhenExpires;
+    }
+
+    private static string GetKeyBackgroundColor(ApiKeySummary apiKey)
+    {
+        if (apiKey.IsRevoked)
+        {
+            return "bg-gray-50";
+        }
+
+        if (IsExpired(apiKey))
+        {
+            return "bg-yellow-50";
+        }
+
+        return "bg-white";
     }
 
     private async Task LoadApiKeys()
@@ -67,12 +98,17 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
             var command = new Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys.CreateApiKeyCommand(
                 this.createModel.Name);
 
+            // Set the expiry date based on selection
+            command.WhenExpires = this.CalculateExpiryDate();
+
             var result = await commander.Send(command);
 
             if (result.Status == CommandResultStatus.Succeeded)
             {
                 this.createdKeyValue = result.Data.KeyValue;
                 this.createModel = new CreateApiKeyModel(); // Reset form
+                this.selectedExpiry = "never"; // Reset expiry selection
+                this.customExpiryDate = null; // Reset custom date
                 notificationService.ShowSuccess("API key created successfully!");
                 await this.LoadApiKeys(); // Refresh the list
                 this.showCreateModal = false;
@@ -92,9 +128,25 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
         }
     }
 
+    private DateTimeOffset CalculateExpiryDate()
+    {
+        return this.selectedExpiry switch
+        {
+            "30" => DateTimeOffset.UtcNow.AddDays(30),
+            "90" => DateTimeOffset.UtcNow.AddDays(90),
+            "180" => DateTimeOffset.UtcNow.AddDays(180),
+            "365" => DateTimeOffset.UtcNow.AddDays(365),
+            "custom" when !string.IsNullOrEmpty(this.customExpiryDate) && DateTime.TryParse(this.customExpiryDate, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var customDate) =>
+                new DateTimeOffset(customDate, TimeSpan.Zero),
+            _ => DateTimeOffset.MaxValue, // "never" - set to max date
+        };
+    }
+
     private async Task OpenCreateModal()
     {
         this.showCreateModal = true;
+        this.selectedExpiry = "never"; // Reset to default
+        this.customExpiryDate = null;
 
         // Defer focus until the modal is rendered
         await Task.Yield();
@@ -182,6 +234,22 @@ public partial class ApiKeys(ICommander commander, IQuerier querier, INotificati
             await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", this.createdKeyValue);
             notificationService.ShowSuccess("API key copied to clipboard!");
         }
+    }
+
+    private void SetFilter(KeyFilter filter)
+    {
+        this.filterStatus = filter;
+    }
+
+    private List<ApiKeySummary> GetFilteredApiKeys()
+    {
+        return this.filterStatus switch
+        {
+            KeyFilter.Active => this.apiKeys.Where(k => !k.IsRevoked && !IsExpired(k)).ToList(),
+            KeyFilter.Expired => this.apiKeys.Where(k => !k.IsRevoked && IsExpired(k)).ToList(),
+            KeyFilter.Revoked => this.apiKeys.Where(k => k.IsRevoked).ToList(),
+            _ => this.apiKeys,
+        };
     }
 
     private sealed class CreateApiKeyModel

@@ -5,10 +5,6 @@ using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
-/// <summary>
-/// Tests for received email validation rules.
-/// Emails must have valid domain, subdomain, and at least one recipient address.
-/// </summary>
 public class ReceivedEmailCommandValidatorTests
 {
     private readonly ReceivedEmailCommandValidator _validator = new();

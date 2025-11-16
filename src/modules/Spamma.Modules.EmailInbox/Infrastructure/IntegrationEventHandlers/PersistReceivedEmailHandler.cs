@@ -14,11 +14,6 @@ using CommandEmailAddress = Spamma.Modules.EmailInbox.Client.Application.Command
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.IntegrationEventHandlers;
 
-/// <summary>
-/// Handles EmailReceivedIntegrationEvent asynchronously via CAP.
-/// Decouples email acceptance from expensive database writes and secondary operations.
-/// Allows SMTP to accept thousands of concurrent emails without blocking on database operations.
-/// </summary>
 public class PersistReceivedEmailHandler(
     ILogger<PersistReceivedEmailHandler> logger,
     ICommander commander) : ICapSubscribe

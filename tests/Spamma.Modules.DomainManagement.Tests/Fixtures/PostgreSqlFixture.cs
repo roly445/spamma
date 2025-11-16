@@ -4,10 +4,6 @@ using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.DomainManagement.Tests.Fixtures;
 
-/// <summary>
-/// Base fixture for integration tests using a PostgreSQL Testcontainer.
-/// Provides a real Marten document session connected to a containerized database.
-/// </summary>
 public class PostgreSqlFixture : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
@@ -19,22 +15,22 @@ public class PostgreSqlFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _container = new PostgreSqlBuilder()
+        this._container = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
             .WithDatabase("spamma_test")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .Build();
 
-        await _container.StartAsync();
+        await this._container.StartAsync();
 
-        ConnectionString = _container.GetConnectionString();
+        this.ConnectionString = this._container.GetConnectionString();
 
         // Configure Marten with the test database
         var services = new ServiceCollection();
         services.AddMarten(opts =>
         {
-            opts.Connection(ConnectionString);
+            opts.Connection(this.ConnectionString);
             opts.DatabaseSchemaName = "public";
 
             // Configure DomainManagement projections and document identity mappings
@@ -42,30 +38,30 @@ public class PostgreSqlFixture : IAsyncLifetime
         });
 
         var provider = services.BuildServiceProvider();
-        _store = provider.GetRequiredService<IDocumentStore>();
+        this._store = provider.GetRequiredService<IDocumentStore>();
 
         // Create schema and apply all migrations
-        await _store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
+        await this._store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
 
-        Session = _store.LightweightSession();
+        this.Session = this._store.LightweightSession();
     }
 
     public async Task DisposeAsync()
     {
-        if (Session != null)
+        if (this.Session != null)
         {
-            await Session.DisposeAsync();
+            await this.Session.DisposeAsync();
         }
 
-        if (_store != null)
+        if (this._store != null)
         {
-            _store.Dispose();
+            this._store.Dispose();
         }
 
-        if (_container != null)
+        if (this._container != null)
         {
-            await _container.StopAsync();
-            await _container.DisposeAsync();
+            await this._container.StopAsync();
+            await this._container.DisposeAsync();
         }
     }
 }

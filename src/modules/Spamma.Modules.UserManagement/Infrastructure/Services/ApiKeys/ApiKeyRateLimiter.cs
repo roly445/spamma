@@ -2,9 +2,6 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys;
 
-/// <summary>
-/// Distributed cache-based rate limiter for API keys.
-/// </summary>
 internal class ApiKeyRateLimiter(IDistributedCache cache) : IApiKeyRateLimiter
 {
     // Rate limits: 1000 requests per hour per API key

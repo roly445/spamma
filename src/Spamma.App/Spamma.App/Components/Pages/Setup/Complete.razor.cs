@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
-/// <summary>
-/// Code-behind for the setup completion page.
-/// </summary>
 public partial class Complete(
     IInMemorySetupAuthService setupAuthService,
     IAppConfigurationService appConfigurationService,

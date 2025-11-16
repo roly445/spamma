@@ -5,10 +5,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
-/// <summary>
-/// Tests edge cases for RecordCampaignCaptureValidator.
-/// Focus: String length boundaries, empty strings, whitespace.
-/// </summary>
 public class RecordCampaignCaptureValidatorTests
 {
     private readonly RecordCampaignCaptureValidator _validator = new();
@@ -25,7 +21,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -43,7 +39,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -64,7 +60,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -85,7 +81,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -106,7 +102,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -128,7 +124,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -147,7 +143,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -169,7 +165,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -190,7 +186,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -208,7 +204,7 @@ public class RecordCampaignCaptureValidatorTests
             ReceivedAt: DateTimeOffset.UtcNow);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();

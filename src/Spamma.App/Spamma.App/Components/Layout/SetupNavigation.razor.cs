@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Components.Layout;
 
-/// <summary>
-/// Backing logic for the setup navigation component.
-/// </summary>
 public partial class SetupNavigation
 {
     [CascadingParameter]

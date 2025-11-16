@@ -7,9 +7,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 
-/// <summary>
-/// Tests for SmtpCertificateService certificate detection.
-/// </summary>
 public class SmtpCertificateServiceTests
 {
     [Fact]
@@ -201,9 +198,6 @@ public class SmtpCertificateServiceTests
         }
     }
 
-    /// <summary>
-    /// Test: Certificate with password "letmein" loads successfully (generated certs).
-    /// </summary>
     [Fact]
     public void FindCertificate_CertificateWithPassword_LoadsWithPassword()
     {
@@ -250,9 +244,6 @@ public class SmtpCertificateServiceTests
         }
     }
 
-    /// <summary>
-    /// Test: Certificate without password loads with fallback (manually added certs).
-    /// </summary>
     [Fact]
     public void FindCertificate_CertificateWithoutPassword_LoadsWithoutPassword()
     {

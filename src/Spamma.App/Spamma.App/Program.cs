@@ -52,23 +52,42 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure OpenTelemetry for logs, metrics, and traces
 // Uses OTLP exporter for maximum flexibility with any backend
-// Configure endpoint via environment: OTEL_EXPORTER_OTLP_ENDPOINT=http://your-backend:4317
+// Configure endpoint via appsettings or environment: OTEL_EXPORTER_OTLP_ENDPOINT
+var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"]
+    ?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+    ?? "http://localhost:4317";
+
+// Log OTLP configuration
+Console.WriteLine($"[OTEL] Configuring OpenTelemetry with endpoint: {otlpEndpoint}");
+
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing =>
+    {
+        Console.WriteLine("[OTEL] Configuring tracing with AspNetCore, HttpClient, and OTLP exporter");
         tracing
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddOtlpExporter())
+            .AddOtlpExporter(opts => opts.Endpoint = new Uri(otlpEndpoint));
+    })
     .WithMetrics(metrics =>
+    {
+        Console.WriteLine("[OTEL] Configuring metrics with AspNetCore, HttpClient, Runtime, and OTLP exporter");
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
-            .AddOtlpExporter())
+            .AddOtlpExporter(opts => opts.Endpoint = new Uri(otlpEndpoint));
+    })
     .ConfigureResource(r => r.AddService("spamma"));
 
 builder.Logging.AddOpenTelemetry(options =>
-    options.AddOtlpExporter());
+    options.AddOtlpExporter(opts =>
+    {
+        Console.WriteLine("[OTEL] Configuring logging with OTLP exporter");
+        opts.Endpoint = new Uri(otlpEndpoint);
+    }));
+
+Console.WriteLine("[OTEL] OpenTelemetry initialization complete\n");
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -325,6 +344,7 @@ else
 }
 
 app.UseAuthorization();
+
 app.UseAntiforgery();
 app.UseSession();
 app.UseAcmeChallenge();
@@ -352,6 +372,17 @@ app.MapRazorComponents<App>()
 app.AddUserManagementApi()
     .AddDomainManagementApi()
     .AddEmailInboxApi();
+
+// Map gRPC services
+app.MapGrpcService<Spamma.Modules.EmailInbox.Infrastructure.Services.EmailPushGrpcService>();
+
+// Configure PushNotificationManager to send SignalR notifications
+var pushNotificationManager = app.Services.GetRequiredService<Spamma.Modules.EmailInbox.Infrastructure.Services.PushNotificationManager>();
+using (var scope = app.Services.CreateScope())
+{
+    var clientNotifierService = scope.ServiceProvider.GetRequiredService<IClientNotifierService>();
+    pushNotificationManager.SetClientNotifier(clientNotifierService);
+}
 
 // Map API endpoints organized by feature
 app.MapGeneralApiEndpoints();

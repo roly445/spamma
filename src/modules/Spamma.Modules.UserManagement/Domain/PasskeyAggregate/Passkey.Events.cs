@@ -2,9 +2,6 @@ using Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
-/// <summary>
-/// Event handling for the Passkey aggregate root.
-/// </summary>
 public partial class Passkey
 {
     protected override void ApplyEvent(object @event)

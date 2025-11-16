@@ -1,12 +1,9 @@
-﻿using BluQube.Constants;
+using BluQube.Constants;
 using Spamma.App.Client.Components.UserControls.Domain;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the domain details page - changing domain functionality.
-/// </summary>
 public partial class DomainDetails
 {
     private SuspendDomain? _suspendDomain;

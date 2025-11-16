@@ -6,9 +6,6 @@ using Spamma.Tests.Common.Verification;
 
 namespace Spamma.Modules.EmailInbox.Tests.Domain;
 
-/// <summary>
-/// Tests for email favorite functionality in the Email aggregate.
-/// </summary>
 public class EmailFavoriteTests
 {
     [Fact]

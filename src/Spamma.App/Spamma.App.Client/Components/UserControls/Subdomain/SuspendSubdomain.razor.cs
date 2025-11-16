@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -8,9 +8,6 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Components.UserControls.Subdomain;
 
-/// <summary>
-/// Bcking code for the suspend subdomain modal.
-/// </summary>
 public partial class SuspendSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;

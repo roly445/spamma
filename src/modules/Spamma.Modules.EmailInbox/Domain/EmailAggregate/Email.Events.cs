@@ -1,4 +1,4 @@
-﻿using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
+using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 

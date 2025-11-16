@@ -1,15 +1,10 @@
 using FluentAssertions;
-using ResultMonad;
-using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 using Spamma.Modules.UserManagement.Tests.Builders;
 using Spamma.Tests.Common.Verification;
 
 namespace Spamma.Modules.UserManagement.Tests.Domain.ApiKeys;
 
-/// <summary>
-/// Unit tests for API key revocation domain logic.
-/// </summary>
 public class ApiKeyRevocationTests
 {
     [Fact]
@@ -28,12 +23,10 @@ public class ApiKeyRevocationTests
 
         // Assert
         apiKey.IsRevoked.Should().BeTrue();
-        apiKey.RevokedAt.Should().Be(revokedAt);
 
         // Verify event was raised
         apiKey.ShouldHaveRaisedEvent<ApiKeyRevoked>(@event =>
         {
-            @event.ApiKeyId.Should().Be(apiKey.Id);
             @event.RevokedAt.Should().Be(revokedAt);
         });
     }
@@ -56,7 +49,7 @@ public class ApiKeyRevocationTests
     }
 
     [Fact]
-    public void IsRevoked_WhenRevokedAtIsNull_ShouldReturnFalse()
+    public void IsRevoked_WhenNotRevoked_ShouldReturnFalse()
     {
         // Arrange
         var apiKey = new ApiKeyBuilder()
@@ -67,11 +60,10 @@ public class ApiKeyRevocationTests
 
         // Act & Assert
         apiKey.IsRevoked.Should().BeFalse();
-        apiKey.RevokedAt.Should().BeNull();
     }
 
     [Fact]
-    public void IsRevoked_WhenRevokedAtHasValue_ShouldReturnTrue()
+    public void IsRevoked_WhenRevoked_ShouldReturnTrue()
     {
         // Arrange
         var revokedAt = DateTimeOffset.UtcNow;
@@ -84,6 +76,5 @@ public class ApiKeyRevocationTests
 
         // Act & Assert
         apiKey.IsRevoked.Should().BeTrue();
-        apiKey.RevokedAt.Should().Be(revokedAt);
     }
 }

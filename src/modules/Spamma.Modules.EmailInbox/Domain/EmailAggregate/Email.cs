@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using ResultMonad;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.EmailInbox.Client.Contracts;

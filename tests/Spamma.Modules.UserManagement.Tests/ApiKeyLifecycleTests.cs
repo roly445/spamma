@@ -23,10 +23,6 @@ using Spamma.Modules.UserManagement.Tests.Integration;
 
 namespace Spamma.Modules.UserManagement.Tests;
 
-/// <summary>
-/// Integration tests for the full API key creation lifecycle.
-/// Tests command handler with real repository and event publishing.
-/// </summary>
 public class ApiKeyLifecycleTests : IClassFixture<PostgreSqlFixture>
 {
     private readonly PostgreSqlFixture _fixture;

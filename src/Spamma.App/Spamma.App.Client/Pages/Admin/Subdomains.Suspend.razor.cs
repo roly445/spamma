@@ -1,11 +1,8 @@
-﻿using Spamma.App.Client.Components.UserControls.Subdomain;
+using Spamma.App.Client.Components.UserControls.Subdomain;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the subdomains management page - suspend subdomain functionality.
-/// </summary>
 public partial class Subdomains
 {
     private SuspendSubdomain? _suspendSubdomain;

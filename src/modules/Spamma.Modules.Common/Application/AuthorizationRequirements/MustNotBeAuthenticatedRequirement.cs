@@ -12,9 +12,9 @@ public class MustNotBeAuthenticatedRequirement : IAuthorizationRequirement
     {
         public Task<AuthorizationResult> Handle(MustNotBeAuthenticatedRequirement request, CancellationToken cancellationToken = default)
         {
-            var context = httpContextAccessor.HttpContext;
+            var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
             return Task.FromResult(
-                context!.User.Identity!.IsAuthenticated ? AuthorizationResult.Fail() : AuthorizationResult.Succeed());
+                user.IsAuthenticated ? AuthorizationResult.Fail() : AuthorizationResult.Succeed());
         }
     }
 }

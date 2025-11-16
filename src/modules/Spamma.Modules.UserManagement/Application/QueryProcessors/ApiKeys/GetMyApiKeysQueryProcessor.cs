@@ -34,9 +34,10 @@ public class GetMyApiKeysQueryProcessor(IDocumentSession session, IHttpContextAc
         var apiKeySummaries = apiKeys.Select(apiKey => new ApiKeySummary(
             apiKey.Id,
             apiKey.Name,
-            apiKey.CreatedAt.DateTime,
+            apiKey.CreatedAt.UtcDateTime,
             apiKey.IsRevoked,
-            apiKey.RevokedAt?.DateTime));
+            apiKey.RevokedAt.HasValue ? apiKey.RevokedAt.Value.UtcDateTime : (DateTime?)null,
+            apiKey.ExpiresAt ?? DateTimeOffset.MaxValue));
 
         return QueryResult<GetMyApiKeysQueryResult>.Succeeded(new GetMyApiKeysQueryResult(apiKeySummaries));
     }

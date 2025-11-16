@@ -5,14 +5,8 @@ using Xunit;
 
 namespace Spamma.App.Tests.Infrastructure.Services;
 
-/// <summary>
-/// Integration tests for <see cref="AcmeChallengeServer"/>.
-/// </summary>
 public class AcmeChallengeServerTests
 {
-    /// <summary>
-    /// Test: Register challenge stores token and key authentication.
-    /// </summary>
     [Fact]
     public async Task RegisterChallengeAsync_ValidTokenAndKeyAuth_StoresSuccessfully()
     {
@@ -32,9 +26,6 @@ public class AcmeChallengeServerTests
         Assert.Equal(keyAuth, storedKeyAuth);
     }
 
-    /// <summary>
-    /// Test: Get challenge returns stored key authentication.
-    /// </summary>
     [Fact]
     public async Task GetChallenge_ExistingToken_ReturnsKeyAuth()
     {
@@ -53,9 +44,6 @@ public class AcmeChallengeServerTests
         Assert.Equal(keyAuth, retrieved);
     }
 
-    /// <summary>
-    /// Test: Get challenge returns null for non-existent token.
-    /// </summary>
     [Fact]
     public void GetChallenge_NonExistentToken_ReturnsNull()
     {
@@ -72,9 +60,6 @@ public class AcmeChallengeServerTests
         Assert.Null(retrieved);
     }
 
-    /// <summary>
-    /// Test: Clear challenges removes all stored tokens.
-    /// </summary>
     [Fact]
     public async Task ClearChallengesAsync_MultipleTokens_RemovesAll()
     {
@@ -97,9 +82,6 @@ public class AcmeChallengeServerTests
         Assert.Null(retrieved2);
     }
 
-    /// <summary>
-    /// Test: Multiple tokens can be registered independently.
-    /// </summary>
     [Fact]
     public async Task RegisterChallengeAsync_MultipleTokens_StoresEachIndependently()
     {
@@ -124,9 +106,6 @@ public class AcmeChallengeServerTests
         Assert.Equal(keyAuth2, retrieved2);
     }
 
-    /// <summary>
-    /// Test: Registering same token twice updates the value.
-    /// </summary>
     [Fact]
     public async Task RegisterChallengeAsync_DuplicateToken_UpdatesValue()
     {
@@ -147,9 +126,6 @@ public class AcmeChallengeServerTests
         Assert.Equal(keyAuth2, retrieved);
     }
 
-    /// <summary>
-    /// Test: Logger is invoked when challenge is registered.
-    /// </summary>
     [Fact]
     public async Task RegisterChallengeAsync_LogsInformation()
     {
@@ -174,9 +150,6 @@ public class AcmeChallengeServerTests
             Times.Once);
     }
 
-    /// <summary>
-    /// Test: Logger is invoked when challenges are cleared.
-    /// </summary>
     [Fact]
     public async Task ClearChallengesAsync_LogsInformation()
     {
@@ -201,9 +174,6 @@ public class AcmeChallengeServerTests
             Times.Once);
     }
 
-    /// <summary>
-    /// Test: Thread-safety with concurrent registrations.
-    /// </summary>
     [Fact]
     public async Task RegisterChallengeAsync_ConcurrentRegistrations_AllSucceed()
     {

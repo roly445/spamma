@@ -1,12 +1,9 @@
-﻿using BluQube.Constants;
+using BluQube.Constants;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the users admin page - unsuspend user functionality.
-/// </summary>
 public partial class Users
 {
     private bool showUnsuspendModal;

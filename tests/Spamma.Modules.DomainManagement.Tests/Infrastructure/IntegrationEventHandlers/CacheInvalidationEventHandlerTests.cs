@@ -15,13 +15,13 @@ public class CacheInvalidationEventHandlerTests
 
     public CacheInvalidationEventHandlerTests()
     {
-        _subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
-        _chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<CacheInvalidationEventHandler>>();
-        _handler = new CacheInvalidationEventHandler(
-            _subdomainCacheMock.Object,
-            _chaosAddressCacheMock.Object,
-            _loggerMock.Object);
+        this._subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
+        this._chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<CacheInvalidationEventHandler>>();
+        this._handler = new CacheInvalidationEventHandler(
+            this._subdomainCacheMock.Object,
+            this._chaosAddressCacheMock.Object,
+            this._loggerMock.Object);
     }
 
     [Fact]
@@ -32,15 +32,15 @@ public class CacheInvalidationEventHandlerTests
             SubdomainId: Guid.NewGuid(),
             DomainName: "example.spamma.io");
 
-        _subdomainCacheMock
+        this._subdomainCacheMock
             .Setup(x => x.InvalidateAsync("example.spamma.io", It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        await _handler.OnSubdomainStatusChanged(ev);
+        await this._handler.OnSubdomainStatusChanged(ev);
 
         // Assert
-        _subdomainCacheMock.Verify(x => x.InvalidateAsync("example.spamma.io", It.IsAny<CancellationToken>()), Times.Once);
+        this._subdomainCacheMock.Verify(x => x.InvalidateAsync("example.spamma.io", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -51,15 +51,15 @@ public class CacheInvalidationEventHandlerTests
             SubdomainId: Guid.NewGuid(),
             DomainName: "test.spamma.io");
 
-        _subdomainCacheMock
+        this._subdomainCacheMock
             .Setup(x => x.InvalidateAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        await _handler.OnSubdomainStatusChanged(ev);
+        await this._handler.OnSubdomainStatusChanged(ev);
 
         // Assert
-        _loggerMock.Verify(
+        this._loggerMock.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
@@ -78,15 +78,15 @@ public class CacheInvalidationEventHandlerTests
             DomainName: "failing.spamma.io");
 
         var exception = new InvalidOperationException("Cache error");
-        _subdomainCacheMock
+        this._subdomainCacheMock
             .Setup(x => x.InvalidateAsync("failing.spamma.io", It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
         // Act
-        await _handler.OnSubdomainStatusChanged(ev);
+        await this._handler.OnSubdomainStatusChanged(ev);
 
         // Assert
-        _loggerMock.Verify(
+        this._loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
@@ -105,15 +105,15 @@ public class CacheInvalidationEventHandlerTests
             ChaosAddressId: Guid.NewGuid(),
             SubdomainId: subdomainId);
 
-        _chaosAddressCacheMock
+        this._chaosAddressCacheMock
             .Setup(x => x.InvalidateBySubdomainAsync(subdomainId, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        await _handler.OnChaosAddressUpdated(ev);
+        await this._handler.OnChaosAddressUpdated(ev);
 
         // Assert
-        _chaosAddressCacheMock.Verify(x => x.InvalidateBySubdomainAsync(subdomainId, It.IsAny<CancellationToken>()), Times.Once);
+        this._chaosAddressCacheMock.Verify(x => x.InvalidateBySubdomainAsync(subdomainId, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -125,15 +125,15 @@ public class CacheInvalidationEventHandlerTests
             ChaosAddressId: Guid.NewGuid(),
             SubdomainId: subdomainId);
 
-        _chaosAddressCacheMock
+        this._chaosAddressCacheMock
             .Setup(x => x.InvalidateBySubdomainAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        await _handler.OnChaosAddressUpdated(ev);
+        await this._handler.OnChaosAddressUpdated(ev);
 
         // Assert
-        _loggerMock.Verify(
+        this._loggerMock.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
@@ -153,15 +153,15 @@ public class CacheInvalidationEventHandlerTests
             SubdomainId: subdomainId);
 
         var exception = new InvalidOperationException("Cache error");
-        _chaosAddressCacheMock
+        this._chaosAddressCacheMock
             .Setup(x => x.InvalidateBySubdomainAsync(subdomainId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(exception);
 
         // Act
-        await _handler.OnChaosAddressUpdated(ev);
+        await this._handler.OnChaosAddressUpdated(ev);
 
         // Assert
-        _loggerMock.Verify(
+        this._loggerMock.Verify(
             x => x.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),

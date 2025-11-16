@@ -17,10 +17,10 @@ public class SendAuthenticationEmailToUserTests
 
     public SendAuthenticationEmailToUserTests()
     {
-        _authTokenProviderMock = new Mock<IAuthTokenProvider>(MockBehavior.Strict);
-        _emailSenderMock = new Mock<IEmailSender>(MockBehavior.Strict);
-        _settings = Options.Create(new Settings { BaseUri = "https://spamma.io" });
-        _subscriber = new SendAuthenticationEmailToUser(_authTokenProviderMock.Object, _emailSenderMock.Object, _settings);
+        this._authTokenProviderMock = new Mock<IAuthTokenProvider>(MockBehavior.Strict);
+        this._emailSenderMock = new Mock<IEmailSender>(MockBehavior.Strict);
+        this._settings = Options.Create(new Settings { BaseUri = "https://spamma.io" });
+        this._subscriber = new SendAuthenticationEmailToUser(this._authTokenProviderMock.Object, this._emailSenderMock.Object, this._settings);
     }
 
     [Fact]
@@ -38,12 +38,12 @@ public class SendAuthenticationEmailToUserTests
             EmailAddress: "john@example.com",
             WhenHappened: DateTime.UtcNow);
 
-        _authTokenProviderMock
+        this._authTokenProviderMock
             .Setup(x => x.GenerateAuthenticationToken(It.Is<IAuthTokenProvider.AuthenticationTokenModel>(
                 m => m.UserId == userId && m.SecurityStamp == securityStamp && m.AuthenticationAttemptId == authAttemptId)))
             .Returns(Result.Ok("generated-token-abc123"));
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.Is<string>(name => name == "John Doe"),
                 It.Is<string>(email => email == "john@example.com"),
@@ -53,10 +53,10 @@ public class SendAuthenticationEmailToUserTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
-        _emailSenderMock.Verify(
+        this._emailSenderMock.Verify(
             x => x.SendEmailAsync(
                 "John Doe",
                 "john@example.com",
@@ -78,13 +78,13 @@ public class SendAuthenticationEmailToUserTests
             EmailAddress: "test@example.com",
             WhenHappened: DateTime.UtcNow);
 
-        _authTokenProviderMock
+        this._authTokenProviderMock
             .Setup(x => x.GenerateAuthenticationToken(It.IsAny<IAuthTokenProvider.AuthenticationTokenModel>()))
             .Returns(Result.Ok("test+token/special=chars"));
 
         List<Tuple<EmailTemplateSection, System.Collections.Immutable.ImmutableArray<string>>>? capturedEmailBody = null;
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -96,7 +96,7 @@ public class SendAuthenticationEmailToUserTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
         capturedEmailBody.Should().NotBeNull();
@@ -116,13 +116,13 @@ public class SendAuthenticationEmailToUserTests
             EmailAddress: "test@example.com",
             WhenHappened: DateTime.UtcNow);
 
-        _authTokenProviderMock
+        this._authTokenProviderMock
             .Setup(x => x.GenerateAuthenticationToken(It.IsAny<IAuthTokenProvider.AuthenticationTokenModel>()))
             .Returns(Result.Ok("token123"));
 
         List<Tuple<EmailTemplateSection, System.Collections.Immutable.ImmutableArray<string>>>? capturedEmailBody = null;
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -134,7 +134,7 @@ public class SendAuthenticationEmailToUserTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
         capturedEmailBody.Should().NotBeNull();
@@ -154,15 +154,15 @@ public class SendAuthenticationEmailToUserTests
             EmailAddress: "test@example.com",
             WhenHappened: DateTime.UtcNow);
 
-        _authTokenProviderMock
+        this._authTokenProviderMock
             .Setup(x => x.GenerateAuthenticationToken(It.IsAny<IAuthTokenProvider.AuthenticationTokenModel>()))
             .Returns(Result.Fail<string>());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
-        _emailSenderMock.Verify(
+        this._emailSenderMock.Verify(
             x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -184,13 +184,13 @@ public class SendAuthenticationEmailToUserTests
             EmailAddress: "alice@example.com",
             WhenHappened: DateTime.UtcNow);
 
-        _authTokenProviderMock
+        this._authTokenProviderMock
             .Setup(x => x.GenerateAuthenticationToken(It.IsAny<IAuthTokenProvider.AuthenticationTokenModel>()))
             .Returns(Result.Ok("token"));
 
         List<Tuple<EmailTemplateSection, System.Collections.Immutable.ImmutableArray<string>>>? capturedEmailBody = null;
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -202,7 +202,7 @@ public class SendAuthenticationEmailToUserTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
         capturedEmailBody.Should().NotBeNull();

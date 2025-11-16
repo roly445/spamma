@@ -7,10 +7,6 @@ using Spamma.Modules.EmailInbox.Tests.E2E.Helpers;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E;
 
-/// <summary>
-/// End-to-end integration tests for SMTP email reception.
-/// These tests validate the complete flow: SMTP client → SMTP server → message processing → database.
-/// </summary>
 [Collection("SmtpE2E")]
 public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 {
@@ -19,8 +15,8 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 
     public SmtpEmailReceptionTests(SmtpEndToEndFixture fixture)
     {
-        _fixture = fixture;
-        _smtpClient = new SmtpClientHelper("localhost", fixture.SmtpServerPort);
+        this._fixture = fixture;
+        this._smtpClient = new SmtpClientHelper("localhost", fixture.SmtpServerPort);
     }
 
     [Fact(Skip = "E2E test infrastructure needs refactoring - projections not running correctly. See E2E_TEST_STATUS.md")]
@@ -33,7 +29,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
         var to = "test@spamma.example.com";
 
         // Act
-        var (success, message) = await _smtpClient.TrySendEmailAsync(from, to, subject, body);
+        var (success, message) = await this._smtpClient.TrySendEmailAsync(from, to, subject, body);
 
         // Assert
         success.Should().BeTrue("Email should be accepted by SMTP server");
@@ -41,7 +37,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 
         // Verify email stored in database
         await Task.Delay(500); // Allow time for async processing
-        var session = _fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
+        var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
         var email = await session.Query<EmailLookup>()
             .Where(e => e.Subject == subject)
             .FirstOrDefaultAsync();
@@ -62,7 +58,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
         var to = "user@unknowndomain.com"; // Domain not in test data
 
         // Act
-        var (success, message) = await _smtpClient.TrySendEmailAsync(from, to, subject, body);
+        var (success, message) = await this._smtpClient.TrySendEmailAsync(from, to, subject, body);
 
         // Assert
         success.Should().BeFalse("Email to unknown domain should be rejected");
@@ -70,7 +66,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 
         // Verify email NOT stored in database
         await Task.Delay(200);
-        var session = _fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
+        var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
         var email = await session.Query<EmailLookup>()
             .Where(e => e.Subject == subject)
             .FirstOrDefaultAsync();
@@ -88,7 +84,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
         var to = "chaos@spamma.example.com"; // Seeded chaos address (450)
 
         // Act
-        var (success, message) = await _smtpClient.TrySendEmailAsync(from, to, subject, body);
+        var (success, message) = await this._smtpClient.TrySendEmailAsync(from, to, subject, body);
 
         // Assert
         success.Should().BeFalse("Chaos address should return configured error code");
@@ -96,7 +92,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 
         // Verify email NOT stored (chaos addresses don't persist)
         await Task.Delay(200);
-        var session = _fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
+        var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
         var email = await session.Query<EmailLookup>()
             .Where(e => e.Subject == subject)
             .FirstOrDefaultAsync();
@@ -114,7 +110,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
         var to = "disabled@spamma.example.com"; // Seeded disabled chaos address
 
         // Act
-        var (success, message) = await _smtpClient.TrySendEmailAsync(from, to, subject, body);
+        var (success, message) = await this._smtpClient.TrySendEmailAsync(from, to, subject, body);
 
         // Assert
         success.Should().BeTrue("Disabled chaos address should fallback to normal processing");
@@ -122,7 +118,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 
         // Verify email IS stored (disabled chaos address processes normally)
         await Task.Delay(500);
-        var session = _fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
+        var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
         var email = await session.Query<EmailLookup>()
             .Where(e => e.Subject == subject)
             .FirstOrDefaultAsync();
@@ -147,14 +143,14 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
         };
 
         // Act
-        var response = await _smtpClient.SendEmailAsync(from, to, subject, body, headers);
+        var response = await this._smtpClient.SendEmailAsync(from, to, subject, body, headers);
 
         // Assert
         response.Should().Contain("250", "Campaign email should be accepted");
 
         // Verify email stored with campaign metadata
         await Task.Delay(500); // Allow time for background job processing
-        var session = _fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
+        var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
         var email = await session.Query<EmailLookup>()
             .Where(e => e.Subject == subject)
             .FirstOrDefaultAsync();
@@ -180,7 +176,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
             var from = $"sender{i}@external.com";
             var to = "test@spamma.example.com";
 
-            tasks.Add(_smtpClient.TrySendEmailAsync(from, to, subject, body));
+            tasks.Add(this._smtpClient.TrySendEmailAsync(from, to, subject, body));
         }
 
         // Act
@@ -191,7 +187,7 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
 
         // Verify all emails stored
         await Task.Delay(1000); // Allow time for all async processing
-        var session = _fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
+        var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentSession>();
         var storedEmails = await session.Query<EmailLookup>()
             .Where(e => e.Subject.StartsWith("Concurrent Test"))
             .ToListAsync();

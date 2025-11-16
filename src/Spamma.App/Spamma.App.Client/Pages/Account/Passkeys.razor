@@ -3,97 +3,94 @@
 @attribute [Authorize]
 @using Spamma.App.Client.Layout
 
-<PageTitle>Security Settings - Spamma</PageTitle>
+<PageTitle>Passkeys - Spamma</PageTitle>
 
-<div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <!-- Header provided by AccountSettingsLayout -->
-
-    <!-- Security Keys / Passkeys Section -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center">
-                <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+<div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+    <div class="px-6 py-5 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-medium text-gray-900">Passkeys</h2>
+                <p class="text-sm text-gray-500">Manage your passkeys for passwordless authentication</p>
+            </div>
+            <button @onclick="RegisterNewPasskey" class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50" disabled="@isRegistering">
+                @if (isRegistering)
+                {
+                    <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                }
+                else
+                {
+                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                </div>
-                <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Security Keys</h2>
-                    <p class="text-sm text-gray-600">Manage your passkeys for passwordless authentication</p>
-                </div>
+                }
+                Add Passkey
+            </button>
+        </div>
+    </div>
+
+    <div class="px-6 py-5">
+        <!-- Filter Section -->
+        <div class="mb-4 flex items-center gap-3">
+            <label class="text-sm text-gray-600">Show:</label>
+            <div class="flex gap-2">
+                <button @onclick="() => SetFilter(PasskeyFilter.All)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == PasskeyFilter.All ? "bg-blue-100 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    All
+                </button>
+                <button @onclick="() => SetFilter(PasskeyFilter.Active)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == PasskeyFilter.Active ? "bg-green-100 text-green-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    Active
+                </button>
+                <button @onclick="() => SetFilter(PasskeyFilter.Revoked)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == PasskeyFilter.Revoked ? "bg-red-100 text-red-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    Revoked
+                </button>
             </div>
         </div>
 
-        <div class="px-6 py-6">
-    <div class="divide-y divide-gray-200">
-        @if (isLoading)
-        {
-            <div class="px-6 py-8 text-center">
-                <div class="inline-block">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div>
+            @if (isLoading)
+            {
+                <div class="flex items-center justify-center py-8">
+                    <svg class="animate-spin h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span class="ml-2 text-gray-500">Loading your passkeys...</span>
                 </div>
-                <p class="text-gray-600 mt-2">Loading your security keys...</p>
-            </div>
-        }
-        else if (passkeys.Count == 0)
-        {
-            <div class="px-6 py-8 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No security keys</h3>
-                <p class="mt-1 text-sm text-gray-500">Get started by adding your first security key for passwordless sign-in.</p>
-                <div class="mt-6">
-                    <button
-                        @onclick="RegisterNewPasskey"
-                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                        disabled="@isRegistering">
-                        @if (isRegistering)
-                        {
-                            <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                        }
-                        Add Security Key
-                    </button>
+            }
+            else if (passkeys.Count == 0)
+            {
+                <div class="text-center py-8">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No passkeys</h3>
+                    <p class="mt-1 text-sm text-gray-500">Get started by adding your first passkey for passwordless sign-in.</p>
                 </div>
-            </div>
-        }
-        else
-        {
-            <div class="px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <button
-                        @onclick="RegisterNewPasskey"
-                        class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                        disabled="@isRegistering">
-                        @if (isRegistering)
-                        {
-                            <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-700 mr-2"></span>
-                        }
-                        else
-                        {
-                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                        }
-                        Add Another Security Key
-                    </button>
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            @bind="showRevoked"
-                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" />
-                        <span class="text-sm text-gray-700">Show revoked keys</span>
-                    </label>
-                </div>
-            </div>
-
-            <ul class="divide-y divide-gray-200">
-                @foreach (var passkey in GetFilteredPasskeys())
-                {
-                    <li class="px-6 py-4 hover:bg-gray-50">
-                        <div class="flex items-start justify-between">
+            }
+            else
+            {
+                <div class="space-y-4">
+                    @foreach (var passkey in GetFilteredPasskeys())
+                    {
+                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white">
                             <div class="flex-1">
-                                <h3 class="text-sm font-medium text-gray-900">@passkey.DisplayName</h3>
+                                <div class="flex items-center">
+                                    <h3 class="text-sm font-medium text-gray-900">@passkey.DisplayName</h3>
+                                    @if (passkey.IsRevoked)
+                                    {
+                                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Revoked
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Active
+                                        </span>
+                                    }
+                                </div>
                                 <p class="mt-1 text-xs text-gray-600">
                                     Added on @passkey.RegisteredAt.ToString("MMM d, yyyy")
                                 </p>
@@ -103,48 +100,33 @@
                                         Last used on @passkey.LastUsedAt.Value.ToString("MMM d, yyyy 'at' h:mm tt")
                                     </p>
                                 }
-                                @if (passkey.IsRevoked)
-                                {
-                                    <div class="mt-2">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Revoked
-                                        </span>
-                                    </div>
-                                }
                             </div>
                             @if (!passkey.IsRevoked)
                             {
-                                <button
-                                    @onclick="() => RevokePasskey(passkey.Id)"
-                                    class="ml-4 inline-flex items-center px-3 py-1.5 border border-red-300 shadow-sm text-xs font-medium rounded text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-                                    disabled="@isRevoking">
-                                    @if (isRevoking && revokingPasskeyId == passkey.Id)
-                                    {
-                                        <span class="animate-spin rounded-full h-3 w-3 border-b-2 border-red-700 mr-1"></span>
-                                    }
-                                    Revoke
-                                </button>
+                                <div class="ml-4">
+                                    <button
+                                        @onclick="() => RevokePasskey(passkey.Id)"
+                                        class="inline-flex items-center px-3 py-1.5 rounded-md text-sm text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50"
+                                        disabled="@isRevoking">
+                                        @if (isRevoking && revokingPasskeyId == passkey.Id)
+                                        {
+                                            <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-red-700 mr-2"></span>
+                                            <span>Revoking…</span>
+                                        }
+                                        else
+                                        {
+                                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            <span>Revoke</span>
+                                        }
+                                    </button>
+                                </div>
                             }
                         </div>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
-
-    <!-- Additional Security Info -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div class="flex">
-            <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"></path>
-                </svg>
-            </div>
-            <div class="ml-3 text-sm text-blue-700">
-                <p><strong>What are security keys?</strong> Security keys (passkeys) are a secure way to sign in to your account without needing a password. They work with your device's built-in authenticator or a physical security key.</p>
-            </div>
-        </div>
-    </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -152,12 +134,12 @@
 <!-- Security Key Name Modal -->
 @if (showNameModal)
 {
-    <ModalBase IsVisible="@showNameModal" OnClose="CloseNameModal" AllowBackdropClose="true" WidthClass="sm:max-w-md" AriaLabelledBy="security-key-name-modal-title">
+    <ModalBase IsVisible="@showNameModal" OnClose="CloseNameModal" AllowBackdropClose="true" WidthClass="@ModalBase.ModalSizes.Medium" AriaLabelledBy="security-key-name-modal-title">
         <div class="bg-white rounded-lg shadow-xl w-full" @onclick:stopPropagation="true">
             <!-- Modal Header -->
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center justify-between">
-                    <h3 id="security-key-name-modal-title" class="text-lg font-medium text-gray-900">Name Your Security Key</h3>
+                    <h3 id="security-key-name-modal-title" class="text-lg font-medium text-gray-900">Name Your Passkey</h3>
                     <button @onclick="CloseNameModal" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -168,7 +150,7 @@
 
             <!-- Modal Body -->
             <div class="px-6 py-4">
-                <p class="text-sm text-gray-600 mb-4">Choose a memorable name to identify this security key (e.g., "My YubiKey", "MacBook Pro", "iPhone").</p>
+                <p class="text-sm text-gray-600 mb-4">Choose a memorable name to identify this passkey (e.g., "My YubiKey", "MacBook Pro", "iPhone").</p>
                 <input 
                     type="text" 
                     @bind="customPasskeyName"
@@ -188,7 +170,7 @@
                     type="button"
                     @onclick="ConfirmAndRegisterPasskey"
                     class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Register
+                    Register Passkey
                 </button>
             </div>
         </div>

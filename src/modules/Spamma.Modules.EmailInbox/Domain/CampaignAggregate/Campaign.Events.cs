@@ -1,8 +1,5 @@
 namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 
-/// <summary>
-/// Partial class containing event handling for Campaign aggregate.
-/// </summary>
 public partial class Campaign
 {
     protected override void ApplyEvent(object @event)

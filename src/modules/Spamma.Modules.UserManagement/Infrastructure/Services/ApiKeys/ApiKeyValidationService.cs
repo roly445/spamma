@@ -16,7 +16,7 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             return false;
         }
 
-        // Check cache first
+        // Check cache first - note: API key is used as part of cache key; ensure cache is secure in production
         var cacheKey = $"api_key_validation:{apiKey}";
         var cachedResult = await this.cache.GetStringAsync(cacheKey, cancellationToken);
         if (cachedResult != null)
@@ -24,10 +24,9 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             return bool.Parse(cachedResult);
         }
 
-        // Generate hash of the provided key to find matching records
-        var (keyHash, _) = GenerateKeyHash(apiKey);
-
-        var apiKeyAggregate = await this.apiKeyRepository.GetByKeyHashAsync(keyHash, cancellationToken);
+        // Use repository helper to find matching aggregate via prefix hash lookup
+        // This now uses PAT pattern with O(1) prefix hash lookup and bcrypt verification
+        var apiKeyAggregate = await this.apiKeyRepository.GetByPlainKeyAsync(apiKey, cancellationToken);
         if (!apiKeyAggregate.HasValue)
         {
             // Cache negative result for 5 minutes
@@ -38,10 +37,9 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             return false;
         }
 
-        // Check if the key is expired
-        if (apiKeyAggregate.Value.IsExpired)
+        // Check if key is active (not revoked and not expired)
+        if (!apiKeyAggregate.Value.IsActive)
         {
-            // Cache negative result for 5 minutes
             await this.cache.SetStringAsync(cacheKey, "false", new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
@@ -49,34 +47,12 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             return false;
         }
 
-        // Verify the key by re-hashing with the stored salt
-        var expectedHash = GenerateKeyHash(apiKey, apiKeyAggregate.Value.Salt);
-        var isValid = expectedHash.KeyHash == apiKeyAggregate.Value.KeyHash && !apiKeyAggregate.Value.IsRevoked;
-
-        // Cache positive result for 30 minutes, negative for 5 minutes
-        await this.cache.SetStringAsync(cacheKey, isValid.ToString(), new DistributedCacheEntryOptions
+        // Positive result: cache for 30 minutes by default
+        await this.cache.SetStringAsync(cacheKey, "true", new DistributedCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = isValid ? TimeSpan.FromMinutes(30) : TimeSpan.FromMinutes(5),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
         }, cancellationToken);
 
-        return isValid;
-    }
-
-    private static string GenerateSalt()
-    {
-        var saltBytes = new byte[32];
-        RandomNumberGenerator.Fill(saltBytes);
-        return Convert.ToBase64String(saltBytes);
-    }
-
-    private static (string KeyHash, string Salt) GenerateKeyHash(string apiKey, string? salt = null)
-    {
-        salt ??= GenerateSalt();
-
-        using var hmac = new HMACSHA256(Convert.FromBase64String(salt));
-        var hashBytes = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(apiKey));
-        var keyHash = Convert.ToBase64String(hashBytes);
-
-        return (keyHash, salt);
+        return true;
     }
 }

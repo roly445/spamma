@@ -24,6 +24,7 @@
 
     <ItemGroup>
       <PackageReference Include="BluQube" Version="1.0.3" />
+      <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
       <PackageReference Include="DotNetCore.CAP" Version="8.4.1" />
       <PackageReference Include="Fido2" Version="4.0.0" />
       <PackageReference Include="Fido2.AspNet" Version="4.0.0" />
@@ -54,6 +55,9 @@
       </Compile>
       <Compile Update="Domain\PasskeyAggregate\Passkey.Events.cs">
         <DependentUpon>Passkey.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Domain\ApiKeys\ApiKey.Events.cs">
+        <DependentUpon>ApiKey.cs</DependentUpon>
       </Compile>
     </ItemGroup>
 

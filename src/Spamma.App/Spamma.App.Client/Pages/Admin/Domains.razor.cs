@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -10,9 +10,6 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the domains management page.
-/// </summary>
 public partial class Domains(
     ICommander commander,
     IQuerier querier,

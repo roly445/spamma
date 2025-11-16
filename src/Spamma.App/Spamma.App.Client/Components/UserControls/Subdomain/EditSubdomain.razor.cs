@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -7,9 +7,6 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.App.Client.Components.UserControls.Subdomain;
 
-/// <summary>
-/// Backing code for the edit subdomain modal.
-/// </summary>
 public partial class EditSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;

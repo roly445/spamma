@@ -5,4 +5,5 @@ public record ApiKeySummary(
     string Name,
     DateTime CreatedAt,
     bool IsRevoked,
-    DateTime? RevokedAt);
+    DateTime? RevokedAt,
+    DateTimeOffset WhenExpires);

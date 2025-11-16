@@ -4,9 +4,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Commands.Email;
 
-/// <summary>
-/// Tests for ToggleEmailFavoriteCommandAuthorizer to verify authorization requirements.
-/// </summary>
 public class ToggleEmailFavoriteCommandAuthorizerTests
 {
     [Fact]

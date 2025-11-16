@@ -4,9 +4,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Commands.Campaign;
 
-/// <summary>
-/// Tests for DeleteCampaignCommandAuthorizer to verify authorization requirements.
-/// </summary>
 public class DeleteCampaignCommandAuthorizerTests
 {
     [Fact]

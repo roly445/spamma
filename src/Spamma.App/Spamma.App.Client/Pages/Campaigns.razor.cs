@@ -10,9 +10,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
-/// <summary>
-/// Code-behind for the Campaigns razor component.
-/// </summary>
 [Authorize]
 public partial class Campaigns(
     IQuerier querier, ICommander commander, INotificationService notificationService)

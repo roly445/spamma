@@ -2,9 +2,6 @@ using Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 
 namespace Spamma.Modules.EmailInbox.Tests.Builders;
 
-/// <summary>
-/// Fluent builder for Campaign aggregate to support test data setup.
-/// </summary>
 public class CampaignBuilder
 {
     private Guid _campaignId = Guid.NewGuid();

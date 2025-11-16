@@ -3,15 +3,12 @@ using BluQube.Commands;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using ResultMonad;
-using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.ApiKey;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
 using Spamma.Modules.UserManagement.Client.Contracts;
-using ApiKeyAggregate = Spamma.Modules.UserManagement.Domain.ApiKeys.ApiKey;
 
 namespace Spamma.Modules.UserManagement.Application.CommandHandlers.ApiKeys;
 

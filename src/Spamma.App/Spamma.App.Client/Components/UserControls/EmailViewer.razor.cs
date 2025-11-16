@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -11,9 +11,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls;
 
-/// <summary>
-/// Backing code for the email viewer component.
-/// </summary>
 public partial class EmailViewer(
     IQuerier querier, ICommander commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
 {
@@ -54,9 +51,6 @@ public partial class EmailViewer(
     [Parameter]
     public EventCallback<SearchEmailsQueryResult.EmailSummary> OnEmailUpdated { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether to hide campaign indicators and controls. Useful when displaying email samples on campaign pages.
-    /// </summary>
     [Parameter]
     public bool HideCampaignInfo { get; set; }
 

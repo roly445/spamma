@@ -10,35 +10,42 @@
                 <h2 class="text-lg font-medium text-gray-900">API Keys</h2>
                 <p class="text-sm text-gray-500">Manage your API keys for accessing Spamma's public API.</p>
             </div>
+            <button @onclick="OpenCreateModal" class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700">
+                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Create API Key
+            </button>
         </div>
     </div>
     <div class="px-6 py-5">
-        <div>
-
-            <!-- Create API Key CTA (opens modal) -->
-            <div class="mb-6 flex items-center justify-between">
-                <div>
-                    <h3 class="text-sm font-semibold text-gray-900">Create New API Key</h3>
-                    <p class="text-xs text-gray-500">Choose a descriptive name when creating your key.</p>
-                </div>
-                <div>
-                    <button @onclick="OpenCreateModal" class="inline-flex items-center px-4 py-2 rounded-md text-sm text-white bg-blue-600 hover:bg-blue-700">
-                        <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Create API Key
-                    </button>
-                </div>
+        <!-- Filter Section -->
+        <div class="mb-4 flex items-center gap-3">
+            <label class="text-sm text-gray-600">Show:</label>
+            <div class="flex gap-2">
+                <button @onclick="() => SetFilter(KeyFilter.All)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == KeyFilter.All ? "bg-blue-100 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    All
+                </button>
+                <button @onclick="() => SetFilter(KeyFilter.Active)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == KeyFilter.Active ? "bg-green-100 text-green-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    Active
+                </button>
+                <button @onclick="() => SetFilter(KeyFilter.Expired)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == KeyFilter.Expired ? "bg-yellow-100 text-yellow-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    Expired
+                </button>
+                <button @onclick="() => SetFilter(KeyFilter.Revoked)" 
+                        class="px-3 py-1 rounded-md text-sm @(filterStatus == KeyFilter.Revoked ? "bg-red-100 text-red-700 font-medium" : "text-gray-600 hover:bg-gray-100")">
+                    Revoked
+                </button>
             </div>
+        </div>
 
-            <!-- Create API Key Modal -->
+        <div>
     
 
-            <!-- API Keys List Section -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Your API Keys</h2>
-
-                @if (isLoadingKeys)
+            @if (isLoadingKeys)
                 {
                     <div class="flex items-center justify-center py-8">
                         <svg class="animate-spin h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -61,9 +68,9 @@
                 else
                 {
                     <div class="space-y-4">
-                        @foreach (var apiKey in apiKeys.OrderByDescending(k => k.CreatedAt))
+                        @foreach (var apiKey in GetFilteredApiKeys().OrderByDescending(k => k.CreatedAt))
                         {
-                            <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg @(apiKey.IsRevoked ? "bg-gray-50" : "bg-white")">
+                            <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg @(GetKeyBackgroundColor(apiKey))">
                                 <div class="flex-1">
                                     <div class="flex items-center">
                                         <h3 class="text-sm font-medium text-gray-900">@apiKey.Name</h3>
@@ -71,6 +78,12 @@
                                         {
                                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                 Revoked
+                                            </span>
+                                        }
+                                        else if (IsExpired(apiKey))
+                                        {
+                                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                Expired
                                             </span>
                                         }
                                         else
@@ -82,6 +95,10 @@
                                     </div>
                                     <div class="mt-1 text-sm text-gray-500">
                                         Created @apiKey.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")
+                                        @if (apiKey.WhenExpires != DateTimeOffset.MaxValue)
+                                        {
+                                            <span>• Expires @apiKey.WhenExpires.ToString("MMM dd, yyyy")</span>
+                                        }
                                         @if (apiKey.IsRevoked && apiKey.RevokedAt.HasValue)
                                         {
                                             <span>• Revoked @apiKey.RevokedAt.Value.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
@@ -116,7 +133,6 @@
                         }
                     </div>
                 }
-            </div>
 
             <!-- Show Created Key (only displayed once) -->
             @if (!string.IsNullOrEmpty(createdKeyValue))
@@ -151,7 +167,7 @@
     </div>
 </div>
 
-<ModalBase IsVisible="@showCreateModal" OnClose="CloseCreateModal" AllowBackdropClose="false" WidthClass="sm:max-w-md" AriaLabelledBy="create-api-key-title">
+<ModalBase IsVisible="@showCreateModal" OnClose="CloseCreateModal" AllowBackdropClose="false" WidthClass="@ModalBase.ModalSizes.Medium" AriaLabelledBy="create-api-key-title">
         <div class="border-b border-gray-200 bg-gray-50 px-4 py-4 sm:px-6">
             <div class="flex items-center justify-between">
                 <h3 id="create-api-key-title" class="text-lg font-medium text-gray-900">Create API Key</h3>
@@ -173,11 +189,39 @@
                         <input id="name" @ref="nameInputRef" @bind="createModel.Name" @bind:event="oninput" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="e.g., Production Integration" />
                         <ValidationMessage For="@(() => createModel.Name)" class="mt-1 text-sm text-red-600" />
                     </div>
+
+                    <div>
+                        <label for="expiry" class="block text-sm font-medium text-gray-700 mb-1">Expiry</label>
+                        <select id="expiry" @bind="selectedExpiry" @bind:event="onchange" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="never">Never expires</option>
+                            <option value="30">30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="180">6 months</option>
+                            <option value="365">1 year</option>
+                            <option value="custom">Custom date</option>
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">Keys can be revoked manually at any time</p>
+                    </div>
+
+                    @if (selectedExpiry == "custom")
+                    {
+                        <div>
+                            <label for="customDate" class="block text-sm font-medium text-gray-700 mb-1">Custom Expiry Date</label>
+                            <input id="customDate" 
+                                   type="date" 
+                                   value="@customExpiryDate"
+                                   @onchange="@((ChangeEventArgs e) => customExpiryDate = e.Value?.ToString())"
+                                   min="@DateTime.UtcNow.AddDays(1).ToString("yyyy-MM-dd")"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                            <ValidationMessage For="@(() => createModel.Name)" class="mt-1 text-sm text-red-600" />
+                        </div>
+                    }
                 </div>
             </div>
 
-            <div class="flex space-x-3 border-t border-gray-200 px-4 py-4 sm:px-6">
-                <button type="submit" disabled="@isCreating" class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+            <div class="flex justify-end space-x-3 border-t border-gray-200 px-4 py-4 sm:px-6">
+                <button type="button" @onclick="CloseCreateModal" class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">Cancel</button>
+                <button type="submit" disabled="@isCreating" class="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
                     @if (isCreating)
                     {
                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -191,7 +235,6 @@
                         <span>Create</span>
                     }
                 </button>
-                <button type="button" @onclick="CloseCreateModal" class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700">Cancel</button>
             </div>
         </EditForm>
     </ModalBase>

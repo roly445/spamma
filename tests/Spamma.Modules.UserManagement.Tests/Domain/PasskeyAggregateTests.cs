@@ -4,10 +4,6 @@ using Spamma.Modules.UserManagement.Tests.Builders;
 
 namespace Spamma.Modules.UserManagement.Tests.Domain;
 
-/// <summary>
-/// Domain tests for the Passkey aggregate root.
-/// Tests business logic for passkey registration, authentication, and revocation using verification patterns.
-/// </summary>
 public class PasskeyAggregateTests
 {
     private readonly Guid _userId = Guid.NewGuid();

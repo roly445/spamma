@@ -12,13 +12,13 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
 
     public CampaignRepositoryIntegrationTests(PostgreSqlFixture fixture)
     {
-        _fixture = fixture;
+        this._fixture = fixture;
     }
 
     [Fact]
     public async Task SaveAsync_And_GetByIdAsync_NewCampaign_RoundtripSucceeds()
     {
-        var repository = new GenericRepository<Campaign>(_fixture.Session!);
+        var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaignId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
@@ -30,7 +30,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var campaign = createResult.Value;
 
         var saveResult = await repository.SaveAsync(campaign);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
         var retrievedMaybe = await repository.GetByIdAsync(campaignId);
 
         saveResult.IsSuccess.Should().BeTrue();
@@ -44,7 +44,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
     [Fact]
     public async Task GetByIdAsync_NonExistentCampaign_ReturnsNothing()
     {
-        var repository = new GenericRepository<Campaign>(_fixture.Session!);
+        var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var nonExistentId = Guid.NewGuid();
 
         var retrievedMaybe = await repository.GetByIdAsync(nonExistentId);
@@ -55,7 +55,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
     [Fact]
     public async Task SaveAsync_CampaignWithMultipleCaptures_PersistsAllMessageIds()
     {
-        var repository = new GenericRepository<Campaign>(_fixture.Session!);
+        var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaignId = Guid.NewGuid();
         var messageId1 = Guid.NewGuid();
         var messageId2 = Guid.NewGuid();
@@ -67,7 +67,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         campaign.RecordCapture(messageId3, DateTimeOffset.UtcNow);
 
         await repository.SaveAsync(campaign);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
         var retrievedMaybe = await repository.GetByIdAsync(campaignId);
 
         retrievedMaybe.HasValue.Should().BeTrue();
@@ -80,7 +80,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
     [Fact]
     public async Task SaveAsync_DeletedCampaign_PersistsDeletedState()
     {
-        var repository = new GenericRepository<Campaign>(_fixture.Session!);
+        var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaignId = Guid.NewGuid();
 
         var createResult = Campaign.Create(campaignId, Guid.NewGuid(), Guid.NewGuid(), "to-delete", Guid.NewGuid(), DateTimeOffset.UtcNow);
@@ -88,7 +88,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         campaign.Delete(DateTimeOffset.UtcNow);
 
         await repository.SaveAsync(campaign);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
         var retrievedMaybe = await repository.GetByIdAsync(campaignId);
 
         retrievedMaybe.HasValue.Should().BeTrue();
@@ -98,7 +98,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
     [Fact]
     public async Task SaveAsync_MultipleCampaigns_AllPersistIndependently()
     {
-        var repository = new GenericRepository<Campaign>(_fixture.Session!);
+        var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaign1Id = Guid.NewGuid();
         var campaign2Id = Guid.NewGuid();
 
@@ -107,7 +107,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         await repository.SaveAsync(campaign1);
         await repository.SaveAsync(campaign2);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         var retrieved1 = await repository.GetByIdAsync(campaign1Id);
         var retrieved2 = await repository.GetByIdAsync(campaign2Id);
@@ -121,7 +121,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
     [Fact]
     public async Task SaveAsync_CampaignEventSequence_MaintainsEventOrder()
     {
-        var repository = new GenericRepository<Campaign>(_fixture.Session!);
+        var repository = new GenericRepository<Campaign>(this._fixture.Session!);
         var campaignId = Guid.NewGuid();
         var messageId1 = Guid.NewGuid();
         var messageId2 = Guid.NewGuid();
@@ -131,7 +131,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         campaign.Delete(DateTimeOffset.UtcNow);
 
         await repository.SaveAsync(campaign);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
         var retrieved = await repository.GetByIdAsync(campaignId);
 
         retrieved.HasValue.Should().BeTrue();

@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.Base;
 
-/// <summary>
-/// Backing code for the slideout base component.
-/// </summary>
 public partial class SlideoutBase
 {
     [Parameter]
@@ -30,17 +27,17 @@ public partial class SlideoutBase
 
     private static string SlideInClass => "translate-x-0";
 
-    private string DirectionClass => Direction == "left" ? "left-0" : "right-0";
+    private string DirectionClass => this.Direction == "left" ? "left-0" : "right-0";
 
-    private string PaddingClass => Direction == "left" ? "pr-10" : "pl-10";
+    private string PaddingClass => this.Direction == "left" ? "pr-10" : "pl-10";
 
-    private string SlideOutClass => Direction == "left" ? "-translate-x-full" : "translate-x-full";
+    private string SlideOutClass => this.Direction == "left" ? "-translate-x-full" : "translate-x-full";
 
     private async Task HandleBackdropClick()
     {
-        if (AllowBackdropClose)
+        if (this.AllowBackdropClose)
         {
-            await OnClose.InvokeAsync();
+            await this.OnClose.InvokeAsync();
         }
     }
 }

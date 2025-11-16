@@ -5,9 +5,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
-/// <summary>
-/// Integration tests for GetEmailByIdQueryProcessor using PostgreSQL testcontainer.
-/// </summary>
 public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     public GetEmailByIdQueryProcessorTests()

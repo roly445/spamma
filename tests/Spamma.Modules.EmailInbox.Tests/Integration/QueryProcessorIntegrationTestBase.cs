@@ -11,10 +11,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
 
-/// <summary>
-/// Base class for query processor integration tests using PostgreSQL testcontainer.
-/// Provides setup for dependencies, test data seeding, and query execution via ISender.
-/// </summary>
 public class QueryProcessorIntegrationTestBase : IAsyncLifetime
 {
     private PostgreSqlFixture? _fixture;
@@ -24,22 +20,12 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
 
     protected ISender Sender => this._sender ?? throw new InvalidOperationException("Sender not initialized");
 
-    /// <summary>
-    /// Gets the querier (alias for Sender for backward compatibility with existing tests).
-    /// </summary>
     protected ISender Querier => this.Sender;
 
     protected IDocumentSession Session => this._fixture?.Session ?? throw new InvalidOperationException("Fixture not initialized");
 
-    /// <summary>
-    /// Gets the mock HTTP context accessor for setting subdomain claims.
-    /// Use AddSubdomainClaim() to add subdomain IDs that tests can access via SearchEmailsQuery.
-    /// </summary>
     protected MockHttpContextAccessor HttpContextAccessor => this._httpContextAccessor ?? throw new InvalidOperationException("HttpContextAccessor not initialized");
 
-    /// <summary>
-    /// Gets the service provider for accessing registered services like IMessageStoreProvider.
-    /// </summary>
     protected IServiceProvider ServiceProvider => this._serviceProvider ?? throw new InvalidOperationException("ServiceProvider not initialized");
 
     public async Task InitializeAsync()
@@ -126,10 +112,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Helper to create a campaign for testing.
-    /// Returns the created CampaignSummary.
-    /// </summary>
     protected async Task<CampaignSummary> CreateCampaignAsync(
         Guid? subdomainId = null,
         int totalCaptured = 5,
@@ -142,10 +124,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
             cancellationToken: cancellationToken);
     }
 
-    /// <summary>
-    /// Helper to create multiple campaigns for testing.
-    /// Returns the list of created CampaignSummary objects.
-    /// </summary>
     protected async Task<List<CampaignSummary>> CreateCampaignsAsync(
         Guid subdomainId,
         int count = 5,
@@ -158,10 +136,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
             cancellationToken);
     }
 
-    /// <summary>
-    /// Helper to create an email for testing.
-    /// Returns the created EmailLookup.
-    /// </summary>
     protected async Task<EmailLookup> CreateEmailAsync(
         Guid? subdomainId = null,
         string? subject = null,
@@ -174,10 +148,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
             cancellationToken: cancellationToken);
     }
 
-    /// <summary>
-    /// Helper to create multiple emails for testing.
-    /// Returns the list of created EmailLookup objects.
-    /// </summary>
     protected async Task<List<EmailLookup>> CreateEmailsAsync(
         Guid subdomainId,
         int count = 5,
@@ -190,30 +160,18 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
             cancellationToken);
     }
 
-    /// <summary>
-    /// Mock IHttpContextAccessor that returns an HttpContext with subdomain claims.
-    /// Tests can call AddSubdomainClaim() to add subdomain IDs that SearchEmailsQuery will use for filtering.
-    /// </summary>
     protected class MockHttpContextAccessor : IHttpContextAccessor
     {
         private readonly List<Guid> _subdomainIds = new();
 
         public HttpContext? HttpContext { get; set; }
 
-        /// <summary>
-        /// Adds a subdomain claim to the mock HttpContext.
-        /// SearchEmailsQuery will filter emails to only include this subdomain.
-        /// </summary>
-        /// <param name="subdomainId">Subdomain ID to add as a claim.</param>
         public void AddSubdomainClaim(Guid subdomainId)
         {
             this._subdomainIds.Add(subdomainId);
             this.UpdateHttpContext();
         }
 
-        /// <summary>
-        /// Clears all subdomain claims from the mock HttpContext.
-        /// </summary>
         public void ClearSubdomainClaims()
         {
             this._subdomainIds.Clear();
@@ -231,9 +189,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Mock authorization handler that always succeeds for tests.
-    /// </summary>
     private class AlwaysAuthorizeHandler : IAuthorizationHandler<MustBeAuthenticatedRequirement>
     {
         public Task<AuthorizationResult> Handle(MustBeAuthenticatedRequirement requirement, CancellationToken cancellationToken = default)
@@ -242,9 +197,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Mock authorization handler for campaign access that always succeeds for tests.
-    /// </summary>
     private class AlwaysAuthorizeCampaignAccessHandler : IAuthorizationHandler<MustHaveAccessToAtLeastOneCampaignRequirement>
     {
         public Task<AuthorizationResult> Handle(MustHaveAccessToAtLeastOneCampaignRequirement requirement, CancellationToken cancellationToken = default)
@@ -253,9 +205,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Mock authorization handler for specific campaign access that always succeeds for tests.
-    /// </summary>
     private class AlwaysAuthorizeSpecificCampaignAccessHandler : IAuthorizationHandler<MustHaveAccessToCampaignRequirement>
     {
         public Task<AuthorizationResult> Handle(MustHaveAccessToCampaignRequirement requirement, CancellationToken cancellationToken = default)
@@ -264,9 +213,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Mock authorization handler for subdomain email access that always succeeds for tests.
-    /// </summary>
     private class AlwaysAuthorizeSubdomainEmailAccessHandler : IAuthorizationHandler<MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement>
     {
         public Task<AuthorizationResult> Handle(MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement requirement, CancellationToken cancellationToken = default)
@@ -275,9 +221,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Mock authorization handler for subdomain via email access that always succeeds for tests.
-    /// </summary>
     private class AlwaysAuthorizeSubdomainViaEmailAccessHandler : IAuthorizationHandler<MustHaveAccessToSubdomainViaEmailRequirement>
     {
         public Task<AuthorizationResult> Handle(MustHaveAccessToSubdomainViaEmailRequirement requirement, CancellationToken cancellationToken = default)

@@ -1,13 +1,13 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.ApiKey;
-using Spamma.Modules.UserManagement.Application.CommandHandlers.ApiKeys;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
 using Spamma.Modules.UserManagement.Client.Application.DTOs;
@@ -34,19 +34,21 @@ internal class CreateApiKeyCommandHandler(
             return CommandResult<CreateApiKeyCommandResult>.Failed(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt));
         }
 
-        // Generate API key
+        // Generate API key using PAT pattern
         var apiKeyId = Guid.NewGuid();
         var apiKeyValue = GenerateApiKey();
-        var (keyHash, salt) = GenerateKeyHash(apiKeyValue);
+        var keyHashPrefix = ComputePrefixHash(apiKeyValue);
+        var keyHash = BCrypt.Net.BCrypt.HashPassword(apiKeyValue);
         var now = timeProvider.GetUtcNow();
 
         var result = ApiKeyAggregate.Create(
             apiKeyId,
             currentUserId,
             request.Name,
+            keyHashPrefix,
             keyHash,
-            salt,
-            now);
+            now,
+            request.WhenExpires);
 
         if (result.IsFailure)
         {
@@ -72,9 +74,10 @@ internal class CreateApiKeyCommandHandler(
         var apiKeySummary = new ApiKeySummary(
             apiKey.Id,
             apiKey.Name,
-            apiKey.CreatedAt.UtcDateTime,
+            now.UtcDateTime,
             apiKey.IsRevoked,
-            apiKey.RevokedAt?.UtcDateTime);
+            apiKey.RevokedAt.HasValue ? apiKey.RevokedAt.Value.UtcDateTime : (DateTime?)null,
+            request.WhenExpires);
 
         return CommandResult<CreateApiKeyCommandResult>.Succeeded(
             new CreateApiKeyCommandResult(apiKeySummary, apiKeyValue));
@@ -86,7 +89,7 @@ internal class CreateApiKeyCommandHandler(
         const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         var random = new Random();
         var key = new char[32];
-        for (int i = 0; i < key.Length; i++)
+        for (var i = 0; i < key.Length; i++)
         {
             key[i] = chars[random.Next(chars.Length)];
         }
@@ -94,21 +97,13 @@ internal class CreateApiKeyCommandHandler(
         return "sk-" + new string(key);
     }
 
-    private static (string KeyHash, string Salt) GenerateKeyHash(string apiKey)
+    private static string ComputePrefixHash(string apiKey)
     {
-        var salt = GenerateSalt();
-
-        using var hmac = new System.Security.Cryptography.HMACSHA256(Convert.FromBase64String(salt));
-        var hashBytes = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(apiKey));
-        var keyHash = Convert.ToBase64String(hashBytes);
-
-        return (keyHash, salt);
-    }
-
-    private static string GenerateSalt()
-    {
-        var saltBytes = new byte[32];
-        System.Security.Cryptography.RandomNumberGenerator.Fill(saltBytes);
-        return Convert.ToBase64String(saltBytes);
+        // Extract first 8 characters and compute SHA256 hash for efficient lookup
+        var prefix = apiKey.Substring(0, Math.Min(8, apiKey.Length));
+        using var sha256 = SHA256.Create();
+        var prefixBytes = Encoding.UTF8.GetBytes(prefix);
+        var hashBytes = sha256.ComputeHash(prefixBytes);
+        return Convert.ToBase64String(hashBytes);
     }
 }

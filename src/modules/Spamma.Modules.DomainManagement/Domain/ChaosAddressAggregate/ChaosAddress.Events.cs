@@ -2,9 +2,6 @@ using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
-/// <summary>
-/// Event application logic for ChaosAddress aggregate.
-/// </summary>
 public partial class ChaosAddress
 {
     protected override void ApplyEvent(object @event)

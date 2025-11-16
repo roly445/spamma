@@ -3,9 +3,6 @@ using Spamma.Modules.Common.IntegrationEvents;
 
 namespace Spamma.Modules.Common.IntegrationEvents.ApiKey;
 
-/// <summary>
-/// Integration event raised when an API key authentication attempt occurs.
-/// </summary>
 public record ApiKeyAuthenticationAttemptedIntegrationEvent(
     Guid ApiKeyId,
     string MaskedApiKey,

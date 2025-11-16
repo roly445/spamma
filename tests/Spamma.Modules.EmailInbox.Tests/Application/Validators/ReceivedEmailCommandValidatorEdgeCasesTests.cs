@@ -6,10 +6,6 @@ using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
-/// <summary>
-/// Tests edge cases for ReceivedEmailCommandValidator.
-/// Focus: GUID validation, empty collections, multiple validation errors.
-/// </summary>
 public class ReceivedEmailCommandValidatorEdgeCasesTests
 {
     private readonly ReceivedEmailCommandValidator _validator = new();
@@ -32,7 +28,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
             EmailAddresses: emailAddresses);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -59,7 +55,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
             EmailAddresses: emailAddresses);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -81,7 +77,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
             EmailAddresses: Array.Empty<EmailAddress>());
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeFalse();
@@ -109,7 +105,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
             EmailAddresses: emailAddresses);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeTrue();
@@ -136,7 +132,7 @@ public class ReceivedEmailCommandValidatorEdgeCasesTests
             EmailAddresses: emailAddresses);
 
         // Act
-        var result = _validator.Validate(command);
+        var result = this._validator.Validate(command);
 
         // Assert
         result.IsValid.Should().BeTrue();

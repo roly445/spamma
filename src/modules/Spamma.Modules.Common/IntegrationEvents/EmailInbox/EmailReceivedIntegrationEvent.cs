@@ -16,5 +16,5 @@ public record EmailReceivedIntegrationEvent(
 {
     public string EventName => IntegrationEventNames.EmailReceived;
 
-    public record EmailReceivedAddress(string Address, string? DisplayName, int Type);
+    public sealed record EmailReceivedAddress(string Address, string? DisplayName, int Type);
 }

@@ -4,10 +4,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
-/// <summary>
-/// Tests for email deletion validation rules.
-/// Emails can only be deleted with valid email IDs.
-/// </summary>
 public class DeleteEmailCommandValidatorTests
 {
     [Fact]

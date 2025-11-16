@@ -61,4 +61,3 @@ public class RecordCampaignCaptureValidatorTests
         result.Errors.Should().ContainSingle(e => e.PropertyName == "CampaignValue");
     }
 }
-

@@ -7,15 +7,11 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Projections;
 
-/// <summary>
-/// Projection that handles the deletion of emails when a campaign is deleted.
-/// This runs asynchronously in the background via Marten's async daemon.
-/// </summary>
 public class CampaignDeletionProjection : EventProjection
 {
     public CampaignDeletionProjection()
     {
-        Name = "CampaignDeletion";
+        this.Name = "CampaignDeletion";
     }
 
     public static async Task Project(IEvent<CampaignDeleted> campaignEvent, IDocumentOperations ops)

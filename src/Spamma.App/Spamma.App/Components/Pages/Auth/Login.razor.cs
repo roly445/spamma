@@ -1,13 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 
 namespace Spamma.App.Components.Pages.Auth;
 
-/// <summary>
-/// Backing code for the login page.
-/// </summary>
 public partial class Login(ICommander commander) : ComponentBase
 {
     private bool showSuccessMessage;

@@ -4,10 +4,6 @@ using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.UserManagement.Tests.Integration;
 
-/// <summary>
-/// Base fixture for integration tests using a PostgreSQL Testcontainer.
-/// Provides a real Marten document session connected to a containerized database.
-/// </summary>
 public class PostgreSqlFixture : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;

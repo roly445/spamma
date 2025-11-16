@@ -1,13 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
-/// <summary>
-/// Code-behind for the hosting setup page.
-/// </summary>
 public partial class Hosting(IAppConfigurationService appConfigurationService, ILogger<Hosting> logger)
 {
     private string? successMessage;

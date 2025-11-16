@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
-/// <summary>
-/// Backing logic for the setup keys page.
-/// </summary>
 public partial class Keys(IAppConfigurationService appConfigurationService)
 {
     private string? successMessage;

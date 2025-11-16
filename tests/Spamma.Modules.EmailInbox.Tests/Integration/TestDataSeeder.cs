@@ -4,14 +4,8 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
 
-/// <summary>
-/// Helper for seeding test data into Marten during integration tests.
-/// </summary>
 public static class TestDataSeeder
 {
-    /// <summary>
-    /// Create and store a campaign summary for testing.
-    /// </summary>
     public static async Task<CampaignSummary> CreateCampaignAsync(
         IDocumentSession session,
         Guid? campaignId = null,
@@ -38,9 +32,6 @@ public static class TestDataSeeder
         return campaign;
     }
 
-    /// <summary>
-    /// Create and store multiple campaigns for testing.
-    /// </summary>
     public static async Task<List<CampaignSummary>> CreateCampaignsAsync(
         IDocumentSession session,
         Guid subdomainId,
@@ -73,9 +64,6 @@ public static class TestDataSeeder
         return campaigns;
     }
 
-    /// <summary>
-    /// Create and store an email lookup for testing.
-    /// </summary>
     public static async Task<EmailLookup> CreateEmailAsync(
         IDocumentSession session,
         Guid? emailId = null,
@@ -104,9 +92,6 @@ public static class TestDataSeeder
         return email;
     }
 
-    /// <summary>
-    /// Create and store multiple emails for testing.
-    /// </summary>
     public static async Task<List<EmailLookup>> CreateEmailsAsync(
         IDocumentSession session,
         Guid subdomainId,

@@ -6,9 +6,6 @@ using Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 
-/// <summary>
-/// Represents a campaign aggregate root for tracking email campaigns and capture events.
-/// </summary>
 public partial class Campaign : AggregateRoot
 {
     private Campaign()

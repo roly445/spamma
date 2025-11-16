@@ -171,4 +171,3 @@ public class DeleteFileWhenEmailIsDeletedTests
         await action.Should().NotThrowAsync();
     }
 }
-

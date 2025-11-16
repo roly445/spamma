@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -12,9 +12,6 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the subdomain details page.
-/// </summary>
 public partial class SubdomainDetails(ICommander commander, IQuerier querier, NavigationManager navigation, IOptions<Settings> settings) : ComponentBase
 {
     private SuspendSubdomain? suspendSubdomain;

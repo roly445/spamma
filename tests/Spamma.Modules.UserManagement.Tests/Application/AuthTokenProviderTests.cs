@@ -8,10 +8,6 @@ using Spamma.Modules.Common;
 
 namespace Spamma.Modules.UserManagement.Tests.Application;
 
-/// <summary>
-/// Security-focused tests for magic link authentication token generation and validation.
-/// These tests verify protection against replay attacks, token tampering, and expired token usage.
-/// </summary>
 public class AuthTokenProviderTests
 {
     private readonly AuthTokenProvider _authTokenProvider;

@@ -18,9 +18,10 @@ public class ApiKeyProjection : EventProjection
             Id = @event.ApiKeyId,
             UserId = @event.UserId,
             Name = @event.Name,
+            KeyHashPrefix = @event.KeyHashPrefix,
             KeyHash = @event.KeyHash,
-            Salt = @event.Salt,
-            CreatedAt = @event.CreatedAt,
+            CreatedAt = @event.WhenCreated,
+            ExpiresAt = @event.WhenExpires,
         };
     }
 

@@ -8,16 +8,10 @@ using Xunit;
 
 namespace Spamma.App.Tests;
 
-/// <summary>
-/// Marker class for WebApplicationFactory.
-/// </summary>
 public class TestStartup
 {
 }
 
-/// <summary>
-/// Integration tests for API key authentication on public endpoints.
-/// </summary>
 public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly TestWebApplicationFactory _factory;
@@ -97,9 +91,6 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
     }
 }
 
-/// <summary>
-/// Custom WebApplicationFactory for testing.
-/// </summary>
 public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)

@@ -101,14 +101,16 @@ public class SpammaMessageStore : MessageStore
         }
 
         // Notify push integrations
-        await this._pushNotificationManager.NotifyEmailAsync(new PushNotificationManager.EmailDetails(
-            messageId,
-            foundValidSubdomain.SubdomainId,
-            message.From?.ToString() ?? string.Empty,
-            recipients.FirstOrDefault()?.Address ?? string.Empty,
-            message.Subject ?? string.Empty,
-            message.TextBody ?? message.HtmlBody ?? string.Empty,
-            DateTimeOffset.Now));
+        await this._pushNotificationManager.NotifyEmailAsync(
+            new PushNotificationManager.EmailDetails(
+                messageId,
+                foundValidSubdomain.SubdomainId,
+                message.From?.ToString() ?? string.Empty,
+                recipients.FirstOrDefault()?.Address ?? string.Empty,
+                message.Subject ?? string.Empty,
+                message.TextBody ?? message.HtmlBody ?? string.Empty,
+                DateTimeOffset.Now),
+            cancellationToken);
 
         return SmtpResponse.Ok;
     }

@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.Base;
 
-/// <summary>
-/// Code-behind for the modal base component.
-/// </summary>
 public partial class ModalBase
 {
     [Parameter]
@@ -17,7 +14,7 @@ public partial class ModalBase
     public bool AllowBackdropClose { get; set; }
 
     [Parameter]
-    public string WidthClass { get; set; } = "sm:max-w-sm w-full";
+    public string WidthClass { get; set; } = ModalSizes.Small;
 
     [Parameter]
     public string? AriaLabelledBy { get; set; }
@@ -27,9 +24,20 @@ public partial class ModalBase
 
     private async Task HandleBackdropClick()
     {
-        if (AllowBackdropClose)
+        if (this.AllowBackdropClose)
         {
-            await OnClose.InvokeAsync();
+            await this.OnClose.InvokeAsync();
         }
+    }
+
+    public static class ModalSizes
+    {
+        public const string Small = "sm:max-w-sm w-full";
+
+        public const string Medium = "sm:max-w-md w-full";
+
+        public const string Large = "sm:max-w-lg w-full";
+
+        public const string ExtraLarge = "sm:max-w-2xl w-full";
     }
 }

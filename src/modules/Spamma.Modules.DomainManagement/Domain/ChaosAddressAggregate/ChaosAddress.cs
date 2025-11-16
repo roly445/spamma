@@ -7,9 +7,6 @@ using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
-/// <summary>
-/// Aggregate root for managing chaos addresses used to trap spam.
-/// </summary>
 public partial class ChaosAddress : AggregateRoot
 {
     private readonly List<ChaosAddressSuspensionAudit> _suspensionAudits = new();

@@ -1,4 +1,4 @@
-﻿using BluQube.Constants;
+using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Components.UserControls;
@@ -8,9 +8,6 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the subdomains management page.
-/// </summary>
 public partial class Subdomains(IQuerier querier, NavigationManager navigation) : ComponentBase
 {
     private SubdomainSearchRequest searchRequest = new();

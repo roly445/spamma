@@ -1,4 +1,4 @@
-﻿using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
+using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 

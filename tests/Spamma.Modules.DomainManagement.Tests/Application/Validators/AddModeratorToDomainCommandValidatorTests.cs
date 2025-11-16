@@ -4,10 +4,6 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.Validators;
 
-/// <summary>
-/// Tests for moderator management command validation.
-/// Moderators can only be added with valid user and domain IDs.
-/// </summary>
 public class AddModeratorToDomainCommandValidatorTests
 {
     [Fact]

@@ -1,11 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Components.Pages;
 
-/// <summary>
-/// Backing code for the Error Razor component.
-/// </summary>
 public partial class Error
 {
     [CascadingParameter]
@@ -13,8 +10,8 @@ public partial class Error
 
     private string? RequestId { get; set; }
 
-    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    private bool ShowRequestId => !string.IsNullOrEmpty(this.RequestId);
 
     protected override void OnInitialized() =>
-        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+        this.RequestId = Activity.Current?.Id ?? this.HttpContext?.TraceIdentifier;
 }

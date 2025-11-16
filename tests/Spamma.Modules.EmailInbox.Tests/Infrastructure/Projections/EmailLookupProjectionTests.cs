@@ -5,12 +5,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.Projections;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections;
 
-/// <summary>
-/// Tests for EmailLookupProjection to validate event-to-read-model mapping.
-/// Tests are focused on the Create() method which doesn't require mocking extension methods.
-/// The Project() methods use Marten's Patch extension method which cannot be unit tested with Moq.
-/// Integration tests with real Marten instances would test the full projection pipeline.
-/// </summary>
 public class EmailLookupProjectionTests
 {
     [Fact]
@@ -189,4 +183,3 @@ public class EmailLookupProjectionTests
         readModel.EmailAddresses.Should().ContainSingle(x => x.EmailAddressType == EmailAddressType.Bcc);
     }
 }
-

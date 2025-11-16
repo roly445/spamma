@@ -5,14 +5,10 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
-/// <summary>
-/// Processor for GetEmailContentQuery.
-/// </summary>
 internal class GetEmailContentQueryProcessor(
     IEmailRepository emailRepository)
     : IQueryProcessor<GetEmailContentQuery, GetEmailContentQueryResult>
 {
-    /// <inheritdoc />
     public async Task<QueryResult<GetEmailContentQueryResult>> Handle(
         GetEmailContentQuery query,
         CancellationToken cancellationToken)

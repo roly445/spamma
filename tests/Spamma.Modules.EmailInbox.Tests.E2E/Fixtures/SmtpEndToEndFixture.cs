@@ -9,14 +9,6 @@ using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E.Fixtures;
 
-/// <summary>
-/// End-to-end test fixture providing:
-/// - Real PostgreSQL container (Testcontainers)
-/// - Real SMTP server on port 1025 (standard test port)
-/// - Real Marten event store with projections
-/// - Real module services (caches, command/query handlers).
-/// Note: Test data must be seeded via SQL or command handlers in individual tests.
-/// </summary>
 public class SmtpEndToEndFixture : IAsyncLifetime
 {
     private IHost? _host;
@@ -38,7 +30,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             .WithCleanUp(true)
             .Build();
 
-        await this.PostgresContainer.StartAsync();
+        await StartContainerWithRetryAsync(this.PostgresContainer);
 
         // 2. Build real service host with all modules
         var builder = Host.CreateApplicationBuilder();
@@ -99,6 +91,26 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         await this.PostgresContainer.DisposeAsync();
     }
 
+    private static async Task StartContainerWithRetryAsync(PostgreSqlContainer container, int maxAttempts = 3)
+    {
+        var delayMs = 1000;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await container.StartAsync();
+                return;
+            }
+            catch (Exception) when (attempt < maxAttempts)
+            {
+                // Named pipe timeouts and transient Docker errors can be transient - wait and retry.
+                await Task.Delay(delayMs);
+                delayMs *= 2;
+            }
+        }
+    }
+
     private async Task WaitForSmtpServerAsync()
     {
         var maxAttempts = 30;
@@ -124,10 +136,6 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Seeds test data for E2E tests using Marten session with typed domain events.
-    /// Creates: domain "example.com", subdomain "spamma.example.com", chaos addresses.
-    /// </summary>
     private async Task SeedTestDataAsync()
     {
         if (this._host == null)
@@ -200,4 +208,3 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         await daemon.WaitForNonStaleData(TimeSpan.FromSeconds(5));
     }
 }
-

@@ -267,9 +267,6 @@ public class LocalMessageStoreProviderTests
         }
     }
 
-    /// <summary>
-    /// Concrete implementation of IDirectoryWrapper for testing
-    /// </summary>
     private class DirectoryWrapperImpl : IDirectoryWrapper
     {
         public void CreateDirectory(string path) => Directory.CreateDirectory(path);
@@ -277,9 +274,6 @@ public class LocalMessageStoreProviderTests
         public bool Exists(string path) => Directory.Exists(path);
     }
 
-    /// <summary>
-    /// Concrete implementation of IFileWrapper for testing
-    /// </summary>
     private class FileWrapperImpl : IFileWrapper
     {
         public void Delete(string path)

@@ -9,10 +9,6 @@ using Spamma.Modules.EmailInbox.Tests.Integration;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Repositories;
 
-/// <summary>
-/// Integration tests for EmailRepository using real Marten document store with PostgreSQL Testcontainer.
-/// Tests event sourcing persistence and retrieval through Marten.
-/// </summary>
 [Collection("PostgreSQL")]
 public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
 {
@@ -21,15 +17,15 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
 
     public EmailRepositoryIntegrationTests(PostgreSqlFixture fixture)
     {
-        _fixture = fixture;
-        _hostEnvironment = Mock.Of<IHostEnvironment>(h => h.ContentRootPath == Path.GetTempPath());
+        this._fixture = fixture;
+        this._hostEnvironment = Mock.Of<IHostEnvironment>(h => h.ContentRootPath == Path.GetTempPath());
     }
 
     [Fact]
     public async Task SaveAsync_And_GetByIdAsync_NewEmail_RoundtripSucceeds()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
+        var repository = new EmailRepository(this._fixture.Session!, this._hostEnvironment);
         var emailId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
@@ -45,7 +41,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
         var email = createResult.Value;
 
         var saveResult = await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         var retrievedMaybe = await repository.GetByIdAsync(emailId);
 
@@ -63,7 +59,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task GetByIdAsync_NonExistentEmail_ReturnsNothing()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
+        var repository = new EmailRepository(this._fixture.Session!, this._hostEnvironment);
         var nonExistentId = Guid.NewGuid();
 
         // Act
@@ -77,7 +73,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_EmailWithMultipleEvents_PersistsAllEvents()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
+        var repository = new EmailRepository(this._fixture.Session!, this._hostEnvironment);
         var emailId = Guid.NewGuid();
         var addresses = new List<EmailReceived.EmailAddress>
         {
@@ -88,14 +84,14 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
         var email = createResult.Value;
 
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Act - Generate more events
         var markResult = email.MarkAsFavorite(DateTime.UtcNow);
         markResult.IsSuccess.Should().BeTrue();
 
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Assert - Verify all events applied
         var retrievedMaybe = await repository.GetByIdAsync(emailId);
@@ -108,7 +104,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_MultipleEmails_AllPersistIndependently()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
+        var repository = new EmailRepository(this._fixture.Session!, this._hostEnvironment);
         var addresses = new List<EmailReceived.EmailAddress>
         {
             new("test@example.com", "Test", EmailAddressType.To),
@@ -126,7 +122,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
         await repository.SaveAsync(email1);
         await repository.SaveAsync(email2);
         await repository.SaveAsync(email3);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Assert - All emails retrievable
         var retrieved1 = await repository.GetByIdAsync(email1Id);
@@ -147,7 +143,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_EmailEventSequence_MaintainsCorrectState()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
+        var repository = new EmailRepository(this._fixture.Session!, this._hostEnvironment);
         var emailId = Guid.NewGuid();
         var addresses = new List<EmailReceived.EmailAddress>
         {
@@ -157,20 +153,20 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
         var email = Email.Create(emailId, Guid.NewGuid(), Guid.NewGuid(), "Sequence", DateTime.UtcNow, addresses).Value;
 
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Act - Multiple state changes
         email.MarkAsFavorite(DateTime.UtcNow);
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         email.UnmarkAsFavorite(DateTime.UtcNow);
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         email.MarkAsFavorite(DateTime.UtcNow);
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Assert - Final state is favorite
         var retrievedMaybe = await repository.GetByIdAsync(emailId);
@@ -182,7 +178,7 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
     public async Task SaveAsync_DeletedEmail_PersistsDeletedState()
     {
         // Arrange
-        var repository = new EmailRepository(_fixture.Session!, _hostEnvironment);
+        var repository = new EmailRepository(this._fixture.Session!, this._hostEnvironment);
         var emailId = Guid.NewGuid();
         var addresses = new List<EmailReceived.EmailAddress>
         {
@@ -192,14 +188,14 @@ public class EmailRepositoryIntegrationTests : IClassFixture<PostgreSqlFixture>
         var email = Email.Create(emailId, Guid.NewGuid(), Guid.NewGuid(), "To Delete", DateTime.UtcNow, addresses).Value;
 
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Act - Delete
         var deleteResult = email.Delete(DateTime.UtcNow);
         deleteResult.IsSuccess.Should().BeTrue();
 
         await repository.SaveAsync(email);
-        await _fixture.Session!.SaveChangesAsync();
+        await this._fixture.Session!.SaveChangesAsync();
 
         // Assert - Deleted state persisted
         var retrievedMaybe = await repository.GetByIdAsync(emailId);

@@ -1,4 +1,4 @@
-﻿using BluQube.Constants;
+using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -7,9 +7,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
-/// <summary>
-/// Backing code for the home page.
-/// </summary>
 public partial class Home(IQuerier querier, ISignalRService signalRService) : IDisposable
 {
     private const int DefaultPageSize = 25;

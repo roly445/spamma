@@ -1,10 +1,7 @@
-﻿using Spamma.App.Client.Components.UserControls;
+using Spamma.App.Client.Components.UserControls;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-/// <summary>
-/// Backing code for the domain details page - subdomain functionality.
-/// </summary>
 public partial class DomainDetails
 {
     private Subdomains? _subdomains;

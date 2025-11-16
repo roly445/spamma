@@ -10,6 +10,8 @@ option csharp_namespace = "Spamma.Modules.EmailInbox.Client.Application.Grpc";
 service EmailPushService {
   // Subscribe to email notifications for configured integrations
   rpc SubscribeToEmails (SubscribeRequest) returns (stream EmailNotification);
+  // Get the full email content (MIME message) by email ID
+  rpc GetEmailContent (GetEmailContentRequest) returns (GetEmailContentResponse);
 }
 
 // Request to subscribe to email notifications
@@ -19,14 +21,26 @@ message SubscribeRequest {
   string jwt_token = 1;
 }
 
+// Request to get full email content by ID
+message GetEmailContentRequest {
+  // Email ID to retrieve
+  string email_id = 1;
+}
+
+// Response containing full email content
+message GetEmailContentResponse {
+  // Full email in MIME format (EML content)
+  string mime_message = 1;
+}
+
 // Email notification payload
 message EmailNotification {
   // Unique email identifier
-  string email_id = 1;
-  // Recipient email address
-  string to = 2;
+  string id = 1;
   // Sender email address
-  string from = 3;
+  string from = 2;
+  // Recipient email address
+  string to = 3;
   // Email subject (truncated to 200 chars)
   string subject = 4;
   // When the email was received

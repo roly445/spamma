@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -11,20 +11,25 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Account;
 
-/// <summary>
-/// Backing code for the Security keys management page.
-/// </summary>
 public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Passkeys> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
 {
     private const string WebAuthnUtilsWindowHandle = "WebAuthnUtils";
+
     private List<PasskeySummary> passkeys = new();
     private bool isLoading = true;
     private bool isRegistering = false;
     private bool isRevoking = false;
     private Guid revokingPasskeyId = Guid.Empty;
-    private bool showRevoked;
     private bool showNameModal;
     private string customPasskeyName = string.Empty;
+    private PasskeyFilter filterStatus = PasskeyFilter.All;
+
+    private enum PasskeyFilter
+    {
+        All,
+        Active,
+        Revoked,
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -46,13 +51,13 @@ public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime
             else
             {
                 logger.LogWarning("Query failed with status: {Status}", result?.Status);
-                notificationService.ShowError("Failed to load your security keys. Please try again.");
+                notificationService.ShowError("Failed to load your passkeys. Please try again.");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error loading passkeys");
-            notificationService.ShowError("An error occurred while loading your security keys.");
+            notificationService.ShowError("An error occurred while loading your passkeys.");
         }
         finally
         {
@@ -62,9 +67,17 @@ public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime
 
     private List<PasskeySummary> GetFilteredPasskeys()
     {
-        return this.showRevoked
-            ? this.passkeys
-            : this.passkeys.Where(p => !p.IsRevoked).ToList();
+        return this.filterStatus switch
+        {
+            PasskeyFilter.Active => this.passkeys.Where(p => !p.IsRevoked).ToList(),
+            PasskeyFilter.Revoked => this.passkeys.Where(p => p.IsRevoked).ToList(),
+            _ => this.passkeys,
+        };
+    }
+
+    private void SetFilter(PasskeyFilter filter)
+    {
+        this.filterStatus = filter;
     }
 
     private void OpenNameModal()
@@ -102,7 +115,7 @@ public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                notificationService.ShowError("You must be logged in to register a security key.");
+                notificationService.ShowError("You must be logged in to register a passkey.");
                 return;
             }
 
@@ -119,7 +132,7 @@ public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime
             var isSupported = await jsRuntime.InvokeAsync<bool>($"{WebAuthnUtilsWindowHandle}.isWebAuthnSupported");
             if (!isSupported)
             {
-                notificationService.ShowError("Your browser does not support security keys. Please use a modern browser with WebAuthn support.");
+                notificationService.ShowError("Your browser does not support passkeys. Please use a modern browser with WebAuthn support.");
                 return;
             }
 
@@ -149,7 +162,7 @@ public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime
 
             if (isCancelled)
             {
-                notificationService.ShowWarning("Security key registration was cancelled.");
+                notificationService.ShowWarning("Passkey registration was cancelled.");
                 return;
             }
 
@@ -188,20 +201,20 @@ public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime
 
                 if (string.IsNullOrEmpty(rawId))
                 {
-                    notificationService.ShowError("Failed to register security key: Invalid credential ID.");
+                    notificationService.ShowError("Failed to register passkey: Invalid credential ID.");
                     return;
                 }
 
                 if (string.IsNullOrEmpty(attestationObjectBase64))
                 {
-                    notificationService.ShowError("Failed to register security key: Invalid attestation object.");
+                    notificationService.ShowError("Failed to register passkey: Invalid attestation object.");
                     return;
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error extracting credential data");
-                notificationService.ShowError("Failed to register security key: Invalid response from authenticator.");
+                notificationService.ShowError("Failed to register passkey: Invalid response from authenticator.");
                 return;
             }
 
