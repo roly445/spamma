@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-public class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer : AbstractRequestAuthorizer<GetChaosAddressBySubdomainAndLocalPartQuery>
+internal class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer : AbstractRequestAuthorizer<GetChaosAddressBySubdomainAndLocalPartQuery>
 {
     public override void BuildPolicy(GetChaosAddressBySubdomainAndLocalPartQuery request)
     {

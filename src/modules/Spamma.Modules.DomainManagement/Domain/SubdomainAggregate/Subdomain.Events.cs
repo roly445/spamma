@@ -2,7 +2,10 @@ using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-public partial class Subdomain
+/// <summary>
+/// Event handling for the Subdomain aggregate.
+/// </summary>
+internal partial class Subdomain
 {
     protected override void ApplyEvent(object @event)
     {
@@ -42,31 +45,31 @@ public partial class Subdomain
 
     private void Apply(MxRecordChecked @event)
     {
-        this._mxRecordChecks.Add(new MxRecordCheck(@event.WhenChecked, @event.MxStatus));
+        this._mxRecordChecks.Add(new MxRecordCheck(@event.LastCheckedAt, @event.MxStatus));
     }
 
     private void Apply(ViewerRemoved @event)
     {
-        this._viewers.First(x => x.UserId == @event.UserId && !x.WhenRemoved.HasValue)
-            .Remove(@event.WhenRemoved);
+        this._viewers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
+            .Remove(@event.RemovedAt);
     }
 
     private void Apply(ViewerAdded @event)
     {
-        this._viewers.Add(Viewer.Create(@event.UserId, @event.WhenAdded));
+        this._viewers.Add(Viewer.Create(@event.UserId, @event.AddedAt));
     }
 
     private void Apply(SubdomainUnsuspended @event)
     {
         this._suspensionAudits.Add(SubdomainSuspensionAudit.CreateUnsuspension(
-            @event.WhenUnsuspended));
+            @event.UnsuspendedAt));
         this.IsSuspended = false;
     }
 
     private void Apply(SubdomainSuspended @event)
     {
         this._suspensionAudits.Add(SubdomainSuspensionAudit.CreateSuspension(
-            @event.WhenSuspended,
+            @event.SuspendedAt,
             @event.Reason, @event.Notes));
         this.IsSuspended = true;
     }
@@ -82,17 +85,17 @@ public partial class Subdomain
         this.DomainId = @event.DomainId;
         this.Name = @event.Name;
         this.Description = @event.Description;
-        this.WhenCreated = @event.WhenCreated;
+        this.CreatedAt = @event.CreatedAt;
     }
 
     private void Apply(ModerationUserRemoved @event)
     {
-        this._moderationUsers.First(x => x.UserId == @event.UserId && !x.WhenRemoved.HasValue)
-            .Remove(@event.WhenRemoved);
+        this._moderationUsers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
+            .Remove(@event.RemovedAt);
     }
 
     private void Apply(ModerationUserAdded @event)
     {
-        this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.WhenAdded));
+        this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.AddedAt));
     }
 }

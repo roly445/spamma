@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class RemoveModeratorFromSubdomainCommandHandler(
+internal class RemoveModeratorFromSubdomainCommandHandler(
     ISubdomainRepository repository, TimeProvider timeProvider,
     IEnumerable<IValidator<RemoveModeratorFromSubdomainCommand>> validators,
     ILogger<RemoveModeratorFromSubdomainCommandHandler> logger,

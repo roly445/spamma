@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -8,7 +8,7 @@ using SubdomainAggregate = Spamma.Modules.DomainManagement.Domain.SubdomainAggre
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class CreateSubdomainCommandHandler(
+internal class CreateSubdomainCommandHandler(
     ISubdomainRepository repository,
     IEnumerable<IValidator<CreateSubdomainCommand>> validators,
     ILogger<CreateSubdomainCommandHandler> logger, TimeProvider timeProvider)

@@ -1,46 +1,46 @@
-﻿using Spamma.Modules.DomainManagement.Client.Contracts;
+using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
-public class DomainSuspensionAudit
+internal class DomainSuspensionAudit
 {
     private readonly DomainSuspensionReason? _reason;
 
     private readonly string? _notes;
 
     private DomainSuspensionAudit(
-        DateTime whenHappened, DomainSuspensionAuditType type,
+        DateTime happenedAt, DomainSuspensionAuditType type,
         DomainSuspensionReason? reason = null, string? notes = null)
     {
-        this.WhenHappened = whenHappened;
+        this.HappenedAt = happenedAt;
         this.Type = type;
         this._reason = reason;
         this._notes = notes;
     }
 
-    public DateTime WhenHappened { get; private set; }
+    internal DateTime HappenedAt { get; private set; }
 
-    public string? Notes =>
+    internal string? Notes =>
         this.Type == DomainSuspensionAuditType.Unsuspend ?
             throw new InvalidOperationException("Notes is not applicable for unsuspension.") :
             this._notes;
 
-    public DomainSuspensionReason Reason =>
+    internal DomainSuspensionReason Reason =>
         this.Type == DomainSuspensionAuditType.Unsuspend ?
             throw new InvalidOperationException("Notes is not applicable for unsuspension.") :
             (DomainSuspensionReason)this._reason!;
 
-    public DomainSuspensionAuditType Type { get; private set; }
+    internal DomainSuspensionAuditType Type { get; private set; }
 
-    public static DomainSuspensionAudit CreateSuspension(
-        DateTime whenHappened,
+    internal static DomainSuspensionAudit CreateSuspension(
+        DateTime happenedAt,
         DomainSuspensionReason reason, string? notes = null)
     {
-        return new DomainSuspensionAudit(whenHappened, DomainSuspensionAuditType.Suspend, reason, notes);
+        return new DomainSuspensionAudit(happenedAt, DomainSuspensionAuditType.Suspend, reason, notes);
     }
 
-    public static DomainSuspensionAudit CreateUnsuspension(DateTime whenHappened)
+    internal static DomainSuspensionAudit CreateUnsuspension(DateTime happenedAt)
     {
-        return new DomainSuspensionAudit(whenHappened, DomainSuspensionAuditType.Unsuspend);
+        return new DomainSuspensionAudit(happenedAt, DomainSuspensionAuditType.Unsuspend);
     }
 }

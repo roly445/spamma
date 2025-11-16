@@ -1,46 +1,46 @@
-﻿using Spamma.Modules.DomainManagement.Client.Contracts;
+using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-public class SubdomainSuspensionAudit
+internal class SubdomainSuspensionAudit
 {
     private readonly SubdomainSuspensionReason? _reason;
 
     private readonly string? _notes;
 
     private SubdomainSuspensionAudit(
-        DateTime whenHappened, SubdomainSuspensionAuditType type,
+        DateTime happenedAt, SubdomainSuspensionAuditType type,
         SubdomainSuspensionReason? reason = null, string? notes = null)
     {
-        this.WhenHappened = whenHappened;
+        this.HappenedAt = happenedAt;
         this.Type = type;
         this._reason = reason;
         this._notes = notes;
     }
 
-    public DateTime WhenHappened { get; private set; }
+    internal DateTime HappenedAt { get; private set; }
 
-    public string? Notes =>
+    internal string? Notes =>
         this.Type == SubdomainSuspensionAuditType.Unsuspend ?
             throw new InvalidOperationException("Notes is not applicable for unsuspension.") :
             this._notes;
 
-    public SubdomainSuspensionReason Reason =>
+    internal SubdomainSuspensionReason Reason =>
         this.Type == SubdomainSuspensionAuditType.Unsuspend ?
             throw new InvalidOperationException("Notes is not applicable for unsuspension.") :
             (SubdomainSuspensionReason)this._reason!;
 
-    public SubdomainSuspensionAuditType Type { get; private set; }
+    internal SubdomainSuspensionAuditType Type { get; private set; }
 
-    public static SubdomainSuspensionAudit CreateSuspension(
-        DateTime whenHappened,
+    internal static SubdomainSuspensionAudit CreateSuspension(
+        DateTime happenedAt,
         SubdomainSuspensionReason reason, string? notes = null)
     {
-        return new SubdomainSuspensionAudit(whenHappened, SubdomainSuspensionAuditType.Suspend, reason, notes);
+        return new SubdomainSuspensionAudit(happenedAt, SubdomainSuspensionAuditType.Suspend, reason, notes);
     }
 
-    public static SubdomainSuspensionAudit CreateUnsuspension(DateTime whenHappened)
+    internal static SubdomainSuspensionAudit CreateUnsuspension(DateTime happenedAt)
     {
-        return new SubdomainSuspensionAudit(whenHappened, SubdomainSuspensionAuditType.Unsuspend);
+        return new SubdomainSuspensionAudit(happenedAt, SubdomainSuspensionAuditType.Unsuspend);
     }
 }

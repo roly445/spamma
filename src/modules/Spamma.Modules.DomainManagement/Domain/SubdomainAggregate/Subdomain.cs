@@ -6,7 +6,10 @@ using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-public partial class Subdomain : AggregateRoot
+/// <summary>
+/// Business Logic for Subdomain Aggregate.
+/// </summary>
+internal partial class Subdomain : AggregateRoot
 {
     private readonly List<ModerationUser> _moderationUsers = new();
     private readonly List<Viewer> _viewers = new();
@@ -15,106 +18,112 @@ public partial class Subdomain : AggregateRoot
 
     public override Guid Id { get; protected set; }
 
-    public DateTime WhenCreated { get; private set; }
+    internal DateTime CreatedAt { get; private set; }
 
-    public bool IsSuspended { get; private set; }
+    internal bool IsSuspended { get; private set; }
 
-    public Guid DomainId { get; private set; }
+    internal Guid DomainId { get; private set; }
 
-    public string Name { get; private set; } = string.Empty;
+    internal string Name { get; private set; } = string.Empty;
 
-    public string? Description { get; private set; }
+    internal string? Description { get; private set; }
 
-    public static Result<Subdomain, BluQubeErrorData> Create(Guid subdomainId, Guid domainId, string name, string? description, DateTime whenCreated)
+    internal static Result<Subdomain, BluQubeErrorData> Create(Guid subdomainId, Guid domainId, string name, string? description, DateTime createdAt)
     {
-        var @event = new SubdomainCreated(subdomainId, domainId, name, whenCreated, description);
+        var @event = new SubdomainCreated(subdomainId, domainId, name, createdAt, description);
         var subdomain = new Subdomain();
         subdomain.RaiseEvent(@event);
         return Result.Ok<Subdomain, BluQubeErrorData>(subdomain);
     }
 
-    public ResultWithError<BluQubeErrorData> Suspend(SubdomainSuspensionReason reason, string? notes, DateTime whenSuspended)
+    internal ResultWithError<BluQubeErrorData> Suspend(SubdomainSuspensionReason reason, string? notes, DateTime suspendedAt)
     {
         if (this.IsSuspended)
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.AlreadySuspended, $"Subdomain with ID {this.Id} is already suspended"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.AlreadySuspended, $"Subdomain with ID {this.Id} is already suspended"));
         }
 
-        var @event = new SubdomainSuspended(reason, notes, whenSuspended);
+        var @event = new SubdomainSuspended(reason, notes, suspendedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> Unsuspend(DateTime whenUnsuspended)
+    internal ResultWithError<BluQubeErrorData> Unsuspend(DateTime unsuspendedAt)
     {
         if (!this.IsSuspended)
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.NotSuspended, $"Subdomain with ID {this.Id} is not suspended"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.NotSuspended, $"Subdomain with ID {this.Id} is not suspended"));
         }
 
-        var @event = new SubdomainUnsuspended(whenUnsuspended);
+        var @event = new SubdomainUnsuspended(unsuspendedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> Update(string? description)
+    internal ResultWithError<BluQubeErrorData> Update(string? description)
     {
         var @event = new SubdomainUpdated(description);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> AddModerationUser(Guid userId, DateTime whenAdded)
+    internal ResultWithError<BluQubeErrorData> AddModerationUser(Guid userId, DateTime addedAt)
     {
-        if (this._moderationUsers.Any(x => x.UserId == userId && x.WhenRemoved == null))
+        if (this._moderationUsers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.UserAlreadyModerator, $"User with ID {userId} is already a moderator for the subdomain {this.Id}"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.UserAlreadyModerator, $"User with ID {userId} is already a moderator for the subdomain {this.Id}"));
         }
 
-        var @event = new ModerationUserAdded(userId, whenAdded);
+        var @event = new ModerationUserAdded(userId, addedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> RemoveModerationUser(Guid userId, DateTime whenRemoved)
+    internal ResultWithError<BluQubeErrorData> RemoveModerationUser(Guid userId, DateTime removedAt)
     {
-        if (!this._moderationUsers.Any(x => x.UserId == userId && x.WhenRemoved == null))
+        if (!this._moderationUsers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.UserNotModerator, $"User with ID {userId} is not a moderator for the subdomain {this.Id}"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.UserNotModerator, $"User with ID {userId} is not a moderator for the subdomain {this.Id}"));
         }
 
-        var @event = new ModerationUserRemoved(userId, whenRemoved);
+        var @event = new ModerationUserRemoved(userId, removedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> AddViewer(Guid userId, DateTime whenAdded)
+    internal ResultWithError<BluQubeErrorData> AddViewer(Guid userId, DateTime addedAt)
     {
-        if (this._viewers.Any(x => x.UserId == userId && x.WhenRemoved == null))
+        if (this._viewers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
-            return ResultWithError.Fail<BluQubeErrorData>(new BluQubeErrorData(DomainManagementErrorCodes.UserAlreadyViewer, $"User with ID {userId} is already a viewer for the subdomain {this.Id}"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.UserAlreadyViewer, $"User with ID {userId} is already a viewer for the subdomain {this.Id}"));
         }
 
-        var @event = new ViewerAdded(userId, whenAdded);
+        var @event = new ViewerAdded(userId, addedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> RemoveViewer(Guid userId, DateTime whenRemoved)
+    internal ResultWithError<BluQubeErrorData> RemoveViewer(Guid userId, DateTime removedAt)
     {
-        if (!this._viewers.Any(x => x.UserId == userId && x.WhenRemoved == null))
+        if (!this._viewers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.UserNotViewer, $"User with ID {userId} is not a viewer for the subdomain {this.Id}"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.UserNotViewer, $"User with ID {userId} is not a viewer for the subdomain {this.Id}"));
         }
 
-        var @event = new ViewerRemoved(userId, whenRemoved);
+        var @event = new ViewerRemoved(userId, removedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> LogMxRecordCheck(MxStatus mxStatus, DateTime whenChecked)
+    internal ResultWithError<BluQubeErrorData> LogMxRecordCheck(MxStatus mxStatus, DateTime lastCheckedAt)
     {
-        var @event = new MxRecordChecked(whenChecked, mxStatus);
+        var @event = new MxRecordChecked(lastCheckedAt, mxStatus);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }

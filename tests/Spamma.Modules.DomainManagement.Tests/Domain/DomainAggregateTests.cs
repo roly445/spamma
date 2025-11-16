@@ -23,7 +23,7 @@ public class DomainAggregateTests
         @event.PrimaryContactEmail.Should().Be("contact@example.com");
         @event.Description.Should().Be("Test domain");
         @event.VerificationToken.Should().Be(token);
-        @event.WhenCreated.Should().Be(now);
+        @event.CreatedAt.Should().Be(now);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class DomainAggregateTests
         var @event = new DomainVerified(verifyTime);
 
         // Verify
-        @event.WhenVerified.Should().Be(verifyTime);
+        @event.VerifiedAt.Should().Be(verifyTime);
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class DomainAggregateTests
         // Verify
         @event.Reason.Should().Be(DomainSuspensionReason.PolicyViolation);
         @event.Notes.Should().Be("Policy violation");
-        @event.WhenSuspended.Should().Be(suspendTime);
+        @event.SuspendedAt.Should().Be(suspendTime);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class DomainAggregateTests
         var @event = new DomainUnsuspended(unsuspendTime);
 
         // Verify
-        @event.WhenUnsuspended.Should().Be(unsuspendTime);
+        @event.UnsuspendedAt.Should().Be(unsuspendTime);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class DomainAggregateTests
 
         // Verify
         @event.UserId.Should().Be(userId);
-        @event.WhenAdded.Should().Be(now);
+        @event.AddedAt.Should().Be(now);
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class DomainAggregateTests
 
         // Verify
         @event.UserId.Should().Be(userId);
-        @event.WhenRemoved.Should().Be(now);
+        @event.RemovedAt.Should().Be(now);
     }
 
     [Fact]
@@ -177,8 +177,8 @@ public class DomainAggregateTests
 
         // Verify sequence
         created.DomainId.Should().Be(domainId);
-        verified.WhenVerified.Should().BeAfter(created.WhenCreated);
-        suspended.WhenSuspended.Should().BeAfter(verified.WhenVerified);
+        verified.VerifiedAt.Should().BeAfter(created.CreatedAt);
+        suspended.SuspendedAt.Should().BeAfter(verified.VerifiedAt);
     }
 
     [Fact]

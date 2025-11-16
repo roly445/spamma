@@ -8,7 +8,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
-public class ChaosAddressLookupProjection : EventProjection
+internal class ChaosAddressLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public ChaosAddressLookup Create(ChaosAddressCreated @event)
@@ -48,7 +48,7 @@ public class ChaosAddressLookupProjection : EventProjection
     {
         ops.Patch<ChaosAddressLookup>(@event.StreamId)
             .Increment(x => x.TotalReceived)
-            .Set(x => x.LastReceivedAt, @event.Data.When);
+            .Set(x => x.LastReceivedAt, @event.Data.ReceivedAt);
     }
 
     [UsedImplicitly]

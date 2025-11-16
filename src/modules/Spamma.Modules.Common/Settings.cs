@@ -6,7 +6,7 @@ public class Settings
 
     public string BaseUri { get; init; } = string.Empty;
 
-    public string LoginUri => string.Concat(this.BaseUri, "/logging-in?token={0}");
+    public string LoginUri => string.Concat(this.BaseUri.TrimEnd('/'), "/logging-in?token={0}");
 
     public int AuthenticationTimeInMinutes { get; init; } = 15;
 

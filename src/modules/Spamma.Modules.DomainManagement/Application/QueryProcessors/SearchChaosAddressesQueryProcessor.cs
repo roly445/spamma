@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class SearchChaosAddressesQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchChaosAddressesQuery, SearchChaosAddressesQueryResult>
+internal class SearchChaosAddressesQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchChaosAddressesQuery, SearchChaosAddressesQueryResult>
 {
     public async Task<QueryResult<SearchChaosAddressesQueryResult>> Handle(SearchChaosAddressesQuery request, CancellationToken cancellationToken)
     {

@@ -2,28 +2,28 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
-public class ChaosAddressSuspensionAudit
+internal class ChaosAddressSuspensionAudit
 {
     private ChaosAddressSuspensionAudit(
-        DateTime whenHappened, ChaosAddressSuspensionAuditType type)
+        DateTime happenedAt, ChaosAddressSuspensionAuditType type)
     {
-        this.WhenHappened = whenHappened;
+        this.HappenedAt = happenedAt;
         this.Type = type;
     }
 
-    public DateTime WhenHappened { get; private set; }
+    internal DateTime HappenedAt { get; private set; }
 
-    public ChaosAddressSuspensionAuditType Type { get; private set; }
+    internal ChaosAddressSuspensionAuditType Type { get; private set; }
 
-    public static ChaosAddressSuspensionAudit CreateSuspension(
-        DateTime whenHappened)
+    internal static ChaosAddressSuspensionAudit CreateSuspension(
+        DateTime happenedAt)
     {
-        return new ChaosAddressSuspensionAudit(whenHappened, ChaosAddressSuspensionAuditType.Suspend);
+        return new ChaosAddressSuspensionAudit(happenedAt, ChaosAddressSuspensionAuditType.Suspend);
     }
 
-    public static ChaosAddressSuspensionAudit CreateUnsuspension(
-        DateTime whenHappened)
+    internal static ChaosAddressSuspensionAudit CreateUnsuspension(
+        DateTime happenedAt)
     {
-        return new ChaosAddressSuspensionAudit(whenHappened, ChaosAddressSuspensionAuditType.Unsuspend);
+        return new ChaosAddressSuspensionAudit(happenedAt, ChaosAddressSuspensionAuditType.Unsuspend);
     }
 }

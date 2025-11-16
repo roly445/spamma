@@ -2,7 +2,10 @@ using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
-public partial class ChaosAddress
+/// <summary>
+/// Event handling for <see cref="ChaosAddress"/> aggregate.
+/// </summary>
+internal partial class ChaosAddress
 {
     protected override void ApplyEvent(object @event)
     {
@@ -43,24 +46,24 @@ public partial class ChaosAddress
         this.ConfiguredSmtpCode = @event.ConfiguredSmtpCode;
         this.Enabled = false;
         this.TotalReceived = 0;
-        this.LastReceivedAt = null;
+        this._lastReceivedAt = null;
     }
 
     private void Apply(ChaosAddressEnabled @event)
     {
-        this._suspensionAudits.Add(ChaosAddressSuspensionAudit.CreateSuspension(@event.When));
+        this._suspensionAudits.Add(ChaosAddressSuspensionAudit.CreateSuspension(@event.EnabledAt));
         this.Enabled = true;
     }
 
     private void Apply(ChaosAddressDisabled @event)
     {
-        this._suspensionAudits.Add(ChaosAddressSuspensionAudit.CreateUnsuspension(@event.When));
+        this._suspensionAudits.Add(ChaosAddressSuspensionAudit.CreateUnsuspension(@event.DisabledAt));
         this.Enabled = false;
     }
 
     private void Apply(ChaosAddressReceived @event)
     {
         this.TotalReceived += 1;
-        this.LastReceivedAt = @event.When;
+        this._lastReceivedAt = @event.ReceivedAt;
     }
 }

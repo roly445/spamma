@@ -8,7 +8,7 @@ using DomainAggregate = Spamma.Modules.DomainManagement.Domain.DomainAggregate.D
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 
-public class CreateDomainCommandHandler(IDomainRepository repository, IEnumerable<IValidator<CreateDomainCommand>> validators, ILogger<CreateDomainCommandHandler> logger, TimeProvider timeProvider)
+internal class CreateDomainCommandHandler(IDomainRepository repository, IEnumerable<IValidator<CreateDomainCommand>> validators, ILogger<CreateDomainCommandHandler> logger, TimeProvider timeProvider)
     : CommandHandler<CreateDomainCommand, CreateDomainCommandResult>(validators, logger)
 {
     protected override async Task<CommandResult<CreateDomainCommandResult>> HandleInternal(CreateDomainCommand request, CancellationToken cancellationToken)

@@ -35,7 +35,7 @@ public class ChaosAddressAggregateTests
 
         agg.RecordReceive(when.AddSeconds(1)).ShouldBeOk();
         agg.TotalReceived.Should().Be(1);
-        agg.LastReceivedAt.Should().NotBeNull();
+        agg.LastReceivedAt.Should().NotBe(DateTimeOffset.MinValue);
     }
 
     [Fact]

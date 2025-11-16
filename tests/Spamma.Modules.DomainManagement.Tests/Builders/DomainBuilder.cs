@@ -64,7 +64,7 @@ public class DomainBuilder
         return this;
     }
 
-    public DomainAggregate Build()
+    internal DomainAggregate Build()
     {
         var result = DomainAggregate.Create(this._domainId, this._name, this._primaryContactEmail, this._description, this._whenCreated);
         var domain = result.Value;

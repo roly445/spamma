@@ -1,34 +1,34 @@
-﻿using ResultMonad;
+using ResultMonad;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-public class Viewer
+internal class Viewer
 {
-    private Viewer(Guid userId, DateTime whenAdded)
+    private Viewer(Guid userId, DateTime addedAt)
     {
         this.UserId = userId;
-        this.WhenAdded = whenAdded;
+        this.AddedAt = addedAt;
     }
 
     public Guid UserId { get; private set; }
 
-    public DateTime WhenAdded { get; private set; }
+    internal DateTime AddedAt { get; private set; }
 
-    public DateTime? WhenRemoved { get; private set; }
+    internal DateTime? RemovedAt { get; private set; }
 
-    public static Viewer Create(Guid userId, DateTime whenAdded)
+    internal static Viewer Create(Guid userId, DateTime whenAdded)
     {
         return new Viewer(userId, whenAdded);
     }
 
-    public Result Remove(DateTime whenRemoved)
+    internal Result Remove(DateTime whenRemoved)
     {
-        if (this.WhenRemoved.HasValue)
+        if (this.RemovedAt.HasValue)
         {
             return Result.Fail();
         }
 
-        this.WhenRemoved = whenRemoved;
+        this.RemovedAt = whenRemoved;
         return Result.Ok();
     }
 }

@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-public class GetChaosAddressesQueryAuthorizer : AbstractRequestAuthorizer<GetChaosAddressesQuery>
+internal class GetChaosAddressesQueryAuthorizer : AbstractRequestAuthorizer<GetChaosAddressesQuery>
 {
     public override void BuildPolicy(GetChaosAddressesQuery request)
     {

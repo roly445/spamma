@@ -2,4 +2,4 @@
 
 namespace Spamma.Modules.DomainManagement.Application.Repositories;
 
-public interface IDomainRepository : IRepository<Domain.DomainAggregate.Domain>;
+internal interface IDomainRepository : IRepository<Domain.DomainAggregate.Domain>;

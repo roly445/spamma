@@ -7,7 +7,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class UpdateSubdomainCommandHandler(
+internal class UpdateSubdomainCommandHandler(
     ISubdomainRepository repository,
     IEnumerable<IValidator<UpdateSubdomainDetailsCommand>> validators,
     ILogger<UpdateSubdomainCommandHandler> logger)

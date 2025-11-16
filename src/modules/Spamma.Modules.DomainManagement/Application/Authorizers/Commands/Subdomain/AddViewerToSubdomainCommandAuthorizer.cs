@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Subdomain;
 
-public class AddViewerToSubdomainCommandAuthorizer : AbstractRequestAuthorizer<AddViewerToSubdomainCommand>
+internal class AddViewerToSubdomainCommandAuthorizer : AbstractRequestAuthorizer<AddViewerToSubdomainCommand>
 {
     public override void BuildPolicy(AddViewerToSubdomainCommand request)
     {

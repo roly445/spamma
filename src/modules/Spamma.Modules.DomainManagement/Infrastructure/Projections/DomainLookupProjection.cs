@@ -1,4 +1,4 @@
-﻿using JasperFx.Events;
+using JasperFx.Events;
 using JetBrains.Annotations;
 using Marten;
 using Marten.Events.Projections;
@@ -12,7 +12,7 @@ using DomainModerationUserRemoved = Spamma.Modules.DomainManagement.Domain.Domai
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
-public class DomainLookupProjection : EventProjection
+internal class DomainLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public DomainLookup Create(DomainCreated @event)
@@ -27,7 +27,7 @@ public class DomainLookupProjection : EventProjection
             IsVerified = false,
             SubdomainCount = 0,
             AssignedModeratorCount = 0,
-            CreatedAt = @event.WhenCreated,
+            CreatedAt = @event.CreatedAt,
         };
     }
 
@@ -36,7 +36,7 @@ public class DomainLookupProjection : EventProjection
     {
         ops.Patch<DomainLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, true)
-            .Set(x => x.WhenSuspended, @event.Data.WhenSuspended);
+            .Set(x => x.SuspendedAt, @event.Data.SuspendedAt);
     }
 
     [UsedImplicitly]
@@ -44,7 +44,7 @@ public class DomainLookupProjection : EventProjection
     {
         ops.Patch<DomainLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, false)
-            .Set(x => x.WhenSuspended, null);
+            .Set(x => x.SuspendedAt, null);
     }
 
     [UsedImplicitly]
@@ -60,7 +60,7 @@ public class DomainLookupProjection : EventProjection
     {
         ops.Patch<DomainLookup>(@event.StreamId)
             .Set(x => x.IsVerified, true)
-            .Set(x => x.VerifiedAt, @event.Data.WhenVerified);
+            .Set(x => x.VerifiedAt, @event.Data.VerifiedAt);
     }
 
     [UsedImplicitly]
@@ -79,7 +79,7 @@ public class DomainLookupProjection : EventProjection
                 UserId = @event.Data.UserId,
                 Name = name,
                 Email = email,
-                CreatedAt = @event.Data.WhenAdded,
+                CreatedAt = @event.Data.AddedAt,
             })
             .Increment(x => x.AssignedModeratorCount);
     }
@@ -117,10 +117,10 @@ public class DomainLookupProjection : EventProjection
             Id = @event.Data.SubdomainId,
             SubdomainName = @event.Data.Name,
             DomainId = @event.Data.DomainId,
-            CreatedAt = @event.Data.WhenCreated,
+            CreatedAt = @event.Data.CreatedAt,
             AssignedModeratorCount = 0,
             IsSuspended = false,
-            WhenSuspended = null,
+            SuspendedAt = null,
             Description = @event.Data.Description,
             ParentName = domain.DomainName,
             FullName = fullName,

@@ -1,3 +1,3 @@
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 
-public record ChaosAddressReceived(DateTimeOffset When);
+public record ChaosAddressReceived(DateTimeOffset ReceivedAt);

@@ -1,4 +1,4 @@
-﻿using JasperFx.Events;
+using JasperFx.Events;
 using JetBrains.Annotations;
 using Marten;
 using Marten.Events.Projections;
@@ -11,7 +11,7 @@ using SubdomainModerationUserRemoved = Spamma.Modules.DomainManagement.Domain.Su
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
-public class SubdomainLookupProjection : EventProjection
+internal class SubdomainLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public async Task<SubdomainLookup> Create(SubdomainCreated @event, IDocumentOperations ops)
@@ -25,9 +25,9 @@ public class SubdomainLookupProjection : EventProjection
             SubdomainName = @event.Name,
             Description = @event.Description,
             AssignedModeratorCount = 0,
-            CreatedAt = @event.WhenCreated,
+            CreatedAt = @event.CreatedAt,
             IsSuspended = false,
-            WhenSuspended = null,
+            SuspendedAt = null,
             DomainId = @event.DomainId,
             ActiveCampaignCount = 0,
             ChaosMonkeyRuleCount = 0,
@@ -41,7 +41,7 @@ public class SubdomainLookupProjection : EventProjection
     {
         ops.Patch<SubdomainLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, true)
-            .Set(x => x.WhenSuspended, @event.Data.WhenSuspended);
+            .Set(x => x.SuspendedAt, @event.Data.SuspendedAt);
     }
 
     [UsedImplicitly]
@@ -49,7 +49,7 @@ public class SubdomainLookupProjection : EventProjection
     {
         ops.Patch<SubdomainLookup>(@event.StreamId)
             .Set(x => x.IsSuspended, false)
-            .Set(x => x.WhenSuspended, null);
+            .Set(x => x.SuspendedAt, null);
     }
 
     [UsedImplicitly]
@@ -75,7 +75,7 @@ public class SubdomainLookupProjection : EventProjection
                 UserId = @event.Data.UserId,
                 Name = name,
                 Email = email,
-                CreatedAt = @event.Data.WhenAdded,
+                CreatedAt = @event.Data.AddedAt,
             })
             .Increment(x => x.AssignedModeratorCount);
     }
@@ -113,7 +113,7 @@ public class SubdomainLookupProjection : EventProjection
                 UserId = @event.Data.UserId,
                 Name = name,
                 Email = email,
-                CreatedAt = @event.Data.WhenAdded,
+                CreatedAt = @event.Data.AddedAt,
             })
             .Increment(x => x.AssignedViewerCount);
     }
@@ -139,7 +139,7 @@ public class SubdomainLookupProjection : EventProjection
     public void Project(IEvent<MxRecordChecked> @event, IDocumentOperations ops)
     {
         ops.Patch<SubdomainLookup>(@event.StreamId)
-            .Set(x => x.MxLastCheckedAt, @event.Data.WhenChecked)
+            .Set(x => x.MxLastCheckedAt, @event.Data.LastCheckedAt)
             .Set(x => x.MxStatus, @event.Data.MxStatus);
     }
 }

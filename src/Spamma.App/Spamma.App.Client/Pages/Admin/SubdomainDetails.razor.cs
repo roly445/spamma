@@ -168,7 +168,7 @@ public partial class SubdomainDetails(ICommander commander, IQuerier querier, Na
             this.subdomain = this.subdomain with
             {
                 MxStatus = result.Data.MxStatus,
-                MxCheckedAt = result.Data.WhenChecked,
+                MxCheckedAt = result.Data.LastCheckedAt,
             };
         }
 

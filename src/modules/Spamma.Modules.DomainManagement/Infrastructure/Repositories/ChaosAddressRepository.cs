@@ -5,4 +5,4 @@ using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Repositories;
 
-public class ChaosAddressRepository(IDocumentSession session) : GenericRepository<ChaosAddress>(session), IChaosAddressRepository;
+internal class ChaosAddressRepository(IDocumentSession session) : GenericRepository<ChaosAddress>(session), IChaosAddressRepository;

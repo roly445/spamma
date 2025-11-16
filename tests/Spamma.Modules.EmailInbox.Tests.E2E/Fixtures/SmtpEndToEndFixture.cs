@@ -157,48 +157,47 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(
             domainId,
             new Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events.DomainCreated(
-                DomainId: domainId,
-                Name: "example.com",
-                PrimaryContactEmail: null,
-                Description: "Test domain for E2E tests",
-                VerificationToken: Guid.NewGuid().ToString("N"),
-                WhenCreated: now));
+                domainId,
+                "example.com",
+                null,
+                "Test domain for E2E tests",
+                Guid.NewGuid().ToString("N"),
+                now));
 
         // Create test subdomain stream with typed event
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(
             subdomainId,
             new Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events.SubdomainCreated(
-                SubdomainId: subdomainId,
-                DomainId: domainId,
-                Name: "spamma",
-                WhenCreated: now,
-                Description: "Test subdomain for E2E tests"));
+                subdomainId,
+                domainId,
+                "spamma",
+                now,
+                "Test subdomain for E2E tests"));
 
         // Create enabled chaos address
         var chaosAddressEnabledId = Guid.NewGuid();
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
             chaosAddressEnabledId,
             new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
-                Id: chaosAddressEnabledId,
-                DomainId: domainId,
-                SubdomainId: subdomainId,
-                LocalPart: "chaos",
-                ConfiguredSmtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
-                CreatedAt: now));
+                chaosAddressEnabledId,
+                domainId,
+                subdomainId,
+                "chaos",
+                Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
+                now));
 
         // Create disabled chaos address
         var chaosAddressDisabledId = Guid.NewGuid();
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
             chaosAddressDisabledId,
             new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
-                Id: chaosAddressDisabledId,
-                DomainId: domainId,
-                SubdomainId: subdomainId,
-                LocalPart: "disabled",
-                ConfiguredSmtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
-                CreatedAt: now),
-            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressDisabled(
-                When: now));
+                chaosAddressDisabledId,
+                domainId,
+                subdomainId,
+                "disabled",
+                Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
+                now),
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressDisabled(now));
 
         await session.SaveChangesAsync();
 

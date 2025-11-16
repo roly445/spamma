@@ -1,3 +1,3 @@
-﻿namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
-public record DomainVerified(DateTime WhenVerified);
+public record DomainVerified(DateTime VerifiedAt);

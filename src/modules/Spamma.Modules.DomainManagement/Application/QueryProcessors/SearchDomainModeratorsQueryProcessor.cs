@@ -6,7 +6,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class SearchDomainModeratorsQueryProcessor(IDocumentSession session) : IQueryProcessor<SearchDomainModeratorsQuery, SearchDomainModeratorsQueryResult>
+internal class SearchDomainModeratorsQueryProcessor(IDocumentSession session) : IQueryProcessor<SearchDomainModeratorsQuery, SearchDomainModeratorsQueryResult>
 {
     public async Task<QueryResult<SearchDomainModeratorsQueryResult>> Handle(SearchDomainModeratorsQuery request, CancellationToken cancellationToken)
     {

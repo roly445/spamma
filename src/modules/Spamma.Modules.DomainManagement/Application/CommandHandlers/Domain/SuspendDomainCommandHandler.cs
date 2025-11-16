@@ -7,7 +7,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 
-public class SuspendDomainCommandHandler(IDomainRepository repository, TimeProvider timeProvider, IEnumerable<IValidator<SuspendDomainCommand>> validators, ILogger<SuspendDomainCommandHandler> logger)
+internal class SuspendDomainCommandHandler(IDomainRepository repository, TimeProvider timeProvider, IEnumerable<IValidator<SuspendDomainCommand>> validators, ILogger<SuspendDomainCommandHandler> logger)
     : CommandHandler<SuspendDomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(SuspendDomainCommand request, CancellationToken cancellationToken)

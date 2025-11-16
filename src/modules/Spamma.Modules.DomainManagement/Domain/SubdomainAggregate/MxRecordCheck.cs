@@ -1,10 +1,10 @@
-﻿using Spamma.Modules.DomainManagement.Client.Contracts;
+using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-public class MxRecordCheck(DateTime whenChecked, MxStatus mxStatus)
+internal class MxRecordCheck(DateTime lastCheckedAt, MxStatus mxStatus)
 {
-    public DateTime WhenChecked { get; private set; } = whenChecked;
+    internal DateTime LastCheckedAt { get; private set; } = lastCheckedAt;
 
-    public MxStatus MxStatus { get; private set; } = mxStatus;
+    internal MxStatus MxStatus { get; private set; } = mxStatus;
 }

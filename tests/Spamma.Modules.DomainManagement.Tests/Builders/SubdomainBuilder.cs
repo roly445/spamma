@@ -71,7 +71,7 @@ public class SubdomainBuilder
         return this;
     }
 
-    public SubdomainAggregate Build()
+    internal SubdomainAggregate Build()
     {
         var result = SubdomainAggregate.Create(this._subdomainId, this._domainId, this._name, this._description, this._whenCreated);
         var subdomain = result.Value;

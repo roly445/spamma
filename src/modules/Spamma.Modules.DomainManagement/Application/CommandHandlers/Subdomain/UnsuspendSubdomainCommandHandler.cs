@@ -7,7 +7,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class UnsuspendSubdomainCommandHandler(
+internal class UnsuspendSubdomainCommandHandler(
     ISubdomainRepository repository,
     TimeProvider timeProvider,
     IEnumerable<IValidator<UnsuspendSubdomainCommand>> validators,
