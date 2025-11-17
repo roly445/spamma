@@ -10,7 +10,10 @@ public class EmailLookup
 
     public Guid SubdomainId { get; internal set; }
 
-    // Marten requires public set for JSON deserialization of nested collections
+    /// <summary>
+    /// Gets or sets the email addresses.
+    /// Note: Collection property uses public setter for Marten JSON deserialization compatibility.
+    /// </summary>
     public List<EmailAddress> EmailAddresses { get; set; } = new();
 
     public string Subject { get; internal set; } = string.Empty;
