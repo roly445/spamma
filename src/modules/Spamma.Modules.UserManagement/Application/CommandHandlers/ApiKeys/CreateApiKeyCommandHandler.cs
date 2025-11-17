@@ -85,13 +85,17 @@ internal class CreateApiKeyCommandHandler(
 
     private static string GenerateApiKey()
     {
-        // Generate a random 32-character API key (after "sk-")
+        // Generate a cryptographically secure random 32-character API key (after "sk-")
         const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        var random = new Random();
         var key = new char[32];
+
+        using var rng = RandomNumberGenerator.Create();
+        var randomBytes = new byte[32];
+        rng.GetBytes(randomBytes);
+
         for (var i = 0; i < key.Length; i++)
         {
-            key[i] = chars[random.Next(chars.Length)];
+            key[i] = chars[randomBytes[i] % chars.Length];
         }
 
         return "sk-" + new string(key);
