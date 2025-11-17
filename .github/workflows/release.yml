@@ -66,6 +66,12 @@ jobs:
           files: test-results/**/*.trx
           check_name: Test Results
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   publish:
     name: Build & Test & Publish artifacts for multiple RIDs
     needs: test
