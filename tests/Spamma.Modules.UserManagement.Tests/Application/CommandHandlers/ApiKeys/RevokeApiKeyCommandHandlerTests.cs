@@ -64,10 +64,14 @@ public class RevokeApiKeyCommandHandlerTests
             "Test API Key",
             "hashedkey",
             "salt",
-            this._timeProvider.GetUtcNow()).Value;
+            this._timeProvider.GetUtcNow().DateTime).Value;
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -152,7 +156,11 @@ public class RevokeApiKeyCommandHandlerTests
         var command = new RevokeApiKeyCommand(apiKeyId);
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -198,10 +206,14 @@ public class RevokeApiKeyCommandHandlerTests
             "Test API Key",
             "hashedkey",
             "salt",
-            this._timeProvider.GetUtcNow()).Value;
+            this._timeProvider.GetUtcNow().DateTime).Value;
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -246,13 +258,17 @@ public class RevokeApiKeyCommandHandlerTests
             "Test API Key",
             "hashedkey",
             "salt",
-            this._timeProvider.GetUtcNow()).Value;
+            this._timeProvider.GetUtcNow().DateTime).Value;
 
         // Revoke it
-        apiKey.Revoke(this._timeProvider.GetUtcNow());
+        apiKey.Revoke(this._timeProvider.GetUtcNow().DateTime);
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -297,10 +313,14 @@ public class RevokeApiKeyCommandHandlerTests
             "Test API Key",
             "hashedkey",
             "salt",
-            this._timeProvider.GetUtcNow()).Value;
+            this._timeProvider.GetUtcNow().DateTime).Value;
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 

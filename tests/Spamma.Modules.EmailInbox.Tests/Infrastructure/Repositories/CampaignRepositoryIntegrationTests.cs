@@ -38,7 +38,7 @@ public class CampaignRepositoryIntegrationTests : IClassFixture<PostgreSqlFixtur
         var retrieved = retrievedMaybe.Value;
         retrieved.Id.Should().Be(campaignId);
         retrieved.CampaignValue.Should().Be("test-campaign");
-        retrieved.DeletedAt.Should().Be(DateTime.MinValue);
+        retrieved.IsDeleted.Should().BeFalse();
     }
 
     [Fact]

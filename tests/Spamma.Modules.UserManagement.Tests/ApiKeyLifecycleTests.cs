@@ -48,7 +48,12 @@ public class ApiKeyLifecycleTests : IClassFixture<PostgreSqlFixture>
         // Mock HTTP context accessor for authentication
         var userId = Guid.NewGuid();
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(ClaimTypes.NameIdentifier))
             .Returns(new Claim(ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -75,7 +80,7 @@ public class ApiKeyLifecycleTests : IClassFixture<PostgreSqlFixture>
         var serviceProvider = services.BuildServiceProvider();
         var sender = serviceProvider.GetRequiredService<ISender>();
 
-        var command = new CreateApiKeyCommand("Integration Test API Key");
+        var command = new CreateApiKeyCommand("Integration Test API Key", DateTime.UtcNow.AddDays(30));
 
         // Act
         var result = await sender.Send(command);

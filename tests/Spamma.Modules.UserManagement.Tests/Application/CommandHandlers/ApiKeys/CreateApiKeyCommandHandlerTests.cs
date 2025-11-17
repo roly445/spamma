@@ -53,10 +53,14 @@ public class CreateApiKeyCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateApiKeyCommand("Test API Key");
+        var command = new CreateApiKeyCommand("Test API Key", DateTime.UtcNow.AddDays(30));
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -110,7 +114,7 @@ public class CreateApiKeyCommandHandlerTests
     public async Task Handle_WhenUserNotAuthenticated_ReturnsAuthenticationError()
     {
         // Arrange
-        var command = new CreateApiKeyCommand("Test API Key");
+        var command = new CreateApiKeyCommand("Test API Key", DateTime.UtcNow.AddDays(30));
 
         // Mock unauthenticated user
         this._httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null!);
@@ -134,10 +138,14 @@ public class CreateApiKeyCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateApiKeyCommand("Test API Key");
+        var command = new CreateApiKeyCommand("Test API Key", DateTime.UtcNow.AddDays(30));
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
@@ -168,10 +176,14 @@ public class CreateApiKeyCommandHandlerTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var command = new CreateApiKeyCommand("Existing API Key");
+        var command = new CreateApiKeyCommand("Existing API Key", DateTime.UtcNow.AddDays(30));
 
         // Mock authenticated user
+        var identityMock = new Mock<System.Security.Principal.IIdentity>();
+        identityMock.Setup(x => x.IsAuthenticated).Returns(true);
+
         var claimsPrincipalMock = new Mock<System.Security.Claims.ClaimsPrincipal>();
+        claimsPrincipalMock.Setup(x => x.Identity).Returns(identityMock.Object);
         claimsPrincipalMock.Setup(x => x.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier))
             .Returns(new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()));
 
