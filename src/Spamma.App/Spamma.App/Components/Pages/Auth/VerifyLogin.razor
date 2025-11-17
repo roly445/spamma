@@ -89,7 +89,7 @@
                     </div>
 
                     <EditForm Model="Model" FormName="VerifyLoginForm" OnValidSubmit="HandleVerification" data-disable-form>
-                        <InputText type="hidden" @bind-Value="Model.Token" />
+                        <InputText type="hidden" @bind-Value="Model!.Token" />
                     </EditForm>
                 
                 </div>

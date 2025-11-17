@@ -1,6 +1,6 @@
 # Spamma
 
-**Spamma** is an open-source, self-hostable alternative to Mailtrap. It functions as an SMTP server that captures incoming emails and displays them through a web interface. Built with .NET 9 and Blazor WebAssembly, Spamma can receive emails directly via SMTP or through MX records, and provides a comprehensive interface for monitoring and managing captured emails. Developed following Clean Architecture with CQRS and event sourcing patterns.
+**Spamma** is an open-source, self-hostable alternative to Mailtrap. It functions as an SMTP server that captures incoming emails and displays them through a web interface. Built with .NET 10 and Blazor WebAssembly, Spamma can receive emails directly via SMTP or through MX records, and provides a comprehensive interface for monitoring and managing captured emails. Developed following Clean Architecture with CQRS and event sourcing patterns.
 
 ## ✨ Key Features
 
@@ -70,7 +70,7 @@ Each module follows the pattern: `Module/Module.Client` where `.Client` contains
 
 **Backend:**
 
-- .NET 9
+- .NET 10
 - Marten (PostgreSQL event store for event sourcing)
 - MediatR (CQRS pattern implementation)
 - FluentValidation (command/query validation)
@@ -93,7 +93,7 @@ Each module follows the pattern: `Module/Module.Client` where `.Client` contains
 
 ### Prerequisites
 
-- .NET 9 SDK
+- .NET 10 SDK
 - Node.js 20+
 - Docker & Docker Compose
 - PostgreSQL 15+ (or use Docker Compose)

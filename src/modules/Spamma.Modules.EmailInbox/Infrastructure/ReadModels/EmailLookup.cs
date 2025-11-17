@@ -4,7 +4,7 @@
 
 public class EmailLookup
 {
-    private List<EmailAddress> _emailAddresses = new();
+    private readonly List<EmailAddress> _emailAddresses = new();
 
     public Guid Id { get; init; }
 
@@ -12,13 +12,10 @@ public class EmailLookup
 
     public Guid SubdomainId { get; init; }
 
-    /// <summary>
-    /// Gets the email addresses as a read-only collection. Uses init setter to allow population during object initialization.
-    /// </summary>
     public IReadOnlyCollection<EmailAddress> EmailAddresses
     {
         get => this._emailAddresses.AsReadOnly();
-        init => this._emailAddresses = value?.ToList() ?? new();
+        init => this._emailAddresses = value.ToList();
     }
 
     public string Subject { get; init; } = string.Empty;
