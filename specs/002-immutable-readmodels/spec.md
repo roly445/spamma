@@ -9,6 +9,12 @@
 
 This feature standardizes all readmodel classes (projection targets) to use immutable property initialization patterns with private setters. Readmodels are used by Marten as read-optimized data structures built from domain events through projections. Making them immutable improves code safety, thread-safety guarantees, and enforces the event-sourcing pattern where state changes should only occur through projection logic (event handlers).
 
+## Clarifications
+
+### Session 2025-11-17
+
+- Q: Should implementation include explicit validation that Marten's `Patch()` API works with private setters before proceeding, or validate only during integration testing? → A: Add explicit unit test early to validate Marten Patch works with private setters before modifying readmodels at scale
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Enforce Immutability at Compile Time (Priority: P1)
@@ -83,28 +89,6 @@ As a system operator, I want the immutability changes to maintain compatibility 
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### Boundary & Error Handling
-
-- What happens when a readmodel has a reference to a mutable collection that should be part of the projection (e.g., `List<Guid> ModeratedDomains`)? The collection itself can be mutable, but the property setter should be private to ensure projections control when the collection is replaced.
-- How are readmodels with multiple initialization patterns handled (some that need parameterized constructors vs. object initializers)? Favor the simpler object initializer pattern with private setters for consistency.
-- What about readmodels that are used both for projections and as DTOs in API responses? Readmodels in `Infrastructure/ReadModels/` are internal projection targets; API response types should be separate DTOs in the `.Client` project.
-
----
-
 ## Requirements
 
 ### Functional Requirements
@@ -117,6 +101,7 @@ As a system operator, I want the immutability changes to maintain compatibility 
 - **FR-006**: All projection methods that hydrate readmodels MUST use object initializer syntax or inline property assignment during creation; no direct assignment after instantiation
 - **FR-007**: Existing Marten event store documents and projections MUST continue to deserialize and function correctly after readmodel immutability changes
 - **FR-008**: No new public constructors with parameters MUST be added to readmodels (use object initializers exclusively for consistency)
+- **FR-009**: A unit test MUST validate that Marten's `IDocumentOperations.Patch()` API successfully sets properties with private setters before proceeding with bulk readmodel modifications (proof of concept validation)
 
 ### Code Quality & Project Structure (MANDATORY for PRs)
 
@@ -151,6 +136,7 @@ As a system operator, I want the immutability changes to maintain compatibility 
 
 ### In Scope
 
+- **Validation spike**: Create unit test to prove Marten's `Patch()` API works with private setters
 - Modifying all readmodel class property declarations to use private setters
 - Ensuring projections work with private-setter readmodels using Marten's `Patch()` API
 - Updating existing readmodel initializations to use object initializer syntax
