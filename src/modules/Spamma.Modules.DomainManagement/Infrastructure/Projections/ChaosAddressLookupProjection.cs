@@ -13,24 +13,20 @@ internal class ChaosAddressLookupProjection : EventProjection
     [UsedImplicitly]
     public ChaosAddressLookup Create(ChaosAddressCreated @event)
     {
-        return new ChaosAddressLookup();
-    }
-
-    [UsedImplicitly]
-    public void Project(IEvent<ChaosAddressCreated> @event, IDocumentOperations ops)
-    {
-        ops.Patch<ChaosAddressLookup>(@event.StreamId)
-            .Set(x => x.Id, @event.StreamId)
-            .Set(x => x.DomainId, @event.Data.DomainId)
-            .Set(x => x.SubdomainId, @event.Data.SubdomainId)
-            .Set(x => x.LocalPart, @event.Data.LocalPart)
-            .Set(x => x.ConfiguredSmtpCode, @event.Data.ConfiguredSmtpCode)
-            .Set(x => x.Enabled, false)
-            .Set(x => x.ImmutableAfterFirstReceive, false)
-            .Set(x => x.TotalReceived, 0)
-            .Set(x => x.LastReceivedAt, null)
-            .Set(x => x.CreatedAt, @event.Data.CreatedAt)
-            .Set(x => x.CreatedBy, Guid.Empty);
+        return new ChaosAddressLookup
+        {
+            Id = @event.Id,
+            DomainId = @event.DomainId,
+            SubdomainId = @event.SubdomainId,
+            LocalPart = @event.LocalPart,
+            ConfiguredSmtpCode = @event.ConfiguredSmtpCode,
+            Enabled = false,
+            ImmutableAfterFirstReceive = false,
+            TotalReceived = 0,
+            LastReceivedAt = null,
+            CreatedAt = @event.CreatedAt,
+            CreatedBy = Guid.Empty,
+        };
     }
 
     [UsedImplicitly]

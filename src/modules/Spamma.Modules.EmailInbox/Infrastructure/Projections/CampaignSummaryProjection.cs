@@ -13,21 +13,17 @@ public class CampaignSummaryProjection : EventProjection
     [UsedImplicitly]
     public CampaignSummary Create(CampaignCreated @event)
     {
-        return new CampaignSummary();
-    }
-
-    [UsedImplicitly]
-    public void Project(IEvent<CampaignCreated> @event, IDocumentOperations ops)
-    {
-        ops.Patch<CampaignSummary>(@event.StreamId)
-            .Set(x => x.CampaignId, @event.StreamId)
-            .Set(x => x.DomainId, @event.Data.DomainId)
-            .Set(x => x.SubdomainId, @event.Data.SubdomainId)
-            .Set(x => x.CampaignValue, @event.Data.CampaignValue)
-            .Set(x => x.SampleMessageId, @event.Data.MessageId)
-            .Set(x => x.FirstReceivedAt, @event.Data.CreatedAt)
-            .Set(x => x.LastReceivedAt, @event.Data.CreatedAt)
-            .Set(x => x.TotalCaptured, 1);
+        return new CampaignSummary
+        {
+            CampaignId = @event.CampaignId,
+            DomainId = @event.DomainId,
+            SubdomainId = @event.SubdomainId,
+            CampaignValue = @event.CampaignValue,
+            SampleMessageId = @event.MessageId,
+            FirstReceivedAt = @event.CreatedAt,
+            LastReceivedAt = @event.CreatedAt,
+            TotalCaptured = 1,
+        };
     }
 
     [UsedImplicitly]

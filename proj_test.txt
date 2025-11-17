@@ -1,0 +1,82 @@
+Test run for C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\bin\Debug\net9.0\Spamma.Modules.EmailInbox.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.28]     Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_SetsAllPropertiesFromEvent [FAIL]
+[xUnit.net 00:00:00.30]     Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_PreservesEmailAddressDetails [FAIL]
+[xUnit.net 00:00:00.30]     Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_MapsEmailReceived_ToReadModel [FAIL]
+[xUnit.net 00:00:00.30]     Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_MapsMultipleEmailAddressTypes [FAIL]
+[xUnit.net 00:00:00.30]     Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_PreservesSubdomainIdForEmailRouting [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_SetsAllPropertiesFromEvent [61 ms]
+  Error Message:
+   Expected readModel.Id to be {2529f755-d646-49e6-a57d-39c852f93464}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_SetsAllPropertiesFromEvent() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Infrastructure\Projections\EmailLookupProjectionTests.cs:line 109
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_PreservesEmailAddressDetails [3 ms]
+  Error Message:
+   Expected readModel.EmailAddresses to contain 3 item(s), but found 0: {empty}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Collections.GenericCollectionAssertions`3.HaveCount(Int32 expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_PreservesEmailAddressDetails() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Infrastructure\Projections\EmailLookupProjectionTests.cs:line 81
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_MapsEmailReceived_ToReadModel [< 1 ms]
+  Error Message:
+   Expected readModel.Id to be {e45e6f84-1594-4c40-87ba-8066307a3921}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_MapsEmailReceived_ToReadModel() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Infrastructure\Projections\EmailLookupProjectionTests.cs:line 32
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_MapsMultipleEmailAddressTypes [1 ms]
+  Error Message:
+   Expected readModel.EmailAddresses to contain 5 item(s), but found 0: {empty}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Collections.GenericCollectionAssertions`3.HaveCount(Int32 expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_MapsMultipleEmailAddressTypes() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Infrastructure\Projections\EmailLookupProjectionTests.cs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  Failed Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_PreservesSubdomainIdForEmailRouting [< 1 ms]
+  Error Message:
+   Expected readModel.SubdomainId to be {ca454906-175b-4e39-99e0-ccadb6c4319c}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Infrastructure.Projections.EmailLookupProjectionTests.Create_PreservesSubdomainIdForEmailRouting() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Infrastructure\Projections\EmailLookupProjectionTests.cs:line 153
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+Failed!  - Failed:     5, Passed:     2, Skipped:     0, Total:     7, Duration: 96 ms - Spamma.Modules.EmailInbox.Tests.dll (net9.0)

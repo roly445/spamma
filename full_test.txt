@@ -1,0 +1,404 @@
+Test run for C:\Users\andre\Code\spamma\tests\Spamma.Modules.DomainManagement.Tests\bin\Debug\net9.0\Spamma.Modules.DomainManagement.Tests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\andre\Code\spamma\tests\Spamma.Modules.UserManagement.Tests\bin\Debug\net9.0\Spamma.Modules.UserManagement.Tests.dll (.NETCoreApp,Version=v9.0)
+Test run for C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\bin\Debug\net9.0\Spamma.Modules.EmailInbox.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.1 (x64)
+
+C:\Users\andre\.nuget\packages\system.collections.immutable\9.0.0\buildTransitive\netcoreapp2.0\System.Collections.Immutable.targets(4,5): warning : System.Collections.Immutable 9.0.0 doesn't support net7.0 and has not been tested with it. Consider upgrading your TargetFramework to net8.0 or later. You may also set <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings> in the project file to ignore this warning and attempt to run in this unsupported configuration at your own risk. [C:\Users\andre\Code\spamma\src\Spamma.Analyzers\Spamma.Analyzers.csproj]
+C:\Users\andre\.nuget\packages\system.reflection.metadata\9.0.0\buildTransitive\netcoreapp2.0\System.Reflection.Metadata.targets(4,5): warning : System.Reflection.Metadata 9.0.0 doesn't support net7.0 and has not been tested with it. Consider upgrading your TargetFramework to net8.0 or later. You may also set <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings> in the project file to ignore this warning and attempt to run in this unsupported configuration at your own risk. [C:\Users\andre\Code\spamma\src\Spamma.Analyzers\Spamma.Analyzers.csproj]
+VSTest version 18.0.1 (x64)
+
+Test run for C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests.E2E\bin\Debug\net9.0\Spamma.Modules.EmailInbox.Tests.E2E.dll (.NETCoreApp,Version=v9.0)
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+VSTest version 18.0.1 (x64)
+
+Starting test execution, please wait...
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.38]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_InvalidApiKey_ReturnsFail [SKIP]
+[xUnit.net 00:00:00.39]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_NoApiKey_ReturnsNoResult [SKIP]
+[xUnit.net 00:00:00.40]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_ValidApiKeyInHeader_ReturnsSuccess [SKIP]
+[xUnit.net 00:00:00.40]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_QueryParameterDisabled_IgnoresQueryParameter [SKIP]
+[xUnit.net 00:00:00.40]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_CustomQueryParameterName_Works [SKIP]
+[xUnit.net 00:00:00.40]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_ValidApiKeyInQueryParameter_ReturnsSuccess [SKIP]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_InvalidApiKey_ReturnsFail [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_NoApiKey_ReturnsNoResult [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_ValidApiKeyInHeader_ReturnsSuccess [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_QueryParameterDisabled_IgnoresQueryParameter [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_CustomQueryParameterName_Works [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_ValidApiKeyInQueryParameter_ReturnsSuccess [1 ms]
+[xUnit.net 00:00:00.43]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_HeaderTakesPrecedenceOverQueryParameter [SKIP]
+[xUnit.net 00:00:00.43]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_EmptyApiKeyHeader_ReturnsNoResult [SKIP]
+[xUnit.net 00:00:00.43]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_WhitespaceApiKeyHeader_ReturnsNoResult [SKIP]
+[xUnit.net 00:00:00.43]     Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_CustomHeaderName_Works [SKIP]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_HeaderTakesPrecedenceOverQueryParameter [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_EmptyApiKeyHeader_ReturnsNoResult [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_WhitespaceApiKeyHeader_ReturnsNoResult [1 ms]
+  Skipped Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeyAuthenticationHandlerTests.HandleAuthenticateAsync_CustomHeaderName_Works [1 ms]
+[xUnit.net 00:00:00.56]     Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserModeratesParentDomain_RequiresDatabaseQuery [SKIP]
+[xUnit.net 00:00:00.56]     Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserHasNoRolesOrClaims_ReturnsFail [SKIP]
+[xUnit.net 00:00:00.56]     Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserHasViewableSubdomainClaimButNotModerator_ReturnsFail [SKIP]
+[xUnit.net 00:00:00.56]     Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserModeratesOtherSubdomain_ReturnsFail [SKIP]
+  Skipped Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserModeratesParentDomain_RequiresDatabaseQuery [1 ms]
+  Skipped Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserHasNoRolesOrClaims_ReturnsFail [1 ms]
+  Skipped Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserHasViewableSubdomainClaimButNotModerator_ReturnsFail [1 ms]
+  Skipped Spamma.Modules.DomainManagement.Tests.Application.AuthorizationRequirements.MustBeModeratorToSubdomainRequirementHandlerTests.Handle_UserModeratesOtherSubdomain_ReturnsFail [1 ms]
+[xUnit.net 00:00:00.77]     Spamma.Modules.UserManagement.Tests.Application.AuthTokenProviderTests.ProcessAuthenticationToken_ExpiredToken_ReturnsFailure [SKIP]
+  Skipped Spamma.Modules.UserManagement.Tests.Application.AuthTokenProviderTests.ProcessAuthenticationToken_ExpiredToken_ReturnsFailure [1 ms]
+[xUnit.net 00:00:22.13]     Spamma.Modules.DomainManagement.Tests.Integration.Validators.CreateChaosAddressCommandValidatorTests.ValidateAsync_ValidCommand_IsValid [FAIL]
+  Failed Spamma.Modules.DomainManagement.Tests.Integration.Validators.CreateChaosAddressCommandValidatorTests.ValidateAsync_ValidCommand_IsValid [139 ms]
+  Error Message:
+   FluentValidation.TestHelper.ValidationTestException : Expected no validation errors
+----
+Validation Errors:
+[0]: Local Part results in an invalid email address.
+
+  Stack Trace:
+     at FluentValidation.TestHelper.TestValidationResult`1.ShouldNotHaveValidationError(String propertyName, Boolean shouldNormalizePropertyName) in /_/src/FluentValidation/TestHelper/TestValidationResult.cs:line 110
+   at FluentValidation.TestHelper.TestValidationResult`1.ShouldNotHaveAnyValidationErrors() in /_/src/FluentValidation/TestHelper/TestValidationResult.cs:line 47
+   at Spamma.Modules.DomainManagement.Tests.Integration.Validators.CreateChaosAddressCommandValidatorTests.ValidateAsync_ValidCommand_IsValid() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.DomainManagement.Tests\Integration\Validators\CreateChaosAddressCommandValidatorTests.cs:line 50
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:22.49]     Spamma.Modules.DomainManagement.Tests.Integration.Validators.CreateSubdomainCommandValidatorTests.ValidateAsync_ValidCommand_IsValid [FAIL]
+  Failed Spamma.Modules.DomainManagement.Tests.Integration.Validators.CreateSubdomainCommandValidatorTests.ValidateAsync_ValidCommand_IsValid [59 ms]
+  Error Message:
+   FluentValidation.TestHelper.ValidationTestException : Expected no validation errors
+----
+Validation Errors:
+[0]: Subdomain must form a valid registrable domain when combined with its parent domain.
+
+  Stack Trace:
+     at FluentValidation.TestHelper.TestValidationResult`1.ShouldNotHaveValidationError(String propertyName, Boolean shouldNormalizePropertyName) in /_/src/FluentValidation/TestHelper/TestValidationResult.cs:line 110
+   at FluentValidation.TestHelper.TestValidationResult`1.ShouldNotHaveAnyValidationErrors() in /_/src/FluentValidation/TestHelper/TestValidationResult.cs:line 47
+   at Spamma.Modules.DomainManagement.Tests.Integration.Validators.CreateSubdomainCommandValidatorTests.ValidateAsync_ValidCommand_IsValid() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.DomainManagement.Tests\Integration\Validators\CreateSubdomainCommandValidatorTests.cs:line 47
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     2, Passed:   272, Skipped:     4, Total:   278, Duration: 22 s - Spamma.Modules.DomainManagement.Tests.dll (net9.0)
+[xUnit.net 00:00:28.32]     Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithEmailWithoutCampaign_ReturnsCampaignIdNull [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithEmailWithoutCampaign_ReturnsCampaignIdNull [6 s]
+  Error Message:
+   Expected result.Data.Id to be {cca4ed61-4709-4847-9262-3733e83b25cd}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithEmailWithoutCampaign_ReturnsCampaignIdNull() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\GetEmailByIdQueryProcessorTests.cs:line 133
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:28.86]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsBySubject [FAIL]
+[xUnit.net 00:00:29.64]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSubdomainClaim_ReturnsOnlyEmailsForThatSubdomain [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsBySubject [6 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.Fill(ReadOnlySpan`1 source, Span`1 destination, Func`2 func)
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsBySubject() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 106
+--- End of stack trace from previous location ---
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSubdomainClaim_ReturnsOnlyEmailsForThatSubdomain [6 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.Fill(ReadOnlySpan`1 source, Span`1 destination, Func`2 func)
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSubdomainClaim_ReturnsOnlyEmailsForThatSubdomain() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 54
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:30.13]     Spamma.Modules.EmailInbox.Tests.Integration.GetCampaignDetailQueryProcessorTests.Handle_WithValidCampaignId_ReturnsCampaignDetails [FAIL]
+[xUnit.net 00:00:30.00]     Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_WithCampaignHeader_StoresEmailWithCampaignMetadata [SKIP]
+[xUnit.net 00:00:30.03]     Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_ToUnknownDomain_ReturnsMailboxNameNotAllowed [SKIP]
+[xUnit.net 00:00:30.04]     Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_ToChaosAddressEnabled_ReturnsConfiguredSmtpCode [SKIP]
+[xUnit.net 00:00:30.04]     Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_ToDisabledChaosAddress_FallsBackToNormalProcessing [SKIP]
+[xUnit.net 00:00:30.04]     Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendValidEmail_ToActiveSubdomain_StoresEmailSuccessfully [SKIP]
+[xUnit.net 00:00:30.04]     Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendMultipleEmailsConcurrently_AllProcessedSuccessfully [SKIP]
+
+Passed!  - Failed:     0, Passed:   234, Skipped:    11, Total:   245, Duration: 27 s - Spamma.Modules.UserManagement.Tests.dll (net9.0)
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.GetCampaignDetailQueryProcessorTests.Handle_WithValidCampaignId_ReturnsCampaignDetails [6 s]
+  Error Message:
+   System.InvalidOperationException : Data is only available when the status is Succeeded
+  Stack Trace:
+     at BluQube.Queries.QueryResult`1.get_Data()
+   at Spamma.Modules.EmailInbox.Tests.Integration.GetCampaignDetailQueryProcessorTests.Handle_WithValidCampaignId_ReturnsCampaignDetails() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\GetCampaignDetailQueryProcessorTests.cs:line 58
+--- End of stack trace from previous location ---
+  Skipped Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_WithCampaignHeader_StoresEmailWithCampaignMetadata [1 ms]
+  Skipped Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_ToUnknownDomain_ReturnsMailboxNameNotAllowed [1 ms]
+  Skipped Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_ToChaosAddressEnabled_ReturnsConfiguredSmtpCode [1 ms]
+  Skipped Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendEmail_ToDisabledChaosAddress_FallsBackToNormalProcessing [1 ms]
+  Skipped Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendValidEmail_ToActiveSubdomain_StoresEmailSuccessfully [1 ms]
+  Skipped Spamma.Modules.EmailInbox.Tests.E2E.SmtpEmailReceptionTests.SendMultipleEmailsConcurrently_AllProcessedSuccessfully [1 ms]
+
+Skipped! - Failed:     0, Passed:     0, Skipped:     6, Total:     6, Duration: 42 ms - Spamma.Modules.EmailInbox.Tests.E2E.dll (net9.0)
+[xUnit.net 00:00:43.10]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithEmailWithoutCampaign_ReturnsEmailWithNullCampaignId [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithEmailWithoutCampaign_ReturnsEmailWithNullCampaignId [1 s]
+  Error Message:
+   Expected result.Data!.Id to be {f56efe37-6fae-428a-b093-84a0abbd1e3d}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithEmailWithoutCampaign_ReturnsEmailWithNullCampaignId() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\GetEmailByIdQueryProcessorTests.cs:line 108
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:45.48]     Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithDeletedEmail_StillReturnsEmail [FAIL]
+[xUnit.net 00:00:45.85]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithNoSearchText_ReturnsAllEmails [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithDeletedEmail_StillReturnsEmail [2 s]
+  Error Message:
+   Expected result.Data.Id to be {3f9c42a8-4887-438d-b818-2754a94ea044}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithDeletedEmail_StillReturnsEmail() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\GetEmailByIdQueryProcessorTests.cs:line 98
+--- End of stack trace from previous location ---
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithNoSearchText_ReturnsAllEmails [2 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithNoSearchText_ReturnsAllEmails() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 46
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:46.38]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_ExcludesDeletedEmails_OnlyReturnsNonDeleted [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_ExcludesDeletedEmails_OnlyReturnsNonDeleted [2 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_ExcludesDeletedEmails_OnlyReturnsNonDeleted() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 342
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:55.20]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithFavoriteEmail_ReturnsFavoriteTrue [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithFavoriteEmail_ReturnsFavoriteTrue [989 ms]
+  Error Message:
+   Expected result.Data!.IsFavorite to be True, but found False.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.BooleanAssertions`1.BeTrue(String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithFavoriteEmail_ReturnsFavoriteTrue() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\GetEmailByIdQueryProcessorTests.cs:line 147
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:58.42]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetCampaignDetailQueryProcessorTests.Handle_WithValidCampaignId_ReturnsCampaignDetail [FAIL]
+[xUnit.net 00:00:58.81]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_ExcludesDeletedEmails [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetCampaignDetailQueryProcessorTests.Handle_WithValidCampaignId_ReturnsCampaignDetail [1 s]
+  Error Message:
+   System.InvalidOperationException : Data is only available when the status is Succeeded
+  Stack Trace:
+     at BluQube.Queries.QueryResult`1.get_Data()
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetCampaignDetailQueryProcessorTests.Handle_WithValidCampaignId_ReturnsCampaignDetail() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\GetCampaignDetailQueryProcessorTests.cs:line 39
+--- End of stack trace from previous location ---
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_ExcludesDeletedEmails [1 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_ExcludesDeletedEmails() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 333
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:00.10]     Spamma.Modules.EmailInbox.Tests.Integration.GetCampaignDetailQueryProcessorTests.Handle_WithEmptySubdomainId_ReturnsAllCampaignData [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.GetCampaignDetailQueryProcessorTests.Handle_WithEmptySubdomainId_ReturnsAllCampaignData [1 s]
+  Error Message:
+   Expected result.Data.CampaignId to be {28625eda-636d-46c2-89c7-5c1b09be7525}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.GetCampaignDetailQueryProcessorTests.Handle_WithEmptySubdomainId_ReturnsAllCampaignData() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\GetCampaignDetailQueryProcessorTests.cs:line 146
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:05.85]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithValidEmailId_ReturnsEmail [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithValidEmailId_ReturnsEmail [809 ms]
+  Error Message:
+   Expected result.Data!.Id to be {5af18a6d-77a0-4412-a0d9-3d8800a320c9}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetEmailByIdQueryProcessorTests.Handle_WithValidEmailId_ReturnsEmail() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\GetEmailByIdQueryProcessorTests.cs:line 50
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:07.73]     Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithValidEmailId_ReturnsEmailDetails [FAIL]
+[xUnit.net 00:01:08.21]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetCampaignDetailQueryProcessorTests.Handle_WithSampleMessage_IncludesSampleInResult [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithValidEmailId_ReturnsEmailDetails [1 s]
+  Error Message:
+   Expected result.Data.Id to be {ee5353c5-91b8-437d-94b0-684bb582d409}, but found {00000000-0000-0000-0000-000000000000}.
+  Stack Trace:
+     at FluentAssertions.Execution.LateBoundTestFramework.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.AddPreFormattedFailure(String formattedFailureMessage)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(Func`1 getFailureReason)
+   at FluentAssertions.Execution.AssertionChain.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.GuidAssertions`1.Be(Guid expected, String because, Object[] becauseArgs)
+   at Spamma.Modules.EmailInbox.Tests.Integration.GetEmailByIdQueryProcessorTests.Handle_WithValidEmailId_ReturnsEmailDetails() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\GetEmailByIdQueryProcessorTests.cs:line 43
+--- End of stack trace from previous location ---
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetCampaignDetailQueryProcessorTests.Handle_WithSampleMessage_IncludesSampleInResult [1 s]
+  Error Message:
+   System.InvalidOperationException : Data is only available when the status is Succeeded
+  Stack Trace:
+     at BluQube.Queries.QueryResult`1.get_Data()
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.GetCampaignDetailQueryProcessorTests.Handle_WithSampleMessage_IncludesSampleInResult() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\GetCampaignDetailQueryProcessorTests.cs:line 151
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:08.41]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithPagination_ReturnsCorrectPage [FAIL]
+[xUnit.net 00:01:09.04]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_OrdersByWhenSentDescending_NewestFirst [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithPagination_ReturnsCorrectPage [1 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithPagination_ReturnsCorrectPage() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 268
+--- End of stack trace from previous location ---
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_OrdersByWhenSentDescending_NewestFirst [1 s]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_OrdersByWhenSentDescending_NewestFirst() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 289
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:14.77]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsByName [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsByName [502 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsByName() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 223
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:15.54]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithCaseInsensitiveSearch_FindsMatches [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithCaseInsensitiveSearch_FindsMatches [704 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithCaseInsensitiveSearch_FindsMatches() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 379
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:21.20]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsByEmailAddress [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsByEmailAddress [603 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_WithSearchText_ReturnsMatchingEmailsByEmailAddress() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 165
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:21.73]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithPagination_ReturnsCorrectPage [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithPagination_ReturnsCorrectPage [670 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithPagination_ReturnsCorrectPage() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 199
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:26.28]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSearchText_FiltersEmailsByEmailAddress [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSearchText_FiltersEmailsByEmailAddress [530 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSearchText_FiltersEmailsByEmailAddress() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 157
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:27.48]     Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_OrdersByWhenSent_Descending [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_OrdersByWhenSent_Descending [596 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors.SearchEmailsQueryProcessorTests.Handle_OrdersByWhenSent_Descending() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\QueryProcessors\SearchEmailsQueryProcessorTests.cs:line 404
+--- End of stack trace from previous location ---
+[xUnit.net 00:01:32.01]     Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSearchText_FiltersEmailsBySubject [FAIL]
+  Failed Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSearchText_FiltersEmailsBySubject [536 ms]
+  Error Message:
+   System.InvalidOperationException : Sequence contains no matching element
+  Stack Trace:
+     at System.Linq.ThrowHelper.ThrowNoMatchException()
+   at System.Linq.Enumerable.First[TSource](IEnumerable`1 source, Func`2 predicate)
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.<>c.<Handle>b__3_2(EmailLookup x) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 54
+   at System.Linq.Enumerable.ListSelectIterator`2.ToList()
+   at Spamma.Modules.EmailInbox.Application.QueryProcessors.SearchEmailsQueryProcessor.Handle(SearchEmailsQuery request, CancellationToken cancellationToken) in C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox\Application\QueryProcessors\SearchEmailsQueryProcessor.cs:line 53
+   at MediatR.Behaviors.Authorization.RequestAuthorizationBehavior`2.Handle(TRequest request, RequestHandlerDelegate`1 next, CancellationToken cancellationToken)
+   at Spamma.Modules.EmailInbox.Tests.Integration.SearchEmailsQueryProcessorTests.Handle_WithSearchText_FiltersEmailsBySubject() in C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\Integration\SearchEmailsQueryProcessorTests.cs:line 106
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:    24, Passed:   297, Skipped:     0, Total:   321, Duration: 1 m 32 s - Spamma.Modules.EmailInbox.Tests.dll (net9.0)

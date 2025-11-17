@@ -17,32 +17,28 @@ internal class SubdomainLookupProjection : EventProjection
     [UsedImplicitly]
     public async Task<SubdomainLookup> Create(SubdomainCreated @event, IDocumentOperations ops)
     {
-        return new SubdomainLookup();
-    }
-
-    [UsedImplicitly]
-    public async Task Project(IEvent<SubdomainCreated> @event, IDocumentOperations ops)
-    {
-        var domain = await ops.LoadAsync<DomainLookup>(@event.Data.DomainId);
+        var domain = await ops.LoadAsync<DomainLookup>(@event.DomainId);
         var parentName = domain?.DomainName ?? string.Empty;
-        var fullName = $"{@event.Data.Name}.{parentName}";
+        var fullName = $"{@event.Name}.{parentName}";
 
-        ops.Patch<SubdomainLookup>(@event.StreamId)
-            .Set(x => x.Id, @event.StreamId)
-            .Set(x => x.SubdomainName, @event.Data.Name)
-            .Set(x => x.Description, @event.Data.Description)
-            .Set(x => x.AssignedModeratorCount, 0)
-            .Set(x => x.CreatedAt, @event.Data.CreatedAt)
-            .Set(x => x.IsSuspended, false)
-            .Set(x => x.SuspendedAt, null)
-            .Set(x => x.DomainId, @event.Data.DomainId)
-            .Set(x => x.ActiveCampaignCount, 0)
-            .Set(x => x.ChaosMonkeyRuleCount, 0)
-            .Set(x => x.ParentName, parentName)
-            .Set(x => x.FullName, fullName)
-            .Set(x => x.AssignedViewerCount, 0)
-            .Set(x => x.MxStatus, MxStatus.NotChecked)
-            .Set(x => x.MxLastCheckedAt, null);
+        return new SubdomainLookup
+        {
+            Id = @event.SubdomainId,
+            SubdomainName = @event.Name,
+            Description = @event.Description,
+            AssignedModeratorCount = 0,
+            CreatedAt = @event.CreatedAt,
+            IsSuspended = false,
+            SuspendedAt = null,
+            DomainId = @event.DomainId,
+            ActiveCampaignCount = 0,
+            ChaosMonkeyRuleCount = 0,
+            ParentName = parentName,
+            FullName = fullName,
+            AssignedViewerCount = 0,
+            MxStatus = MxStatus.NotChecked,
+            MxLastCheckedAt = null,
+        };
     }
 
     [UsedImplicitly]

@@ -38,5 +38,5 @@ public class SubdomainLookup
 
     public DateTime? MxLastCheckedAt { get; internal set; }
 
-    public MxStatus MxStatus { get; private set; } = MxStatus.NotChecked;
+    public MxStatus MxStatus { get; internal set; } = MxStatus.NotChecked;
 }
