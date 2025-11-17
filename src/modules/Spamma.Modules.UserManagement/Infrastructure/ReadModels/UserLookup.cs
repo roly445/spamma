@@ -1,30 +1,41 @@
 ﻿using Spamma.Modules.Common.Client;
 
+#pragma warning disable S1144 // Private setters are used by Marten's Patch API via reflection
+
 namespace Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 public class UserLookup
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
-    public string EmailAddress { get; set; } = string.Empty;
+    public string EmailAddress { get; init; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 
-    public DateTime? LastLoginAt { get; set; }
+    public DateTime? LastLoginAt { get; init; }
 
-    public DateTime? LastPasskeyAuthenticationAt { get; set; }
+    public DateTime? LastPasskeyAuthenticationAt { get; init; }
 
-    public bool IsSuspended { get; set; }
+    public bool IsSuspended { get; init; }
 
-    public DateTime? SuspendedAt { get; set; }
+    public DateTime? SuspendedAt { get; init; }
 
-    public SystemRole SystemRole { get; set; }
+    public SystemRole SystemRole { get; init; }
 
-    public List<Guid> ModeratedDomains { get; set; } = new();
+    /// <summary>
+    /// Gets the domains moderated by this user. Uses init accessor for immutability; Marten can modify via Patch().Append/Remove.
+    /// </summary>
+    public List<Guid> ModeratedDomains { get; init; } = new();
 
-    public List<Guid> ModeratedSubdomains { get; set; } = new();
+    /// <summary>
+    /// Gets the subdomains moderated by this user. Uses init accessor for immutability; Marten can modify via Patch().Append/Remove.
+    /// </summary>
+    public List<Guid> ModeratedSubdomains { get; init; } = new();
 
-    public List<Guid> ViewableSubdomains { get; set; } = new();
+    /// <summary>
+    /// Gets the subdomains viewable by this user. Uses init accessor for immutability; Marten can modify via Patch().Append/Remove.
+    /// </summary>
+    public List<Guid> ViewableSubdomains { get; init; } = new();
 }

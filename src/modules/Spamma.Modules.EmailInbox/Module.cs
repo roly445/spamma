@@ -93,6 +93,7 @@ public static class Module
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
 
+        options.Schema.For<EmailLookup>().Identity(x => x.Id);
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
 
         return options;

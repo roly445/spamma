@@ -24,7 +24,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
             Subject = "Sample Email Subject",
             SentAt = DateTime.UtcNow.AddDays(-5),
             IsFavorite = false,
-            EmailAddresses = new()
+            EmailAddresses = new List<EmailAddress>()
             {
                 new EmailAddress("sender@example.com", "Sender Name", EmailAddressType.From),
                 new EmailAddress("recipient@example.com", "Recipient Name", EmailAddressType.To),

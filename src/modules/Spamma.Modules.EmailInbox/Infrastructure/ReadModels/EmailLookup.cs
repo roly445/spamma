@@ -1,24 +1,35 @@
 ﻿namespace Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
+#pragma warning disable S1144 // Private setters are used by Marten's Patch API via reflection
+
 public class EmailLookup
 {
-    public Guid Id { get; set; }
+    private List<EmailAddress> _emailAddresses = new();
 
-    public Guid DomainId { get; set; }
+    public Guid Id { get; init; }
 
-    public Guid SubdomainId { get; set; }
+    public Guid DomainId { get; init; }
 
-    public List<EmailAddress> EmailAddresses { get; set; } = new();
+    public Guid SubdomainId { get; init; }
 
-    public string Subject { get; set; } = string.Empty;
+    /// <summary>
+    /// Gets the email addresses as a read-only collection. Uses init setter to allow population during object initialization.
+    /// </summary>
+    public IReadOnlyCollection<EmailAddress> EmailAddresses
+    {
+        get => this._emailAddresses.AsReadOnly();
+        init => this._emailAddresses = value?.ToList() ?? new();
+    }
 
-    public DateTimeOffset SentAt { get; set; }
+    public string Subject { get; init; } = string.Empty;
 
-    public DateTime? DeletedAt { get; set; }
+    public DateTimeOffset SentAt { get; init; }
 
-    public bool IsFavorite { get; set; }
+    public DateTime? DeletedAt { get; init; }
 
-    public Guid? CampaignId { get; set; }
+    public bool IsFavorite { get; init; }
 
-    public string? CampaignValue { get; set; }
+    public Guid? CampaignId { get; init; }
+
+    public string? CampaignValue { get; init; }
 }

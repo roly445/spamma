@@ -2,21 +2,21 @@ namespace Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 public class PasskeyLookup
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
-    public Guid UserId { get; set; }
+    public Guid UserId { get; init; }
 
-    public byte[] CredentialId { get; set; } = [];
+    public byte[] CredentialId { get; init; } = [];
 
-    public string DisplayName { get; set; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
 
-    public string Algorithm { get; set; } = string.Empty;
+    public string Algorithm { get; init; } = string.Empty;
 
-    public DateTime RegisteredAt { get; set; }
+    public DateTime RegisteredAt { get; init; }
 
-    public DateTime? LastUsedAt { get; set; }
+    public DateTime? LastUsedAt { get; init; }
 
-    public bool IsRevoked { get; set; }
+    public bool IsRevoked { get; init; }
 
-    public DateTime? RevokedAt { get; set; }
+    public DateTime? RevokedAt { get; init; }
 }

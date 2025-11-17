@@ -15,7 +15,7 @@ public class PasskeyProjection : EventProjection
     {
         return new PasskeyLookup
         {
-            Id = eventMeta.StreamId,
+            Id = @event.PasskeyId,
             UserId = @event.UserId,
             CredentialId = @event.CredentialId,
             DisplayName = @event.DisplayName,

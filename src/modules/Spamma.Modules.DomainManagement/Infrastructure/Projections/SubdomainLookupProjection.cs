@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using Marten;
 using Marten.Events.Projections;
 using Marten.Patching;
+using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
@@ -18,6 +19,7 @@ internal class SubdomainLookupProjection : EventProjection
     {
         var domain = await ops.LoadAsync<DomainLookup>(@event.DomainId);
         var parentName = domain?.DomainName ?? string.Empty;
+        var fullName = $"{@event.Name}.{parentName}";
 
         return new SubdomainLookup
         {
@@ -32,7 +34,10 @@ internal class SubdomainLookupProjection : EventProjection
             ActiveCampaignCount = 0,
             ChaosMonkeyRuleCount = 0,
             ParentName = parentName,
-            FullName = $"{@event.Name}.{parentName}",
+            FullName = fullName,
+            AssignedViewerCount = 0,
+            MxStatus = MxStatus.NotChecked,
+            MxLastCheckedAt = null,
         };
     }
 

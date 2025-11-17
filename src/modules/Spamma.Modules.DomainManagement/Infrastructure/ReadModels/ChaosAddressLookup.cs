@@ -4,25 +4,23 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class ChaosAddressLookup
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
-    public Guid DomainId { get; set; }
+    public Guid DomainId { get; init; }
 
-    public Guid SubdomainId { get; set; }
+    public Guid SubdomainId { get; init; }
 
-    public string LocalPart { get; set; } = string.Empty;
+    public string LocalPart { get; init; } = string.Empty;
 
-    public SmtpResponseCode ConfiguredSmtpCode { get; set; }
+    public SmtpResponseCode ConfiguredSmtpCode { get; init; }
 
-    public bool Enabled { get; set; }
+    public bool Enabled { get; init; }
 
-    public bool ImmutableAfterFirstReceive { get; set; }
+    public int TotalReceived { get; init; }
 
-    public int TotalReceived { get; set; }
+    public DateTimeOffset? LastReceivedAt { get; init; }
 
-    public DateTimeOffset? LastReceivedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public Guid CreatedBy { get; set; }
+    public Guid CreatedBy { get; init; }
 }

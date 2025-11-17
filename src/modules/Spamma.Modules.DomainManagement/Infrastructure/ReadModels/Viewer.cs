@@ -2,11 +2,11 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class Viewer
 {
-    public Guid UserId { get; set; }
+    public Guid UserId { get; init; }
 
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
-    public string Email { get; set; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 }

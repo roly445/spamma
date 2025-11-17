@@ -4,37 +4,40 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class SubdomainLookup
 {
-    public Guid Id { get; set; }
+    private readonly List<SubdomainModerator> _subdomainModerators = new();
+    private readonly List<Viewer> _viewers = new();
 
-    public string SubdomainName { get; set; } = string.Empty;
+    public Guid Id { get; init; }
 
-    public DateTime CreatedAt { get; set; }
+    public string SubdomainName { get; init; } = string.Empty;
 
-    public int AssignedModeratorCount { get; set; }
+    public DateTime CreatedAt { get; init; }
 
-    public bool IsSuspended { get; set; }
+    public int AssignedModeratorCount { get; init; }
 
-    public DateTime? SuspendedAt { get; set; }
+    public bool IsSuspended { get; init; }
 
-    public string? Description { get; set; }
+    public DateTime? SuspendedAt { get; init; }
 
-    public Guid DomainId { get; set; }
+    public string? Description { get; init; }
 
-    public int ChaosMonkeyRuleCount { get; set; }
+    public Guid DomainId { get; init; }
 
-    public int ActiveCampaignCount { get; set; }
+    public int ChaosMonkeyRuleCount { get; init; }
 
-    public string ParentName { get; set; } = string.Empty;
+    public int ActiveCampaignCount { get; init; }
 
-    public string FullName { get; set; } = string.Empty;
+    public string ParentName { get; init; } = string.Empty;
 
-    public List<SubdomainModerator> SubdomainModerators { get; set; } = new();
+    public string FullName { get; init; } = string.Empty;
 
-    public List<Viewer> Viewers { get; set; } = new();
+    public IReadOnlyList<SubdomainModerator> SubdomainModerators => this._subdomainModerators;
 
-    public int AssignedViewerCount { get; set; }
+    public IReadOnlyList<Viewer> Viewers => this._viewers;
 
-    public DateTime? MxLastCheckedAt { get; set; }
+    public int AssignedViewerCount { get; init; }
 
-    public MxStatus MxStatus { get; set; } = MxStatus.NotChecked;
+    public DateTime? MxLastCheckedAt { get; init; }
+
+    public MxStatus MxStatus { get; init; } = MxStatus.NotChecked;
 }

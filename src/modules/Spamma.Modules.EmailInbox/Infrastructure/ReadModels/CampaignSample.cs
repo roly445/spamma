@@ -2,19 +2,19 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 public class CampaignSample
 {
-    public Guid CampaignId { get; set; }
+    public Guid CampaignId { get; init; }
 
-    public Guid MessageId { get; set; }
+    public Guid MessageId { get; init; }
 
-    public string Subject { get; set; } = string.Empty;
+    public string Subject { get; init; } = string.Empty;
 
-    public string From { get; set; } = string.Empty;
+    public string From { get; init; } = string.Empty;
 
-    public string To { get; set; } = string.Empty;
+    public string To { get; init; } = string.Empty;
 
-    public DateTimeOffset ReceivedAt { get; set; }
+    public DateTimeOffset ReceivedAt { get; init; }
 
-    public DateTimeOffset StoredAt { get; set; }
+    public DateTimeOffset StoredAt { get; init; }
 
-    public string ContentPreview { get; set; } = string.Empty;
+    public string ContentPreview { get; init; } = string.Empty;
 }

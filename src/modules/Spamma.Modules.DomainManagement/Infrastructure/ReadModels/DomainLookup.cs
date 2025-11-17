@@ -2,31 +2,34 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class DomainLookup
 {
-    public Guid Id { get; set; }
+    private readonly List<SubdomainLookup> _subdomains = new();
+    private readonly List<DomainModerator> _domainModerators = new();
 
-    public string DomainName { get; set; } = string.Empty;
+    public Guid Id { get; init; }
 
-    public string? Description { get; set; }
+    public string DomainName { get; init; } = string.Empty;
 
-    public string VerificationToken { get; set; } = string.Empty;
+    public string? Description { get; init; }
 
-    public bool IsVerified { get; set; }
+    public string VerificationToken { get; init; } = string.Empty;
 
-    public DateTime CreatedAt { get; set; }
+    public bool IsVerified { get; init; }
 
-    public DateTime? VerifiedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
 
-    public int SubdomainCount { get; set; }
+    public DateTime? VerifiedAt { get; init; }
 
-    public int AssignedModeratorCount { get; set; }
+    public int SubdomainCount { get; init; }
 
-    public string? PrimaryContact { get; set; }
+    public int AssignedModeratorCount { get; init; }
 
-    public bool IsSuspended { get; set; }
+    public string? PrimaryContact { get; init; }
 
-    public DateTime? SuspendedAt { get; set; }
+    public bool IsSuspended { get; init; }
 
-    public List<SubdomainLookup> Subdomains { get; set; } = new();
+    public DateTime? SuspendedAt { get; init; }
 
-    public List<DomainModerator> DomainModerators { get; set; } = new();
+    public IReadOnlyList<SubdomainLookup> Subdomains => this._subdomains;
+
+    public IReadOnlyList<DomainModerator> DomainModerators => this._domainModerators;
 }

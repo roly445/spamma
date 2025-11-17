@@ -195,6 +195,12 @@ StyleCopReport.xml
 *.tlog
 *.vspscc
 *.vssscc
+
+# Temporary build and test outputs
+*_test.txt
+test_*.txt
+*_output.txt
+build_*.txt
 .builds
 *.pidb
 *.svclog
