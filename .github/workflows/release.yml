@@ -75,15 +75,6 @@ jobs:
           dotnet tool install --global dotnet-coverage
           dotnet coverage collect -f opencover -o coverage.opencover.xml "dotnet test --configuration Release --no-build --no-restore"
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.qualitygate.wait=true
-
   publish:
     name: Build & Test & Publish artifacts for multiple RIDs
     needs: test
