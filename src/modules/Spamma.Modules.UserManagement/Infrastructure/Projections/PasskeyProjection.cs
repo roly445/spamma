@@ -13,18 +13,22 @@ public class PasskeyProjection : EventProjection
     [UsedImplicitly]
     public PasskeyLookup Create(PasskeyRegistered @event, IEvent eventMeta)
     {
-        return new PasskeyLookup
-        {
-            Id = eventMeta.StreamId,
-            UserId = @event.UserId,
-            CredentialId = @event.CredentialId,
-            DisplayName = @event.DisplayName,
-            Algorithm = @event.Algorithm,
-            RegisteredAt = @event.RegisteredAt,
-            LastUsedAt = null,
-            IsRevoked = false,
-            RevokedAt = null,
-        };
+        return new PasskeyLookup();
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<PasskeyRegistered> @event, IDocumentOperations ops)
+    {
+        ops.Patch<PasskeyLookup>(@event.StreamId)
+            .Set(x => x.Id, @event.StreamId)
+            .Set(x => x.UserId, @event.Data.UserId)
+            .Set(x => x.CredentialId, @event.Data.CredentialId)
+            .Set(x => x.DisplayName, @event.Data.DisplayName)
+            .Set(x => x.Algorithm, @event.Data.Algorithm)
+            .Set(x => x.RegisteredAt, @event.Data.RegisteredAt)
+            .Set(x => x.LastUsedAt, null)
+            .Set(x => x.IsRevoked, false)
+            .Set(x => x.RevokedAt, null);
     }
 
     [UsedImplicitly]

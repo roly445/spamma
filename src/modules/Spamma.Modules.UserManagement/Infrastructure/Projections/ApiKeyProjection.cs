@@ -13,16 +13,20 @@ public class ApiKeyProjection : EventProjection
     [UsedImplicitly]
     public ApiKeyLookup Create(ApiKeyCreated @event)
     {
-        return new ApiKeyLookup
-        {
-            Id = @event.ApiKeyId,
-            UserId = @event.UserId,
-            Name = @event.Name,
-            KeyHashPrefix = @event.KeyHashPrefix,
-            KeyHash = @event.KeyHash,
-            CreatedAt = @event.CreatedAt,
-            ExpiresAt = @event.ExpiresAt,
-        };
+        return new ApiKeyLookup();
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<ApiKeyCreated> @event, IDocumentOperations ops)
+    {
+        ops.Patch<ApiKeyLookup>(@event.StreamId)
+            .Set(x => x.Id, @event.StreamId)
+            .Set(x => x.UserId, @event.Data.UserId)
+            .Set(x => x.Name, @event.Data.Name)
+            .Set(x => x.KeyHashPrefix, @event.Data.KeyHashPrefix)
+            .Set(x => x.KeyHash, @event.Data.KeyHash)
+            .Set(x => x.CreatedAt, @event.Data.CreatedAt)
+            .Set(x => x.ExpiresAt, @event.Data.ExpiresAt);
     }
 
     [UsedImplicitly]

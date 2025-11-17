@@ -14,14 +14,18 @@ public class UserLookupProjection : EventProjection
     [UsedImplicitly]
     public UserLookup Create(UserCreated @event)
     {
-        return new UserLookup
-        {
-            Id = @event.UserId,
-            Name = @event.Name,
-            EmailAddress = @event.EmailAddress,
-            CreatedAt = @event.CreatedAt,
-            SystemRole = @event.SystemRole,
-        };
+        return new UserLookup();
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<UserCreated> @event, IDocumentOperations ops)
+    {
+        ops.Patch<UserLookup>(@event.StreamId)
+            .Set(x => x.Id, @event.StreamId)
+            .Set(x => x.Name, @event.Data.Name)
+            .Set(x => x.EmailAddress, @event.Data.EmailAddress)
+            .Set(x => x.CreatedAt, @event.Data.CreatedAt)
+            .Set(x => x.SystemRole, @event.Data.SystemRole);
     }
 
     [UsedImplicitly]

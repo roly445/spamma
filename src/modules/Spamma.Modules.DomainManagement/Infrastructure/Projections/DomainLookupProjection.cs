@@ -17,18 +17,22 @@ internal class DomainLookupProjection : EventProjection
     [UsedImplicitly]
     public DomainLookup Create(DomainCreated @event)
     {
-        return new DomainLookup
-        {
-            Id = @event.DomainId,
-            DomainName = @event.Name,
-            PrimaryContact = @event.PrimaryContactEmail,
-            VerificationToken = @event.VerificationToken,
-            Description = @event.Description,
-            IsVerified = false,
-            SubdomainCount = 0,
-            AssignedModeratorCount = 0,
-            CreatedAt = @event.CreatedAt,
-        };
+        return new DomainLookup();
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<DomainCreated> @event, IDocumentOperations ops)
+    {
+        ops.Patch<DomainLookup>(@event.StreamId)
+            .Set(x => x.Id, @event.StreamId)
+            .Set(x => x.DomainName, @event.Data.Name)
+            .Set(x => x.PrimaryContact, @event.Data.PrimaryContactEmail)
+            .Set(x => x.VerificationToken, @event.Data.VerificationToken)
+            .Set(x => x.Description, @event.Data.Description)
+            .Set(x => x.IsVerified, false)
+            .Set(x => x.SubdomainCount, 0)
+            .Set(x => x.AssignedModeratorCount, 0)
+            .Set(x => x.CreatedAt, @event.Data.CreatedAt);
     }
 
     [UsedImplicitly]

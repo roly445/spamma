@@ -1,20 +1,22 @@
 namespace Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
+#pragma warning disable S1144 // Private setters are used by Marten's Patch API via reflection
+
 public class CampaignSummary
 {
-    public Guid CampaignId { get; set; }
+    public Guid CampaignId { get; internal set; }
 
-    public Guid DomainId { get; set; }
+    public Guid DomainId { get; internal set; }
 
-    public Guid SubdomainId { get; set; }
+    public Guid SubdomainId { get; internal set; }
 
-    public string CampaignValue { get; set; } = string.Empty;
+    public string CampaignValue { get; internal set; } = string.Empty;
 
-    public Guid? SampleMessageId { get; set; }
+    public Guid? SampleMessageId { get; internal set; }
 
-    public DateTimeOffset FirstReceivedAt { get; set; }
+    public DateTimeOffset FirstReceivedAt { get; internal set; }
 
-    public DateTimeOffset LastReceivedAt { get; set; }
+    public DateTimeOffset LastReceivedAt { get; internal set; }
 
-    public int TotalCaptured { get; set; }
+    public int TotalCaptured { get; internal set; }
 }
