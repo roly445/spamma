@@ -11,19 +11,26 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Projections;
 public class EmailLookupProjection : EventProjection
 {
     [UsedImplicitly]
-    public EmailLookup Create(EmailReceived @event)
+    public void Project(IEvent<EmailReceived> @event, IDocumentOperations ops)
     {
-        var emailAddresses = @event.EmailAddresses.Select(x => new ReadModels.EmailAddress(x.Address, x.Name, x.EmailAddressType)).ToList();
-
-        return new EmailLookup
+        ops.Insert(new EmailLookup
         {
-            Id = @event.EmailId,
-            DomainId = @event.DomainId,
-            SubdomainId = @event.SubdomainId,
-            EmailAddresses = emailAddresses,
-            Subject = @event.Subject,
-            SentAt = @event.SentAt,
-        };
+            Id = @event.Data.EmailId,
+            DomainId = @event.Data.DomainId,
+            SubdomainId = @event.Data.SubdomainId,
+            Subject = @event.Data.Subject,
+            SentAt = @event.Data.SentAt,
+        });
+
+        var emailAddresses = @event.Data.EmailAddresses
+            .Select(x => new ReadModels.EmailAddress(x.Address, x.Name, x.EmailAddressType))
+            .ToList();
+
+        foreach (var emailAddress in emailAddresses)
+        {
+            ops.Patch<EmailLookup>(@event.StreamId)
+                .Append(x => x.EmailAddresses, emailAddress);
+        }
     }
 
     [UsedImplicitly]

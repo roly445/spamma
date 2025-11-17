@@ -4,27 +4,32 @@
 
 public class EmailLookup
 {
-    public Guid Id { get; internal set; }
+    private List<EmailAddress> _emailAddresses = new();
 
-    public Guid DomainId { get; internal set; }
+    public Guid Id { get; init; }
 
-    public Guid SubdomainId { get; internal set; }
+    public Guid DomainId { get; init; }
+
+    public Guid SubdomainId { get; init; }
 
     /// <summary>
-    /// Gets or sets the email addresses.
-    /// Note: Collection property uses public setter for Marten JSON deserialization compatibility.
+    /// Gets the email addresses as a read-only collection. Uses init setter to allow population during object initialization.
     /// </summary>
-    public List<EmailAddress> EmailAddresses { get; set; } = new();
+    public IReadOnlyCollection<EmailAddress> EmailAddresses
+    {
+        get => this._emailAddresses.AsReadOnly();
+        init => this._emailAddresses = value?.ToList() ?? new();
+    }
 
-    public string Subject { get; internal set; } = string.Empty;
+    public string Subject { get; init; } = string.Empty;
 
-    public DateTimeOffset SentAt { get; internal set; }
+    public DateTimeOffset SentAt { get; init; }
 
-    public DateTime? DeletedAt { get; internal set; }
+    public DateTime? DeletedAt { get; init; }
 
-    public bool IsFavorite { get; internal set; }
+    public bool IsFavorite { get; init; }
 
-    public Guid? CampaignId { get; internal set; }
+    public Guid? CampaignId { get; init; }
 
-    public string? CampaignValue { get; private set; }
+    public string? CampaignValue { get; init; }
 }

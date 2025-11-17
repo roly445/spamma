@@ -21,7 +21,6 @@ internal class ChaosAddressLookupProjection : EventProjection
             LocalPart = @event.LocalPart,
             ConfiguredSmtpCode = @event.ConfiguredSmtpCode,
             Enabled = false,
-            ImmutableAfterFirstReceive = false,
             TotalReceived = 0,
             LastReceivedAt = null,
             CreatedAt = @event.CreatedAt,

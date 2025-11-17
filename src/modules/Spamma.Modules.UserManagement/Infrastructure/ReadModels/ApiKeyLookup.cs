@@ -1,24 +1,22 @@
 namespace Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
-#pragma warning disable S1144 // Private setters are used by Marten's Patch API via reflection
-
 public class ApiKeyLookup
 {
-    public Guid Id { get; internal set; }
+    public Guid Id { get; init; }
 
-    public Guid UserId { get; internal set; }
+    public Guid UserId { get; init; }
 
-    public string Name { get; internal set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
 
-    public string KeyHashPrefix { get; internal set; } = string.Empty;
+    public string KeyHashPrefix { get; init; } = string.Empty;
 
-    public string KeyHash { get; internal set; } = string.Empty;
+    public string KeyHash { get; init; } = string.Empty;
 
-    public DateTimeOffset CreatedAt { get; internal set; }
+    public DateTimeOffset CreatedAt { get; init; }
 
-    public DateTimeOffset? ExpiresAt { get; internal set; }
+    public DateTimeOffset? ExpiresAt { get; init; }
 
-    public DateTimeOffset? RevokedAt { get; internal set; }
+    public DateTimeOffset? RevokedAt { get; init; }
 
     public bool IsRevoked => this.RevokedAt.HasValue;
 

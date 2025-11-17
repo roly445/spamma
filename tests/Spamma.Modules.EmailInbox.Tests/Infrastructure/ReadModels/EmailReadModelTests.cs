@@ -20,7 +20,7 @@ public class EmailReadModelTests
             IsFavorite = false,
             DeletedAt = null,
             CampaignId = null,
-            EmailAddresses = new(),
+            EmailAddresses = new List<EmailAddress>(),
         };
 
         // Verify
@@ -45,7 +45,7 @@ public class EmailReadModelTests
             IsFavorite = true,
             DeletedAt = null,
             CampaignId = null,
-            EmailAddresses = new(),
+            EmailAddresses = new List<EmailAddress>(),
         };
 
         // Verify
@@ -67,7 +67,7 @@ public class EmailReadModelTests
             IsFavorite = false,
             DeletedAt = null,
             CampaignId = campaignId,
-            EmailAddresses = new(),
+            EmailAddresses = new List<EmailAddress>(),
         };
 
         // Verify
@@ -91,7 +91,7 @@ public class EmailReadModelTests
             IsFavorite = false,
             DeletedAt = deletedTime,
             CampaignId = null,
-            EmailAddresses = new(),
+            EmailAddresses = new List<EmailAddress>(),
         };
 
         // Verify
@@ -123,6 +123,6 @@ public class EmailReadModelTests
 
         // Verify
         emailLookup.EmailAddresses.Should().HaveCount(2);
-        emailLookup.EmailAddresses[0].Address.Should().Be("from@example.com");
+        emailLookup.EmailAddresses.ElementAt(0).Address.Should().Be("from@example.com");
     }
 }

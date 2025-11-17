@@ -2,29 +2,25 @@ using Spamma.Modules.Common.Client;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
-#pragma warning disable S1144 // Private setters are used by Marten's Patch API via reflection
-
 public class ChaosAddressLookup
 {
-    public Guid Id { get; internal set; }
+    public Guid Id { get; init; }
 
-    public Guid DomainId { get; internal set; }
+    public Guid DomainId { get; init; }
 
-    public Guid SubdomainId { get; internal set; }
+    public Guid SubdomainId { get; init; }
 
-    public string LocalPart { get; internal set; } = string.Empty;
+    public string LocalPart { get; init; } = string.Empty;
 
-    public SmtpResponseCode ConfiguredSmtpCode { get; internal set; }
+    public SmtpResponseCode ConfiguredSmtpCode { get; init; }
 
-    public bool Enabled { get; internal set; }
+    public bool Enabled { get; init; }
 
-    public bool ImmutableAfterFirstReceive { get; internal set; }
+    public int TotalReceived { get; init; }
 
-    public int TotalReceived { get; internal set; }
+    public DateTimeOffset? LastReceivedAt { get; init; }
 
-    public DateTimeOffset? LastReceivedAt { get; internal set; }
+    public DateTime CreatedAt { get; init; }
 
-    public DateTime CreatedAt { get; internal set; }
-
-    public Guid CreatedBy { get; internal set; }
+    public Guid CreatedBy { get; init; }
 }

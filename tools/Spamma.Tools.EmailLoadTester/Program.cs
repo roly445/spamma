@@ -28,7 +28,6 @@ for (var batchIndex = 0; batchIndex < batches; batchIndex++)
         message.From.Add(MailboxAddress.Parse(from));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject + " " + (i + 1);
-        message.Headers.Add("X-Spamma-Camp", $"Sample Campaign {batchId}");
 
         var builder = new BodyBuilder
         {

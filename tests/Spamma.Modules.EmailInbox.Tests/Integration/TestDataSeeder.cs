@@ -80,9 +80,8 @@ public static class TestDataSeeder
             Subject = subject ?? $"Test Email {Guid.NewGuid():N}".Substring(0, 50),
             SentAt = DateTime.UtcNow,
             IsFavorite = false,
+            EmailAddresses = new List<EmailAddress> { new EmailAddress($"test-{Guid.NewGuid():N}@example.com", "Test User", EmailAddressType.From) },
         };
-
-        email.EmailAddresses.Add(new EmailAddress($"test-{Guid.NewGuid():N}@example.com", "Test User", EmailAddressType.From));
 
         session.Store(email);
         await session.SaveChangesAsync(cancellationToken);
