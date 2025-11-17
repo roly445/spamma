@@ -63,23 +63,23 @@ This document contains the detailed task breakdown for implementing immutable re
 
 ### Tasks
 
-- [ ] T007 Create detailed data model analysis in `specs/002-immutable-readmodels/data-model.md` listing:
+- [x] T007 Create detailed data model analysis in `specs/002-immutable-readmodels/data-model.md` listing:
   - All 9 readmodels with module location
   - Property count for each
   - Property types (auto-property, collection, nullable, complex)
   - Current initialization patterns
-- [ ] T008 [P] Create quickstart guide in `specs/002-immutable-readmodels/quickstart.md` with:
+- [x] T008 [P] Create quickstart guide in `specs/002-immutable-readmodels/quickstart.md` with:
   - Pattern examples: `{ get; private set; }` and `{ get; } = new()`
   - Before/after code snippets for each pattern
   - Projection compatibility notes (object initializers, Patch operations)
   - Common pitfalls and how to avoid them
-- [ ] T009 [P] Create readmodel conversion checklist in `specs/002-immutable-readmodels/checklists/conversion.md`:
+- [x] T009 [P] Create readmodel conversion checklist in `specs/002-immutable-readmodels/checklists/conversion.md`:
   - Checkbox for each of 9 readmodels
   - Checkbox for each module's projection tests
   - Checkbox for build validation (zero warnings)
   - Checkbox for backward compatibility test
-- [ ] T010 Review data-model.md and quickstart.md for accuracy and completeness
-- [ ] T011 Commit foundational documents: `git commit -m "docs: Add data model analysis and quickstart guide for immutable readmodels"`
+- [x] T010 Review data-model.md and quickstart.md for accuracy and completeness
+- [x] T011 Commit foundational documents: `git commit -m "docs: Add data model analysis and quickstart guide for immutable readmodels"`
 
 **Parallel**: T008 and T009 can run concurrently with T007
 
