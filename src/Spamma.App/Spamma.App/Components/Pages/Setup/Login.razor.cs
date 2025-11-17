@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Infrastructure;
 using Spamma.App.Infrastructure.Contracts.Services;
@@ -6,7 +6,7 @@ using Spamma.App.Infrastructure.Contracts.Services;
 namespace Spamma.App.Components.Pages.Setup;
 
 /// <summary>
-/// Backing logic for the setup login page.
+/// Code-behind for the setup login component.
 /// </summary>
 public partial class Login(IInMemorySetupAuthService setupAuth, IHttpContextAccessor httpContextAccessor, NavigationManager navigation, ILogger<Login> logger)
 {

@@ -1,34 +1,34 @@
-﻿using ResultMonad;
+using ResultMonad;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
 public class ModerationUser
 {
-    private ModerationUser(Guid userId, DateTime whenAdded)
+    private ModerationUser(Guid userId, DateTime addedAt)
     {
         this.UserId = userId;
-        this.WhenAdded = whenAdded;
+        this.AddedAt = addedAt;
     }
 
-    public Guid UserId { get; private set; }
+    internal Guid UserId { get; private set; }
 
-    public DateTime WhenAdded { get; private set; }
+    internal DateTime AddedAt { get; private set; }
 
-    public DateTime? WhenRemoved { get; private set; }
+    internal DateTime? RemovedAt { get; private set; }
 
-    public static ModerationUser Create(Guid userId, DateTime whenAdded)
+    internal static ModerationUser Create(Guid userId, DateTime addedAt)
     {
-        return new ModerationUser(userId, whenAdded);
+        return new ModerationUser(userId, addedAt);
     }
 
-    public Result Remove(DateTime whenRemoved)
+    internal Result Remove(DateTime removedAt)
     {
-        if (this.WhenRemoved.HasValue)
+        if (this.RemovedAt.HasValue)
         {
             return Result.Fail();
         }
 
-        this.WhenRemoved = whenRemoved;
+        this.RemovedAt = removedAt;
         return Result.Ok();
     }
 }

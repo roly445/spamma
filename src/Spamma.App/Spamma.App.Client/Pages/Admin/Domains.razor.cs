@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -11,7 +11,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the domains management page.
+/// Code-behind for the Domains page.
 /// </summary>
 public partial class Domains(
     ICommander commander,
@@ -39,28 +39,6 @@ public partial class Domains(
     protected override async Task OnInitializedAsync()
     {
         await this.LoadDomains();
-    }
-
-    private static string GetStatusClasses(DomainStatus status)
-    {
-        return status switch
-        {
-            DomainStatus.Active => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800",
-            DomainStatus.Pending => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-            DomainStatus.Suspended => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800",
-            _ => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-        };
-    }
-
-    private static string GetStatusText(DomainStatus status)
-    {
-        return status switch
-        {
-            DomainStatus.Active => "Active",
-            DomainStatus.Pending => "Pending",
-            DomainStatus.Suspended => "Suspended",
-            _ => "Unknown",
-        };
     }
 
     private async Task HandleSearch()

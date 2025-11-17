@@ -50,7 +50,7 @@ public class EmailCleanupBackgroundService(
         // Find emails that are older than 24 hours, not already deleted, and not marked as favorite
         var oldEmails = await documentSession
             .Query<EmailLookup>()
-            .Where(e => e.WhenSent < cutoffDate && e.WhenDeleted == null && !e.IsFavorite)
+            .Where(e => e.SentAt < cutoffDate && e.DeletedAt == null && !e.IsFavorite)
             .Take(100) // Process in batches to avoid overwhelming the system
             .ToListAsync(cancellationToken);
 
@@ -80,7 +80,7 @@ public class EmailCleanupBackgroundService(
                     deletedCount++;
                     logger.LogDebug(
                         "Successfully deleted email {EmailId} from {WhenSent}",
-                        email.Id, email.WhenSent);
+                        email.Id, email.SentAt);
                 }
                 else
                 {

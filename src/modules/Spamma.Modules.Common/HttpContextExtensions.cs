@@ -15,6 +15,11 @@ public static class HttpContextExtensions
         }
 
         var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!Guid.TryParse(userId, out var userIdGuid))
+        {
+            return UserAuthInfo.Unauthenticated();
+        }
+
         var name = httpContext.User.FindFirst(ClaimTypes.Name)?.Value;
         var email = httpContext.User.FindFirst(ClaimTypes.Email)?.Value;
 
@@ -37,7 +42,7 @@ public static class HttpContextExtensions
             .ToList();
 
         return UserAuthInfo.Authenticated(
-            userId ?? string.Empty,
+            userIdGuid,
             name ?? string.Empty,
             email ?? string.Empty,
             systemRole,

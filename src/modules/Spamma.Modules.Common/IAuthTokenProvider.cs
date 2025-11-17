@@ -14,21 +14,9 @@ public enum ErrorCodes
 
 public interface IAuthTokenProvider
 {
-    Result<string> GenerateVerificationToken(VerificationTokenModel model);
-
-    Result<VerificationTokenModel> ProcessVerificationToken(string token);
-
     Result<string> GenerateAuthenticationToken(AuthenticationTokenModel model);
 
     Result<AuthenticationTokenModel> ProcessAuthenticationToken(string token);
-
-    string GenerateAuthenticatedJwt(Guid userId);
-
-    public record VerificationTokenModel(
-        Guid UserId,
-        Guid SecurityStamp,
-        DateTime WhenCreated,
-        Guid EmailId);
 
     public record AuthenticationTokenModel(
         Guid UserId,
@@ -42,46 +30,6 @@ public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
     private const string UserIdClaimType = "spamma-user-id";
     private const string SecurityTokenClaimType = "spamma-security-token";
     private readonly Settings _settings = settings.Value;
-
-    public Result<string> GenerateVerificationToken(IAuthTokenProvider.VerificationTokenModel model)
-    {
-        return this.GetToken(model.UserId, model.SecurityStamp, model.WhenCreated, new Dictionary<string, string>
-        {
-            { "email-token", model.EmailId.ToString() },
-        });
-    }
-
-    public Result<IAuthTokenProvider.VerificationTokenModel> ProcessVerificationToken(string token)
-    {
-        var tokenResult = this.ProcessToken(token);
-        if (tokenResult.IsFailure)
-        {
-            return Result.Fail<IAuthTokenProvider.VerificationTokenModel>();
-        }
-
-        Guid emailToken;
-        if (tokenResult.Value.OtherData.TryGetValue("email-token", out var rawEmailToken))
-        {
-            if (Guid.TryParse(rawEmailToken, out var parsedEmailToken))
-            {
-                emailToken = parsedEmailToken;
-            }
-            else
-            {
-                return Result.Fail<IAuthTokenProvider.VerificationTokenModel>();
-            }
-        }
-        else
-        {
-            return Result.Fail<IAuthTokenProvider.VerificationTokenModel>();
-        }
-
-        return Result.Ok(new IAuthTokenProvider.VerificationTokenModel(
-            tokenResult.Value.UserId,
-            tokenResult.Value.SecurityStamp,
-            tokenResult.Value.SecurityToken.ValidFrom, // WhenCreated is not part of the token, so we use current time
-            emailToken));
-    }
 
     public Result<string> GenerateAuthenticationToken(IAuthTokenProvider.AuthenticationTokenModel model)
     {
@@ -121,28 +69,6 @@ public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
             tokenResult.Value.SecurityStamp,
             tokenResult.Value.SecurityToken.ValidFrom,
             authenticationAttemptId));
-    }
-
-    public string GenerateAuthenticatedJwt(Guid userId)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this._settings.JwtKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, userId.ToString()),
-            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: this._settings.JwtIssuer,
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(24), // Token expires in 24 hours
-            signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     private Result<string> GetToken(Guid userId, Guid securityStamp, DateTime whenCreated,

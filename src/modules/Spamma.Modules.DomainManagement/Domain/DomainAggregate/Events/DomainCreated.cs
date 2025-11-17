@@ -1,3 +1,5 @@
-﻿namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
-public record DomainCreated(Guid DomainId, string Name, string? PrimaryContactEmail, string? Description, string VerificationToken, DateTime WhenCreated);
+public record DomainCreated(
+    Guid DomainId, string Name, string? PrimaryContactEmail, string? Description, string VerificationToken,
+    DateTime CreatedAt);

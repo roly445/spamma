@@ -6,7 +6,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class GetDetailedDomainByIdQueryProcessor(IDocumentSession session) : IQueryProcessor<GetDetailedDomainByIdQuery, GetDetailedDomainByIdQueryResult>
+internal class GetDetailedDomainByIdQueryProcessor(IDocumentSession session) : IQueryProcessor<GetDetailedDomainByIdQuery, GetDetailedDomainByIdQueryResult>
 {
     public async Task<QueryResult<GetDetailedDomainByIdQueryResult>> Handle(GetDetailedDomainByIdQuery request, CancellationToken cancellationToken)
     {

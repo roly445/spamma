@@ -6,10 +6,6 @@ using Spamma.Tests.Common.Verification;
 
 namespace Spamma.Modules.UserManagement.Tests.Domain;
 
-/// <summary>
-/// Domain tests for the User aggregate using verification-based patterns.
-/// Tests focus on verifying events raised by business logic, not internal state.
-/// </summary>
 public class UserAggregateTests
 {
     [Fact]
@@ -29,7 +25,7 @@ public class UserAggregateTests
         result.ShouldBeOk(authEvent =>
         {
             authEvent.AuthenticationAttemptId.Should().NotBe(Guid.Empty);
-            authEvent.WhenStarted.Should().Be(now);
+            authEvent.StartedAt.Should().Be(now);
         });
     }
 

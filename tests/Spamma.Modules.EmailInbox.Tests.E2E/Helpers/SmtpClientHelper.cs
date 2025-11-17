@@ -4,9 +4,6 @@ using MimeKit;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E.Helpers;
 
-/// <summary>
-/// Helper class for sending test emails via SMTP using MailKit.
-/// </summary>
 public class SmtpClientHelper
 {
     private readonly string _smtpHost;
@@ -14,13 +11,10 @@ public class SmtpClientHelper
 
     public SmtpClientHelper(string smtpHost, int smtpPort)
     {
-        _smtpHost = smtpHost;
-        _smtpPort = smtpPort;
+        this._smtpHost = smtpHost;
+        this._smtpPort = smtpPort;
     }
 
-    /// <summary>
-    /// Sends an email via SMTP and returns the server response.
-    /// </summary>
     public async Task<string> SendEmailAsync(
         string from,
         string to,
@@ -49,7 +43,7 @@ public class SmtpClientHelper
         using var client = new SmtpClient();
 
         // Connect to SMTP server without TLS (test environment)
-        await client.ConnectAsync(_smtpHost, _smtpPort, SecureSocketOptions.None, cancellationToken);
+        await client.ConnectAsync(this._smtpHost, this._smtpPort, SecureSocketOptions.None, cancellationToken);
 
         // Send message
         var response = await client.SendAsync(message, cancellationToken);
@@ -60,9 +54,6 @@ public class SmtpClientHelper
         return response;
     }
 
-    /// <summary>
-    /// Sends an email with multiple recipients.
-    /// </summary>
     public async Task<string> SendEmailWithMultipleRecipientsAsync(
         string from,
         IEnumerable<string> toAddresses,
@@ -83,17 +74,13 @@ public class SmtpClientHelper
         }
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(_smtpHost, _smtpPort, SecureSocketOptions.None, cancellationToken);
+        await client.ConnectAsync(this._smtpHost, this._smtpPort, SecureSocketOptions.None, cancellationToken);
         var response = await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
 
         return response;
     }
 
-    /// <summary>
-    /// Attempts to send an email and captures any SMTP exception.
-    /// Returns tuple: (success, response/error message).
-    /// </summary>
     public async Task<(bool Success, string Message)> TrySendEmailAsync(
         string from,
         string to,
@@ -103,7 +90,7 @@ public class SmtpClientHelper
     {
         try
         {
-            var response = await SendEmailAsync(from, to, subject, body, cancellationToken: cancellationToken);
+            var response = await this.SendEmailAsync(from, to, subject, body, cancellationToken: cancellationToken);
             return (true, response);
         }
         catch (SmtpCommandException ex)

@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.UserControls;
 
 /// <summary>
-/// Backing code for the admin header component.
+/// Code-behind for the admin header component.
 /// </summary>
 public partial class AdminHeader : ComponentBase
 {

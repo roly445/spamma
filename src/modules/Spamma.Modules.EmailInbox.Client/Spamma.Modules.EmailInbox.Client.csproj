@@ -28,9 +28,9 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
-
     <ItemGroup>
-      <Protobuf Include="Application/Grpc/email_push.proto" GrpcServices="Both" />
+  <Protobuf Include="Protos/integration_receiver.proto" GrpcServices="Both" />
+  <Protobuf Include="Protos/email_push.proto" GrpcServices="Both" />
     </ItemGroup>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />

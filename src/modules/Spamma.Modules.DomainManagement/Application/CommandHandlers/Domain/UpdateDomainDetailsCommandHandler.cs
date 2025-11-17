@@ -7,7 +7,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 
-public class UpdateDomainDetailsCommandHandler(
+internal class UpdateDomainDetailsCommandHandler(
     IDomainRepository repository,
     IEnumerable<IValidator<UpdateDomainDetailsCommand>> validators,
     ILogger<UpdateDomainDetailsCommandHandler> logger)

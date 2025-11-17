@@ -25,4 +25,16 @@ public static class UserManagementErrorCodes
     public const string PasskeyVerificationFailed = "user_management.passkey_verification_failed";
 
     public const string PasskeyReplayAttackDetected = "user_management.passkey_replay_attack_detected";
+
+    public const string ApiKeyNotFound = "user_management.api_key_not_found";
+
+    public const string ApiKeyAlreadyRevoked = "user_management.api_key_already_revoked";
+
+    public const string AccessDenied = "user_management.access_denied";
+
+    public const string ApiKeyInvalidName = "user_management.api_key_invalid_name";
+
+    public const string ApiKeyInvalidPrefix = "user_management.api_key_invalid_prefix";
+
+    public const string ApiKeyInvalidHash = "user_management.api_key_invalid_hash";
 }

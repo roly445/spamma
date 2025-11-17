@@ -10,7 +10,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchSubdomainsQuery, SearchSubdomainsQueryResult>
+internal class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchSubdomainsQuery, SearchSubdomainsQueryResult>
 {
     public async Task<QueryResult<SearchSubdomainsQueryResult>> Handle(SearchSubdomainsQuery request, CancellationToken cancellationToken)
     {

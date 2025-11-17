@@ -26,6 +26,9 @@ public static class Module
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasskeyRepository, PasskeyRepository>();
+        services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
+        services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyValidationService, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyValidationService>();
+        services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyRateLimiter, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyRateLimiter>();
 
         services.AddFido2(options =>
         {
@@ -40,6 +43,7 @@ public static class Module
     public static JsonOptions AddJsonConvertersForUserManagement(this JsonOptions jsonOptions)
     {
         jsonOptions.SerializerOptions.Converters.Add(new ByteArrayJsonConverter());
+        jsonOptions.AddBluQubeJsonConverters();
         return jsonOptions;
     }
 
@@ -58,6 +62,7 @@ public static class Module
 
         options.Projections.Add<UserLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<PasskeyProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<ApiKeyProjection>(ProjectionLifecycle.Inline);
         return options;
     }
 }

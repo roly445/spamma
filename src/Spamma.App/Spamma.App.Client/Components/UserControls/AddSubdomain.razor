@@ -1,7 +1,8 @@
-@if (isVisible && _dataModel != null)
+@if (_dataModel != null && isVisible)
 {
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+    var dataModel = _dataModel;
+    <ModalBase IsVisible="isVisible && _dataModel != null" OnClose="Close" AllowBackdropClose="false" WidthClass="sm:max-w-2xl" AriaLabelledBy="add-subdomain-title">
+        <div class="relative mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white" @onclick:stopPropagation="true">
             <EditForm Model="@model" OnValidSubmit="@HandleAddSubdomain" FormName="AddSubdomainForm">
                 <DataAnnotationsValidator />
                 
@@ -16,7 +17,7 @@
                 </div>
 
                 <div class="space-y-6">
-                    @if (_dataModel.DomainId == null)
+                    @if (dataModel.DomainId == null)
                     {
                         <!-- Parent Domain Selection -->
                         <div>
@@ -27,9 +28,9 @@
                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                          @onchange="OnDomainChanged">
                                 <option value="@Guid.Empty">Select a verified domain...</option>
-                                @if (_dataModel.AvailableDomains != null)
+                                @if (dataModel.AvailableDomains != null)
                                 {
-                                    @foreach (var domain in _dataModel.AvailableDomains)
+                                    @foreach (var domain in dataModel.AvailableDomains)
                                     {
                                         <option value="@domain.Id">@domain.DomainName</option>
                                     }
@@ -97,5 +98,5 @@
             
             
         </div>
-    </div>
+    </ModalBase>
 }

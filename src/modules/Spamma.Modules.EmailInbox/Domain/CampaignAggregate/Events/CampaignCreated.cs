@@ -6,4 +6,5 @@ public record CampaignCreated(
     Guid SubdomainId,
     string CampaignValue,
     Guid MessageId,
-    DateTimeOffset CreatedAt);
+    DateTime CreatedAt,
+    DateTimeOffset ReceivedAt);

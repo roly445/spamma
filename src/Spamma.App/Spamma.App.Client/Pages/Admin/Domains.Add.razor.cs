@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Constants;
 using Spamma.App.Client.Infrastructure;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
@@ -6,7 +6,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the domains management page - add domain functionality.
+/// Code-behind for the Domains page.
 /// </summary>
 public partial class Domains
 {

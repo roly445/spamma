@@ -18,10 +18,10 @@ public class SendWelcomeEmailToNewUsersTests
 
     public SendWelcomeEmailToNewUsersTests()
     {
-        _emailSenderMock = new Mock<IEmailSender>(MockBehavior.Strict);
-        _loggerMock = new Mock<ILogger<SendWelcomeEmailToNewUsers>>();
-        _settings = Options.Create(new Settings { BaseUri = "https://spamma.io" });
-        _subscriber = new SendWelcomeEmailToNewUsers(_loggerMock.Object, _emailSenderMock.Object, _settings);
+        this._emailSenderMock = new Mock<IEmailSender>(MockBehavior.Strict);
+        this._loggerMock = new Mock<ILogger<SendWelcomeEmailToNewUsers>>();
+        this._settings = Options.Create(new Settings { BaseUri = "https://spamma.io" });
+        this._subscriber = new SendWelcomeEmailToNewUsers(this._loggerMock.Object, this._emailSenderMock.Object, this._settings);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class SendWelcomeEmailToNewUsersTests
             SendWelcome: true,
             WhenHappened: DateTime.UtcNow);
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.Is<string>(name => name == "John Doe"),
                 It.Is<string>(email => email == "john@example.com"),
@@ -45,10 +45,10 @@ public class SendWelcomeEmailToNewUsersTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
-        _emailSenderMock.Verify(
+        this._emailSenderMock.Verify(
             x => x.SendEmailAsync(
                 "John Doe",
                 "john@example.com",
@@ -71,7 +71,7 @@ public class SendWelcomeEmailToNewUsersTests
 
         List<Tuple<EmailTemplateSection, System.Collections.Immutable.ImmutableArray<string>>>? capturedEmailBody = null;
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -83,7 +83,7 @@ public class SendWelcomeEmailToNewUsersTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
         capturedEmailBody.Should().NotBeNull();
@@ -104,7 +104,7 @@ public class SendWelcomeEmailToNewUsersTests
 
         List<Tuple<EmailTemplateSection, System.Collections.Immutable.ImmutableArray<string>>>? capturedEmailBody = null;
 
-        _emailSenderMock
+        this._emailSenderMock
             .Setup(x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -116,7 +116,7 @@ public class SendWelcomeEmailToNewUsersTests
             .ReturnsAsync(Result.Ok());
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
         capturedEmailBody.Should().NotBeNull();
@@ -136,10 +136,10 @@ public class SendWelcomeEmailToNewUsersTests
             WhenHappened: DateTime.UtcNow);
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
-        _emailSenderMock.Verify(
+        this._emailSenderMock.Verify(
             x => x.SendEmailAsync(
                 It.IsAny<string>(),
                 It.IsAny<string>(),
@@ -162,10 +162,10 @@ public class SendWelcomeEmailToNewUsersTests
             WhenHappened: DateTime.UtcNow);
 
         // Act
-        await _subscriber.Process(ev);
+        await this._subscriber.Process(ev);
 
         // Assert
-        _loggerMock.Verify(
+        this._loggerMock.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),

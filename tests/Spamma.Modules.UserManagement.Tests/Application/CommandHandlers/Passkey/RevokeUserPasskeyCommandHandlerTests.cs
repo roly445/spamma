@@ -9,15 +9,12 @@ using ResultMonad;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.Passkey;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Tests.Builders;
 using Spamma.Modules.UserManagement.Tests.Fixtures;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.CommandHandlers.Passkey;
 
-/// <summary>
-/// Tests for RevokeUserPasskeyCommandHandler.
-/// Tests the admin passkey revocation flow including authorization checks and user ownership verification.
-/// </summary>
 public class RevokeUserPasskeyCommandHandlerTests
 {
     private readonly Mock<IPasskeyRepository> _passkeyRepositoryMock;

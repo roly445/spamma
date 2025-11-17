@@ -8,12 +8,13 @@ using Microsoft.AspNetCore.Components;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Components.Pages.Auth;
 
 /// <summary>
-/// Backing code for the VerifyLogin component, which handles magic link authentication verification.
+/// Code-behind for the VerifyLogin component.
 /// </summary>
 public partial class VerifyLogin(
     ICommander commander,

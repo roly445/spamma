@@ -1,4 +1,3 @@
-using System.Threading.Channels;
 using BluQube.Attributes;
 using FluentValidation;
 using JasperFx.Events.Projections;
@@ -30,14 +29,12 @@ public static class Module
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddScoped<ICampaignRepository, CampaignRepository>();
-        services.AddScoped<IPushIntegrationRepository, PushIntegrationRepository>();
-        services.AddScoped<IPushIntegrationQueryRepository, PushIntegrationQueryRepository>();
         services.AddSingleton<PushNotificationManager>();
-        services.AddScoped<JwtValidationService>();
+        services.AddScoped<EmailPushGrpcService>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
         // Background job queues
-        services.AddHostedService<Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs.BackgroundTaskService>();
+        services.AddHostedService<BackgroundTaskService>();
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
         // Certificate generation service
@@ -95,8 +92,6 @@ public static class Module
     {
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
-        options.Projections.Add<CampaignDeletionProjection>(ProjectionLifecycle.Async);
-        options.Projections.Add<PushIntegrationProjection>(ProjectionLifecycle.Inline);
 
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
 

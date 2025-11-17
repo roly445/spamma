@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
 /// <summary>
-/// Backing logic for the setup keys page.
+/// Code-behind for the keys setup page.
 /// </summary>
 public partial class Keys(IAppConfigurationService appConfigurationService)
 {
@@ -34,8 +34,7 @@ public partial class Keys(IAppConfigurationService appConfigurationService)
         try
         {
             var existingKeys = await appConfigurationService.GetKeySettingsAsync();
-            this.hasExistingKeys = !string.IsNullOrEmpty(existingKeys.SigningKey) &&
-                                   !string.IsNullOrEmpty(existingKeys.JwtKey);
+            this.hasExistingKeys = !string.IsNullOrEmpty(existingKeys.SigningKey);
         }
         catch
         {
@@ -54,7 +53,6 @@ public partial class Keys(IAppConfigurationService appConfigurationService)
         await appConfigurationService.SaveKeysAsync(new IAppConfigurationService.KeySettings
         {
             SigningKey = this.Model.SigningKey!,
-            JwtKey = this.Model.JwtKey!,
         });
 
         this.successMessage = "Keys saved successfully!";
@@ -63,7 +61,5 @@ public partial class Keys(IAppConfigurationService appConfigurationService)
     public class KeysModel
     {
         public string? SigningKey { get; set; }
-
-        public string? JwtKey { get; set; }
     }
 }

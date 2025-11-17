@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the domain details page.
+/// Code-behind for the DomainDetails page.
 /// </summary>
 public partial class DomainDetails(ICommander commander, IQuerier querier, NavigationManager navigation, IJSRuntime jsRuntime) : ComponentBase
 {

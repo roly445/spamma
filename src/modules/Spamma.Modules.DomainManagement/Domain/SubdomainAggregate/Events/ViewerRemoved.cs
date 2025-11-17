@@ -1,3 +1,3 @@
-﻿namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
+namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 
-public record ViewerRemoved(Guid UserId, DateTime WhenRemoved);
+public record ViewerRemoved(Guid UserId, DateTime RemovedAt);

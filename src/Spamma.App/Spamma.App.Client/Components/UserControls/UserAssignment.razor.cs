@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -10,7 +10,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 namespace Spamma.App.Client.Components.UserControls;
 
 /// <summary>
-/// Backing code for the user assignment component.
+/// Code-behind for the UserAssignment component.
 /// </summary>
 public partial class UserAssignment(ICommander commander, IQuerier querier, INotificationService notificationService) : ComponentBase
 {

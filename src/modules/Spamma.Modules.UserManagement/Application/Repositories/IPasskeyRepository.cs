@@ -4,7 +4,7 @@ using Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
 namespace Spamma.Modules.UserManagement.Application.Repositories;
 
-public interface IPasskeyRepository : IRepository<Passkey>
+internal interface IPasskeyRepository : IRepository<Passkey>
 {
     Task<Maybe<Passkey>> GetByCredentialIdAsync(byte[] credentialId, CancellationToken cancellationToken = default);
 }

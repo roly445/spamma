@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using DnsClient;
 using FluentValidation;
 using Marten;
@@ -13,7 +13,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class CheckMxRecordCommandHandler(ISubdomainRepository repository, IDocumentSession documentSession, IOptions<Settings> settings, TimeProvider timeProvider, ILookupClient lookupClient, IEnumerable<IValidator<CheckMxRecordCommand>> validators, ILogger<CheckMxRecordCommandHandler> logger)
+internal class CheckMxRecordCommandHandler(ISubdomainRepository repository, IDocumentSession documentSession, IOptions<Settings> settings, TimeProvider timeProvider, ILookupClient lookupClient, IEnumerable<IValidator<CheckMxRecordCommand>> validators, ILogger<CheckMxRecordCommandHandler> logger)
     : CommandHandler<CheckMxRecordCommand, CheckMxRecordCommandResult>(validators, logger)
 {
     protected override async Task<CommandResult<CheckMxRecordCommandResult>> HandleInternal(CheckMxRecordCommand request, CancellationToken cancellationToken)
@@ -66,7 +66,7 @@ public class CheckMxRecordCommandHandler(ISubdomainRepository repository, IDocum
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DNS query failed: {ex.Message}");
+            logger.LogError(ex, "DNS query failed: {Message}", ex.Message);
             return false;
         }
     }

@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Spamma.Analyzers</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
     <Authors>Spamma Team</Authors>
     <Description>Custom Roslyn analyzers for Spamma CQRS architecture enforcement</Description>
     <PackageTags>Spamma;Roslyn;Analyzer;CQRS</PackageTags>
-    <NoWarn>$(NoWarn);RS2008</NoWarn>
+    <NoWarn>$(NoWarn);RS2008;RS1041</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

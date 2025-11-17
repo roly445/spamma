@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 namespace Spamma.App.Client.Components.UserControls;
 
 /// <summary>
-/// Code-behind for the add subdomain user control.
+/// Code-behind for the AddSubdomain component.
 /// </summary>
 public partial class AddSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {

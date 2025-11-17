@@ -27,8 +27,11 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <ProjectReference Include="..\..\modules\Spamma.Modules.DomainManagement\Spamma.Modules.DomainManagement.csproj" />
+        <ProjectReference Include="..\..\modules\Spamma.Modules.DomainManagement.Client\Spamma.Modules.DomainManagement.Client.csproj" />
         <ProjectReference Include="..\..\modules\Spamma.Modules.EmailInbox\Spamma.Modules.EmailInbox.csproj" />
+        <ProjectReference Include="..\..\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj" />
         <ProjectReference Include="..\..\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj" />
+        <ProjectReference Include="..\..\modules\Spamma.Modules.UserManagement.Client\Spamma.Modules.UserManagement.Client.csproj" />
         <ProjectReference Include="..\Spamma.App.Client\Spamma.App.Client.csproj" />
         <PackageReference Include="Dapper" Version="2.1.66" />
         <PackageReference Include="DotNetCore.CAP.Dashboard" Version="8.4.1" />

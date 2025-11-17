@@ -12,10 +12,6 @@ using Spamma.Modules.EmailInbox.Tests.Fixtures;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Validators;
 
-/// <summary>
-/// Tests validation failures for email command validators.
-/// Tests: DeleteEmailCommand, ToggleEmailFavoriteCommand with empty GUIDs.
-/// </summary>
 public class EmailCommandValidationTests
 {
     [Fact]

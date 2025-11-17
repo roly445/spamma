@@ -2,8 +2,11 @@ syntax = "proto3";
 
 package email_push;
 
+import "google/protobuf/timestamp.proto";
+
 service EmailPushService {
   rpc SubscribeToEmails (SubscribeRequest) returns (stream EmailNotification);
+  rpc GetEmailContent (GetEmailContentRequest) returns (GetEmailContentResponse);
 }
 
 message SubscribeRequest {
@@ -15,5 +18,13 @@ message EmailNotification {
   string from = 2;
   string to = 3;
   string subject = 4;
-  int64 received_at = 5;
+  google.protobuf.Timestamp received_at = 5;
+}
+
+message GetEmailContentRequest {
+  string email_id = 1;
+}
+
+message GetEmailContentResponse {
+  string mime_message = 1;
 }

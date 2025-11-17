@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Domain;
 
-public class AddModeratorToDomainCommandAuthorizer : AbstractRequestAuthorizer<AddModeratorToDomainCommand>
+internal class AddModeratorToDomainCommandAuthorizer : AbstractRequestAuthorizer<AddModeratorToDomainCommand>
 {
     public override void BuildPolicy(AddModeratorToDomainCommand request)
     {

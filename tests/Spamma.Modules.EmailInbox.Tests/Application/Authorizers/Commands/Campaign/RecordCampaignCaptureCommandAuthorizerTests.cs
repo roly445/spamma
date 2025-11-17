@@ -4,9 +4,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Commands.Campaign;
 
-/// <summary>
-/// Tests for RecordCampaignCaptureCommandAuthorizer to verify authorization requirements.
-/// </summary>
 public class RecordCampaignCaptureCommandAuthorizerTests
 {
     [Fact]
@@ -55,4 +52,3 @@ public class RecordCampaignCaptureCommandAuthorizerTests
         authorizer2.Requirements.Should().BeEmpty();
     }
 }
-

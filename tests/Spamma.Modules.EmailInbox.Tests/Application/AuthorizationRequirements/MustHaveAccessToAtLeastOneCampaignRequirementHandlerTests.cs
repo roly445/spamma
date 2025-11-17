@@ -16,7 +16,7 @@ public class MustHaveAccessToAtLeastOneCampaignRequirementHandlerTests
         var requirement = new MustHaveAccessToAtLeastOneCampaignRequirement();
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "Admin",
             "admin@example.com",
             SystemRole.DomainManagement,
@@ -45,7 +45,7 @@ public class MustHaveAccessToAtLeastOneCampaignRequirementHandlerTests
         var subdomainId = Guid.NewGuid();
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "User",
             "user@example.com",
             0,
@@ -74,7 +74,7 @@ public class MustHaveAccessToAtLeastOneCampaignRequirementHandlerTests
         var subdomainId = Guid.NewGuid();
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "User",
             "user@example.com",
             0,
@@ -103,7 +103,7 @@ public class MustHaveAccessToAtLeastOneCampaignRequirementHandlerTests
         var domainId = Guid.NewGuid();
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "User",
             "user@example.com",
             0,
@@ -131,7 +131,7 @@ public class MustHaveAccessToAtLeastOneCampaignRequirementHandlerTests
         var requirement = new MustHaveAccessToAtLeastOneCampaignRequirement();
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "User",
             "user@example.com",
             0,
@@ -157,7 +157,7 @@ public class MustHaveAccessToAtLeastOneCampaignRequirementHandlerTests
         var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
         var claims = new List<System.Security.Claims.Claim>
         {
-            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(System.Security.Claims.ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

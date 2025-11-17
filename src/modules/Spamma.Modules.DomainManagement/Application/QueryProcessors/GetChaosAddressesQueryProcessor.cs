@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class GetChaosAddressesQueryProcessor(IDocumentSession session) : IQueryProcessor<GetChaosAddressesQuery, GetChaosAddressesQueryResult>
+internal class GetChaosAddressesQueryProcessor(IDocumentSession session) : IQueryProcessor<GetChaosAddressesQuery, GetChaosAddressesQueryResult>
 {
     public async Task<QueryResult<GetChaosAddressesQueryResult>> Handle(GetChaosAddressesQuery request, CancellationToken cancellationToken)
     {

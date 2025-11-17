@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using ResultMonad;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.DomainManagement.Client.Contracts;
@@ -6,6 +6,9 @@ using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
+/// <summary>
+/// Business logic for the Domain aggregate.
+/// </summary>
 public partial class Domain : AggregateRoot
 {
     private readonly List<ModerationUser> _moderationUsers = new();
@@ -23,32 +26,20 @@ public partial class Domain : AggregateRoot
 
     internal string? Description { get; private set; }
 
-    internal DateTime? WhenVerified { get; private set; }
+    internal DateTime? VerifiedAt { get; private set; }
 
-    internal DateTime WhenCreated { get; private set; }
+    internal DateTime CreatedAt { get; private set; }
 
     internal string VerificationToken { get; private set; } = string.Empty;
 
-    internal bool IsSuspended
-    {
-        get
-        {
-            var attempt = this._suspensionAudits.OrderBy(x => x.WhenHappened).LastOrDefault();
-            if (attempt is null)
-            {
-                return false;
-            }
-
-            return attempt.Type == DomainSuspensionAuditType.Suspend;
-        }
-    }
+    internal bool IsSuspended { get; private set; }
 
     internal IReadOnlyList<DomainSuspensionAudit> SuspensionAudits => this._suspensionAudits;
 
-    internal static Result<Domain, BluQubeErrorData> Create(Guid domainId, string name, string? primaryContactEmail, string? description, DateTime whenCreated)
+    internal static Result<Domain, BluQubeErrorData> Create(Guid domainId, string name, string? primaryContactEmail, string? description, DateTime createdAt)
     {
         var domain = new Domain();
-        var @event = new DomainCreated(domainId, name, primaryContactEmail, description, $"{Guid.NewGuid():N}", whenCreated);
+        var @event = new DomainCreated(domainId, name, primaryContactEmail, description, $"{Guid.NewGuid():N}", createdAt);
         domain.RaiseEvent(@event);
 
         return Result.Ok<Domain, BluQubeErrorData>(domain);
@@ -61,62 +52,68 @@ public partial class Domain : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> MarkAsVerified(DateTime whenVerified)
+    internal ResultWithError<BluQubeErrorData> MarkAsVerified(DateTime verifiedAt)
     {
-        if (this.WhenVerified.HasValue)
+        if (this.VerifiedAt.HasValue)
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.AlreadyVerified, $"Domain with ID {this.Id} is already verified"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.AlreadyVerified, $"Domain with ID {this.Id} is already verified"));
         }
 
-        var @event = new DomainVerified(whenVerified);
+        var @event = new DomainVerified(verifiedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> Suspend(DomainSuspensionReason reason, string? notes, DateTime whenSuspended)
+    internal ResultWithError<BluQubeErrorData> Suspend(
+        DomainSuspensionReason reason, string? notes, DateTime suspendedAt)
     {
         if (this.IsSuspended)
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.AlreadySuspended, $"Domain with ID {this.Id} is already suspended"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.AlreadySuspended, $"Domain with ID {this.Id} is already suspended"));
         }
 
-        var @event = new DomainSuspended(reason, notes, whenSuspended);
+        var @event = new DomainSuspended(reason, notes, suspendedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> Unsuspend(DateTime whenUnsuspended)
+    internal ResultWithError<BluQubeErrorData> Unsuspend(DateTime unsuspendedAt)
     {
         if (!this.IsSuspended)
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.NotSuspended, $"Domain with ID {this.Id} is not suspended"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.NotSuspended, $"Domain with ID {this.Id} is not suspended"));
         }
 
-        var @event = new DomainUnsuspended(whenUnsuspended);
+        var @event = new DomainUnsuspended(unsuspendedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> AddModerationUser(Guid userId, DateTime whenAdded)
+    internal ResultWithError<BluQubeErrorData> AddModerationUser(Guid userId, DateTime addedAt)
     {
-        if (this._moderationUsers.Any(x => x.UserId == userId && x.WhenRemoved == null))
+        if (this._moderationUsers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.UserAlreadyModerator, $"User with ID {userId} is already a moderator for domain {this.Id}"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.UserAlreadyModerator, $"User with ID {userId} is already a moderator for domain {this.Id}"));
         }
 
-        var @event = new ModerationUserAdded(userId, whenAdded);
+        var @event = new ModerationUserAdded(userId, addedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> RemoveModerationUser(Guid userId, DateTime whenRemoved)
+    internal ResultWithError<BluQubeErrorData> RemoveModerationUser(Guid userId, DateTime removedAt)
     {
-        if (!this._moderationUsers.Any(x => x.UserId == userId && x.WhenRemoved == null))
+        if (!this._moderationUsers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
-            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.UserNotModerator, $"User with ID {userId} is not a moderator for domain {this.Id}"));
+            return ResultWithError.Fail(new BluQubeErrorData(
+                DomainManagementErrorCodes.UserNotModerator, $"User with ID {userId} is not a moderator for domain {this.Id}"));
         }
 
-        var @event = new ModerationUserRemoved(userId, whenRemoved);
+        var @event = new ModerationUserRemoved(userId, removedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }

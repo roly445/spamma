@@ -19,7 +19,7 @@ public class CampaignAggregateTests
         var createdAt = DateTimeOffset.UtcNow;
 
         // Act
-        var result = Campaign.Create(campaignId, domainId, subdomainId, "test@example.com", messageId, createdAt);
+        var result = Campaign.Create(campaignId, domainId, subdomainId, "test@example.com", messageId, createdAt.DateTime, createdAt);
 
         // Verify
         result.ShouldBeOk(campaign =>
@@ -32,7 +32,7 @@ public class CampaignAggregateTests
                 e.SubdomainId.Should().Be(subdomainId);
                 e.CampaignValue.Should().Be("test@example.com");
                 e.MessageId.Should().Be(messageId);
-                e.CreatedAt.Should().Be(createdAt);
+                e.CreatedAt.Should().Be(createdAt.DateTime);
             });
         });
     }
@@ -40,6 +40,9 @@ public class CampaignAggregateTests
     [Fact]
     public void Create_WithEmptyDomainId_ReturnsFailed()
     {
+        // Arrange
+        var createdAt = DateTimeOffset.UtcNow;
+
         // Act
         var result = Campaign.Create(
             Guid.NewGuid(),
@@ -47,7 +50,8 @@ public class CampaignAggregateTests
             Guid.NewGuid(),
             "test@example.com",
             Guid.NewGuid(),
-            DateTimeOffset.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         // Verify
         result.ShouldBeFailed(error =>
@@ -60,6 +64,9 @@ public class CampaignAggregateTests
     [Fact]
     public void Create_WithEmptySubdomainId_ReturnsFailed()
     {
+        // Arrange
+        var createdAt = DateTimeOffset.UtcNow;
+
         // Act
         var result = Campaign.Create(
             Guid.NewGuid(),
@@ -67,7 +74,8 @@ public class CampaignAggregateTests
             Guid.Empty,
             "test@example.com",
             Guid.NewGuid(),
-            DateTimeOffset.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         // Verify
         result.ShouldBeFailed(error =>
@@ -80,6 +88,9 @@ public class CampaignAggregateTests
     [Fact]
     public void Create_WithNullCampaignValue_ReturnsFailed()
     {
+        // Arrange
+        var createdAt = DateTimeOffset.UtcNow;
+
         // Act
         var result = Campaign.Create(
             Guid.NewGuid(),
@@ -87,7 +98,8 @@ public class CampaignAggregateTests
             Guid.NewGuid(),
             null!,
             Guid.NewGuid(),
-            DateTimeOffset.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         // Verify
         result.ShouldBeFailed(error =>
@@ -100,6 +112,9 @@ public class CampaignAggregateTests
     [Fact]
     public void Create_WithEmptyCampaignValue_ReturnsFailed()
     {
+        // Arrange
+        var createdAt = DateTimeOffset.UtcNow;
+
         // Act
         var result = Campaign.Create(
             Guid.NewGuid(),
@@ -107,7 +122,8 @@ public class CampaignAggregateTests
             Guid.NewGuid(),
             string.Empty,
             Guid.NewGuid(),
-            DateTimeOffset.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         // Verify
         result.ShouldBeFailed(error =>
@@ -122,6 +138,7 @@ public class CampaignAggregateTests
     {
         // Arrange
         var longCampaignValue = new string('a', 256);
+        var createdAt = DateTimeOffset.UtcNow;
 
         // Act
         var result = Campaign.Create(
@@ -130,7 +147,8 @@ public class CampaignAggregateTests
             Guid.NewGuid(),
             longCampaignValue,
             Guid.NewGuid(),
-            DateTimeOffset.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         // Verify
         result.ShouldBeFailed(error =>
@@ -143,6 +161,9 @@ public class CampaignAggregateTests
     [Fact]
     public void Create_WithEmptyMessageId_ReturnsFailed()
     {
+        // Arrange
+        var createdAt = DateTimeOffset.UtcNow;
+
         // Act
         var result = Campaign.Create(
             Guid.NewGuid(),
@@ -150,7 +171,8 @@ public class CampaignAggregateTests
             Guid.NewGuid(),
             "test@example.com",
             Guid.Empty,
-            DateTimeOffset.UtcNow);
+            createdAt.DateTime,
+            createdAt);
 
         // Verify
         result.ShouldBeFailed(error =>
@@ -184,7 +206,7 @@ public class CampaignAggregateTests
     {
         // Arrange
         var campaign = new Builders.CampaignBuilder().Build();
-        campaign.Delete(DateTimeOffset.UtcNow);
+        campaign.Delete(DateTimeOffset.UtcNow.DateTime);
 
         var newMessageId = Guid.NewGuid();
 
@@ -216,13 +238,13 @@ public class CampaignAggregateTests
         var deletedAt = DateTimeOffset.UtcNow.AddSeconds(1);
 
         // Act
-        var result = campaign.Delete(deletedAt);
+        var result = campaign.Delete(deletedAt.DateTime);
 
         // Verify
         result.IsSuccess.Should().BeTrue();
         campaign.ShouldHaveRaisedEvent<CampaignDeleted>(e =>
         {
-            e.DeletedAt.Should().Be(deletedAt);
+            e.DeletedAt.Should().Be(deletedAt.DateTime);
         });
     }
 
@@ -231,10 +253,10 @@ public class CampaignAggregateTests
     {
         // Arrange
         var campaign = new Builders.CampaignBuilder().Build();
-        campaign.Delete(DateTimeOffset.UtcNow);
+        campaign.Delete(DateTimeOffset.UtcNow.DateTime);
 
         // Act
-        var result = campaign.Delete(DateTimeOffset.UtcNow.AddSeconds(1));
+        var result = campaign.Delete(DateTimeOffset.UtcNow.AddSeconds(1).DateTime);
 
         // Verify
         result.IsSuccess.Should().BeFalse();

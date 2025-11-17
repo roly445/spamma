@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -8,7 +8,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
 /// <summary>
-/// Backing code for the edit domain modal.
+/// Code-behind for the Edit Domain user control.
 /// </summary>
 public partial class EditDomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {

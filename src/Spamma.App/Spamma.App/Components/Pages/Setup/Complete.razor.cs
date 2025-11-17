@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
 /// <summary>
-/// Code-behind for the setup completion page.
+/// Code-behind for the Setup Complete page.
 /// </summary>
 public partial class Complete(
     IInMemorySetupAuthService setupAuthService,
@@ -45,7 +45,7 @@ public partial class Complete(
 
             // Check security keys
             var keySettings = await appConfigurationService.GetKeySettingsAsync();
-            this.setupStatus.HasSecurityKeys = !string.IsNullOrEmpty(keySettings.SigningKey) && !string.IsNullOrEmpty(keySettings.JwtKey);
+            this.setupStatus.HasSecurityKeys = !string.IsNullOrEmpty(keySettings.SigningKey);
 
             // Check email configuration
             var emailSettings = await appConfigurationService.GetEmailSettingsAsync();

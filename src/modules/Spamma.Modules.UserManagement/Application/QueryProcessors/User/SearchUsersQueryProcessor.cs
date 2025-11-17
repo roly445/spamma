@@ -16,10 +16,11 @@ public class SearchUsersQueryProcessor(IDocumentSession session, IHttpContextAcc
     public async Task<QueryResult<SearchUsersQueryResult>> Handle(SearchUsersQuery request, CancellationToken cancellationToken)
     {
         Guid? userId = null;
-        var rawUserId = accessor.HttpContext?.User.FindFirst("user_id")?.Value;
-        if (rawUserId != null && Guid.TryParse(rawUserId, out var outUserId))
+        var userAuthInfo = accessor.HttpContext.ToUserAuthInfo();
+
+        if (userAuthInfo.IsAuthenticated)
         {
-            userId = outUserId;
+            userId = userAuthInfo.UserId;
         }
 
         var baseQuery = session.Query<UserLookup>();
@@ -93,7 +94,7 @@ public class SearchUsersQueryProcessor(IDocumentSession session, IHttpContextAcc
             u.LastLoginAt,
             GetUserStatus(u),
             u.IsSuspended,
-            u.WhenSuspended,
+            u.SuspendedAt,
             u.Id == settings.Value.PrimaryUserId || (userId.HasValue && u.Id == userId.Value),
             u.SystemRole)).ToList();
 

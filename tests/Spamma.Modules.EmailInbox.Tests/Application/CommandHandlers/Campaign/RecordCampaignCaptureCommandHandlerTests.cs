@@ -31,7 +31,8 @@ public class RecordCampaignCaptureCommandHandlerTests
         var handler = new RecordCampaignCaptureCommandHandler(
             Array.Empty<IValidator<RecordCampaignCaptureCommand>>(),
             new Mock<ILogger<RecordCampaignCaptureCommandHandler>>().Object,
-            repoMock.Object);
+            repoMock.Object,
+            TimeProvider.System);
 
         var result = await handler.Handle(cmd, CancellationToken.None);
 
@@ -57,7 +58,8 @@ public class RecordCampaignCaptureCommandHandlerTests
         var handler = new RecordCampaignCaptureCommandHandler(
             Array.Empty<IValidator<RecordCampaignCaptureCommand>>(),
             new Mock<ILogger<RecordCampaignCaptureCommandHandler>>().Object,
-            repoMock.Object);
+            repoMock.Object,
+            TimeProvider.System);
 
         var result = await handler.Handle(cmd, CancellationToken.None);
 
@@ -82,7 +84,8 @@ public class RecordCampaignCaptureCommandHandlerTests
         var handler = new RecordCampaignCaptureCommandHandler(
             Array.Empty<IValidator<RecordCampaignCaptureCommand>>(),
             new Mock<ILogger<RecordCampaignCaptureCommandHandler>>().Object,
-            repoMock.Object);
+            repoMock.Object,
+            TimeProvider.System);
 
         var result = await handler.Handle(cmd, CancellationToken.None);
 
@@ -103,7 +106,8 @@ public class RecordCampaignCaptureCommandHandlerTests
         var handler = new RecordCampaignCaptureCommandHandler(
             Array.Empty<IValidator<RecordCampaignCaptureCommand>>(),
             new Mock<ILogger<RecordCampaignCaptureCommandHandler>>().Object,
-            repoMock.Object);
+            repoMock.Object,
+            TimeProvider.System);
 
         // Act & Assert - expect exception to be thrown
         await FluentActions.Invoking(async () => await handler.Handle(cmd, CancellationToken.None))

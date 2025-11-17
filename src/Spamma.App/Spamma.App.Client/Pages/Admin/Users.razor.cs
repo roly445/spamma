@@ -1,17 +1,18 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the users admin page.
+/// Code-behind for the Users page.
 /// </summary>
 public partial class Users(ICommander commander, IQuerier querier, INotificationService notificationService) : ComponentBase
 {
@@ -29,28 +30,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
     protected override async Task OnInitializedAsync()
     {
         await this.LoadUsers();
-    }
-
-    private static string GetStatusClasses(UserStatus status)
-    {
-        return status switch
-        {
-            UserStatus.Active => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800",
-            UserStatus.Inactive => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-            UserStatus.Suspended => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800",
-            _ => "inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800",
-        };
-    }
-
-    private static string GetStatusText(UserStatus status)
-    {
-        return status switch
-        {
-            UserStatus.Active => "Active",
-            UserStatus.Inactive => "Inactive",
-            UserStatus.Suspended => "Suspended",
-            _ => "Unknown",
-        };
     }
 
     private static bool IsRoleSelected(SystemRole role, SystemRole roles)
@@ -116,9 +95,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         this.StateHasChanged();
     }
 
-    /// <summary>
-    /// Opens the passkeys management modal for a specific user.
-    /// </summary>
     private async Task OpenManagePasskeysModal(SearchUsersQueryResult.UserSummary user)
     {
         this.selectedUserForPasskeys = user;
@@ -129,9 +105,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         await this.LoadUserPasskeys();
     }
 
-    /// <summary>
-    /// Loads passkeys for the selected user.
-    /// </summary>
     private async Task LoadUserPasskeys()
     {
         this.isLoadingPasskeys = true;
@@ -164,9 +137,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         this.StateHasChanged();
     }
 
-    /// <summary>
-    /// Toggles selection of a passkey.
-    /// </summary>
     private void TogglePasskeySelection(Guid passkeyId)
     {
         if (this.selectedPasskeyIds.Contains(passkeyId))
@@ -179,9 +149,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         }
     }
 
-    /// <summary>
-    /// Toggles selection of all non-revoked passkeys.
-    /// </summary>
     private void ToggleSelectAll()
     {
         var activePasskeys = this.userPasskeys.Where(p => !p.IsRevoked).Select(p => p.Id).ToList();
@@ -200,9 +167,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         }
     }
 
-    /// <summary>
-    /// Revokes the selected passkeys.
-    /// </summary>
     private async Task HandleRevokeSelectedPasskeys()
     {
         if (this.selectedPasskeyIds.Count == 0 || this.selectedUserForPasskeys == null)
@@ -254,9 +218,6 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         this.StateHasChanged();
     }
 
-    /// <summary>
-    /// Closes the passkeys management modal.
-    /// </summary>
     private void ClosePasskeysModal()
     {
         this.showPasskeysModal = false;
@@ -266,91 +227,40 @@ public partial class Users(ICommander commander, IQuerier querier, INotification
         this.StateHasChanged();
     }
 
-    /// <summary>
-    /// Request parameters for searching users.
-    /// </summary>
     public class UserSearchRequest
     {
-        /// <summary>
-        /// Gets or sets the search term to filter users.
-        /// </summary>
         public string? SearchTerm { get; set; }
 
-        /// <summary>
-        /// Gets or sets the user status filter.
-        /// </summary>
         public UserStatus? Status { get; set; }
 
-        /// <summary>
-        /// Gets or sets the page number.
-        /// </summary>
         public int Page { get; set; } = 1;
 
-        /// <summary>
-        /// Gets or sets the page size.
-        /// </summary>
         public int PageSize { get; set; } = 20;
 
-        /// <summary>
-        /// Gets or sets the field to sort by.
-        /// </summary>
         public string SortBy { get; set; } = "CreatedAt";
 
-        /// <summary>
-        /// Gets or sets a value indicating whether to sort in descending order.
-        /// </summary>
         public bool SortDescending { get; set; } = true;
     }
 
-    /// <summary>
-    /// Base class for user models with role support.
-    /// </summary>
     public abstract class BaseUserModel
     {
-        /// <summary>
-        /// Gets or sets the user roles.
-        /// </summary>
         public SystemRole Roles { get; set; } = 0;
     }
 
-    /// <summary>
-    /// Information about a single passkey.
-    /// </summary>
     private sealed class PasskeyInfo
     {
-        /// <summary>
-        /// Gets or sets the passkey ID.
-        /// </summary>
         public Guid Id { get; set; }
 
-        /// <summary>
-        /// Gets or sets the display name.
-        /// </summary>
         public string DisplayName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Gets or sets the algorithm.
-        /// </summary>
         public string Algorithm { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Gets or sets the registration date/time.
-        /// </summary>
         public DateTime RegisteredAt { get; set; }
 
-        /// <summary>
-        /// Gets or sets the last used date/time.
-        /// </summary>
         public DateTime? LastUsedAt { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether the passkey is revoked.
-        /// </summary>
         public bool IsRevoked { get; set; }
 
-        /// <summary>
-        /// Gets or sets the revocation date/time.
-        /// </summary>
         public DateTime? RevokedAt { get; set; }
     }
 }

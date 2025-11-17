@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
-public class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSession session) : IQueryProcessor<GetChaosAddressBySubdomainAndLocalPartQuery, GetChaosAddressBySubdomainAndLocalPartQueryResult>
+internal class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSession session) : IQueryProcessor<GetChaosAddressBySubdomainAndLocalPartQuery, GetChaosAddressBySubdomainAndLocalPartQueryResult>
 {
     public Task<QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>> Handle(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
     {

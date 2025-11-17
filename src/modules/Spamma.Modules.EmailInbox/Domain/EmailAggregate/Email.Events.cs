@@ -1,7 +1,10 @@
-﻿using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
+using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 
+/// <summary>
+/// Event handling for the Email aggregate.
+/// </summary>
 public partial class Email
 {
     protected override void ApplyEvent(object @event)
@@ -30,12 +33,12 @@ public partial class Email
 
     private void Apply(CampaignCaptured @event)
     {
-       this.CampaignId = @event.CampaignId;
+       this._campaignId = @event.CampaignId;
     }
 
     private void Apply(EmailDeleted @event)
     {
-        this.WhenDeleted = @event.WhenDeleted;
+        this._deletedAt = @event.DeletedAt;
     }
 
     private void Apply(EmailReceived @event)
@@ -44,7 +47,7 @@ public partial class Email
         this.DomainId = @event.DomainId;
         this.SubdomainId = @event.SubdomainId;
         this.Subject = @event.Subject;
-        this.WhenSent = @event.WhenSent;
+        this.WhenSent = @event.SentAt;
         this._emailAddresses.AddRange(@event.EmailAddresses.Select(ea => new EmailAddress(ea.Address, ea.Name, ea.EmailAddressType)));
     }
 

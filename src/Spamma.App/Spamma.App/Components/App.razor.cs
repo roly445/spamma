@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace Spamma.App.Components;
 
 /// <summary>
-/// Code-behind for the main app component.
+/// Code-behind for the main application component.
 /// </summary>
 public partial class App
 {

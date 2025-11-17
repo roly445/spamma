@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.UserControls;
 
 /// <summary>
-/// Backing code for the stat card component.
+/// Code-behind for the stat card component.
 /// </summary>
 public partial class StatCard : ComponentBase
 {

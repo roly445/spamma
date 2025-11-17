@@ -8,45 +8,52 @@ using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
 /// <summary>
-/// Aggregate root for managing chaos addresses used to trap spam.
+/// Business logic for Chaos Address entity.
 /// </summary>
 public partial class ChaosAddress : AggregateRoot
 {
     private readonly List<ChaosAddressSuspensionAudit> _suspensionAudits = new();
+    private DateTimeOffset? _lastReceivedAt;
+
+    private ChaosAddress()
+    {
+    }
 
     public override Guid Id { get; protected set; }
 
-    public Guid DomainId { get; private set; }
+    internal Guid DomainId { get; private set; }
 
-    public Guid SubdomainId { get; private set; }
+    internal Guid SubdomainId { get; private set; }
 
-    public string LocalPart { get; private set; } = string.Empty;
+    internal string LocalPart { get; private set; } = string.Empty;
 
-    public SmtpResponseCode ConfiguredSmtpCode { get; private set; }
+    internal SmtpResponseCode ConfiguredSmtpCode { get; private set; }
 
-    public bool Enabled { get; private set; }
+    internal bool Enabled { get; private set; }
 
-    public int TotalReceived { get; private set; }
+    internal int TotalReceived { get; private set; }
 
-    public DateTimeOffset? LastReceivedAt { get; private set; }
+    internal DateTimeOffset LastReceivedAt =>
+        this._lastReceivedAt ??
+        throw new InvalidOperationException("No emails have been received yet. Check TotalReceived before accessing this property.");
 
     internal IReadOnlyList<ChaosAddressSuspensionAudit> SuspensionAudits => this._suspensionAudits;
 
-    public static Result<ChaosAddress, BluQubeErrorData> Create(
+    internal static Result<ChaosAddress, BluQubeErrorData> Create(
         Guid id,
         Guid domainId,
         Guid subdomainId,
         string localPart,
         SmtpResponseCode smtpCode,
-        DateTime whenCreated)
+        DateTime createdAt)
     {
-        var @event = new ChaosAddressCreated(id, domainId, subdomainId, localPart, smtpCode, whenCreated);
+        var @event = new ChaosAddressCreated(id, domainId, subdomainId, localPart, smtpCode, createdAt);
         var aggregate = new ChaosAddress();
         aggregate.RaiseEvent(@event);
         return Result.Ok<ChaosAddress, BluQubeErrorData>(aggregate);
     }
 
-    public ResultWithError<BluQubeErrorData> Enable(DateTime when)
+    internal ResultWithError<BluQubeErrorData> Enable(DateTime enabledAt)
     {
         if (this.Enabled)
         {
@@ -55,12 +62,12 @@ public partial class ChaosAddress : AggregateRoot
                 $"Chaos address {this.Id} is already enabled"));
         }
 
-        var @event = new ChaosAddressEnabled(when);
+        var @event = new ChaosAddressEnabled(enabledAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> Disable(DateTime when)
+    internal ResultWithError<BluQubeErrorData> Disable(DateTime disabledAt)
     {
         if (!this.Enabled)
         {
@@ -69,21 +76,21 @@ public partial class ChaosAddress : AggregateRoot
                 $"Chaos address {this.Id} is already disabled"));
         }
 
-        var @event = new ChaosAddressDisabled(when);
+        var @event = new ChaosAddressDisabled(disabledAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> RecordReceive(DateTimeOffset when)
+    internal ResultWithError<BluQubeErrorData> RecordReceive(DateTimeOffset receivedAt)
     {
-        var @event = new ChaosAddressReceived(when);
+        var @event = new ChaosAddressReceived(receivedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    public ResultWithError<BluQubeErrorData> Delete(DateTime when)
+    internal ResultWithError<BluQubeErrorData> Delete(DateTime deletedAt)
     {
-        var @event = new ChaosAddressDeleted(when);
+        var @event = new ChaosAddressDeleted(deletedAt);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }

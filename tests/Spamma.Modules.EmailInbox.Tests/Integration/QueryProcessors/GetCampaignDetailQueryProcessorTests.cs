@@ -114,7 +114,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
             SubdomainId = subdomainId,
             CampaignId = campaignId,
             Subject = "Sample Email Subject",
-            WhenSent = new DateTime(2025, 1, 5, 12, 0, 0, DateTimeKind.Utc),
+            SentAt = new DateTime(2025, 1, 5, 12, 0, 0, DateTimeKind.Utc),
             EmailAddresses = new List<EmailAddress>
             {
                 new("sender@example.com", "Sender Name", EmailAddressType.From),

@@ -4,10 +4,6 @@ using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
 
-/// <summary>
-/// Base fixture for integration tests using a PostgreSQL Testcontainer.
-/// Provides a real Marten document session connected to a containerized database.
-/// </summary>
 public class PostgreSqlFixture : IAsyncLifetime
 {
     private PostgreSqlContainer? _container;
@@ -26,7 +22,7 @@ public class PostgreSqlFixture : IAsyncLifetime
             .WithPassword("postgres")
             .Build();
 
-        await this._container.StartAsync();
+        await StartContainerWithRetryAsync(this._container!);
 
         this.ConnectionString = this._container.GetConnectionString();
 
@@ -66,6 +62,26 @@ public class PostgreSqlFixture : IAsyncLifetime
         {
             await this._container.StopAsync();
             await this._container.DisposeAsync();
+        }
+    }
+
+    private static async Task StartContainerWithRetryAsync(PostgreSqlContainer container, int maxAttempts = 3)
+    {
+        var delayMs = 1000;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await container.StartAsync();
+                return;
+            }
+            catch (Exception) when (attempt < maxAttempts)
+            {
+                // Named pipe timeouts and transient Docker errors can be transient - wait and retry.
+                await Task.Delay(delayMs);
+                delayMs *= 2;
+            }
         }
     }
 }

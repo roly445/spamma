@@ -1,3 +1,3 @@
-﻿namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
-public record ModerationUserRemoved(Guid UserId, DateTime WhenRemoved);
+public record ModerationUserRemoved(Guid UserId, DateTime RemovedAt);

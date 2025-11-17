@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>GrpcEmailPushClient</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.67.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.29.2" />
+    <PackageReference Include="Grpc.Tools" Version="2.67.0" PrivateAssets="All" />
+    <PackageReference Include="MimeKit" Version="4.14.0" />
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- We'll compile the proto file from the repository's email_push.proto. Adjust this path if needed. -->
+  <ItemGroup>
+    <Protobuf Include="..\..\src\modules\Spamma.Modules.EmailInbox.Client\Protos\email_push.proto" GrpcServices="Client" />
+    <Protobuf Include="..\..\src\modules\Spamma.Modules.EmailInbox.Client\Protos\integration_receiver.proto" GrpcServices="Client" />
+  </ItemGroup>
+  <Import Project="..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
+
+</Project>

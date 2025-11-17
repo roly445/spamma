@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.UserControls;
 
 /// <summary>
-/// Backing code for the domain icon component.
+/// Code-behind for the domain icon component.
 /// </summary>
 public partial class DomainIcon
 {

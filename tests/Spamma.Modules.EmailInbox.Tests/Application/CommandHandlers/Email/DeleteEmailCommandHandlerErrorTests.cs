@@ -14,10 +14,6 @@ using Spamma.Modules.EmailInbox.Tests.Fixtures;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers.Email;
 
-/// <summary>
-/// Tests error scenarios for DeleteEmailCommandHandler.
-/// Tests: NotFound, EmailIsPartOfCampaign, SavingChangesFailed.
-/// </summary>
 public class DeleteEmailCommandHandlerErrorTests
 {
     [Fact]

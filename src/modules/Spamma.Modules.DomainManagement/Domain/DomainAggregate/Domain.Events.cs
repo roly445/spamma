@@ -1,7 +1,10 @@
-﻿using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
 namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
+/// <summary>
+/// Event handling for the Domain aggregate.
+/// </summary>
 public partial class Domain
 {
     protected override void ApplyEvent(object @event)
@@ -36,13 +39,13 @@ public partial class Domain
 
     private void Apply(ModerationUserRemoved @event)
     {
-        this._moderationUsers.First(x => x.UserId == @event.UserId && !x.WhenRemoved.HasValue)
-            .Remove(@event.WhenRemoved);
+        this._moderationUsers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
+            .Remove(@event.RemovedAt);
     }
 
     private void Apply(ModerationUserAdded @event)
     {
-        this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.WhenAdded));
+        this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.AddedAt));
     }
 
     private void Apply(DomainCreated @event)
@@ -52,12 +55,12 @@ public partial class Domain
         this.PrimaryContactEmail = @event.PrimaryContactEmail;
         this.Description = @event.Description;
         this.VerificationToken = @event.VerificationToken;
-        this.WhenCreated = @event.WhenCreated;
+        this.CreatedAt = @event.CreatedAt;
     }
 
     private void Apply(DomainVerified @event)
     {
-        this.WhenVerified = @event.WhenVerified;
+        this.VerifiedAt = @event.VerifiedAt;
     }
 
     private void Apply(DetailsUpdated @event)
@@ -68,11 +71,13 @@ public partial class Domain
 
     private void Apply(DomainSuspended @event)
     {
-        this._suspensionAudits.Add(DomainSuspensionAudit.CreateSuspension(@event.WhenSuspended, @event.Reason, @event.Notes));
+        this._suspensionAudits.Add(DomainSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
+        this.IsSuspended = true;
     }
 
     private void Apply(DomainUnsuspended @event)
     {
-        this._suspensionAudits.Add(DomainSuspensionAudit.CreateUnsuspension(@event.WhenUnsuspended));
+        this._suspensionAudits.Add(DomainSuspensionAudit.CreateUnsuspension(@event.UnsuspendedAt));
+        this.IsSuspended = false;
     }
 }

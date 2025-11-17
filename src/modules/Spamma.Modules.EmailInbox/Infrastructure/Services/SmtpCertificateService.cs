@@ -28,6 +28,9 @@ public class SmtpCertificateService(ILogger<SmtpCertificateService> logger)
         try
         {
             // Try loading the first certificate with password (generated certs)
+            // SYSLIB0057: X509Certificate2 constructors with string paths are obsolete in favor of
+            // CreateFromPemFile/CreateFromEncryptedPemFile, but we need to support .pfx (PKCS#12) format
+            // with optional password for backward compatibility with existing deployments.
 #pragma warning disable SYSLIB0057 // Type or member is obsolete
             try
             {

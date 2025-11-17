@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Components;
 
 /// <summary>
-/// Backing code for the <see cref="NotificationContainer"/> component.
+/// Code-behind for the notification container component.
 /// </summary>
 public partial class NotificationContainer(INotificationService notificationService) : ComponentBase, IDisposable
 {

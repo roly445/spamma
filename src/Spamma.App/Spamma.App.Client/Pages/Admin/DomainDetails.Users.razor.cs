@@ -1,9 +1,9 @@
-﻿using Spamma.App.Client.Components.UserControls;
+using Spamma.App.Client.Components.UserControls;
 
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the domain details page - user functionality.
+/// Code-behind for the DomainDetails page.
 /// </summary>
 public partial class DomainDetails
 {

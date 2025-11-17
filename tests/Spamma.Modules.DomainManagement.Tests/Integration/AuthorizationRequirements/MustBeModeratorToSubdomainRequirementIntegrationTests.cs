@@ -17,20 +17,20 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
 
     public MustBeModeratorToSubdomainRequirementIntegrationTests(PostgreSqlFixture fixture)
     {
-        _fixture = fixture;
+        this._fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
         // Seed test data: create a domain and subdomain
-        _domainId = Guid.NewGuid();
-        _subdomainId = Guid.NewGuid();
+        this._domainId = Guid.NewGuid();
+        this._subdomainId = Guid.NewGuid();
 
         // Create subdomain lookup for authorization queries
         var subdomainLookup = new SubdomainLookup
         {
-            Id = _subdomainId,
-            DomainId = _domainId,
+            Id = this._subdomainId,
+            DomainId = this._domainId,
             SubdomainName = "test-subdomain",
             CreatedAt = DateTime.UtcNow,
             IsSuspended = false,
@@ -38,8 +38,8 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
             ParentName = "example.com",
         };
 
-        _fixture.Session!.Store(subdomainLookup);
-        await _fixture.Session.SaveChangesAsync();
+        this._fixture.Session!.Store(subdomainLookup);
+        await this._fixture.Session.SaveChangesAsync();
     }
 
     public Task DisposeAsync()
@@ -51,15 +51,15 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserModeratesParentDomain_ReturnsSucceed()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomainId };
+        var userId = Guid.NewGuid();
+        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
             "User",
             "user@example.com",
             0,
-            new[] { _domainId },
+            new[] { this._domainId },
             Array.Empty<Guid>(),
             Array.Empty<Guid>());
 
@@ -67,7 +67,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -80,9 +80,9 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserModeratesOtherSubdomain_ReturnsFail()
     {
         // Arrange
-        var targetSubdomainId = _subdomainId;
+        var targetSubdomainId = this._subdomainId;
         var userSubdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = targetSubdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -98,7 +98,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -111,8 +111,8 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserHasNoRolesOrClaims_ReturnsFail()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomainId };
+        var userId = Guid.NewGuid();
+        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -127,7 +127,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -140,8 +140,8 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserHasViewableSubdomainClaimButNotModerator_ReturnsFail()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomainId };
+        var userId = Guid.NewGuid();
+        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -150,13 +150,13 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
             0,
             Array.Empty<Guid>(),
             Array.Empty<Guid>(),
-            new[] { _subdomainId });
+            new[] { this._subdomainId });
 
         var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -186,7 +186,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
 
         var claims = new List<System.Security.Claims.Claim>
         {
-            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(System.Security.Claims.ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

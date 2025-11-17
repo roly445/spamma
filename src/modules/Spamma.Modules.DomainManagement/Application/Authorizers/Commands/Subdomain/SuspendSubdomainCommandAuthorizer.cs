@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Subdomain;
 
-public class SuspendSubdomainCommandAuthorizer : AbstractRequestAuthorizer<SuspendSubdomainCommand>
+internal class SuspendSubdomainCommandAuthorizer : AbstractRequestAuthorizer<SuspendSubdomainCommand>
 {
     public override void BuildPolicy(SuspendSubdomainCommand request)
     {

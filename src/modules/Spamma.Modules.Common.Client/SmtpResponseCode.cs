@@ -12,4 +12,3 @@ public enum SmtpResponseCode
     ExceededStorageAllocation = 552,
     MailboxNameNotAllowed = 553,
 }
-

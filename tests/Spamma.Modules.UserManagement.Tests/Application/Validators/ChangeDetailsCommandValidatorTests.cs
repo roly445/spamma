@@ -4,7 +4,9 @@ using Moq;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Application.Validators;
+using Spamma.Modules.UserManagement.Application.Validators.User;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Domain.UserAggregate;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Validators;

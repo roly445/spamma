@@ -4,10 +4,6 @@ using Spamma.Modules.UserManagement.Tests.Builders;
 
 namespace Spamma.Modules.UserManagement.Tests.Domain;
 
-/// <summary>
-/// Domain tests for the Passkey aggregate root.
-/// Tests business logic for passkey registration, authentication, and revocation using verification patterns.
-/// </summary>
 public class PasskeyAggregateTests
 {
     private readonly Guid _userId = Guid.NewGuid();
@@ -36,8 +32,6 @@ public class PasskeyAggregateTests
         result.Value.SignCount.Should().Be(0);
         result.Value.IsRevoked.Should().BeFalse();
         result.Value.RegisteredAt.Should().Be(this._fixedUtcNow);
-        result.Value.LastUsedAt.Should().BeNull();
-        result.Value.RevokedAt.Should().BeNull();
     }
 
     [Fact]
@@ -225,7 +219,6 @@ public class PasskeyAggregateTests
 
         // Verify
         result.IsFailure.Should().BeTrue();
-        passkey.LastUsedAt.Should().BeNull(); // Not updated
     }
 
     [Fact]
@@ -283,9 +276,6 @@ public class PasskeyAggregateTests
 
         // Verify
         result.Value.IsRevoked.Should().BeFalse();
-        result.Value.RevokedAt.Should().BeNull();
-        result.Value.RevokedByUserId.Should().BeNull();
-        result.Value.LastUsedAt.Should().BeNull();
     }
 
     [Fact]

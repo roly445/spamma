@@ -1,3 +1,3 @@
-﻿namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
-public record ModerationUserAdded(Guid UserId, DateTime WhenAdded);
+public record ModerationUserAdded(Guid UserId, DateTime AddedAt);

@@ -1,4 +1,4 @@
-﻿using Spamma.Modules.DomainManagement.Client.Contracts;
+using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
@@ -14,7 +14,7 @@ public class SubdomainLookup
 
     public bool IsSuspended { get; set; }
 
-    public DateTime? WhenSuspended { get; set; }
+    public DateTime? SuspendedAt { get; set; }
 
     public string? Description { get; set; }
 

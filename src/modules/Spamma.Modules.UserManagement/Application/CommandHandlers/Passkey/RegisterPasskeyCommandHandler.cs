@@ -1,11 +1,12 @@
-using System.Security.Claims;
 using BluQube.Commands;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Client.Contracts;
 using PasskeyAggregate = Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey;
 
@@ -21,15 +22,15 @@ internal class RegisterPasskeyCommandHandler(
     protected override async Task<CommandResult> HandleInternal(RegisterPasskeyCommand request, CancellationToken cancellationToken)
     {
         // Get current authenticated user ID from claims
-        var userIdClaim = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userAuthInfo = httpContextAccessor.HttpContext.ToUserAuthInfo();
 
-        if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var currentUserId))
+        if (!userAuthInfo.IsAuthenticated)
         {
             return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt));
         }
 
         var result = PasskeyAggregate.Register(
-            currentUserId,
+            userAuthInfo.UserId,
             request.CredentialId,
             request.PublicKey,
             request.SignCount,

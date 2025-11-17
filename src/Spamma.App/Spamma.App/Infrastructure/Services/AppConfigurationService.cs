@@ -45,7 +45,6 @@ public class AppConfigurationService(IConfiguration configuration, ILogger<AppCo
     public async Task SaveKeysAsync(IAppConfigurationService.KeySettings keySettings)
     {
         await this.SetValueAsync("security.signingKey", keySettings.SigningKey);
-        await this.SetValueAsync("security.jwtKey", keySettings.JwtKey);
     }
 
     public async Task<IAppConfigurationService.KeySettings> GetKeySettingsAsync()
@@ -53,7 +52,6 @@ public class AppConfigurationService(IConfiguration configuration, ILogger<AppCo
         return new IAppConfigurationService.KeySettings
         {
             SigningKey = await this.GetValueAsync("security.signingKey") ?? string.Empty,
-            JwtKey = await this.GetValueAsync("security.jwtKey") ?? string.Empty,
         };
     }
 

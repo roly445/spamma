@@ -4,7 +4,7 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Queries;
 
-public class GetUserStatsQueryAuthorizer : AbstractRequestAuthorizer<GetUserStatsQuery>
+internal class GetUserStatsQueryAuthorizer : AbstractRequestAuthorizer<GetUserStatsQuery>
 {
     public override void BuildPolicy(GetUserStatsQuery request)
     {

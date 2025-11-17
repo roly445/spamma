@@ -4,10 +4,6 @@ using Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
 namespace Spamma.Modules.UserManagement.Tests.Domain;
 
-/// <summary>
-/// Security-focused tests for Passkey aggregate domain logic.
-/// Verifies protection against credential cloning, replay attacks, and revoked passkey usage.
-/// </summary>
 public class PasskeySecurityTests
 {
     [Fact]

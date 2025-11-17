@@ -1,9 +1,9 @@
 @if (showAssignUserModal)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" @onclick="Close">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md" @onclick:stopPropagation="true">
+    <ModalBase IsVisible="@showAssignUserModal" OnClose="Close" AllowBackdropClose="true" WidthClass="sm:max-w-md" AriaLabelledBy="assign-user-modal-title">
+        <div class="bg-white rounded-lg shadow-xl w-full" @onclick:stopPropagation="true">
             <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Assign @UserTypeName to @EntityName</h3>
+                <h3 id="assign-user-modal-title" class="text-lg font-medium text-gray-900">Assign @UserTypeName to @EntityName</h3>
             </div>
             <div class="px-6 py-4">
                 <EditForm Model="@assignUserModel" OnValidSubmit="@HandleAssignUser" FormName="AssignUserForm">
@@ -43,5 +43,5 @@
                 </EditForm>
             </div>
         </div>
-    </div>
+    </ModalBase>
 }

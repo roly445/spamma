@@ -7,14 +7,8 @@ using Xunit;
 
 namespace Spamma.App.Tests.Infrastructure.Endpoints;
 
-/// <summary>
-/// Unit tests for certificate generation endpoint request/response models.
-/// </summary>
 public class GenerateCertificateEndpointTests
 {
-    /// <summary>
-    /// Test: Request model accepts valid domain and email.
-    /// </summary>
     [Fact]
     public void GenerateCertificateRequest_ValidInput_CreatesSuccessfully()
     {
@@ -34,9 +28,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(email, request.Email);
     }
 
-    /// <summary>
-    /// Test: Request model with various domain and email combinations.
-    /// </summary>
     [Fact]
     public void GenerateCertificateRequest_ValidDomainAndEmail_CreatesSuccessfully()
     {
@@ -56,9 +47,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(email, request.Email);
     }
 
-    /// <summary>
-    /// Test: Response model indicates success.
-    /// </summary>
     [Fact]
     public void GenerateCertificateResponse_SuccessfulGeneration_CreatesSuccessfully()
     {
@@ -86,9 +74,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(message, response.Message);
     }
 
-    /// <summary>
-    /// Test: Response model indicates failure.
-    /// </summary>
     [Fact]
     public void GenerateCertificateResponse_FailedGeneration_CreatesSuccessfully()
     {
@@ -112,9 +97,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(errorMessage, response.Message);
     }
 
-    /// <summary>
-    /// Test: Request model with empty domain string.
-    /// </summary>
     [Fact]
     public void GenerateCertificateRequest_EmptyDomain_CreatesWithEmptyValue()
     {
@@ -134,9 +116,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(email, request.Email);
     }
 
-    /// <summary>
-    /// Test: Request model with various domain formats.
-    /// </summary>
     [Theory]
     [InlineData("example.com")]
     [InlineData("sub.example.com")]
@@ -156,9 +135,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(domain, request.Domain);
     }
 
-    /// <summary>
-    /// Test: Request model with various email formats.
-    /// </summary>
     [Theory]
     [InlineData("admin@example.com")]
     [InlineData("user.name@example.com")]
@@ -177,9 +153,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(email, request.Email);
     }
 
-    /// <summary>
-    /// Test: Response model with timestamp precision.
-    /// </summary>
     [Fact]
     public void GenerateCertificateResponse_PreservesTimestampPrecision()
     {
@@ -200,9 +173,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(expectedTime, response.GeneratedAt);
     }
 
-    /// <summary>
-    /// Test: Request model is record type (value semantics).
-    /// </summary>
     [Fact]
     public void GenerateCertificateRequest_RecordType_EqualsByValue()
     {
@@ -223,9 +193,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(request1, request2);
     }
 
-    /// <summary>
-    /// Test: Response model is record type (value semantics).
-    /// </summary>
     [Fact]
     public void GenerateCertificateResponse_RecordType_EqualsByValue()
     {
@@ -253,9 +220,6 @@ public class GenerateCertificateEndpointTests
         Assert.Equal(response1, response2);
     }
 
-    /// <summary>
-    /// Test: Request model with null message handles gracefully.
-    /// </summary>
     [Fact]
     public void GenerateCertificateResponse_NullMessage_CreatesSuccessfully()
     {

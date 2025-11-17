@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class AddViewerToSubdomainCommandHandler(
+internal class AddViewerToSubdomainCommandHandler(
     ISubdomainRepository repository, TimeProvider timeProvider,
     IEnumerable<IValidator<AddViewerToSubdomainCommand>> validators,
     ILogger<AddViewerToSubdomainCommandHandler> logger,

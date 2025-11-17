@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -13,7 +13,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the subdomain details page.
+/// Code-behind for the SubdomainDetails page.
 /// </summary>
 public partial class SubdomainDetails(ICommander commander, IQuerier querier, NavigationManager navigation, IOptions<Settings> settings) : ComponentBase
 {
@@ -171,7 +171,7 @@ public partial class SubdomainDetails(ICommander commander, IQuerier querier, Na
             this.subdomain = this.subdomain with
             {
                 MxStatus = result.Data.MxStatus,
-                MxCheckedAt = result.Data.WhenChecked,
+                MxCheckedAt = result.Data.LastCheckedAt,
             };
         }
 

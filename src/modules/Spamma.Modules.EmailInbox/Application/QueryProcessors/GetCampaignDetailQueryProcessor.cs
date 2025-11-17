@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
-public class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryProcessor<GetCampaignDetailQuery, GetCampaignDetailQueryResult>
+internal class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryProcessor<GetCampaignDetailQuery, GetCampaignDetailQueryResult>
 {
     public async Task<QueryResult<GetCampaignDetailQueryResult>> Handle(GetCampaignDetailQuery request, CancellationToken cancellationToken)
     {
@@ -40,7 +40,7 @@ public class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQueryP
                     email.Subject,
                     from,
                     to,
-                    email.WhenSent,
+                    email.SentAt,
                     email.Subject);
             }
         }

@@ -5,7 +5,7 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Queries;
 
-public class SearchUsersQueryAuthorizer : AbstractRequestAuthorizer<SearchUsersQuery>
+internal class SearchUsersQueryAuthorizer : AbstractRequestAuthorizer<SearchUsersQuery>
 {
     public override void BuildPolicy(SearchUsersQuery request)
     {

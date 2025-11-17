@@ -7,10 +7,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
-/// <summary>
-/// Integration tests for GetEmailMimeMessageByIdQueryProcessor using PostgreSQL testcontainer.
-/// Tests MIME message retrieval, compression, and base64 encoding.
-/// </summary>
 public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     public GetEmailMimeMessageByIdQueryProcessorTests()

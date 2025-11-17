@@ -8,14 +8,14 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
-public class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpContextAccessor accessor) : IQueryProcessor<SearchEmailsQuery, SearchEmailsQueryResult>
+internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpContextAccessor accessor) : IQueryProcessor<SearchEmailsQuery, SearchEmailsQueryResult>
 {
     public async Task<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
         var user = accessor.HttpContext.ToUserAuthInfo();
 
         var query = documentSession.Query<EmailLookup>()
-            .Where(x => user.ViewableSubdomains.Contains(x.SubdomainId) && x.WhenDeleted == null);
+            .Where(x => user.ViewableSubdomains.Contains(x.SubdomainId) && x.DeletedAt == null);
 
         // Apply campaign email filter - hide campaign emails by default unless user wants to see them
         if (!request.ShowCampaignEmails)
@@ -45,13 +45,13 @@ public class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpC
 
         // Apply pagination and get results
         var emails = await query
-            .OrderByDescending(e => e.WhenSent)
+            .OrderByDescending(e => e.SentAt)
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(token: cancellationToken);
 
         var result = new SearchEmailsQueryResult(
-            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.WhenSent, x.IsFavorite, x.CampaignId, x.CampaignValue)).ToList(),
+            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.SentAt, x.IsFavorite, x.CampaignId, x.CampaignValue)).ToList(),
             TotalCount: totalCount,
             Page: page,
             PageSize: pageSize,

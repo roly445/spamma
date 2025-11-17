@@ -21,7 +21,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
             Id = emailId,
             SubdomainId = subdomainId,
             Subject = "Test Email Subject",
-            WhenSent = expectedWhenSent,
+            SentAt = expectedWhenSent,
             IsFavorite = true,
             CampaignId = campaignId,
             EmailAddresses = new List<EmailAddress>
@@ -75,8 +75,8 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
             Id = emailId,
             SubdomainId = subdomainId,
             Subject = "Deleted Email",
-            WhenSent = DateTime.UtcNow.AddDays(-3),
-            WhenDeleted = DateTime.UtcNow.AddHours(-1),
+            SentAt = DateTime.UtcNow.AddDays(-3),
+            DeletedAt = DateTime.UtcNow.AddHours(-1),
             IsFavorite = false,
             CampaignId = null,
             EmailAddresses = new List<EmailAddress>
@@ -111,7 +111,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
             Id = emailId,
             SubdomainId = subdomainId,
             Subject = "Email without campaign",
-            WhenSent = DateTime.UtcNow.AddDays(-2),
+            SentAt = DateTime.UtcNow.AddDays(-2),
             IsFavorite = false,
             CampaignId = null,
             EmailAddresses = new List<EmailAddress>

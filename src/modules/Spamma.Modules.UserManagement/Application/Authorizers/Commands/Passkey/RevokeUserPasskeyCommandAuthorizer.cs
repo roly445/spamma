@@ -2,10 +2,11 @@
 using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.Passkey;
 
-public class RevokeUserPasskeyCommandAuthorizer : AbstractRequestAuthorizer<RevokeUserPasskeyCommand>
+internal class RevokeUserPasskeyCommandAuthorizer : AbstractRequestAuthorizer<RevokeUserPasskeyCommand>
 {
     public override void BuildPolicy(RevokeUserPasskeyCommand request)
     {

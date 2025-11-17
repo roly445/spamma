@@ -1,7 +1,9 @@
 using FluentValidation.TestHelper;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Application.Validators;
+using Spamma.Modules.UserManagement.Application.Validators.Passkey;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Validators;
 

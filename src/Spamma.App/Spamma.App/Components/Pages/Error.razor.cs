@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 namespace Spamma.App.Components.Pages;
 
 /// <summary>
-/// Backing code for the Error Razor component.
+/// Code-behind for the error component.
 /// </summary>
 public partial class Error
 {
@@ -13,8 +13,8 @@ public partial class Error
 
     private string? RequestId { get; set; }
 
-    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    private bool ShowRequestId => !string.IsNullOrEmpty(this.RequestId);
 
     protected override void OnInitialized() =>
-        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+        this.RequestId = Activity.Current?.Id ?? this.HttpContext?.TraceIdentifier;
 }

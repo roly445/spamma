@@ -18,7 +18,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "Admin",
             "admin@example.com",
             SystemRole.DomainManagement,
@@ -46,7 +46,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
     {
         // Arrange
         var subdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -79,7 +79,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
         // Arrange
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -115,7 +115,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
         // Arrange
         var targetSubdomainId = Guid.NewGuid();
         var userSubdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = targetSubdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -148,7 +148,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
     {
         // Arrange
         var subdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -181,7 +181,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
     {
         // Arrange
         var subdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -230,7 +230,7 @@ public class MustBeModeratorToSubdomainRequirementHandlerTests
 
         var claims = new List<System.Security.Claims.Claim>
         {
-            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(System.Security.Claims.ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

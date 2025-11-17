@@ -1,9 +1,9 @@
-﻿using Spamma.App.Client.Components.UserControls;
+using Spamma.App.Client.Components.UserControls;
 
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the subdomains management page - add subdomain functionality.
+/// Code-behind for the Subdomains page.
 /// </summary>
 public partial class Subdomains
 {

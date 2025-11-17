@@ -7,8 +7,9 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Campaign;
 
-public class DeleteCampaignCommandHandler(
+internal class DeleteCampaignCommandHandler(
     ICampaignRepository campaignRepository,
+    IEmailRepository emailRepository,
     TimeProvider timeProvider,
     IEnumerable<IValidator<DeleteCampaignCommand>> validators,
     ILogger<DeleteCampaignCommandHandler> logger)
@@ -24,7 +25,7 @@ public class DeleteCampaignCommandHandler(
         }
 
         var campaign = campaignMaybe.Value;
-        var deleteResult = campaign.Delete(timeProvider.GetUtcNow());
+        var deleteResult = campaign.Delete(timeProvider.GetUtcNow().UtcDateTime);
 
         if (deleteResult.IsFailure)
         {
@@ -35,6 +36,25 @@ public class DeleteCampaignCommandHandler(
         if (!saveResult.IsSuccess)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
+        }
+
+        // Delete all emails associated with this campaign
+        var emails = await emailRepository.GetByCampaignIdAsync(campaign.Id, cancellationToken);
+        var deletedAt = timeProvider.GetUtcNow().UtcDateTime;
+
+        foreach (var email in emails)
+        {
+            email.Delete(deletedAt);
+            var emailSaveResult = await emailRepository.SaveAsync(email, cancellationToken);
+
+            if (!emailSaveResult.IsSuccess)
+            {
+                logger.LogError(
+                    "Failed to delete email {EmailId} when deleting campaign {CampaignId}",
+                    email.Id,
+                    campaign.Id);
+                return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
+            }
         }
 
         return CommandResult.Succeeded();

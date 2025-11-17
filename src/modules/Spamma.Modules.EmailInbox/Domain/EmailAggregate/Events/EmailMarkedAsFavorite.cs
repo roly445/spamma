@@ -1,3 +1,3 @@
 namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
-public record EmailMarkedAsFavorite(DateTime WhenMarked);
+public record EmailMarkedAsFavorite(DateTime MarkedAt);

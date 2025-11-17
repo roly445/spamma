@@ -1,4 +1,4 @@
-﻿namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
+namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class DomainLookup
 {
@@ -24,7 +24,7 @@ public class DomainLookup
 
     public bool IsSuspended { get; set; }
 
-    public DateTime? WhenSuspended { get; set; }
+    public DateTime? SuspendedAt { get; set; }
 
     public List<SubdomainLookup> Subdomains { get; set; } = new();
 

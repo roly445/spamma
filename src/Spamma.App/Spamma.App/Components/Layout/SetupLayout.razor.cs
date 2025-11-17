@@ -1,4 +1,4 @@
-﻿namespace Spamma.App.Components.Layout;
+namespace Spamma.App.Components.Layout;
 
 /// <summary>
 /// Code-behind for the setup layout component.

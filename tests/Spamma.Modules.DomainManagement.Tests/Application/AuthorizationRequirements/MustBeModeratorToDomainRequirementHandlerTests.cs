@@ -17,7 +17,7 @@ public class MustBeModeratorToDomainRequirementHandlerTests
         var requirement = new MustBeModeratorToDomainRequirement { DomainId = domainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "Admin",
             "admin@example.com",
             SystemRole.DomainManagement,
@@ -43,7 +43,7 @@ public class MustBeModeratorToDomainRequirementHandlerTests
     {
         // Arrange
         var domainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToDomainRequirement { DomainId = domainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -74,7 +74,7 @@ public class MustBeModeratorToDomainRequirementHandlerTests
         // Arrange
         var targetDomainId = Guid.NewGuid();
         var userDomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToDomainRequirement { DomainId = targetDomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -104,7 +104,7 @@ public class MustBeModeratorToDomainRequirementHandlerTests
     {
         // Arrange
         var domainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToDomainRequirement { DomainId = domainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -135,7 +135,7 @@ public class MustBeModeratorToDomainRequirementHandlerTests
         // Arrange
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToDomainRequirement { DomainId = domainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -180,7 +180,7 @@ public class MustBeModeratorToDomainRequirementHandlerTests
 
         var claims = new List<System.Security.Claims.Claim>
         {
-            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(System.Security.Claims.ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

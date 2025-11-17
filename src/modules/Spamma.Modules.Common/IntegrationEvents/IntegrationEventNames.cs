@@ -17,4 +17,9 @@ public static class IntegrationEventNames
     public const string UserDetailsUpdated = "user-management.user.user-details-updated";
     public const string SubdomainStatusChanged = "domain-management.subdomain.status-changed";
     public const string ChaosAddressUpdated = "domain-management.chaos-address.updated";
+    public const string ApiKeyCreated = "user-management.api-key.api-key-created";
+    public const string ApiKeyRevoked = "user-management.api-key.api-key-revoked";
+    public const string ApiKeyAuthenticationAttempted = "user-management.api-key.api-key-authentication-attempted";
+    public const string ApiKeyExpired = "user-management.api-key.api-key-expired";
+    public const string ApiKeyRenewed = "user-management.api-key.api-key-renewed";
 }

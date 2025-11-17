@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
@@ -6,7 +6,7 @@ using Spamma.App.Client.Infrastructure.Contracts.Services;
 namespace Spamma.App.Client.Layout;
 
 /// <summary>
-/// Code-behind for the main application layout.
+/// Code-behind for the AppLayout component.
 /// </summary>
 public partial class AppLayout(
     IJSRuntime jsRuntime, ISignalRService signalRService, AuthenticationStateProvider authenticationStateProvider) : IDisposable

@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
-public class RemoveViewerFromSubdomainCommandHandler(
+internal class RemoveViewerFromSubdomainCommandHandler(
     ISubdomainRepository repository, TimeProvider timeProvider,
     IEnumerable<IValidator<RemoveViewerFromSubdomainCommand>> validators,
     ILogger<RemoveViewerFromSubdomainCommandHandler> logger,

@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 namespace Spamma.App.Client.Pages;
 
 /// <summary>
-/// Component for managing chaos addresses.
+/// Code-behind for the ChaosAddresses page.
 /// </summary>
 public partial class ChaosAddresses(IQuerier querier,
     ICommander commander,
@@ -354,4 +354,3 @@ public partial class ChaosAddresses(IQuerier querier,
         public string SubdomainName { get; set; } = string.Empty;
     }
 }
-

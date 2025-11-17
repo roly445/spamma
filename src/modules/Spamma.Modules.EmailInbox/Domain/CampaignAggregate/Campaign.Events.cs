@@ -1,7 +1,7 @@
 namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 
 /// <summary>
-/// Partial class containing event handling for Campaign aggregate.
+/// Event handling for the Campaign aggregate.
 /// </summary>
 public partial class Campaign
 {
@@ -29,6 +29,7 @@ public partial class Campaign
         this.CampaignValue = @event.CampaignValue;
         this.CreatedAt = @event.CreatedAt;
         this.SampleMessageId = @event.MessageId;
+        this.LastCapturedAt = @event.ReceivedAt;
     }
 
     private void Apply(Events.CampaignCaptured @event)
@@ -39,6 +40,6 @@ public partial class Campaign
 
     private void Apply(Events.CampaignDeleted @event)
     {
-        this.DeletedAt = @event.DeletedAt;
+        this._deletedAt = @event.DeletedAt;
     }
 }

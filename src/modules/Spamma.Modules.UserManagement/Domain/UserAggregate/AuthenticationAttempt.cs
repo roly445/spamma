@@ -2,27 +2,32 @@
 
 public class AuthenticationAttempt
 {
-    internal AuthenticationAttempt(Guid id, DateTime whenStarted)
+    private DateTime? _failedAt;
+    private DateTime? _completedAt;
+
+    internal AuthenticationAttempt(Guid id, DateTime startedAt)
     {
         this.Id = id;
-        this.WhenStarted = whenStarted;
+        this.StartedAt = startedAt;
     }
 
-    public Guid Id { get; private set; }
+    internal Guid Id { get; private set; }
 
-    public DateTime WhenStarted { get; private set; }
+    internal DateTime StartedAt { get; private set; }
 
-    public DateTime? WhenCompleted { get; private set; }
+    internal DateTime CompletedAt => this._completedAt ?? throw new InvalidOperationException("Authentication attempt has not been completed yet.");
 
-    public DateTime? WhenFailed { get; private set; }
+    internal DateTime FailedAt => this._failedAt ?? throw new InvalidOperationException("Authentication attempt has not failed.");
+
+    internal bool HasFinalized => this._completedAt.HasValue || this._failedAt.HasValue;
 
     internal void Complete(DateTime whenCompleted)
     {
-        this.WhenCompleted = whenCompleted;
+        this._completedAt = whenCompleted;
     }
 
     internal void Fail(DateTime whenFailed)
     {
-        this.WhenFailed = whenFailed;
+        this._failedAt = whenFailed;
     }
 }

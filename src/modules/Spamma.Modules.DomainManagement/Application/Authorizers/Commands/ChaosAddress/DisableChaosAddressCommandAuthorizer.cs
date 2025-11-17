@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.ChaosAddress;
 
-public class DisableChaosAddressCommandAuthorizer : AbstractRequestAuthorizer<DisableChaosAddressCommand>
+internal class DisableChaosAddressCommandAuthorizer : AbstractRequestAuthorizer<DisableChaosAddressCommand>
 {
     public override void BuildPolicy(DisableChaosAddressCommand request)
     {

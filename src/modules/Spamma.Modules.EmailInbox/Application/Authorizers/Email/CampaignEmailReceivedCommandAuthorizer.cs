@@ -3,7 +3,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Email;
 
-public class CampaignEmailReceivedCommandAuthorizer : AbstractRequestAuthorizer<CampaignEmailReceivedCommand>
+internal class CampaignEmailReceivedCommandAuthorizer : AbstractRequestAuthorizer<CampaignEmailReceivedCommand>
 {
     public override void BuildPolicy(CampaignEmailReceivedCommand request)
     {

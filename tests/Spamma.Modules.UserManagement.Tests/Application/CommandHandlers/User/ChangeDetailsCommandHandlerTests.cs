@@ -8,6 +8,7 @@ using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Tests.Builders;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.CommandHandlers.User;

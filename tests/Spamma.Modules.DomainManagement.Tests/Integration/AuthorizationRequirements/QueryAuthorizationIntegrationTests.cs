@@ -11,11 +11,6 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Tests.Integration.AuthorizationRequirements;
 
-/// <summary>
-/// Integration tests for query authorization requirements that use database queries.
-/// These tests validate authorization logic with real PostgreSQL (testcontainers) to ensure
-/// complex authorization scenarios (e.g., parent-child domain relationships) work correctly.
-/// </summary>
 public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixture>, IAsyncLifetime
 {
     private readonly PostgreSqlFixture _fixture;
@@ -27,23 +22,23 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
 
     public QueryAuthorizationIntegrationTests(PostgreSqlFixture fixture)
     {
-        _fixture = fixture;
+        this._fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
         // Seed test data: create domains and subdomains with parent-child relationships
-        _domainId = Guid.NewGuid();
-        _subdomain1Id = Guid.NewGuid();
-        _subdomain2Id = Guid.NewGuid();
-        _otherDomainId = Guid.NewGuid();
-        _otherSubdomainId = Guid.NewGuid();
+        this._domainId = Guid.NewGuid();
+        this._subdomain1Id = Guid.NewGuid();
+        this._subdomain2Id = Guid.NewGuid();
+        this._otherDomainId = Guid.NewGuid();
+        this._otherSubdomainId = Guid.NewGuid();
 
         // Create subdomain lookups for authorization queries
         var subdomain1 = new SubdomainLookup
         {
-            Id = _subdomain1Id,
-            DomainId = _domainId,
+            Id = this._subdomain1Id,
+            DomainId = this._domainId,
             SubdomainName = "app",
             CreatedAt = DateTime.UtcNow,
             IsSuspended = false,
@@ -53,8 +48,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         var subdomain2 = new SubdomainLookup
         {
-            Id = _subdomain2Id,
-            DomainId = _domainId,
+            Id = this._subdomain2Id,
+            DomainId = this._domainId,
             SubdomainName = "api",
             CreatedAt = DateTime.UtcNow,
             IsSuspended = false,
@@ -64,8 +59,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         var otherSubdomain = new SubdomainLookup
         {
-            Id = _otherSubdomainId,
-            DomainId = _otherDomainId,
+            Id = this._otherSubdomainId,
+            DomainId = this._otherDomainId,
             SubdomainName = "app",
             CreatedAt = DateTime.UtcNow,
             IsSuspended = false,
@@ -73,10 +68,10 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             ParentName = "otherdomain.com",
         };
 
-        _fixture.Session!.Store(subdomain1);
-        _fixture.Session.Store(subdomain2);
-        _fixture.Session.Store(otherSubdomain);
-        await _fixture.Session.SaveChangesAsync();
+        this._fixture.Session!.Store(subdomain1);
+        this._fixture.Session.Store(subdomain2);
+        this._fixture.Session.Store(otherSubdomain);
+        await this._fixture.Session.SaveChangesAsync();
     }
 
     public Task DisposeAsync()
@@ -88,15 +83,15 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserModeratesParentDomain_Succeeds()
     {
         // Arrange: User moderates domain, tries to access subdomain under that domain
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
             "User",
             "user@example.com",
             0,
-            new[] { _domainId },
+            new[] { this._domainId },
             Array.Empty<Guid>(),
             Array.Empty<Guid>());
 
@@ -104,7 +99,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -117,8 +112,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserViewsSubdomain_Succeeds()
     {
         // Arrange: User has viewable subdomain claim (not moderator)
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -127,13 +122,13 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             0,
             Array.Empty<Guid>(),
             Array.Empty<Guid>(),
-            new[] { _subdomain1Id });
+            new[] { this._subdomain1Id });
 
         var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -146,15 +141,15 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserModeratesOtherDomain_Fails()
     {
         // Arrange: User moderates different domain, tries to access subdomain
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
             "User",
             "user@example.com",
             0,
-            new[] { _otherDomainId },
+            new[] { this._otherDomainId },
             Array.Empty<Guid>(),
             Array.Empty<Guid>());
 
@@ -162,7 +157,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -175,8 +170,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserHasNoAccess_Fails()
     {
         // Arrange: User has no domain, subdomain, or viewable claims
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -191,7 +186,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -204,15 +199,15 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_UserModeratesParentDomain_Succeeds()
     {
         // Arrange: User moderates domain, tries to moderate subdomain under that domain
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
             "User",
             "user@example.com",
             0,
-            new[] { _domainId },
+            new[] { this._domainId },
             Array.Empty<Guid>(),
             Array.Empty<Guid>());
 
@@ -220,7 +215,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -233,16 +228,16 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_UserModeratesMultipleSubdomainsUnderSameDomain_Succeeds()
     {
         // Arrange: User moderates parent domain, tries to access multiple subdomains
-        var userId = Guid.NewGuid().ToString();
-        var requirement1 = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomain1Id };
-        var requirement2 = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomain2Id };
+        var userId = Guid.NewGuid();
+        var requirement1 = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var requirement2 = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain2Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
             "User",
             "user@example.com",
             0,
-            new[] { _domainId },
+            new[] { this._domainId },
             Array.Empty<Guid>(),
             Array.Empty<Guid>());
 
@@ -250,7 +245,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result1 = await handler.Handle(requirement1, CancellationToken.None);
@@ -265,8 +260,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_UserViewsSubdomainButNotModerator_Fails()
     {
         // Arrange: User has viewable claim but not moderator claim
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -275,13 +270,13 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             0,
             Array.Empty<Guid>(),
             Array.Empty<Guid>(),
-            new[] { _subdomain1Id });
+            new[] { this._subdomain1Id });
 
         var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -294,8 +289,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserDirectlyModeratesSubdomain_Succeeds()
     {
         // Arrange: User directly moderates subdomain (not via parent domain)
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -303,14 +298,14 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             "user@example.com",
             0,
             Array.Empty<Guid>(),
-            new[] { _subdomain1Id },
+            new[] { this._subdomain1Id },
             Array.Empty<Guid>());
 
         var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -323,8 +318,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_SystemAdministrator_AlwaysSucceeds()
     {
         // Arrange: System administrator (DomainManagement role)
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = _subdomain1Id };
+        var userId = Guid.NewGuid();
+        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
@@ -339,7 +334,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -353,15 +348,15 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     {
         // Arrange: User moderates one domain, tries to access subdomain from different domain
         // This is a critical security test - ensures users cannot access resources across tenant boundaries
-        var userId = Guid.NewGuid().ToString();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = _otherSubdomainId };
+        var userId = Guid.NewGuid();
+        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._otherSubdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
             userId,
             "User",
             "user@example.com",
             0,
-            new[] { _domainId }, // User moderates _domainId
+            new[] { this._domainId }, // User moderates _domainId
             Array.Empty<Guid>(),
             Array.Empty<Guid>());
 
@@ -369,7 +364,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
         httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
 
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, _fixture.Session!);
+        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
 
         // Act
         var result = await handler.Handle(requirement, CancellationToken.None);
@@ -403,7 +398,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

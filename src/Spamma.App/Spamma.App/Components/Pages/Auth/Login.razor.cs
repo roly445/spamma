@@ -1,12 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Auth;
 
 /// <summary>
-/// Backing code for the login page.
+/// Code-behind for the Login component.
 /// </summary>
 public partial class Login(ICommander commander) : ComponentBase
 {

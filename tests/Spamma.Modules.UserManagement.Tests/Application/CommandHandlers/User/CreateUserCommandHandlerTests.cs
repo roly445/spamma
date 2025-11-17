@@ -9,6 +9,7 @@ using Spamma.Modules.Common.IntegrationEvents.UserManagement;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Tests.Fixtures;
 using UserAggregate = Spamma.Modules.UserManagement.Domain.UserAggregate.User;
 

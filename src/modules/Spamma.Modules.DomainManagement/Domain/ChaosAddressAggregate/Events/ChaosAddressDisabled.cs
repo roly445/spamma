@@ -1,3 +1,3 @@
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 
-public record ChaosAddressDisabled(DateTime When);
+public record ChaosAddressDisabled(DateTime DisabledAt);

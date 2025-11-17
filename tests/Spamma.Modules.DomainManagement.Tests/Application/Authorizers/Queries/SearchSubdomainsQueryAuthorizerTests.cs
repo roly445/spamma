@@ -6,9 +6,6 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.Authorizers.Queries;
 
-/// <summary>
-/// Tests for SearchSubdomainsQueryAuthorizer to verify authorization requirements with conditional logic.
-/// </summary>
 public class SearchSubdomainsQueryAuthorizerTests
 {
     [Fact]

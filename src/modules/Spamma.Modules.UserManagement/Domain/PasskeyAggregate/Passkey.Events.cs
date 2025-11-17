@@ -3,7 +3,7 @@ using Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Events;
 namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
 /// <summary>
-/// Event handling for the Passkey aggregate root.
+/// Event handling for the Passkey aggregate.
 /// </summary>
 public partial class Passkey
 {
@@ -33,22 +33,17 @@ public partial class Passkey
         this.DisplayName = @event.DisplayName;
         this.Algorithm = @event.Algorithm;
         this.RegisteredAt = @event.RegisteredAt;
-        this.IsRevoked = false;
-        this.LastUsedAt = null;
-        this.RevokedAt = null;
-        this.RevokedByUserId = null;
     }
 
     private void Apply(PasskeyAuthenticated @event)
     {
         this.SignCount = @event.NewSignCount;
-        this.LastUsedAt = @event.UsedAt;
+        this._lastUsedAt = @event.UsedAt;
     }
 
     private void Apply(PasskeyRevoked @event)
     {
-        this.IsRevoked = true;
-        this.RevokedAt = @event.RevokedAt;
-        this.RevokedByUserId = @event.RevokedByUserId;
+        this._revokedAt = @event.RevokedAt;
+        this._revokedByUserId = @event.RevokedByUserId;
     }
 }

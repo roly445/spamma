@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -7,7 +7,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
 /// <summary>
-/// Backing code for the verify domain modal.
+/// Code-behind for the VerifyDomain component.
 /// </summary>
 public partial class VerifyDomain(
     ICommander commander,

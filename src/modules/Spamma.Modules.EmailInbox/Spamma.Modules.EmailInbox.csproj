@@ -44,6 +44,7 @@
       <ProjectReference Include="..\Spamma.Modules.Common\Spamma.Modules.Common.csproj" />
       <ProjectReference Include="..\Spamma.Modules.DomainManagement.Client\Spamma.Modules.DomainManagement.Client.csproj" />
       <ProjectReference Include="..\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj" />
+      <ProjectReference Include="..\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj" />
     </ItemGroup>
 
     <ItemGroup>

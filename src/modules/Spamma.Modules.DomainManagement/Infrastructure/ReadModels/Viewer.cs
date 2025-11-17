@@ -1,4 +1,4 @@
-﻿namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
+namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class Viewer
 {

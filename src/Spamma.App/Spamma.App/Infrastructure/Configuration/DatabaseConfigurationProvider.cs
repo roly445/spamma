@@ -33,7 +33,6 @@ public class DatabaseConfigurationProvider(string connectionString, ILogger<Data
             "from.email" => "Settings:FromEmailAddress",
             "from.name" => "Settings:FromName",
             "security.signingKey" => "Settings:SigningKeyBase64",
-            "security.jwtKey" => "Settings:JwtKey",
             "primaryuser.id" => "Settings:PrimaryUserId",
             "application.baseUrl" => "Settings:BaseUri",
             "application.mailServerHostname" => "Settings:MailServerHostname",

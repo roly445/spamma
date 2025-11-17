@@ -1,15 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Setup;
 
 /// <summary>
-/// Code-behind for the admin setup page.
+/// Code-behind for the Admin setup page.
 /// </summary>
 public partial class Admin(
     IAppConfigurationService appConfigurationService,

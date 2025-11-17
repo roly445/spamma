@@ -1,6 +1,18 @@
 @if (isVisible && _dataModel != null)
 {
-    <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-50 flex items-center justify-center p-4" @onclick="Close">
+    var dataModel = _dataModel!;
+    <ConfirmModal IsVisible="@(isVisible && dataModel != null)"
+                  OnClose="Close"
+                  OnConfirm="HandleUnsuspendDomain"
+                  AllowBackdropClose="true"
+                  WidthClass="sm:max-w-md"
+                  AriaLabelledBy="unsuspend-domain-title"
+                  Title="Unsuspend Domain"
+                  Subtitle="@dataModel!.DomainName"
+                  Variant="success"
+                  IsProcessing="@isProcessing"
+                  ConfirmLabel="Unsuspend Domain"
+                  CancelLabel="Cancel">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full" @onclick:stopPropagation="true">
             <div class="px-6 py-4 border-b border-gray-200">
                 <div class="flex items-center">
@@ -10,8 +22,8 @@
                         </svg>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Unsuspend Domain</h3>
-                        <p class="mt-1 text-sm text-gray-500">@_dataModel.DomainName</p>
+                        <h3 id="unsuspend-domain-title" class="text-lg leading-6 font-medium text-gray-900">Unsuspend Domain</h3>
+                        <p class="mt-1 text-sm text-gray-500">@dataModel!.DomainName</p>
                     </div>
                     <button @onclick="Close" class="text-gray-400 hover:text-gray-500 focus:outline-none focus:text-gray-500">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,5 +76,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </ConfirmModal>
 }

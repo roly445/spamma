@@ -4,9 +4,6 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.Authorizers.Queries;
 
-/// <summary>
-/// Tests for SearchEmailsQueryAuthorizer to verify authorization requirements.
-/// </summary>
 public class SearchEmailsQueryAuthorizerTests
 {
     [Fact]

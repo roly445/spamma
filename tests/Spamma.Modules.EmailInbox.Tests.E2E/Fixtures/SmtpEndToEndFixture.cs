@@ -9,14 +9,6 @@ using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E.Fixtures;
 
-/// <summary>
-/// End-to-end test fixture providing:
-/// - Real PostgreSQL container (Testcontainers)
-/// - Real SMTP server on port 1025 (standard test port)
-/// - Real Marten event store with projections
-/// - Real module services (caches, command/query handlers).
-/// Note: Test data must be seeded via SQL or command handlers in individual tests.
-/// </summary>
 public class SmtpEndToEndFixture : IAsyncLifetime
 {
     private IHost? _host;
@@ -38,7 +30,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             .WithCleanUp(true)
             .Build();
 
-        await this.PostgresContainer.StartAsync();
+        await StartContainerWithRetryAsync(this.PostgresContainer);
 
         // 2. Build real service host with all modules
         var builder = Host.CreateApplicationBuilder();
@@ -99,6 +91,26 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         await this.PostgresContainer.DisposeAsync();
     }
 
+    private static async Task StartContainerWithRetryAsync(PostgreSqlContainer container, int maxAttempts = 3)
+    {
+        var delayMs = 1000;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                await container.StartAsync();
+                return;
+            }
+            catch (Exception) when (attempt < maxAttempts)
+            {
+                // Named pipe timeouts and transient Docker errors can be transient - wait and retry.
+                await Task.Delay(delayMs);
+                delayMs *= 2;
+            }
+        }
+    }
+
     private async Task WaitForSmtpServerAsync()
     {
         var maxAttempts = 30;
@@ -124,10 +136,6 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         }
     }
 
-    /// <summary>
-    /// Seeds test data for E2E tests using Marten session with typed domain events.
-    /// Creates: domain "example.com", subdomain "spamma.example.com", chaos addresses.
-    /// </summary>
     private async Task SeedTestDataAsync()
     {
         if (this._host == null)
@@ -149,48 +157,47 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(
             domainId,
             new Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events.DomainCreated(
-                DomainId: domainId,
-                Name: "example.com",
-                PrimaryContactEmail: null,
-                Description: "Test domain for E2E tests",
-                VerificationToken: Guid.NewGuid().ToString("N"),
-                WhenCreated: now));
+                domainId,
+                "example.com",
+                null,
+                "Test domain for E2E tests",
+                Guid.NewGuid().ToString("N"),
+                now));
 
         // Create test subdomain stream with typed event
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(
             subdomainId,
             new Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events.SubdomainCreated(
-                SubdomainId: subdomainId,
-                DomainId: domainId,
-                Name: "spamma",
-                WhenCreated: now,
-                Description: "Test subdomain for E2E tests"));
+                subdomainId,
+                domainId,
+                "spamma",
+                now,
+                "Test subdomain for E2E tests"));
 
         // Create enabled chaos address
         var chaosAddressEnabledId = Guid.NewGuid();
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
             chaosAddressEnabledId,
             new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
-                Id: chaosAddressEnabledId,
-                DomainId: domainId,
-                SubdomainId: subdomainId,
-                LocalPart: "chaos",
-                ConfiguredSmtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
-                CreatedAt: now));
+                chaosAddressEnabledId,
+                domainId,
+                subdomainId,
+                "chaos",
+                Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
+                now));
 
         // Create disabled chaos address
         var chaosAddressDisabledId = Guid.NewGuid();
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
             chaosAddressDisabledId,
             new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
-                Id: chaosAddressDisabledId,
-                DomainId: domainId,
-                SubdomainId: subdomainId,
-                LocalPart: "disabled",
-                ConfiguredSmtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
-                CreatedAt: now),
-            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressDisabled(
-                When: now));
+                chaosAddressDisabledId,
+                domainId,
+                subdomainId,
+                "disabled",
+                Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
+                now),
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressDisabled(now));
 
         await session.SaveChangesAsync();
 
@@ -200,4 +207,3 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         await daemon.WaitForNonStaleData(TimeSpan.FromSeconds(5));
     }
 }
-

@@ -1,3 +1,3 @@
-﻿namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 
-public record DomainUnsuspended(DateTime WhenUnsuspended);
+public record DomainUnsuspended(DateTime UnsuspendedAt);

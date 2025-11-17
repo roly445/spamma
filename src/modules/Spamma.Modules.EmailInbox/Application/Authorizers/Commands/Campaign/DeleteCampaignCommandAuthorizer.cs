@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Commands.Campaign;
 
-public class DeleteCampaignCommandAuthorizer : AbstractRequestAuthorizer<DeleteCampaignCommand>
+internal class DeleteCampaignCommandAuthorizer : AbstractRequestAuthorizer<DeleteCampaignCommand>
 {
     public override void BuildPolicy(DeleteCampaignCommand request)
     {

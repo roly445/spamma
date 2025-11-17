@@ -5,9 +5,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
-/// <summary>
-/// Integration tests for GetEmailByIdQueryProcessor using PostgreSQL testcontainer.
-/// </summary>
 public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     public GetEmailByIdQueryProcessorTests()
@@ -29,7 +26,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Test Email",
-            WhenSent = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+            SentAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
             IsFavorite = true,
             CampaignId = campaignId,
             EmailAddresses = new List<EmailAddress>
@@ -87,7 +84,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Email without campaign",
-            WhenSent = new DateTime(2025, 1, 2, 14, 0, 0, DateTimeKind.Utc),
+            SentAt = new DateTime(2025, 1, 2, 14, 0, 0, DateTimeKind.Utc),
             IsFavorite = false,
             CampaignId = null, // No campaign association
             EmailAddresses = new List<EmailAddress>
@@ -126,7 +123,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = "Favorite Email",
-            WhenSent = DateTime.UtcNow,
+            SentAt = DateTime.UtcNow,
             IsFavorite = true,
             CampaignId = null,
             EmailAddresses = new List<EmailAddress>

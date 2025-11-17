@@ -3,4 +3,4 @@ using Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 
 namespace Spamma.Modules.EmailInbox.Application.Repositories;
 
-public interface ICampaignRepository : IRepository<Campaign>;
+internal interface ICampaignRepository : IRepository<Campaign>;

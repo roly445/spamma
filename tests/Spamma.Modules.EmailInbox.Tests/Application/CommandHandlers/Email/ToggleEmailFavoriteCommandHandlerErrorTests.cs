@@ -12,10 +12,6 @@ using Spamma.Modules.EmailInbox.Tests.Fixtures;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers.Email;
 
-/// <summary>
-/// Tests error scenarios for ToggleEmailFavoriteCommandHandler.
-/// Tests: NotFound, EmailIsPartOfCampaign, SavingChangesFailed.
-/// </summary>
 public class ToggleEmailFavoriteCommandHandlerErrorTests
 {
     [Fact]

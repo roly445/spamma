@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
 
 namespace Spamma.App.Components.Pages.Setup;
 
 /// <summary>
-/// Code-behind for the welcome setup page.
+/// Code-behind for the Welcome component.
 /// </summary>
 public partial class Welcome
 {

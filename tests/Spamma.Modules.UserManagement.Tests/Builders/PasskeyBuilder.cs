@@ -76,7 +76,7 @@ public class PasskeyBuilder
         return this;
     }
 
-    public Passkey Build()
+    internal Passkey Build()
     {
         // Create using the Register method (matching how it's created in production)
         var registerResult = Passkey.Register(

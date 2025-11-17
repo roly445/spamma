@@ -9,14 +9,8 @@ using Xunit;
 
 namespace Spamma.App.Tests.Infrastructure.Middleware;
 
-/// <summary>
-/// Integration tests for <see cref="AcmeChallengeMiddleware"/>.
-/// </summary>
 public class AcmeChallengeMiddlewareTests
 {
-    /// <summary>
-    /// Test: Middleware can be constructed with proper dependencies.
-    /// </summary>
     [Fact]
     public void AcmeChallengeMiddleware_ConstructorWithValidDependencies_CreatesSuccessfully()
     {
@@ -31,9 +25,6 @@ public class AcmeChallengeMiddlewareTests
         Assert.NotNull(middleware);
     }
 
-    /// <summary>
-    /// Test: Middleware extension method can be called.
-    /// </summary>
     [Fact]
     public void UseAcmeChallenge_ValidBuilder_RegistersSuccessfully()
     {
@@ -47,9 +38,6 @@ public class AcmeChallengeMiddlewareTests
         Assert.NotNull(builder);
     }
 
-    /// <summary>
-    /// Test: Middleware is properly integrated in application pipeline.
-    /// </summary>
     [Fact]
     public void AcmeChallengeMiddleware_IntegrationWithBuilder_NoExceptionThrown()
     {
@@ -68,13 +56,10 @@ public class AcmeChallengeMiddlewareTests
         }
         catch (Exception ex)
         {
-            Assert.True(false, $"Middleware integration failed: {ex.Message}");
+            Assert.Fail($"Middleware integration failed: {ex.Message}");
         }
     }
 
-    /// <summary>
-    /// Test: Middleware logger is invoked on construction.
-    /// </summary>
     [Fact]
     public void AcmeChallengeMiddleware_Constructor_LoggerNotNull()
     {
@@ -89,9 +74,6 @@ public class AcmeChallengeMiddlewareTests
         Assert.NotNull(middleware);
     }
 
-    /// <summary>
-    /// Test: Middleware next delegate is stored correctly.
-    /// </summary>
     [Fact]
     public void AcmeChallengeMiddleware_StoresNextDelegate()
     {

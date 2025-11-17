@@ -1,82 +1,66 @@
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
-using EmailPush;
 using Grpc.Core;
-using Spamma.Modules.EmailInbox.Domain.PushIntegrationAggregate;
-using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
-using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-/// <summary>
-/// Manages push notification connections and email notifications.
-/// </summary>
 public class PushNotificationManager
 {
-    private readonly ConcurrentDictionary<string, (IServerStreamWriter<EmailNotification> Stream, Guid UserId, IEnumerable<PushIntegrationLookup> Integrations)> _activeConnections = new();
+    private readonly ConcurrentDictionary<string, (IServerStreamWriter<global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailNotification> Stream, Guid UserId)> _activeConnections = new();
+    private object? _clientNotifier;
 
-    private readonly IPushIntegrationQueryRepository _pushIntegrationQueryRepository;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PushNotificationManager"/> class.
-    /// </summary>
-    /// <param name="pushIntegrationQueryRepository">The push integration query repository.</param>
-    public PushNotificationManager(IPushIntegrationQueryRepository pushIntegrationQueryRepository)
+    public void SetClientNotifier(object clientNotifier)
     {
-        this._pushIntegrationQueryRepository = pushIntegrationQueryRepository;
+        this._clientNotifier = clientNotifier;
     }
 
-    /// <summary>
-    /// Registers a new push notification connection.
-    /// </summary>
-    /// <param name="connectionId">The connection ID.</param>
-    /// <param name="stream">The server stream writer.</param>
-    /// <param name="userId">The user ID.</param>
-    /// <param name="context">The server call context.</param>
-    /// <returns>A task.</returns>
-    public async Task RegisterConnectionAsync(string connectionId, IServerStreamWriter<EmailNotification> stream, Guid userId, ServerCallContext context)
+    public Task RegisterConnectionAsync(
+        string connectionId,
+        IServerStreamWriter<global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailNotification> stream,
+        Guid userId,
+        ServerCallContext context)
     {
-        var integrations = await this._pushIntegrationQueryRepository.GetByUserIdAsync(userId);
-        this._activeConnections[connectionId] = (stream, userId, integrations);
+        this._activeConnections[connectionId] = (stream, userId);
 
         // Handle disconnection
         context.CancellationToken.Register(() => this.UnregisterConnection(connectionId));
+
+        return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Unregisters a push notification connection.
-    /// </summary>
-    /// <param name="connectionId">The connection ID.</param>
     public void UnregisterConnection(string connectionId)
     {
         this._activeConnections.TryRemove(connectionId, out _);
     }
 
-    /// <summary>
-    /// Notifies connected clients of a new email.
-    /// </summary>
-    /// <param name="email">The email details.</param>
-    /// <returns>A task.</returns>
-    public async Task NotifyEmailAsync(EmailDetails email)
+    public async Task NotifyEmailAsync(EmailDetails email, CancellationToken cancellationToken = default)
     {
         var notifications = new List<Task>();
 
+        // Notify all active gRPC client connections
         foreach (var connection in this._activeConnections.Values)
         {
-            foreach (var integration in connection.Integrations)
+            var notification = new global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailNotification
             {
-                if (integration.SubdomainId == email.SubdomainId && MatchesFilter(email, integration))
-                {
-                    var notification = new EmailNotification
-                    {
-                        Id = email.Id.ToString(),
-                        From = email.From,
-                        To = email.To,
-                        Subject = email.Subject,
-                        ReceivedAt = email.ReceivedAt.ToUnixTimeSeconds(),
-                    };
+                Id = email.Id.ToString(),
+                From = email.From,
+                To = email.To,
+                Subject = email.Subject,
+                ReceivedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(email.ReceivedAt),
+            };
 
-                    notifications.Add(connection.Stream.WriteAsync(notification));
+            notifications.Add(connection.Stream.WriteAsync(notification, cancellationToken));
+        }
+
+        // Notify SignalR web clients via IClientNotifierService
+        if (this._clientNotifier != null)
+        {
+            var method = this._clientNotifier.GetType().GetMethod("NotifyNewEmailForSubdomain");
+            if (method != null)
+            {
+                var task = method.Invoke(this._clientNotifier, [email.SubdomainId]) as Task;
+                if (task != null)
+                {
+                    notifications.Add(task);
                 }
             }
         }
@@ -84,20 +68,6 @@ public class PushNotificationManager
         await Task.WhenAll(notifications);
     }
 
-    private static bool MatchesFilter(EmailDetails email, PushIntegrationLookup integration)
-    {
-        return integration.FilterType switch
-        {
-            FilterType.AllEmails => true,
-            FilterType.SingleEmail => email.To.Contains(integration.FilterValue ?? string.Empty, StringComparison.OrdinalIgnoreCase),
-            FilterType.Regex => !string.IsNullOrEmpty(integration.FilterValue) && Regex.IsMatch(email.To, integration.FilterValue),
-            _ => false,
-        };
-    }
-
-    /// <summary>
-    /// Email details for notification.
-    /// </summary>
     public record EmailDetails(
         Guid Id,
         Guid SubdomainId,

@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-public class GetDetailedDomainByIdQueryAuthorizer : AbstractRequestAuthorizer<GetDetailedDomainByIdQuery>
+internal class GetDetailedDomainByIdQueryAuthorizer : AbstractRequestAuthorizer<GetDetailedDomainByIdQuery>
 {
     public override void BuildPolicy(GetDetailedDomainByIdQuery request)
     {

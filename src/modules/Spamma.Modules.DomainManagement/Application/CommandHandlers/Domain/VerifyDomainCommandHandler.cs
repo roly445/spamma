@@ -1,4 +1,4 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using DnsClient;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
@@ -9,7 +9,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 
-public class VerifyDomainCommandHandler(
+internal class VerifyDomainCommandHandler(
     IDomainRepository repository, TimeProvider timeProvider, ILookupClient lookupClient, IEnumerable<IValidator<VerifyDomainCommand>> validators, ILogger<VerifyDomainCommandHandler> logger)
     : CommandHandler<VerifyDomainCommand>(validators, logger)
 {
@@ -58,7 +58,7 @@ public class VerifyDomainCommandHandler(
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DNS query failed: {ex.Message}");
+            logger.LogError(ex, "DNS query failed: {Message}", ex.Message);
             return false;
         }
     }

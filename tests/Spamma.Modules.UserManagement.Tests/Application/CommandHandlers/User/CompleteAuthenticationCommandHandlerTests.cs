@@ -9,6 +9,7 @@ using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 using Spamma.Modules.UserManagement.Tests.Builders;
 using Spamma.Modules.UserManagement.Tests.Fixtures;
 using UserAggregate = Spamma.Modules.UserManagement.Domain.UserAggregate.User;
@@ -34,8 +35,6 @@ public class CompleteAuthenticationCommandHandlerTests
         {
             SigningKeyBase64 = "test-key",
             BaseUri = "https://localhost",
-            JwtKey = "test-jwt-key",
-            JwtIssuer = "test-issuer",
             AuthenticationTimeInMinutes = 15,
             MailServerHostname = "localhost",
         };

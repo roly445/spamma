@@ -3,7 +3,9 @@ using MaybeMonad;
 using Moq;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Application.Validators;
+using Spamma.Modules.UserManagement.Application.Validators.Passkey;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Validators;

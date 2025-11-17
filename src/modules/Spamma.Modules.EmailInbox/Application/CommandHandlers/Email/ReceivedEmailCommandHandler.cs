@@ -8,7 +8,7 @@ using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 
 namespace Spamma.Modules.EmailInbox.Application.CommandHandlers.Email;
 
-public class ReceivedEmailCommandHandler(
+internal class ReceivedEmailCommandHandler(
     IEnumerable<IValidator<ReceivedEmailCommand>> validators, ILogger<ReceivedEmailCommandHandler> logger, IEmailRepository repository)
     : CommandHandler<ReceivedEmailCommand>(validators, logger)
 {

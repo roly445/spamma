@@ -5,7 +5,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
-public class GetEmailMimeMessageByIdQueryProcessor(IMessageStoreProvider messageStoreProvider) : IQueryProcessor<GetEmailMimeMessageByIdQuery, GetEmailMimeMessageByIdQueryResult>
+internal class GetEmailMimeMessageByIdQueryProcessor(IMessageStoreProvider messageStoreProvider) : IQueryProcessor<GetEmailMimeMessageByIdQuery, GetEmailMimeMessageByIdQueryResult>
 {
     public async Task<QueryResult<GetEmailMimeMessageByIdQueryResult>> Handle(GetEmailMimeMessageByIdQuery request, CancellationToken cancellationToken)
     {

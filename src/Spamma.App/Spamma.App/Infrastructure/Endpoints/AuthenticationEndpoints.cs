@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Spamma.App.Infrastructure.Contracts;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
-using Spamma.Modules.UserManagement.Application.Repositories;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Infrastructure.Endpoints;
@@ -70,7 +69,6 @@ internal static class AuthenticationEndpoints
         ICommander commander,
         IQuerier querier,
         AssertionRequest request,
-        IPasskeyRepository passkeyRepository,
         IInternalQueryStore internalQueryStore)
     {
         try
@@ -134,15 +132,18 @@ internal static class AuthenticationEndpoints
             }
 
             // Look up the passkey by credential ID to get the user ID
-            var passkeyMaybe = await passkeyRepository.GetByCredentialIdAsync(credentialId, CancellationToken.None);
-            if (passkeyMaybe.HasNoValue)
+            var query = new GetPasskeyByCredentialIdQuery(credentialId);
+            var queryResult = await querier.Send(query, CancellationToken.None);
+
+            if (queryResult.Status != QueryResultStatus.Succeeded)
             {
                 return Results.Json(
                     new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Could not verify credential" } },
                     statusCode: 200);
             }
 
-            var userId = passkeyMaybe.Value.UserId;
+            var passkeyData = queryResult.Data;
+            var userId = passkeyData.UserId;
 
             // Query user details to get email and name
             var userQuery = new GetUserByIdQuery(userId);

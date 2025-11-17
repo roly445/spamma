@@ -14,7 +14,8 @@ service EmailPushService {
 
 // Request to subscribe to email notifications
 message SubscribeRequest {
-  // JWT token for authentication
+  // Optional JWT token for authentication (deprecated). Prefer API key header
+  // authentication using the `X-API-Key` header for public endpoints.
   string jwt_token = 1;
 }
 

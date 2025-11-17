@@ -37,8 +37,13 @@ public static class AuthenticationStateExtensions
             .Where(id => id != Guid.Empty)
             .ToList();
 
+        if (!Guid.TryParse(userId, out var parsedUserId))
+        {
+            return UserAuthInfo.Unauthenticated();
+        }
+
         return UserAuthInfo.Authenticated(
-            userId ?? string.Empty,
+            parsedUserId,
             name ?? string.Empty,
             email ?? string.Empty,
             systemRole,
@@ -76,8 +81,13 @@ public static class AuthenticationStateExtensions
             .Where(id => id != Guid.Empty)
             .ToList();
 
+        if (!Guid.TryParse(userId, out var parsedUserId))
+        {
+            return UserAuthInfo.Unauthenticated();
+        }
+
         return UserAuthInfo.Authenticated(
-            userId ?? string.Empty,
+            parsedUserId,
             name ?? string.Empty,
             email ?? string.Empty,
             systemRole,
@@ -86,5 +96,3 @@ public static class AuthenticationStateExtensions
             viewableSubdomains);
     }
 }
-
-

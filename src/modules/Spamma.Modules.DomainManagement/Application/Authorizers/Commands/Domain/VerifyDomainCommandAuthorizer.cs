@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Domain;
 
-public class VerifyDomainCommandAuthorizer : AbstractRequestAuthorizer<VerifyDomainCommand>
+internal class VerifyDomainCommandAuthorizer : AbstractRequestAuthorizer<VerifyDomainCommand>
 {
     public override void BuildPolicy(VerifyDomainCommand request)
     {

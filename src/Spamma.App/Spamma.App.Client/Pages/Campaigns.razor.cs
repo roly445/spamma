@@ -11,10 +11,10 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 namespace Spamma.App.Client.Pages;
 
 /// <summary>
-/// Code-behind for the Campaigns razor component.
+/// Code-behind for the Campaigns page.
 /// </summary>
-[Authorize]
-public partial class Campaigns
+public partial class Campaigns(
+    IQuerier querier, ICommander commander, INotificationService notificationService)
 {
     private GetCampaignsQueryResult? _campaigns;
     private List<SubdomainSummary>? _subdomains;
@@ -25,18 +25,6 @@ public partial class Campaigns
     private int _pageSize = 50;
     private bool _isLoading;
     private string? _deletingCampaignValue;
-
-    [Inject]
-    public IQuerier Querier { get; set; } = null!;
-
-    [Inject]
-    public ICommander Commander { get; set; } = null!;
-
-    [Inject]
-    public INotificationService NotificationService { get; set; } = null!;
-
-    [Inject]
-    public IErrorMessageMapperService ErrorMessageMapperService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,7 +38,7 @@ public partial class Campaigns
         try
         {
             var query = new SearchSubdomainsQuery(null, null, null, 1, 1000, "SubdomainName", false);
-            var result = await this.Querier.Send(query, CancellationToken.None);
+            var result = await querier.Send(query, CancellationToken.None);
 
             if (result.Status == QueryResultStatus.Succeeded)
             {
@@ -113,7 +101,7 @@ public partial class Campaigns
                 this._sortBy,
                 this._isSortDescending);
 
-            var result = await this.Querier.Send(query, CancellationToken.None);
+            var result = await querier.Send(query, CancellationToken.None);
             if (result.Status == QueryResultStatus.Succeeded)
             {
                 this._campaigns = result.Data;
@@ -162,7 +150,7 @@ public partial class Campaigns
         try
         {
             var command = new DeleteCampaignCommand(campaignId);
-            var result = await this.Commander.Send(command);
+            var result = await commander.Send(command);
 
             if (result.Status == CommandResultStatus.Succeeded)
             {
@@ -174,17 +162,17 @@ public partial class Campaigns
 
                 // Refresh the campaigns list
                 await this.RefreshCampaigns();
-                this.NotificationService.ShowSuccess($"Campaign '{campaignValue}' deleted successfully");
+                notificationService.ShowSuccess($"Campaign '{campaignValue}' deleted successfully");
             }
             else
             {
                 // Show error notification
-                this.NotificationService.ShowError($"Failed to delete campaign '{campaignValue}'. Please try again.");
+                notificationService.ShowError($"Failed to delete campaign '{campaignValue}'. Please try again.");
             }
         }
         catch (Exception ex)
         {
-            this.NotificationService.ShowError($"An error occurred while deleting the campaign: {ex.Message}");
+            notificationService.ShowError($"An error occurred while deleting the campaign: {ex.Message}");
         }
         finally
         {

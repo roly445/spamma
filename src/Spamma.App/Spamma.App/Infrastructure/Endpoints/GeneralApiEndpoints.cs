@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Spamma.App.Infrastructure.Endpoints.Setup;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.App.Infrastructure.Endpoints;
 
@@ -83,26 +84,30 @@ internal static class GeneralApiEndpoints
             claimsPrincipal,
             authProperties);
 
-        return Results.Json(userResult.Value);
+        return Results.Json(UserAuthInfo.Authenticated(
+            userResult.Value.UserId,
+            userResult.Value.Name,
+            userResult.Value.EmailAddress,
+            userResult.Value.SystemRole,
+            userResult.Value.ModeratedDomains,
+            userResult.Value.ModeratedSubdomains,
+            userResult.Value.ViewableSubdomains));
     }
 
     private static async Task<IResult> ForwardOtelTraces(
         HttpContext httpContext,
+        IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
         ILogger logger)
     {
         try
         {
-            // Get the OTLP collector endpoint from environment
-            var otelEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
-            if (string.IsNullOrEmpty(otelEndpoint))
-            {
-                // If not configured, just return OK (telemetry is optional)
-                logger.LogWarning("OTEL_EXPORTER_OTLP_ENDPOINT not configured, WASM client traces will be discarded");
-                return Results.Ok();
-            }
+            // Get the OTLP collector endpoint from configuration or environment (same priority as Program.cs)
+            var otelEndpoint = configuration["OpenTelemetry:OtlpEndpoint"]
+                ?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+                ?? "http://localhost:4317";
 
-            // Ensure endpoint ends with /v1/traces
+            // Ensure endpoint ends with /
             if (!otelEndpoint.EndsWith('/'))
             {
                 otelEndpoint += "/";

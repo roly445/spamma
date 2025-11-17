@@ -1,8 +1,5 @@
 namespace Spamma.Modules.UserManagement.Tests.Fixtures;
 
-/// <summary>
-/// A stub TimeProvider for deterministic time-based testing.
-/// </summary>
 internal class StubTimeProvider(DateTime fixedUtcNow) : TimeProvider
 {
     private readonly DateTimeOffset _fixedUtcNow = new(fixedUtcNow, TimeSpan.Zero);

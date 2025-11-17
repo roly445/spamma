@@ -47,4 +47,3 @@ public class ReceivedEmailCommandValidatorTests
         result.Errors.Should().Contain(e => e.PropertyName == "EmailAddresses");
     }
 }
-

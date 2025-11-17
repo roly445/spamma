@@ -1,0 +1,26 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  EmailLoadTester -> C:\Users\andre\Code\spamma\tools\EmailLoadTester\bin\Debug\net9.0\EmailLoadTester.dll
+  GrpcEmailPushClient -> C:\Users\andre\Code\spamma\samples\GrpcEmailPushClient\bin\Debug\net9.0\GrpcEmailPushClient.dll
+  Spamma.Analyzers -> C:\Users\andre\Code\spamma\src\Spamma.Analyzers\bin\Debug\net9.0\Spamma.Analyzers.dll
+  Spamma.Modules.Common.Client -> C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.Common.Client\bin\Debug\net9.0\Spamma.Modules.Common.Client.dll
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox.Client\Application\Commands\PushIntegration\CreatePushIntegrationCommand.cs(4,33): error CS0234: The type or namespace name 'Infrastructure' does not exist in the namespace 'Spamma.Modules.EmailInbox' (are you missing an assembly reference?) [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj]
+  Spamma.Modules.UserManagement.Client -> C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement.Client\bin\Debug\net9.0\Spamma.Modules.UserManagement.Client.dll
+  Spamma.Modules.DomainManagement.Client -> C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.DomainManagement.Client\bin\Debug\net9.0\Spamma.Modules.DomainManagement.Client.dll
+  Spamma.Modules.Common -> C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.Common\bin\Debug\net9.0\Spamma.Modules.Common.dll
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(6,18): error CS0061: Inconsistent accessibility: base interface 'IRepository<ApiKey>' is less accessible than interface 'IApiKeyRepository' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(8,40): error CS0050: Inconsistent accessibility: return type 'Task<Maybe<ApiKey>>' is less accessible than method 'IApiKeyRepository.GetByKeyHashAsync(string, CancellationToken)' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(10,48): error CS0050: Inconsistent accessibility: return type 'Task<IReadOnlyList<ApiKey>>' is less accessible than method 'IApiKeyRepository.GetByUserIdAsync(Guid, CancellationToken)' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(21,40): error CS0050: Inconsistent accessibility: return type 'Task<Maybe<ApiKey>>' is less accessible than method 'IApiKeyRepository.GetByPlainKeyAsync(string, CancellationToken)' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+
+Build FAILED.
+
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox.Client\Application\Commands\PushIntegration\CreatePushIntegrationCommand.cs(4,33): error CS0234: The type or namespace name 'Infrastructure' does not exist in the namespace 'Spamma.Modules.EmailInbox' (are you missing an assembly reference?) [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(6,18): error CS0061: Inconsistent accessibility: base interface 'IRepository<ApiKey>' is less accessible than interface 'IApiKeyRepository' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(8,40): error CS0050: Inconsistent accessibility: return type 'Task<Maybe<ApiKey>>' is less accessible than method 'IApiKeyRepository.GetByKeyHashAsync(string, CancellationToken)' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(10,48): error CS0050: Inconsistent accessibility: return type 'Task<IReadOnlyList<ApiKey>>' is less accessible than method 'IApiKeyRepository.GetByUserIdAsync(Guid, CancellationToken)' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Application\Repositories\IApiKeyRepository.cs(21,40): error CS0050: Inconsistent accessibility: return type 'Task<Maybe<ApiKey>>' is less accessible than method 'IApiKeyRepository.GetByPlainKeyAsync(string, CancellationToken)' [C:\Users\andre\Code\spamma\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj]
+    0 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:06.22

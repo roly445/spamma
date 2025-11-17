@@ -5,14 +5,8 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 
-/// <summary>
-/// Unit tests for <see cref="CertesLetsEncryptService"/>.
-/// </summary>
 public class CertesLetsEncryptServiceTests
 {
-    /// <summary>
-    /// Test: Valid domain and email generate certificate successfully.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_ValidDomainAndEmail_ReturnsCertificateBytes()
     {
@@ -50,9 +44,6 @@ public class CertesLetsEncryptServiceTests
         Assert.True(result.IsSuccess || !result.IsSuccess, "Result object should be properly initialized");
     }
 
-    /// <summary>
-    /// Test: Empty domain returns error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_EmptyDomain_ReturnsFailed()
     {
@@ -79,9 +70,6 @@ public class CertesLetsEncryptServiceTests
         Assert.Equal("Domain is required", result.Error);
     }
 
-    /// <summary>
-    /// Test: Null domain returns error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_NullDomain_ReturnsFailed()
     {
@@ -108,9 +96,6 @@ public class CertesLetsEncryptServiceTests
         Assert.Equal("Domain is required", result.Error);
     }
 
-    /// <summary>
-    /// Test: Whitespace domain returns error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_WhitespaceDomain_ReturnsFailed()
     {
@@ -137,9 +122,6 @@ public class CertesLetsEncryptServiceTests
         Assert.Equal("Domain is required", result.Error);
     }
 
-    /// <summary>
-    /// Test: Empty email returns error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_EmptyEmail_ReturnsFailed()
     {
@@ -166,9 +148,6 @@ public class CertesLetsEncryptServiceTests
         Assert.Equal("Email is required", result.Error);
     }
 
-    /// <summary>
-    /// Test: Null email returns error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_NullEmail_ReturnsFailed()
     {
@@ -195,9 +174,6 @@ public class CertesLetsEncryptServiceTests
         Assert.Equal("Email is required", result.Error);
     }
 
-    /// <summary>
-    /// Test: Whitespace email returns error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_WhitespaceEmail_ReturnsFailed()
     {
@@ -224,9 +200,6 @@ public class CertesLetsEncryptServiceTests
         Assert.Equal("Email is required", result.Error);
     }
 
-    /// <summary>
-    /// Test: Registers challenge with responder on success.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_RegistersChallengeWithResponder_OnSuccess()
     {
@@ -265,9 +238,6 @@ public class CertesLetsEncryptServiceTests
         // Note: ACME calls to Let's Encrypt may fail in test environment before reaching challenge responder
     }
 
-    /// <summary>
-    /// Test: Challenge responder clears challenges after certificate generation.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_ClearsChallengesAfterGeneration_OnSuccess()
     {
@@ -303,9 +273,6 @@ public class CertesLetsEncryptServiceTests
         // Note: ACME calls to Let's Encrypt may fail in test environment before reaching challenge responder
     }
 
-    /// <summary>
-    /// Test: Logger is called on error.
-    /// </summary>
     [Fact]
     public async Task GenerateCertificateAsync_LogsError_WhenDomainEmpty()
     {

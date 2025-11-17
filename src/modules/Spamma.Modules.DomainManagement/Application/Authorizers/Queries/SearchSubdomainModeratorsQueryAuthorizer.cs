@@ -5,7 +5,7 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-public class SearchSubdomainModeratorsQueryAuthorizer : AbstractRequestAuthorizer<SearchSubdomainModeratorsQuery>
+internal class SearchSubdomainModeratorsQueryAuthorizer : AbstractRequestAuthorizer<SearchSubdomainModeratorsQuery>
 {
     public override void BuildPolicy(SearchSubdomainModeratorsQuery request)
     {

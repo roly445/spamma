@@ -51,7 +51,7 @@ public class MustHaveAccessToSubdomainViaEmailRequirementHandlerTests
             .ReturnsAsync(email);
 
         var userAuthInfo = UserAuthInfo.Authenticated(
-            Guid.NewGuid().ToString(),
+            Guid.NewGuid(),
             "Admin",
             "admin@example.com",
             SystemRole.DomainManagement,
@@ -78,7 +78,7 @@ public class MustHaveAccessToSubdomainViaEmailRequirementHandlerTests
         var emailId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var email = new EmailLookup { Id = emailId, SubdomainId = subdomainId, DomainId = domainId };
         var requirement = new MustHaveAccessToSubdomainViaEmailRequirement { EmailId = emailId };
 
@@ -115,7 +115,7 @@ public class MustHaveAccessToSubdomainViaEmailRequirementHandlerTests
         var emailId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var email = new EmailLookup { Id = emailId, SubdomainId = subdomainId, DomainId = domainId };
         var requirement = new MustHaveAccessToSubdomainViaEmailRequirement { EmailId = emailId };
 
@@ -152,7 +152,7 @@ public class MustHaveAccessToSubdomainViaEmailRequirementHandlerTests
         var emailId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var email = new EmailLookup { Id = emailId, SubdomainId = subdomainId, DomainId = domainId };
         var requirement = new MustHaveAccessToSubdomainViaEmailRequirement { EmailId = emailId };
 
@@ -187,7 +187,7 @@ public class MustHaveAccessToSubdomainViaEmailRequirementHandlerTests
         var httpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext();
         var claims = new List<System.Security.Claims.Claim>
         {
-            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(System.Security.Claims.ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

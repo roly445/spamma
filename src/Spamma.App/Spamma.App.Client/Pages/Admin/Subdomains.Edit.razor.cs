@@ -1,10 +1,10 @@
-﻿using Spamma.App.Client.Components.UserControls.Subdomain;
+using Spamma.App.Client.Components.UserControls.Subdomain;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
 /// <summary>
-/// Backing code for the subdomains management page - edit subdomain functionality.
+/// Code-behind for the Subdomains page.
 /// </summary>
 public partial class Subdomains
 {
