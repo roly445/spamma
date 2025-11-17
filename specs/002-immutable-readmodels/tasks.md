@@ -41,15 +41,15 @@ This document contains the detailed task breakdown for implementing immutable re
 
 ### Tasks
 
-- [ ] T001 Create validation spike test file `tests/Spamma.Modules.UserManagement.Tests/Infrastructure/Projections/MarteniPatchPrivateSetterValidationTest.cs`
-- [ ] T002 [P] Create minimal test readmodel with all property patterns: `public Prop { get; private set; }` and `public List<T> Items { get; } = new()`
-- [ ] T003 [P] Implement test cases:
+- [x] T001 Create validation spike test file `tests/Spamma.Modules.UserManagement.Tests/Infrastructure/Projections/MarteniPatchPrivateSetterValidationTest.cs`
+- [x] T002 [P] Create minimal test readmodel with all property patterns: `public Prop { get; private set; }` and `public List<T> Items { get; } = new()`
+- [x] T003 [P] Implement test cases:
   - Patch operation on string property with private setter succeeds
   - Patch operation on list property with private setter succeeds
   - Patch operation on nullable datetime with private setter succeeds
-- [ ] T004 Run validation spike test suite; verify all tests pass
-- [ ] T005 Document findings in `research.md` Validation Spike section (if test fails, investigate Marten configuration)
-- [ ] T006 Commit validation spike: `git commit -m "test: Add Marten Patch private setter validation spike"`
+- [x] T004 Run validation spike test suite; verify all tests pass
+- [x] T005 Document findings in `research.md` Validation Spike section (if test fails, investigate Marten configuration)
+- [x] T006 Commit validation spike: `git commit -m "test: Add Marten Patch private setter validation spike"`
 
 **Parallel**: T002 and T003 can run concurrently with T001
 
