@@ -1,7 +1,0 @@
-Test run for C:\Users\andre\Code\spamma\tests\Spamma.Modules.EmailInbox.Tests\bin\Debug\net9.0\Spamma.Modules.EmailInbox.Tests.dll (.NETCoreApp,Version=v9.0)
-VSTest version 18.0.1 (x64)
-
-Starting test execution, please wait...
-A total of 1 test files matched the specified pattern.
-
-Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 8 s - Spamma.Modules.EmailInbox.Tests.dll (net9.0)
