@@ -57,6 +57,9 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
 
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore
+
       - name: Run tests
         run: |
           dotnet test \
@@ -64,7 +67,8 @@ jobs:
             --filter "FullyQualifiedName!~E2E" \
             --logger "trx;LogFileName=test-results.trx" \
             --collect:"XPlat Code Coverage" \
-            --results-directory test-results
+            --results-directory test-results \
+            --no-build
 
       - name: Publish test results
         if: always()
@@ -73,8 +77,16 @@ jobs:
           files: test-results/**/*.trx
           check_name: Test Results
 
+      - name: Convert coverage to OpenCover format
+        run: |
+          dotnet tool install --global dotnet-coverage
+          dotnet coverage collect -f opencover -o coverage.opencover.xml "dotnet test --configuration Release --no-build --no-restore"
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
