@@ -60,18 +60,29 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run tests (including E2E)
+      - name: Install dotnet-coverage tool
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Run tests (including E2E) with coverage
         run: |
           dotnet test \
             --configuration Release \
-            --logger "trx;LogFileName=test-results.trx" \
+            --logger "trx;LogFileName=test-results-{assembly}.trx" \
             --collect:"XPlat Code Coverage" \
             --results-directory test-results \
-            --no-build
+            --no-build \
+            --verbosity normal
         env:
           TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
           TESTCONTAINERS_RYUK_DISABLED: true
           DOTNET_SYSTEM_TEXT_JSON_JSON_SERIALIZER_CACHE_SIZE: 64
+
+      - name: Convert coverage to OpenCover format
+        run: |
+          # Find and convert all coverage files
+          if [ -d "test-results" ]; then
+            find test-results -name "*.coverage" -exec dotnet coverage convert --input-format coverage --output-format opencover --output coverage.opencover.xml {} \;
+          fi
 
       - name: Publish test results
         if: always()
@@ -79,8 +90,3 @@ jobs:
         with:
           files: test-results/**/*.trx
           check_name: Test Results (with E2E)
-
-      - name: Convert coverage to OpenCover format
-        run: |
-          dotnet tool install --global dotnet-coverage
-          dotnet coverage collect -f opencover -o coverage.opencover.xml "dotnet test --configuration Release --no-build --no-restore"
