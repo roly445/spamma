@@ -92,7 +92,6 @@ public static class Module
     {
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
-        options.Projections.Add<CampaignDeletionProjection>(ProjectionLifecycle.Async);
 
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
 

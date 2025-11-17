@@ -7,6 +7,9 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
+/// <summary>
+/// Code-behind for the Home page.
+/// </summary>
 public partial class Home(IQuerier querier, ISignalRService signalRService) : IDisposable
 {
     private const int DefaultPageSize = 25;

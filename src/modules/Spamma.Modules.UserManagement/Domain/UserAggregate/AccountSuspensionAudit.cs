@@ -2,7 +2,7 @@
 
 namespace Spamma.Modules.UserManagement.Domain.UserAggregate;
 
-internal class AccountSuspensionAudit
+public class AccountSuspensionAudit
 {
     private readonly AccountSuspensionReason _reason;
     private readonly string? _notes;

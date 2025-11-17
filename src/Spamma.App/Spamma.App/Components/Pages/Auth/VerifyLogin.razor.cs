@@ -13,6 +13,9 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Components.Pages.Auth;
 
+/// <summary>
+/// Code-behind for the VerifyLogin component.
+/// </summary>
 public partial class VerifyLogin(
     ICommander commander,
     NavigationManager navigation,

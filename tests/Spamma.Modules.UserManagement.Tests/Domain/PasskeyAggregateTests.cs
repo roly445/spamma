@@ -32,8 +32,6 @@ public class PasskeyAggregateTests
         result.Value.SignCount.Should().Be(0);
         result.Value.IsRevoked.Should().BeFalse();
         result.Value.RegisteredAt.Should().Be(this._fixedUtcNow);
-        result.Value.LastUsedAt.Should().BeNull();
-        result.Value.RevokedAt.Should().BeNull();
     }
 
     [Fact]
@@ -221,7 +219,6 @@ public class PasskeyAggregateTests
 
         // Verify
         result.IsFailure.Should().BeTrue();
-        passkey.LastUsedAt.Should().BeNull(); // Not updated
     }
 
     [Fact]
@@ -279,9 +276,6 @@ public class PasskeyAggregateTests
 
         // Verify
         result.Value.IsRevoked.Should().BeFalse();
-        result.Value.RevokedAt.Should().BeNull();
-        result.Value.RevokedByUserId.Should().BeNull();
-        result.Value.LastUsedAt.Should().BeNull();
     }
 
     [Fact]

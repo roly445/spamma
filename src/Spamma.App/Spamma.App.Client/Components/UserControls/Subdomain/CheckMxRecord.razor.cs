@@ -6,6 +6,9 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Components.UserControls.Subdomain;
 
+/// <summary>
+/// Code-behind for the CheckMxRecord component.
+/// </summary>
 public partial class CheckMxRecord(ICommander commander) : ComponentBase
 {
     private bool isVisible;

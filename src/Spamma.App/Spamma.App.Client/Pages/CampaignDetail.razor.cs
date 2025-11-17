@@ -6,7 +6,9 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
-[Authorize]
+/// <summary>
+/// Code-behind for the Campaign Detail page.
+/// </summary>
 public partial class CampaignDetail(IQuerier querier, NavigationManager navigationManager)
 {
     private GetCampaignDetailQueryResult? _campaignDetail;

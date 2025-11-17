@@ -5,6 +5,9 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Components;
 
+/// <summary>
+/// Code-behind for the UserTypeahead component.
+/// </summary>
 public partial class UserTypeahead(IQuerier querier) : IDisposable
 {
     private string? searchTerm;

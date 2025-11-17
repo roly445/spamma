@@ -11,6 +11,9 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls;
 
+/// <summary>
+/// Code-behind for the EmailViewer component.
+/// </summary>
 public partial class EmailViewer(
     IQuerier querier, ICommander commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
 {

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Spamma.App.Infrastructure.Endpoints.Setup;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 
 namespace Spamma.App.Infrastructure.Endpoints;
 
@@ -83,7 +84,14 @@ internal static class GeneralApiEndpoints
             claimsPrincipal,
             authProperties);
 
-        return Results.Json(userResult.Value);
+        return Results.Json(UserAuthInfo.Authenticated(
+            userResult.Value.UserId,
+            userResult.Value.Name,
+            userResult.Value.EmailAddress,
+            userResult.Value.SystemRole,
+            userResult.Value.ModeratedDomains,
+            userResult.Value.ModeratedSubdomains,
+            userResult.Value.ViewableSubdomains));
     }
 
     private static async Task<IResult> ForwardOtelTraces(

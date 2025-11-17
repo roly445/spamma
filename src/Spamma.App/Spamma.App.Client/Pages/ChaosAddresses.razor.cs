@@ -8,6 +8,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages;
 
+/// <summary>
+/// Code-behind for the ChaosAddresses page.
+/// </summary>
 public partial class ChaosAddresses(IQuerier querier,
     ICommander commander,
     INotificationService notificationService)

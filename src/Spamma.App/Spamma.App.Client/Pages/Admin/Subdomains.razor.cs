@@ -8,6 +8,9 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Subdomains page.
+/// </summary>
 public partial class Subdomains(IQuerier querier, NavigationManager navigation) : ComponentBase
 {
     private SubdomainSearchRequest searchRequest = new();

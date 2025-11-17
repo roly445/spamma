@@ -8,6 +8,9 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Components.UserControls.Subdomain;
 
+/// <summary>
+/// Code-behind for the SuspendSubdomain component.
+/// </summary>
 public partial class SuspendSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;

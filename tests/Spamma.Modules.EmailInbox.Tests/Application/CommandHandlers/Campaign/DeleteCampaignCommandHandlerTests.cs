@@ -10,6 +10,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 using Spamma.Modules.EmailInbox.Tests.Fixtures;
 using CampaignAggregate = Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Campaign;
+using EmailAggregate = Spamma.Modules.EmailInbox.Domain.EmailAggregate.Email;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers.Campaign;
 
@@ -29,8 +30,14 @@ public class DeleteCampaignCommandHandlerTests
             .Setup(x => x.SaveAsync(It.IsAny<CampaignAggregate>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(Result.Ok()));
 
+        var emailRepoMock = new Mock<IEmailRepository>(MockBehavior.Strict);
+        emailRepoMock
+            .Setup(x => x.GetByCampaignIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult<IReadOnlyList<EmailAggregate>>(new List<EmailAggregate>()));
+
         var handler = new DeleteCampaignCommandHandler(
             repoMock.Object,
+            emailRepoMock.Object,
             new StubTimeProvider(DateTime.UtcNow),
             Array.Empty<IValidator<DeleteCampaignCommand>>(),
             new Mock<ILogger<DeleteCampaignCommandHandler>>().Object);
@@ -51,8 +58,11 @@ public class DeleteCampaignCommandHandlerTests
             .Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult<Maybe<CampaignAggregate>>(Maybe<CampaignAggregate>.Nothing));
 
+        var emailRepoMock = new Mock<IEmailRepository>(MockBehavior.Strict);
+
         var handler = new DeleteCampaignCommandHandler(
             repoMock.Object,
+            emailRepoMock.Object,
             new StubTimeProvider(DateTime.UtcNow),
             Array.Empty<IValidator<DeleteCampaignCommand>>(),
             new Mock<ILogger<DeleteCampaignCommandHandler>>().Object);
@@ -76,8 +86,14 @@ public class DeleteCampaignCommandHandlerTests
             .Setup(x => x.SaveAsync(It.IsAny<CampaignAggregate>(), It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(Result.Fail()));
 
+        var emailRepoMock = new Mock<IEmailRepository>(MockBehavior.Strict);
+        emailRepoMock
+            .Setup(x => x.GetByCampaignIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.FromResult<IReadOnlyList<EmailAggregate>>(new List<EmailAggregate>()));
+
         var handler = new DeleteCampaignCommandHandler(
             repoMock.Object,
+            emailRepoMock.Object,
             new StubTimeProvider(DateTime.UtcNow),
             Array.Empty<IValidator<DeleteCampaignCommand>>(),
             new Mock<ILogger<DeleteCampaignCommandHandler>>().Object);

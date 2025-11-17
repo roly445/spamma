@@ -7,6 +7,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
+/// <summary>
+/// Code-behind for the Edit Domain user control.
+/// </summary>
 public partial class EditDomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private Model model = new();

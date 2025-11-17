@@ -51,7 +51,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserModeratesParentDomain_ReturnsSucceed()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -82,7 +82,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
         // Arrange
         var targetSubdomainId = this._subdomainId;
         var userSubdomainId = Guid.NewGuid();
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = targetSubdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -111,7 +111,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserHasNoRolesOrClaims_ReturnsFail()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -140,7 +140,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
     public async Task Handle_UserHasViewableSubdomainClaimButNotModerator_ReturnsFail()
     {
         // Arrange
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -186,7 +186,7 @@ public class MustBeModeratorToSubdomainRequirementIntegrationTests : IClassFixtu
 
         var claims = new List<System.Security.Claims.Claim>
         {
-            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(System.Security.Claims.ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(System.Security.Claims.ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(System.Security.Claims.ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

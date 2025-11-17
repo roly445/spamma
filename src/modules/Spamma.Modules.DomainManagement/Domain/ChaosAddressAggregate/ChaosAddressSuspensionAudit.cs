@@ -2,7 +2,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 
-internal class ChaosAddressSuspensionAudit
+public class ChaosAddressSuspensionAudit
 {
     private ChaosAddressSuspensionAudit(
         DateTime happenedAt, ChaosAddressSuspensionAuditType type)

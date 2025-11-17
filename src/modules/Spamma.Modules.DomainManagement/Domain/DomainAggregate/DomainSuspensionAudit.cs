@@ -2,7 +2,7 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
-internal class DomainSuspensionAudit
+public class DomainSuspensionAudit
 {
     private readonly DomainSuspensionReason? _reason;
 

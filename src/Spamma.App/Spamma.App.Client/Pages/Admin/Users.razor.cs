@@ -11,6 +11,9 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Users page.
+/// </summary>
 public partial class Users(ICommander commander, IQuerier querier, INotificationService notificationService) : ComponentBase
 {
     private UserSearchRequest _searchRequest = new();

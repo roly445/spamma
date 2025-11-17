@@ -5,7 +5,7 @@ namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 /// <summary>
 /// Event handling for the ApiKey aggregate.
 /// </summary>
-internal partial class ApiKey
+public partial class ApiKey
 {
     protected override void ApplyEvent(object @event)
     {

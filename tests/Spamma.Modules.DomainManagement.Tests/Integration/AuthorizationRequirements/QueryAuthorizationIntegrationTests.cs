@@ -83,7 +83,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserModeratesParentDomain_Succeeds()
     {
         // Arrange: User moderates domain, tries to access subdomain under that domain
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -112,7 +112,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserViewsSubdomain_Succeeds()
     {
         // Arrange: User has viewable subdomain claim (not moderator)
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -141,7 +141,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserModeratesOtherDomain_Fails()
     {
         // Arrange: User moderates different domain, tries to access subdomain
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -170,7 +170,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserHasNoAccess_Fails()
     {
         // Arrange: User has no domain, subdomain, or viewable claims
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -199,7 +199,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_UserModeratesParentDomain_Succeeds()
     {
         // Arrange: User moderates domain, tries to moderate subdomain under that domain
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -228,7 +228,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_UserModeratesMultipleSubdomainsUnderSameDomain_Succeeds()
     {
         // Arrange: User moderates parent domain, tries to access multiple subdomains
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement1 = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
         var requirement2 = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain2Id };
 
@@ -260,7 +260,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_UserViewsSubdomainButNotModerator_Fails()
     {
         // Arrange: User has viewable claim but not moderator claim
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -289,7 +289,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustHaveAccessToSubdomain_UserDirectlyModeratesSubdomain_Succeeds()
     {
         // Arrange: User directly moderates subdomain (not via parent domain)
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -318,7 +318,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     public async Task MustBeModeratorToSubdomain_SystemAdministrator_AlwaysSucceeds()
     {
         // Arrange: System administrator (DomainManagement role)
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -348,7 +348,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     {
         // Arrange: User moderates one domain, tries to access subdomain from different domain
         // This is a critical security test - ensures users cannot access resources across tenant boundaries
-        var userId = Guid.NewGuid().ToString();
+        var userId = Guid.NewGuid();
         var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._otherSubdomainId };
 
         var userAuthInfo = UserAuthInfo.Authenticated(
@@ -398,7 +398,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, userAuthInfo.UserId ?? string.Empty),
+            new(ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
             new(ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),

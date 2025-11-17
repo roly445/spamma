@@ -19,8 +19,8 @@
             </div>
 
             <!-- Success Message -->
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">🎉 Spamma Setup Complete!</h2>
-            <p class="text-xl text-gray-600 mb-8">Your self-hosted email testing platform is ready to use.</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Spamma Setup Complete</h1>
+            <p class="text-lg text-gray-600 mb-8">Your self-hosted email testing platform is ready to use.</p>
         }
         else
         {
@@ -32,8 +32,8 @@
             </div>
 
             <!-- Incomplete Setup Message -->
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">⚠️ Setup Incomplete</h2>
-            <p class="text-xl text-red-600 mb-8">Some required setup steps are missing.</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-4">Setup Incomplete</h1>
+            <p class="text-lg text-red-600 mb-8">Some required setup steps are missing.</p>
         }
 
         <!-- Setup Status Overview -->
@@ -216,18 +216,20 @@
             }
             else
             {
-                <a href="/setup/keys" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors" data-enhance-nav="false">
-                    <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                    </svg>
-                    Complete Missing Steps
-                </a>
-                <a href="/setup" class="inline-flex items-center px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors" data-enhance-nav="false">
-                    <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                    </svg>
-                    Back to Setup
-                </a>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/setup/keys" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors" data-enhance-nav="false">
+                        <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
+                        </svg>
+                        Complete Missing Steps
+                    </a>
+                    <a href="/setup" class="inline-flex items-center px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors" data-enhance-nav="false">
+                        <svg class="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to Setup
+                    </a>
+                </div>
             }
         </div>
        

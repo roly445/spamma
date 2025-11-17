@@ -1,8 +1,11 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Components.Pages;
 
+/// <summary>
+/// Code-behind for the error component.
+/// </summary>
 public partial class Error
 {
     [CascadingParameter]

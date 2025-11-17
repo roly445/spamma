@@ -114,6 +114,8 @@ export class SetupKeyGenerator {
     }
 
     public generateAndSubmitKeys(e: Event): void {
+        e.preventDefault();
+        
         const generateBtn = document.getElementById('generate-btn') as HTMLButtonElement;
         const generateBtnText = document.getElementById('generate-btn-text');
         
@@ -141,30 +143,20 @@ export class SetupKeyGenerator {
         
         const generatedSigningKey = btoa(String.fromCharCode(...signingBytes));
         
-        // Generate JWT key (64 character alphanumeric)
-        const jwtChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz';
-        const jwtBytes = new Uint8Array(64);
-        crypto.getRandomValues(jwtBytes);
-        
-        let generatedJwtKey = '';
-        for (let i = 0; i < 64; i++) {
-            // Mix in entropy and convert to character
-            const entropyInfluence = this.entropyData[i % this.entropyData.length];
-            const mixedValue = (jwtBytes[i] + entropyInfluence.x + entropyInfluence.y) % jwtChars.length;
-            generatedJwtKey += jwtChars[mixedValue];
-        }
-        
-        // Set the values in the hidden form
+        // Set the value in the hidden form
         const signingKeyInput = document.getElementById('signing-key-input') as HTMLInputElement;
-        const jwtKeyInput = document.getElementById('jwt-key-input') as HTMLInputElement;
         const form = document.getElementById('keys-form') as HTMLFormElement;
         
-        if (signingKeyInput && jwtKeyInput && form) {
+        if (signingKeyInput && form) {
             signingKeyInput.value = generatedSigningKey;
-            jwtKeyInput.value = generatedJwtKey;
+            // Submit the form - this will call the HandleSaveKeys handler via OnValidSubmit
+            form.submit();
         }
         else {
-            e.preventDefault()
+            generateBtn.disabled = false;
+            generateBtn.className = 'inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-all duration-300';
+            generateBtnText.innerHTML = 'Generate & Save Keys';
+            console.error('Form or input element not found');
         }
     }
 

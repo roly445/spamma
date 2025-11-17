@@ -5,7 +5,7 @@ namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 /// <summary>
 /// Event handling for the Email aggregate.
 /// </summary>
-internal partial class Email
+public partial class Email
 {
     protected override void ApplyEvent(object @event)
     {

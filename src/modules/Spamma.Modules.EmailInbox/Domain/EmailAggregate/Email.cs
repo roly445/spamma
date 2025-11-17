@@ -10,7 +10,7 @@ namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 /// <summary>
 /// Business logic for Email aggregate.
 /// </summary>
-internal partial class Email : AggregateRoot
+public partial class Email : AggregateRoot
 {
     private readonly List<EmailAddress> _emailAddresses = new();
     private DateTime? _deletedAt;

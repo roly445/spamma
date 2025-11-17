@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Spamma.App.Components.Pages.Auth;
 
+/// <summary>
+/// Code-behind for the Logout component.
+/// </summary>
 public partial class Logout(IHttpContextAccessor httpContextAccessor, ILogger<Logout> logger)
 {
     protected override async Task OnInitializedAsync()

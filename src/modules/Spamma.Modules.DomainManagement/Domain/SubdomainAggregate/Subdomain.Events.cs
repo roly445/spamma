@@ -5,7 +5,7 @@ namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 /// <summary>
 /// Event handling for the Subdomain aggregate.
 /// </summary>
-internal partial class Subdomain
+public partial class Subdomain
 {
     protected override void ApplyEvent(object @event)
     {

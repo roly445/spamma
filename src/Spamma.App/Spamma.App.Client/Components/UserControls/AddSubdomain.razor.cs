@@ -8,6 +8,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.App.Client.Components.UserControls;
 
+/// <summary>
+/// Code-behind for the AddSubdomain component.
+/// </summary>
 public partial class AddSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;

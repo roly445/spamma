@@ -6,6 +6,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
+/// <summary>
+/// Code-behind for the UnsuspendDomain component.
+/// </summary>
 public partial class UnsuspendDomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;

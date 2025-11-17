@@ -9,7 +9,7 @@ namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 /// <summary>
 /// Business logic for Campaign aggregate.
 /// </summary>
-internal partial class Campaign : AggregateRoot
+public partial class Campaign : AggregateRoot
 {
     private DateTime? _deletedAt;
 

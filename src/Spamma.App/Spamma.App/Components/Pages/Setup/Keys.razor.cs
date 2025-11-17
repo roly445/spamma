@@ -4,6 +4,9 @@ using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the keys setup page.
+/// </summary>
 public partial class Keys(IAppConfigurationService appConfigurationService)
 {
     private string? successMessage;

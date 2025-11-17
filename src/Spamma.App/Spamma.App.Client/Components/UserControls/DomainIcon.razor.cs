@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.UserControls;
 
+/// <summary>
+/// Code-behind for the domain icon component.
+/// </summary>
 public partial class DomainIcon
 {
     private bool showFallback;

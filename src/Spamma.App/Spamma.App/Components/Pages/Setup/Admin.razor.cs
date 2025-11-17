@@ -9,6 +9,9 @@ using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the Admin setup page.
+/// </summary>
 public partial class Admin(
     IAppConfigurationService appConfigurationService,
     IInternalQueryStore internalQueryStore,

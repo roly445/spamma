@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.Base;
 
+/// <summary>
+/// Code-behind for the modal base component.
+/// </summary>
 public partial class ModalBase
 {
     [Parameter]

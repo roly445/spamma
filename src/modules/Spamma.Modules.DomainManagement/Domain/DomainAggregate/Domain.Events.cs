@@ -5,7 +5,7 @@ namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 /// <summary>
 /// Event handling for the Domain aggregate.
 /// </summary>
-internal partial class Domain
+public partial class Domain
 {
     protected override void ApplyEvent(object @event)
     {

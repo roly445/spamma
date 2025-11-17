@@ -6,6 +6,9 @@ using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Auth;
 
+/// <summary>
+/// Code-behind for the Login component.
+/// </summary>
 public partial class Login(ICommander commander) : ComponentBase
 {
     private bool showSuccessMessage;

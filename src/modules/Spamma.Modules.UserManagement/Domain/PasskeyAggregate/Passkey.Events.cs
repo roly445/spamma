@@ -5,7 +5,7 @@ namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 /// <summary>
 /// Event handling for the Passkey aggregate.
 /// </summary>
-internal partial class Passkey
+public partial class Passkey
 {
     protected override void ApplyEvent(object @event)
     {

@@ -5,6 +5,9 @@ using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for Email setup page.
+/// </summary>
 public partial class Email(IAppConfigurationService appConfigurationService)
 {
     private string? successMessage;

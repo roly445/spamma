@@ -3,6 +3,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Subdomains page.
+/// </summary>
 public partial class Subdomains
 {
     private SuspendSubdomain? _suspendSubdomain;

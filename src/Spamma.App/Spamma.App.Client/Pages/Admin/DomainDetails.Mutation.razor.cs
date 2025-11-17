@@ -4,6 +4,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the DomainDetails page.
+/// </summary>
 public partial class DomainDetails
 {
     private SuspendDomain? _suspendDomain;

@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.Base;
 
+/// <summary>
+/// Code-behind for the confirm modal component.
+/// </summary>
 public partial class ConfirmModal
 {
     [Parameter]

@@ -8,6 +8,9 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
+/// <summary>
+/// Code-behind for the SuspendDomain component.
+/// </summary>
 public partial class SuspendDomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private Model model = new();

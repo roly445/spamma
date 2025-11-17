@@ -12,6 +12,9 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Account;
 
+/// <summary>
+/// Code-behind for the Passkeys page.
+/// </summary>
 public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Passkeys> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
 {
     private const string WebAuthnUtilsWindowHandle = "WebAuthnUtils";

@@ -10,6 +10,9 @@ using Spamma.Modules.DomainManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Domains page.
+/// </summary>
 public partial class Domains(
     ICommander commander,
     IQuerier querier,

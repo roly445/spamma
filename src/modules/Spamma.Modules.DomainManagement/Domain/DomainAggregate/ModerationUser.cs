@@ -2,7 +2,7 @@ using ResultMonad;
 
 namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 
-internal class ModerationUser
+public class ModerationUser
 {
     private ModerationUser(Guid userId, DateTime addedAt)
     {

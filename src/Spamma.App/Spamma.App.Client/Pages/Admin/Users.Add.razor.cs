@@ -5,6 +5,9 @@ using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Users page.
+/// </summary>
 public partial class Users
 {
     private bool showAddUserModal;

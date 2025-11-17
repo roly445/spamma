@@ -10,7 +10,7 @@ namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 /// <summary>
 /// Business logic for Chaos Address entity.
 /// </summary>
-internal partial class ChaosAddress : AggregateRoot
+public partial class ChaosAddress : AggregateRoot
 {
     private readonly List<ChaosAddressSuspensionAudit> _suspensionAudits = new();
     private DateTimeOffset? _lastReceivedAt;

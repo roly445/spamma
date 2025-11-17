@@ -4,6 +4,9 @@ using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Components;
 
+/// <summary>
+/// Code-behind for the notification toast component.
+/// </summary>
 public partial class NotificationToast : ComponentBase
 {
     [Parameter]

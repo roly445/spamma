@@ -2,6 +2,9 @@ using Spamma.App.Client.Components.UserControls;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the DomainDetails page.
+/// </summary>
 public partial class DomainDetails
 {
     private AddUser? _addModerator;

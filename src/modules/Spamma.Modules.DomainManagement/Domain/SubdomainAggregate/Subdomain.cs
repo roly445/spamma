@@ -9,7 +9,7 @@ namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 /// <summary>
 /// Business Logic for Subdomain Aggregate.
 /// </summary>
-internal partial class Subdomain : AggregateRoot
+public partial class Subdomain : AggregateRoot
 {
     private readonly List<ModerationUser> _moderationUsers = new();
     private readonly List<Viewer> _viewers = new();

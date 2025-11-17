@@ -5,6 +5,9 @@ using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the hosting configuration setup step.
+/// </summary>
 public partial class Hosting(IAppConfigurationService appConfigurationService, ILogger<Hosting> logger)
 {
     private string? successMessage;

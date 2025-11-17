@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Components;
 
 namespace Spamma.App.Client.Components.UserControls;
 
+/// <summary>
+/// Code-behind for the stat card component.
+/// </summary>
 public partial class StatCard : ComponentBase
 {
     [Parameter]

@@ -9,6 +9,9 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls;
 
+/// <summary>
+/// Code-behind for the AddUser component.
+/// </summary>
 public partial class AddUser(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool showAssignUserModal;

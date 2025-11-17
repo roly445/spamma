@@ -5,6 +5,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Domains page.
+/// </summary>
 public partial class Domains
 {
     private AddDomainModel addDomainModel = new();

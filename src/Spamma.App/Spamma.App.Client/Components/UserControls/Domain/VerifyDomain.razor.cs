@@ -6,6 +6,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
+/// <summary>
+/// Code-behind for the VerifyDomain component.
+/// </summary>
 public partial class VerifyDomain(
     ICommander commander,
     IJSRuntime jsRuntime) : ComponentBase

@@ -5,6 +5,9 @@ using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the setup login component.
+/// </summary>
 public partial class Login(IInMemorySetupAuthService setupAuth, IHttpContextAccessor httpContextAccessor, NavigationManager navigation, ILogger<Login> logger)
 {
     private string errorMessage = string.Empty;

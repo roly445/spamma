@@ -5,7 +5,7 @@ namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 /// <summary>
 /// Event handling for <see cref="ChaosAddress"/> aggregate.
 /// </summary>
-internal partial class ChaosAddress
+public partial class ChaosAddress
 {
     protected override void ApplyEvent(object @event)
     {

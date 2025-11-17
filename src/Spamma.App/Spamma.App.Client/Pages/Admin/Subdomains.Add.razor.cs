@@ -2,6 +2,9 @@ using Spamma.App.Client.Components.UserControls;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Subdomains page.
+/// </summary>
 public partial class Subdomains
 {
     private Task HandleSubdomainCreated()

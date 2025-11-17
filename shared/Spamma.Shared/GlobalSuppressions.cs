@@ -8,3 +8,4 @@
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:EnumerationItemsMustBeDocumented", Justification = "Initially suppressing everything before evaluating what's wanted and what's appropriate.")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1206:DeclarationKeywordsMustFollowOrder", Justification = "This rule breaks the new 'required' modifier best practices")]
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:FileMustHaveHeader", Justification = "Not Required")]
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.SpecialRules", "SA1518:Use line endings correctly at end of file", Justification = "Not strictly enforcing line ending requirements")]

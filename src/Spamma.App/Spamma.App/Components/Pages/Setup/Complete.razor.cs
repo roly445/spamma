@@ -4,6 +4,9 @@ using Spamma.App.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Components.Pages.Setup;
 
+/// <summary>
+/// Code-behind for the Setup Complete page.
+/// </summary>
 public partial class Complete(
     IInMemorySetupAuthService setupAuthService,
     IAppConfigurationService appConfigurationService,

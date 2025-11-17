@@ -9,7 +9,7 @@ namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 /// <summary>
 /// Business logic for Passkey aggregate.
 /// </summary>
-internal sealed partial class Passkey : AggregateRoot
+public sealed partial class Passkey : AggregateRoot
 {
     private DateTime? _lastUsedAt;
     private DateTime? _revokedAt;

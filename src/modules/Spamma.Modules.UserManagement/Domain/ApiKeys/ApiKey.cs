@@ -9,7 +9,7 @@ namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 /// <summary>
 /// Business logic for API keys.
 /// </summary>
-internal sealed partial class ApiKey : AggregateRoot
+public sealed partial class ApiKey : AggregateRoot
 {
     private DateTime? _revokedAt;
 

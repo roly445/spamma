@@ -34,7 +34,7 @@ public class ApiKeyValidationServiceTests
             "test",
             keyHashPrefix,
             keyHash,
-            DateTimeOffset.UtcNow).Value;
+            DateTime.UtcNow).Value;
 
         var repoMock = new Mock<IApiKeyRepository>(MockBehavior.Strict);
         repoMock.Setup(r => r.GetByPlainKeyAsync(apiKeyValue, default)).ReturnsAsync(Maybe.From(apiKeyAggregate));
@@ -106,10 +106,10 @@ public class ApiKeyValidationServiceTests
             "test",
             keyHashPrefix,
             keyHash,
-            DateTimeOffset.UtcNow).Value;
+            DateTime.UtcNow).Value;
 
         // Revoke the key
-        apiKeyAggregate.Revoke(TimeProvider.System.GetUtcNow());
+        apiKeyAggregate.Revoke(TimeProvider.System.GetUtcNow().DateTime);
 
         var repoMock = new Mock<IApiKeyRepository>(MockBehavior.Strict);
         repoMock.Setup(r => r.GetByPlainKeyAsync(apiKeyValue, default)).ReturnsAsync(Maybe.From(apiKeyAggregate));

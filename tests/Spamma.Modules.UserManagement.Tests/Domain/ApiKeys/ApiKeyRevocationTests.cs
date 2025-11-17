@@ -16,7 +16,7 @@ public class ApiKeyRevocationTests
             .WithUserId(Guid.NewGuid())
             .WithName("Test API Key")
             .Build();
-        var revokedAt = DateTimeOffset.UtcNow;
+        var revokedAt = DateTime.UtcNow;
 
         // Act
         apiKey.Revoke(revokedAt);
@@ -39,11 +39,11 @@ public class ApiKeyRevocationTests
             .WithId(Guid.NewGuid())
             .WithUserId(Guid.NewGuid())
             .WithName("Test API Key")
-            .RevokedAt(DateTimeOffset.UtcNow.AddDays(-1))
+            .RevokedAt(DateTime.UtcNow.AddDays(-1))
             .Build();
 
         // Act & Assert
-        var act = () => apiKey.Revoke(DateTimeOffset.UtcNow);
+        var act = () => apiKey.Revoke(DateTime.UtcNow);
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("API key is already revoked");
     }
@@ -66,7 +66,7 @@ public class ApiKeyRevocationTests
     public void IsRevoked_WhenRevoked_ShouldReturnTrue()
     {
         // Arrange
-        var revokedAt = DateTimeOffset.UtcNow;
+        var revokedAt = DateTime.UtcNow;
         var apiKey = new ApiKeyBuilder()
             .WithId(Guid.NewGuid())
             .WithUserId(Guid.NewGuid())

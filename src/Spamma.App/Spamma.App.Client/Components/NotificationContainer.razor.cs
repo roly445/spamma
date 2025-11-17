@@ -3,6 +3,9 @@ using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Components;
 
+/// <summary>
+/// Code-behind for the notification container component.
+/// </summary>
 public partial class NotificationContainer(INotificationService notificationService) : ComponentBase, IDisposable
 {
     private List<Notification> notifications = new();

@@ -5,6 +5,9 @@ using Spamma.App.Client.Infrastructure.Contracts.Services;
 
 namespace Spamma.App.Client.Layout;
 
+/// <summary>
+/// Code-behind for the AppLayout component.
+/// </summary>
 public partial class AppLayout(
     IJSRuntime jsRuntime, ISignalRService signalRService, AuthenticationStateProvider authenticationStateProvider) : IDisposable
 {

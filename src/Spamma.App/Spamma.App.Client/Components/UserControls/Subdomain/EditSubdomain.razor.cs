@@ -7,6 +7,9 @@ using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 
 namespace Spamma.App.Client.Components.UserControls.Subdomain;
 
+/// <summary>
+/// Code-behind for the EditSubdomain component.
+/// </summary>
 public partial class EditSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;

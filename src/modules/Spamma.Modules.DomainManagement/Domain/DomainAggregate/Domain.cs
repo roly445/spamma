@@ -9,7 +9,7 @@ namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 /// <summary>
 /// Business logic for the Domain aggregate.
 /// </summary>
-internal partial class Domain : AggregateRoot
+public partial class Domain : AggregateRoot
 {
     private readonly List<ModerationUser> _moderationUsers = new();
     private readonly List<DomainSuspensionAudit> _suspensionAudits = new();

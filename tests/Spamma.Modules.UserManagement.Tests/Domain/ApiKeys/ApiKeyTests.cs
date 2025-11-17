@@ -15,7 +15,7 @@ public class ApiKeyTests
         var name = "Test API Key";
         var keyHashPrefix = "prefix_hash";
         var keyHash = BCrypt.Net.BCrypt.HashPassword("sk-testkey123456");
-        var createdAt = DateTimeOffset.UtcNow;
+        var createdAt = DateTime.UtcNow;
 
         // Act
         var result = ApiKey.Create(apiKeyId, userId, name, keyHashPrefix, keyHash, createdAt);
@@ -43,7 +43,7 @@ public class ApiKeyTests
         var name = string.Empty;
         var keyHashPrefix = "prefix_hash";
         var keyHash = "hashedkey";
-        var createdAt = DateTimeOffset.UtcNow;
+        var createdAt = DateTime.UtcNow;
 
         // Act
         var result = ApiKey.Create(apiKeyId, userId, name, keyHashPrefix, keyHash, createdAt);
@@ -61,7 +61,7 @@ public class ApiKeyTests
         var name = new string('A', 101); // 101 characters
         var keyHashPrefix = "prefix_hash";
         var keyHash = "hashedkey";
-        var createdAt = DateTimeOffset.UtcNow;
+        var createdAt = DateTime.UtcNow;
 
         // Act
         var result = ApiKey.Create(apiKeyId, userId, name, keyHashPrefix, keyHash, createdAt);
@@ -79,7 +79,7 @@ public class ApiKeyTests
         var name = "Test API Key";
         var keyHashPrefix = string.Empty;
         var keyHash = "hashedkey";
-        var createdAt = DateTimeOffset.UtcNow;
+        var createdAt = DateTime.UtcNow;
 
         // Act
         var result = ApiKey.Create(apiKeyId, userId, name, keyHashPrefix, keyHash, createdAt);
@@ -97,7 +97,7 @@ public class ApiKeyTests
         var name = "Test API Key";
         var keyHashPrefix = "prefix_hash";
         var keyHash = string.Empty;
-        var createdAt = DateTimeOffset.UtcNow;
+        var createdAt = DateTime.UtcNow;
 
         // Act
         var result = ApiKey.Create(apiKeyId, userId, name, keyHashPrefix, keyHash, createdAt);

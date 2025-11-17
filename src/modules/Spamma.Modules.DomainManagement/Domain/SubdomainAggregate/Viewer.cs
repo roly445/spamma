@@ -2,7 +2,7 @@ using ResultMonad;
 
 namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 
-internal class Viewer
+public class Viewer
 {
     private Viewer(Guid userId, DateTime addedAt)
     {

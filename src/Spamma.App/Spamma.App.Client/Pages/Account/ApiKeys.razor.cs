@@ -11,6 +11,9 @@ using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Account;
 
+/// <summary>
+/// Code-behind for the ApiKeys page.
+/// </summary>
 public partial class ApiKeys(ICommander commander, IQuerier querier, INotificationService notificationService, IJSRuntime jsRuntime) : ComponentBase
 {
     private CreateApiKeyModel createModel = new();

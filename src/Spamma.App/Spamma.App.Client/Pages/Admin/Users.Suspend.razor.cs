@@ -7,6 +7,9 @@ using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
+/// <summary>
+/// Code-behind for the Users page.
+/// </summary>
 public partial class Users
 {
     private bool showSuspendModal;
