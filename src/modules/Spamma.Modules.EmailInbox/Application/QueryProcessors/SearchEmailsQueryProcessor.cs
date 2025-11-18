@@ -51,7 +51,18 @@ internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHtt
             .ToListAsync(token: cancellationToken);
 
         var result = new SearchEmailsQueryResult(
-            Items: emails.Select(x => new SearchEmailsQueryResult.EmailSummary(x.Id, x.Subject, x.EmailAddresses.First(y => y.EmailAddressType == EmailAddressType.To).Address, x.SentAt, x.IsFavorite, x.CampaignId, x.CampaignValue)).ToList(),
+            Items: emails.Select(x =>
+            {
+                var toAddress = x.EmailAddresses.FirstOrDefault(y => y.EmailAddressType == EmailAddressType.To)?.Address ?? string.Empty;
+                return new SearchEmailsQueryResult.EmailSummary(
+                    x.Id,
+                    x.Subject,
+                    toAddress,
+                    x.SentAt,
+                    x.IsFavorite,
+                    x.CampaignId,
+                    x.CampaignValue);
+            }).ToList(),
             TotalCount: totalCount,
             Page: page,
             PageSize: pageSize,

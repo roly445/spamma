@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Marten;
+using Marten.Patching;
 using MediatR;
 using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -49,8 +50,7 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
 
             // Configure EmailInbox projections and document mappings
             Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(opts);
-        })
-        .UseLightweightSessions();
+    });
 
         services.AddEmailInbox(); // Server module - registers query processors via MediatR
 
@@ -158,6 +158,11 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
             subdomainId,
             count,
             cancellationToken);
+    }
+
+    protected void PersistEmailAddresses(EmailLookup email)
+    {
+        // No-op: EmailAddresses are now set via init property on EmailLookup during creation
     }
 
     protected class MockHttpContextAccessor : IHttpContextAccessor

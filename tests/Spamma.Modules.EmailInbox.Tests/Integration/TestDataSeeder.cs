@@ -1,6 +1,7 @@
 using Marten;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
 
@@ -72,16 +73,14 @@ public static class TestDataSeeder
         string? subject = null,
         CancellationToken cancellationToken = default)
     {
-        var email = new EmailLookup
-        {
-            Id = emailId ?? Guid.NewGuid(),
-            SubdomainId = subdomainId ?? Guid.NewGuid(),
-            DomainId = domainId ?? Guid.NewGuid(),
-            Subject = subject ?? $"Test Email {Guid.NewGuid():N}".Substring(0, 50),
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress> { new EmailAddress($"test-{Guid.NewGuid():N}@example.com", "Test User", EmailAddressType.From) },
-        };
+        var email = EmailLookupTestFactory.Create(
+            id: emailId ?? Guid.NewGuid(),
+            subdomainId: subdomainId ?? Guid.NewGuid(),
+            domainId: domainId ?? Guid.NewGuid(),
+            subject: subject ?? $"Test Email {Guid.NewGuid():N}".Substring(0, 50),
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress> { new EmailAddress($"test-{Guid.NewGuid():N}@example.com", "Test User", EmailAddressType.From) });
 
         session.Store(email);
         await session.SaveChangesAsync(cancellationToken);

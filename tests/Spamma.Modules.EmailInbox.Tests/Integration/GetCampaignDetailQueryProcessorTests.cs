@@ -2,6 +2,7 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
 
@@ -16,22 +17,21 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         var emailId = Guid.NewGuid();
 
         // Create email for sample message
-        var email = new EmailLookup
-        {
-            Id = emailId,
-            SubdomainId = subdomainId,
-            DomainId = Guid.NewGuid(),
-            Subject = "Sample Email Subject",
-            SentAt = DateTime.UtcNow.AddDays(-5),
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>()
+        var email = EmailLookupTestFactory.Create(
+            id: emailId,
+            subdomainId: subdomainId,
+            domainId: Guid.NewGuid(),
+            subject: "Sample Email Subject",
+            sentAt: DateTime.UtcNow.AddDays(-5),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("sender@example.com", "Sender Name", EmailAddressType.From),
                 new EmailAddress("recipient@example.com", "Recipient Name", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(email);
+        this.PersistEmailAddresses(email);
 
         // Create campaign with sample message
         var campaign = new CampaignSummary
@@ -62,8 +62,10 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         result.Data.Sample.Should().NotBeNull();
         result.Data.Sample!.MessageId.Should().Be(emailId);
         result.Data.Sample.Subject.Should().Be("Sample Email Subject");
-        result.Data.Sample.From.Should().Be("recipient@example.com");  // Bug in query processor: filters EmailAddressType==0 (To) as From
-        result.Data.Sample.To.Should().Be("sender@example.com");  // Bug: filters EmailAddressType!=0 (From, Cc, Bcc) as To
+
+        // With corrected processor logic: From contains sender, To contains recipient(s)
+        result.Data.Sample.From.Should().Be("sender@example.com");
+        result.Data.Sample.To.Should().Be("recipient@example.com");
     }
 
     [Fact]

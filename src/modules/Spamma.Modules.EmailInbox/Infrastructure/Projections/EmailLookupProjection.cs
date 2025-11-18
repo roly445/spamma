@@ -13,7 +13,11 @@ public class EmailLookupProjection : EventProjection
     [UsedImplicitly]
     public void Project(IEvent<EmailReceived> @event, IDocumentOperations ops)
     {
-        ops.Insert(new EmailLookup
+        var emailAddresses = @event.Data.EmailAddresses
+            .Select(x => new ReadModels.EmailAddress(x.Address, x.Name, x.EmailAddressType))
+            .ToList();
+
+        ops.Insert(new EmailLookup()
         {
             Id = @event.Data.EmailId,
             DomainId = @event.Data.DomainId,
@@ -21,10 +25,6 @@ public class EmailLookupProjection : EventProjection
             Subject = @event.Data.Subject,
             SentAt = @event.Data.SentAt,
         });
-
-        var emailAddresses = @event.Data.EmailAddresses
-            .Select(x => new ReadModels.EmailAddress(x.Address, x.Name, x.EmailAddressType))
-            .ToList();
 
         foreach (var emailAddress in emailAddresses)
         {

@@ -2,9 +2,6 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class DomainLookup
 {
-    private readonly List<SubdomainLookup> _subdomains = new();
-    private readonly List<DomainModerator> _domainModerators = new();
-
     public Guid Id { get; init; }
 
     public string DomainName { get; init; } = string.Empty;
@@ -29,7 +26,7 @@ public class DomainLookup
 
     public DateTime? SuspendedAt { get; init; }
 
-    public IReadOnlyList<SubdomainLookup> Subdomains => this._subdomains;
+    public IReadOnlyList<SubdomainLookup> Subdomains { get; init; } = [];
 
-    public IReadOnlyList<DomainModerator> DomainModerators => this._domainModerators;
+    public IReadOnlyList<DomainModerator> DomainModerators { get; init; } = [];
 }
