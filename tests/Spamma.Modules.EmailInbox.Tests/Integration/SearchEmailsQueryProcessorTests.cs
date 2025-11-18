@@ -2,6 +2,7 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
 
@@ -15,34 +16,34 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var subdomainId1 = Guid.NewGuid();
         var subdomainId2 = Guid.NewGuid();
 
-        var email1 = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Email for subdomain 1",
-            DomainId = domainId,
-            SubdomainId = subdomainId1,
-            SentAt = DateTime.UtcNow.AddDays(-1),
-            EmailAddresses = new List<EmailAddress>
+        var email1 = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId1,
+            domainId: domainId,
+            subject: "Email for subdomain 1",
+            sentAt: DateTime.UtcNow.AddDays(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("to1@example.com", "To Name", EmailAddressType.To),
-            },
-        };
+            });
 
-        var email2 = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Email for subdomain 2",
-            DomainId = domainId,
-            SubdomainId = subdomainId2,
-            SentAt = DateTime.UtcNow.AddDays(-2),
-            EmailAddresses = new List<EmailAddress>
+        var email2 = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId2,
+            domainId: domainId,
+            subject: "Email for subdomain 2",
+            sentAt: DateTime.UtcNow.AddDays(-2),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("to2@example.com", "To Name", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(email1);
+        this.PersistEmailAddresses(email1);
         this.Session.Store(email2);
+        this.PersistEmailAddresses(email2);
         await this.Session.SaveChangesAsync();
 
         // Add claim for subdomain1 only
@@ -68,34 +69,34 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var email1 = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Important meeting notes",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-1),
-            EmailAddresses = new List<EmailAddress>
+        var email1 = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Important meeting notes",
+            sentAt: DateTime.UtcNow.AddDays(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
-            },
-        };
+            });
 
-        var email2 = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Random message",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-2),
-            EmailAddresses = new List<EmailAddress>
+        var email2 = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Random message",
+            sentAt: DateTime.UtcNow.AddDays(-2),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(email1);
+        this.PersistEmailAddresses(email1);
         this.Session.Store(email2);
+        this.PersistEmailAddresses(email2);
         await this.Session.SaveChangesAsync();
 
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
@@ -119,34 +120,34 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var email1 = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Email 1",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-1),
-            EmailAddresses = new List<EmailAddress>
+        var email1 = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Email 1",
+            sentAt: DateTime.UtcNow.AddDays(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("john.doe@example.com", "John Doe", EmailAddressType.To),
-            },
-        };
+            });
 
-        var email2 = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Email 2",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-2),
-            EmailAddresses = new List<EmailAddress>
+        var email2 = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Email 2",
+            sentAt: DateTime.UtcNow.AddDays(-2),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("jane.smith@example.com", "Jane Smith", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(email1);
+        this.PersistEmailAddresses(email1);
         this.Session.Store(email2);
+        this.PersistEmailAddresses(email2);
         await this.Session.SaveChangesAsync();
 
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
@@ -173,20 +174,20 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         // Create 5 emails
         for (int i = 1; i <= 5; i++)
         {
-            var email = new EmailLookup
-            {
-                Id = Guid.NewGuid(),
-                Subject = $"Email {i}",
-                DomainId = domainId,
-                SubdomainId = subdomainId,
-                SentAt = DateTime.UtcNow.AddDays(-i),
-                EmailAddresses = new List<EmailAddress>
+            var email = EmailLookupTestFactory.Create(
+                id: Guid.NewGuid(),
+                subdomainId: subdomainId,
+                domainId: domainId,
+                subject: $"Email {i}",
+                sentAt: DateTime.UtcNow.AddDays(-i),
+                isFavorite: false,
+                emailAddresses: new List<EmailAddress>
                 {
                     new EmailAddress($"to{i}@example.com", "To Name", EmailAddressType.To),
-                },
-            };
+                });
 
             this.Session.Store(email);
+            this.PersistEmailAddresses(email);
         }
 
         await this.Session.SaveChangesAsync();
@@ -216,20 +217,20 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var email = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Test Email",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow,
-            EmailAddresses = new List<EmailAddress>
+        var email = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Test Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(email);
+        this.PersistEmailAddresses(email);
         await this.Session.SaveChangesAsync();
 
         // Don't add any subdomain claims
@@ -251,34 +252,34 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var oldEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Old Email",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-10),
-            EmailAddresses = new List<EmailAddress>
+        var oldEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Old Email",
+            sentAt: DateTime.UtcNow.AddDays(-10),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("old@example.com", "Old", EmailAddressType.To),
-            },
-        };
+            });
 
-        var newEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "New Email",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-1),
-            EmailAddresses = new List<EmailAddress>
+        var newEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "New Email",
+            sentAt: DateTime.UtcNow.AddDays(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("new@example.com", "New", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(oldEmail);
+        this.PersistEmailAddresses(oldEmail);
         this.Session.Store(newEmail);
+        this.PersistEmailAddresses(newEmail);
         await this.Session.SaveChangesAsync();
 
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
@@ -302,36 +303,32 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var activeEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Active Email",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-1),
-            DeletedAt = null,
-            EmailAddresses = new List<EmailAddress>
-            {
-                new EmailAddress("active@example.com", "Active", EmailAddressType.To),
-            },
-        };
+        var activeEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Active",
+            sentAt: DateTime.UtcNow.AddDays(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress> { new("active@example.com", "Active", EmailAddressType.To) },
+            deletedAt: null,
+            campaignId: null);
 
-        var deletedEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "Deleted Email",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow.AddDays(-2),
-            DeletedAt = DateTime.UtcNow.AddHours(-1),
-            EmailAddresses = new List<EmailAddress>
-            {
-                new EmailAddress("deleted@example.com", "Deleted", EmailAddressType.To),
-            },
-        };
+        var deletedEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Deleted",
+            sentAt: DateTime.UtcNow.AddDays(-2),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress> { new("deleted@example.com", "Deleted", EmailAddressType.To) },
+            deletedAt: DateTime.UtcNow.AddHours(-1),
+            campaignId: null);
 
         this.Session.Store(activeEmail);
+        this.PersistEmailAddresses(activeEmail);
         this.Session.Store(deletedEmail);
+        this.PersistEmailAddresses(deletedEmail);
         await this.Session.SaveChangesAsync();
 
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
@@ -355,20 +352,20 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var subdomainId = Guid.NewGuid();
 
-        var email = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            Subject = "IMPORTANT MESSAGE",
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            SentAt = DateTime.UtcNow,
-            EmailAddresses = new List<EmailAddress>
+        var email = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "IMPORTANT MESSAGE",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new EmailAddress("to@example.com", "To Name", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(email);
+        this.PersistEmailAddresses(email);
         await this.Session.SaveChangesAsync();
 
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);

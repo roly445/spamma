@@ -22,10 +22,11 @@ public partial class Complete(
     public SetupLayout Layout { get; set; } = null!;
 
     [SupplyParameterFromForm(FormName = "SetupCompletedForm")]
-    public CompleteModel CompModel { get; set; } = new();
+    public CompleteModel? CompModel { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        this.CompModel ??= new();
         this.Layout.CompletedSteps.Add("0");
         this.Layout.CompletedSteps.Add("1");
         this.Layout.CompletedSteps.Add("2");

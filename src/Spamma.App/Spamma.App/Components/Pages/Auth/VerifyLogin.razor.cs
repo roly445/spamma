@@ -29,7 +29,7 @@ public partial class VerifyLogin(
     public string? Token { get; set; }
 
     [SupplyParameterFromForm(FormName = "VerifyLoginForm")]
-    public VerifyLoginModel Model { get; set; } = new();
+    public VerifyLoginModel? Model { get; set; }
 
     protected override void OnInitialized()
     {
@@ -40,6 +40,7 @@ public partial class VerifyLogin(
         }
         else
         {
+            this.Model ??= new();
             this.Model.Token = this.Token;
         }
     }

@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.ReadModels;
 
@@ -10,18 +11,16 @@ public class EmailReadModelTests
     public void EmailLookup_Creation_WithValidData()
     {
         // Arrange & Act
-        var emailLookup = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            DomainId = Guid.NewGuid(),
-            SubdomainId = Guid.NewGuid(),
-            Subject = "Test Subject",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            DeletedAt = null,
-            CampaignId = null,
-            EmailAddresses = new List<EmailAddress>(),
-        };
+        var emailLookup = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            domainId: Guid.NewGuid(),
+            subdomainId: Guid.NewGuid(),
+            subject: "Test Subject",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>(),
+            deletedAt: null,
+            campaignId: null);
 
         // Verify
         emailLookup.Should().NotBeNull();
@@ -35,18 +34,16 @@ public class EmailReadModelTests
     public void EmailLookup_Favorited()
     {
         // Arrange & Act
-        var emailLookup = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            DomainId = Guid.NewGuid(),
-            SubdomainId = Guid.NewGuid(),
-            Subject = "Favorite Email",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = true,
-            DeletedAt = null,
-            CampaignId = null,
-            EmailAddresses = new List<EmailAddress>(),
-        };
+        var emailLookup = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            domainId: Guid.NewGuid(),
+            subdomainId: Guid.NewGuid(),
+            subject: "Favorite Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: true,
+            emailAddresses: new List<EmailAddress>(),
+            deletedAt: null,
+            campaignId: null);
 
         // Verify
         emailLookup.IsFavorite.Should().BeTrue();
@@ -57,18 +54,16 @@ public class EmailReadModelTests
     {
         // Arrange & Act
         var campaignId = Guid.NewGuid();
-        var emailLookup = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            DomainId = Guid.NewGuid(),
-            SubdomainId = Guid.NewGuid(),
-            Subject = "Campaign Email",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            DeletedAt = null,
-            CampaignId = campaignId,
-            EmailAddresses = new List<EmailAddress>(),
-        };
+        var emailLookup = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            domainId: Guid.NewGuid(),
+            subdomainId: Guid.NewGuid(),
+            subject: "Campaign Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>(),
+            deletedAt: null,
+            campaignId: campaignId);
 
         // Verify
         emailLookup.CampaignId.Should().Be(campaignId);
@@ -81,18 +76,16 @@ public class EmailReadModelTests
         var deletedTime = DateTime.UtcNow;
 
         // Act
-        var emailLookup = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            DomainId = Guid.NewGuid(),
-            SubdomainId = Guid.NewGuid(),
-            Subject = "Deleted Email",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            DeletedAt = deletedTime,
-            CampaignId = null,
-            EmailAddresses = new List<EmailAddress>(),
-        };
+        var emailLookup = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            domainId: Guid.NewGuid(),
+            subdomainId: Guid.NewGuid(),
+            subject: "Deleted Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>(),
+            deletedAt: deletedTime,
+            campaignId: null);
 
         // Verify
         emailLookup.DeletedAt.Should().Be(deletedTime);
@@ -108,21 +101,19 @@ public class EmailReadModelTests
             new("to@example.com", "Recipient", EmailAddressType.To),
         };
 
-        var emailLookup = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            DomainId = Guid.NewGuid(),
-            SubdomainId = Guid.NewGuid(),
-            Subject = "Email with Recipients",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            DeletedAt = null,
-            CampaignId = null,
-            EmailAddresses = emailAddresses,
-        };
+        var emailLookup = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            domainId: Guid.NewGuid(),
+            subdomainId: Guid.NewGuid(),
+            subject: "Email with Recipients",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: emailAddresses,
+            deletedAt: null,
+            campaignId: null);
 
         // Verify
         emailLookup.EmailAddresses.Should().HaveCount(2);
-        emailLookup.EmailAddresses.ElementAt(0).Address.Should().Be("from@example.com");
+        emailLookup.EmailAddresses[0].Address.Should().Be("from@example.com");
     }
 }

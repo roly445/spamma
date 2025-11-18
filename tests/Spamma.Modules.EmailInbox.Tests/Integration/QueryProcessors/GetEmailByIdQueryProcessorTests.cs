@@ -2,6 +2,7 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
@@ -20,21 +21,20 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
         var domainId = Guid.NewGuid();
         var campaignId = Guid.NewGuid();
 
-        var email = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Test Email",
-            SentAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
-            IsFavorite = true,
-            CampaignId = campaignId,
-            EmailAddresses = new List<EmailAddress>
+        var email = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Test Email",
+            sentAt: new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+            isFavorite: true,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Sender", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
             },
-        };
+            deletedAt: null,
+            campaignId: campaignId);
 
         this.Session.Store(email);
         await this.Session.SaveChangesAsync();
@@ -78,21 +78,20 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
 
-        var email = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Email without campaign",
-            SentAt = new DateTime(2025, 1, 2, 14, 0, 0, DateTimeKind.Utc),
-            IsFavorite = false,
-            CampaignId = null, // No campaign association
-            EmailAddresses = new List<EmailAddress>
+        var email = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Email without campaign",
+            sentAt: new DateTime(2025, 1, 2, 14, 0, 0, DateTimeKind.Utc),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Sender", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
             },
-        };
+            deletedAt: null,
+            campaignId: null);
 
         this.Session.Store(email);
         await this.Session.SaveChangesAsync();
@@ -117,21 +116,20 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
 
-        var email = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Favorite Email",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = true,
-            CampaignId = null,
-            EmailAddresses = new List<EmailAddress>
+        var email = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Favorite Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: true,
+            emailAddresses: new List<EmailAddress>
             {
                 new("important@example.com", "Important Person", EmailAddressType.From),
                 new("me@example.com", "Me", EmailAddressType.To),
             },
-        };
+            deletedAt: null,
+            campaignId: null);
 
         this.Session.Store(email);
         await this.Session.SaveChangesAsync();

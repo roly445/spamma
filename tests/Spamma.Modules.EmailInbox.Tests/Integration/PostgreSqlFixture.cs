@@ -43,7 +43,7 @@ public class PostgreSqlFixture : IAsyncLifetime
         // Create schema and apply all migrations
         await this._store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
 
-        this.Session = this._store.LightweightSession();
+        this.Session = this._store.DirtyTrackedSession();
     }
 
     public async Task DisposeAsync()

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
@@ -20,22 +21,21 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         // Create 3 test emails
         for (int i = 0; i < 3; i++)
         {
-            var email = new EmailLookup
-            {
-                Id = Guid.NewGuid(),
-                SubdomainId = subdomainId,
-                DomainId = domainId,
-                Subject = $"Test Email {i}",
-                SentAt = DateTime.UtcNow.AddHours(-i),
-                IsFavorite = false,
-                EmailAddresses = new List<EmailAddress>
+            var email = EmailLookupTestFactory.Create(
+                id: Guid.NewGuid(),
+                subdomainId: subdomainId,
+                domainId: domainId,
+                subject: $"Test Email {i}",
+                sentAt: DateTime.UtcNow.AddHours(-i),
+                isFavorite: false,
+                emailAddresses: new List<EmailAddress>
                 {
                     new($"sender{i}@example.com", "Sender", EmailAddressType.From),
                     new($"recipient{i}@example.com", "Recipient", EmailAddressType.To),
-                },
-            };
+                });
 
             this.Session.Store(email);
+            this.PersistEmailAddresses(email);
         }
 
         await this.Session.SaveChangesAsync();
@@ -65,39 +65,37 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
 
         // Create email matching search term in subject
-        var matchingEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Important meeting notes",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var matchingEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Important meeting notes",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Sender", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
-            },
-        };
+            });
 
         // Create email NOT matching search term
-        var nonMatchingEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Random topic",
-            SentAt = DateTime.UtcNow.AddHours(-1),
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var nonMatchingEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Random topic",
+            sentAt: DateTime.UtcNow.AddHours(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("other@example.com", "Other", EmailAddressType.From),
                 new("target@example.com", "Target", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(matchingEmail);
+        this.PersistEmailAddresses(matchingEmail);
         this.Session.Store(nonMatchingEmail);
+        this.PersistEmailAddresses(nonMatchingEmail);
         await this.Session.SaveChangesAsync();
 
         var query = new SearchEmailsQuery(SearchText: "meeting");
@@ -124,39 +122,37 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
 
         // Create email with matching email address
-        var matchingEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Test Subject",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var matchingEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Test Subject",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("john.doe@example.com", "John Doe", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
-            },
-        };
+            });
 
         // Create email with different addresses
-        var nonMatchingEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Other Subject",
-            SentAt = DateTime.UtcNow.AddHours(-1),
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var nonMatchingEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Other Subject",
+            sentAt: DateTime.UtcNow.AddHours(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("other@example.com", "Other", EmailAddressType.From),
                 new("target@example.com", "Target", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(matchingEmail);
+        this.PersistEmailAddresses(matchingEmail);
         this.Session.Store(nonMatchingEmail);
+        this.PersistEmailAddresses(nonMatchingEmail);
         await this.Session.SaveChangesAsync();
 
         var query = new SearchEmailsQuery(SearchText: "john.doe");
@@ -182,39 +178,37 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
 
         // Create email with matching sender name
-        var matchingEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Test Subject",
-            SentAt = DateTime.UtcNow,
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var matchingEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Test Subject",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Alice Smith", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
-            },
-        };
+            });
 
         // Create email with different name
-        var nonMatchingEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Other Subject",
-            SentAt = DateTime.UtcNow.AddHours(-1),
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var nonMatchingEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Other Subject",
+            sentAt: DateTime.UtcNow.AddHours(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("other@example.com", "Bob Jones", EmailAddressType.From),
                 new("target@example.com", "Target", EmailAddressType.To),
-            },
-        };
+            });
 
         this.Session.Store(matchingEmail);
+        this.PersistEmailAddresses(matchingEmail);
         this.Session.Store(nonMatchingEmail);
+        this.PersistEmailAddresses(nonMatchingEmail);
         await this.Session.SaveChangesAsync();
 
         var query = new SearchEmailsQuery(SearchText: "alice");
@@ -242,22 +236,21 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         // Create 25 emails
         for (int i = 0; i < 25; i++)
         {
-            var email = new EmailLookup
-            {
-                Id = Guid.NewGuid(),
-                SubdomainId = subdomainId,
-                DomainId = domainId,
-                Subject = $"Email {i:D3}",
-                SentAt = DateTime.UtcNow.AddMinutes(-i),
-                IsFavorite = false,
-                EmailAddresses = new List<EmailAddress>
+            var email = EmailLookupTestFactory.Create(
+                id: Guid.NewGuid(),
+                subdomainId: subdomainId,
+                domainId: domainId,
+                subject: $"Email {i:D3}",
+                sentAt: DateTime.UtcNow.AddMinutes(-i),
+                isFavorite: false,
+                emailAddresses: new List<EmailAddress>
                 {
                     new($"sender{i}@example.com", "Sender", EmailAddressType.From),
                     new($"recipient{i}@example.com", "Recipient", EmailAddressType.To),
-                },
-            };
+                });
 
             this.Session.Store(email);
+            this.PersistEmailAddresses(email);
         }
 
         await this.Session.SaveChangesAsync();
@@ -290,41 +283,39 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
 
         // Create active email
-        var activeEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Active Email",
-            SentAt = DateTime.UtcNow,
-            DeletedAt = null,
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var activeEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Active Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Sender", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
             },
-        };
+            deletedAt: null);
 
         // Create deleted email
-        var deletedEmail = new EmailLookup
-        {
-            Id = Guid.NewGuid(),
-            SubdomainId = subdomainId,
-            DomainId = domainId,
-            Subject = "Deleted Email",
-            SentAt = DateTime.UtcNow.AddHours(-1),
-            DeletedAt = DateTime.UtcNow.AddMinutes(-30),
-            IsFavorite = false,
-            EmailAddresses = new List<EmailAddress>
+        var deletedEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Deleted Email",
+            sentAt: DateTime.UtcNow.AddHours(-1),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Sender", EmailAddressType.From),
                 new("recipient@example.com", "Recipient", EmailAddressType.To),
             },
-        };
+            deletedAt: DateTime.UtcNow.AddMinutes(-30));
 
         this.Session.Store(activeEmail);
+        this.PersistEmailAddresses(activeEmail);
         this.Session.Store(deletedEmail);
+        this.PersistEmailAddresses(deletedEmail);
         await this.Session.SaveChangesAsync();
 
         var query = new SearchEmailsQuery();
@@ -378,22 +369,21 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 
         foreach (var emailData in emails)
         {
-            var email = new EmailLookup
-            {
-                Id = Guid.NewGuid(),
-                SubdomainId = subdomainId,
-                DomainId = domainId,
-                Subject = emailData.Subject,
-                SentAt = emailData.WhenSent,
-                IsFavorite = false,
-                EmailAddresses = new List<EmailAddress>
+            var email = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: emailData.Subject,
+            sentAt: emailData.WhenSent,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
                 {
                     new("sender@example.com", "Sender", EmailAddressType.From),
                     new("recipient@example.com", "Recipient", EmailAddressType.To),
-                },
-            };
+                });
 
             this.Session.Store(email);
+            this.PersistEmailAddresses(email);
         }
 
         await this.Session.SaveChangesAsync();

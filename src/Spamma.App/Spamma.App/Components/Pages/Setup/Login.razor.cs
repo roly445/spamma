@@ -14,10 +14,11 @@ public partial class Login(IInMemorySetupAuthService setupAuth, IHttpContextAcce
     private bool showPasswordHint = true;
 
     [SupplyParameterFromForm(FormName = "SetupLoginForm")]
-    private LoginModel Model { get; set; } = new();
+    private LoginModel? Model { get; set; }
 
     protected override void OnInitialized()
     {
+        this.Model ??= new();
         this.showPasswordHint = httpContextAccessor.HttpContext.IsLocal();
     }
 
@@ -27,6 +28,12 @@ public partial class Login(IInMemorySetupAuthService setupAuth, IHttpContextAcce
 
         try
         {
+            if (this.Model == null)
+            {
+                this.errorMessage = "Invalid form submission.";
+                return;
+            }
+
             var httpContext = httpContextAccessor.HttpContext;
             var ipAddress = httpContext?.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
             var userAgent = httpContext?.Request.Headers["User-Agent"].ToString() ?? "Unknown";

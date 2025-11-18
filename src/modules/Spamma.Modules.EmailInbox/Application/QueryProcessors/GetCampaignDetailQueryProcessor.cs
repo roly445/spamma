@@ -1,6 +1,8 @@
 using BluQube.Queries;
 using Marten;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
@@ -27,13 +29,28 @@ internal class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQuer
         GetCampaignDetailQueryResult.SampleMessage? sampleData = null;
         if (sampleMessageId.HasValue)
         {
+            // Load minimal scalar fields for the sample message
             var email = await session.Query<EmailLookup>()
-                .FirstOrDefaultAsync(e => e.Id == sampleMessageId.Value, cancellationToken);
+                .Where(e => e.Id == sampleMessageId.Value)
+                .Select(e => new { e.Id, e.Subject, e.SentAt })
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (email != null)
             {
-                var from = string.Join(", ", email.EmailAddresses.Where(ea => ea.EmailAddressType == 0).Select(ea => ea.Address));
-                var to = string.Join(", ", email.EmailAddresses.Where(ea => ea.EmailAddressType != 0).Select(ea => ea.Address));
+                // Derive From/To with separate subqueries against the child collection to avoid materialization issues
+                var from = await session.Query<EmailLookup>()
+                    .Where(e => e.Id == sampleMessageId.Value)
+                    .SelectMany(e => e.EmailAddresses)
+                    .Where(a => a.EmailAddressType == EmailAddressType.From)
+                    .Select(a => a.Address)
+                    .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
+
+                var to = await session.Query<EmailLookup>()
+                    .Where(e => e.Id == sampleMessageId.Value)
+                    .SelectMany(e => e.EmailAddresses)
+                    .Where(a => a.EmailAddressType == EmailAddressType.To)
+                    .Select(a => a.Address)
+                    .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
 
                 sampleData = new GetCampaignDetailQueryResult.SampleMessage(
                     email.Id,

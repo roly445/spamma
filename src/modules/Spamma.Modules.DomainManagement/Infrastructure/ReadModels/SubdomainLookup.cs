@@ -4,9 +4,6 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 public class SubdomainLookup
 {
-    private readonly List<SubdomainModerator> _subdomainModerators = new();
-    private readonly List<Viewer> _viewers = new();
-
     public Guid Id { get; init; }
 
     public string SubdomainName { get; init; } = string.Empty;
@@ -31,9 +28,9 @@ public class SubdomainLookup
 
     public string FullName { get; init; } = string.Empty;
 
-    public IReadOnlyList<SubdomainModerator> SubdomainModerators => this._subdomainModerators;
+    public IReadOnlyList<SubdomainModerator> SubdomainModerators { get; init; } = [];
 
-    public IReadOnlyList<Viewer> Viewers => this._viewers;
+    public IReadOnlyList<Viewer> Viewers { get; init; } = [];
 
     public int AssignedViewerCount { get; init; }
 

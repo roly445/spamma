@@ -46,7 +46,7 @@ public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier q
 
         try
         {
-            var cachedUser = JsonSerializer.Deserialize<CachedUser>(value!);
+            var cachedUser = JsonSerializer.Deserialize<CachedUser>((string)value!);
             return cachedUser != null ? Maybe.From(cachedUser) : Maybe<CachedUser>.Nothing;
         }
         catch (JsonException)

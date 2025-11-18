@@ -2,6 +2,7 @@ using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
@@ -107,22 +108,23 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         var sampleEmailId = Guid.NewGuid();
 
         // Create sample email
-        var email = new EmailLookup
-        {
-            Id = sampleEmailId,
-            DomainId = domainId,
-            SubdomainId = subdomainId,
-            CampaignId = campaignId,
-            Subject = "Sample Email Subject",
-            SentAt = new DateTime(2025, 1, 5, 12, 0, 0, DateTimeKind.Utc),
-            EmailAddresses = new List<EmailAddress>
+        var email = EmailLookupTestFactory.Create(
+            id: sampleEmailId,
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Sample Email Subject",
+            sentAt: new DateTime(2025, 1, 5, 12, 0, 0, DateTimeKind.Utc),
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
             {
                 new("sender@example.com", "Sender Name", EmailAddressType.From),
                 new("recipient@example.com", "Recipient Name", EmailAddressType.To),
             },
-        };
+            deletedAt: null,
+            campaignId: campaignId);
 
         this.Session.Store(email);
+        this.PersistEmailAddresses(email);
         await this.Session.SaveChangesAsync();
 
         // Create campaign with sample message reference
@@ -153,10 +155,9 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         result.Data.Sample!.MessageId.Should().Be(sampleEmailId);
         result.Data.Sample.Subject.Should().Be("Sample Email Subject");
 
-        // BUG in GetCampaignDetailQueryProcessor: uses EmailAddressType==0 for from, but EmailAddressType.From=1
-        // So it actually returns To addresses in From field and vice versa
-        result.Data.Sample.From.Should().Be("recipient@example.com"); // Actually returns To due to bug
-        result.Data.Sample.To.Should().Be("sender@example.com"); // Actually returns From due to bug
+        // With corrected mapping: From shows sender, To shows recipient
+        result.Data.Sample.From.Should().Be("sender@example.com");
+        result.Data.Sample.To.Should().Be("recipient@example.com");
         result.Data.Sample.ReceivedAt.Should().Be(new DateTimeOffset(2025, 1, 5, 12, 0, 0, TimeSpan.Zero));
         result.Data.Sample.ContentPreview.Should().Be("Sample Email Subject");
     }

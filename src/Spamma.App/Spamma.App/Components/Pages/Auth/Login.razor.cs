@@ -14,11 +14,13 @@ public partial class Login(ICommander commander) : ComponentBase
     private bool showSuccessMessage;
 
     [SupplyParameterFromForm(FormName = "LoginForm")]
-    private LoginModel Model { get; set; } = new();
+    private LoginModel? Model { get; set; }
+
+    protected override void OnInitialized() => this.Model ??= new();
 
     private async Task HandleSendMagicLink()
     {
-        var cmd = new StartAuthenticationCommand(this.Model.EmailAddress);
+        var cmd = new StartAuthenticationCommand(this.Model!.EmailAddress);
         await commander.Send(cmd);
         this.showSuccessMessage = true;
     }

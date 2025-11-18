@@ -24,18 +24,9 @@ public class UserLookup
 
     public SystemRole SystemRole { get; init; }
 
-    /// <summary>
-    /// Gets the domains moderated by this user. Uses init accessor for immutability; Marten can modify via Patch().Append/Remove.
-    /// </summary>
-    public List<Guid> ModeratedDomains { get; init; } = new();
+    public IReadOnlyList<Guid> ModeratedDomains { get; init; } = [];
 
-    /// <summary>
-    /// Gets the subdomains moderated by this user. Uses init accessor for immutability; Marten can modify via Patch().Append/Remove.
-    /// </summary>
-    public List<Guid> ModeratedSubdomains { get; init; } = new();
+    public IReadOnlyList<Guid> ModeratedSubdomains { get; init; } = [];
 
-    /// <summary>
-    /// Gets the subdomains viewable by this user. Uses init accessor for immutability; Marten can modify via Patch().Append/Remove.
-    /// </summary>
-    public List<Guid> ViewableSubdomains { get; init; } = new();
+    public IReadOnlyList<Guid> ViewableSubdomains { get; init; } = [];
 }
