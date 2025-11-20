@@ -211,14 +211,12 @@ builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddHttpContextAccessor();
 
-// Configure authentication using cookies only
+// Configure authentication using cookies only (in-memory, no Redis for Raspberry Pi performance)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        options.SessionStore = new RedisCacheTicketStore(new RedisCacheOptions
-        {
-            Configuration = builder.Configuration.GetConnectionString("Redis"),
-        });
+        // SessionStore removed - auth ticket stored in encrypted cookie instead of Redis
+        // This removes Redis dependency for every HTTP request
         options.LoginPath = "/login";
         options.LogoutPath = "/logout";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
