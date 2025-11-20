@@ -24,10 +24,10 @@ internal class GetPasskeyByCredentialIdQueryProcessor(
             passkey.PublicKey,
             passkey.SignCount,
             passkey.RegisteredAt,
-            passkey.LastUsedAt,
+            passkey.HasBeenUsed ? passkey.LastUsedAt : (DateTime?)null,
             passkey.IsRevoked,
-            passkey.RevokedAt,
-            passkey.RevokedByUserId);
+            passkey.IsRevoked ? passkey.RevokedAt : (DateTime?)null,
+            passkey.IsRevoked ? passkey.RevokedByUserId : (Guid?)null);
 
         return QueryResult<GetPasskeyByCredentialIdQueryResult>.Succeeded(result);
     }
