@@ -64,7 +64,11 @@ export class WebAuthnUtils {
         { alg: -257, type: 'public-key' },
       ],
       attestation: 'direct',
-      authenticatorSelection: { authenticatorAttachment: 'platform', residentKey: 'preferred' },
+      authenticatorSelection: { 
+        authenticatorAttachment: 'platform', 
+        residentKey: 'required',  // Required for usernameless authentication
+        requireResidentKey: true  // Backwards compatibility
+      },
       timeout: 60000,
     };
 

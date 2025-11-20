@@ -43,14 +43,16 @@ internal static class AuthenticationEndpoints
             // Get RP ID from current request
             var rpId = httpContext.Request.Host.Host;
 
-            // Return challenge and options
+            // For usernameless/discoverable credentials, return empty allowCredentials
+            // The browser will show available passkeys via resident keys
+            // This enables true passwordless authentication without username entry
             return Results.Json(new
             {
                 challenge = Convert.ToBase64String(challenge),
                 timeout = 60000,
                 rpId,
                 userVerification = "preferred",
-                allowCredentials = new object[] { },
+                allowCredentials = new object[] { }, // Empty for discoverable credentials
                 extensions = new object { },
                 status = "ok",
                 errorMessage = string.Empty,
