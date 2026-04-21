@@ -82,11 +82,15 @@ builder.Services.AddOpenTelemetry()
     .ConfigureResource(r => r.AddService("spamma"));
 
 builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeFormattedMessage = true;
+    options.IncludeScopes = true;
     options.AddOtlpExporter(opts =>
     {
         Console.WriteLine("[OTEL] Configuring logging with OTLP exporter");
         opts.Endpoint = new Uri(otlpEndpoint);
-    }));
+    });
+});
 
 Console.WriteLine("[OTEL] OpenTelemetry initialization complete\n");
 
