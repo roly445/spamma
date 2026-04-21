@@ -34,12 +34,13 @@ public class BackgroundTaskService(
                 {
                     case CampaignCaptureJob:
                     {
+                        var campaignValue = message.Headers["x-spamma-camp"] ?? string.Empty;
                         var result = await commander.Send(
                             new RecordCampaignCaptureCommand(
                                 workItem.DomainId,
                                 workItem.SubdomainId,
                                 messageId,
-                                message.Headers["x-spamma-camp"],
+                                campaignValue,
                                 message.Date), stoppingToken);
 
                         if (result is { Status: CommandResultStatus.Succeeded, Data.IsFirstEmail: true })
@@ -86,14 +87,14 @@ public class BackgroundTaskService(
         }
 
         var addresses = message.To.Mailboxes
-            .Select(x => new EmailAddress(x.Address, x.Name, EmailAddressType.To))
+            .Select(x => new EmailAddress(x.Address, x.Name ?? string.Empty, EmailAddressType.To))
             .ToList();
         addresses.AddRange(message.Cc.Mailboxes
-            .Select(x => new EmailAddress(x.Address, x.Name, EmailAddressType.Cc)));
+            .Select(x => new EmailAddress(x.Address, x.Name ?? string.Empty, EmailAddressType.Cc)));
         addresses.AddRange(message.Bcc.Mailboxes
-            .Select(x => new EmailAddress(x.Address, x.Name, EmailAddressType.Bcc)));
+            .Select(x => new EmailAddress(x.Address, x.Name ?? string.Empty, EmailAddressType.Bcc)));
         addresses.AddRange(message.From.Mailboxes
-            .Select(x => new EmailAddress(x.Address, x.Name, EmailAddressType.From)));
+            .Select(x => new EmailAddress(x.Address, x.Name ?? string.Empty, EmailAddressType.From)));
 
         CommandResult commandResult;
         if (campaignId == null)
@@ -103,7 +104,7 @@ public class BackgroundTaskService(
                     messageId,
                     workItem.DomainId,
                     workItem.SubdomainId,
-                    message.Subject,
+                    message.Subject ?? string.Empty,
                     message.Date,
                     addresses), cancellationToken);
         }
@@ -114,7 +115,7 @@ public class BackgroundTaskService(
                     messageId,
                     workItem.DomainId,
                     workItem.SubdomainId,
-                    message.Subject,
+                    message.Subject ?? string.Empty,
                     message.Date,
                     campaignId.Value,
                     addresses), cancellationToken);

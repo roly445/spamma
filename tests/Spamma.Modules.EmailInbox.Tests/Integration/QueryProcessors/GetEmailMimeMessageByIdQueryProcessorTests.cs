@@ -177,11 +177,12 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
 
         var decompressedMessage = await MimeMessage.LoadAsync(decompressedStream);
         decompressedMessage.Subject.Should().Be("Large Email Message");
-        var textBody = (TextPart)decompressedMessage.Body;
+        var textBody = (TextPart?)decompressedMessage.Body;
 
         // MIME encoding may add line wrapping, so text could be slightly larger than original
-        textBody.Text.Should().NotBeNullOrEmpty();
-        textBody.Text.Should().Contain("AAAAAAAAAAAAAAAA", "Text should contain large repeated pattern");
+        textBody.Should().NotBeNull();
+        textBody!.Text.Should().NotBeNullOrEmpty();
+        textBody.Text!.Should().Contain("AAAAAAAAAAAAAAAA", "Text should contain large repeated pattern");
         textBody.Text.Length.Should().BeGreaterThanOrEqualTo(100 * 1024, "Text should be at least 100KB");
     }
 }
