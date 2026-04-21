@@ -113,7 +113,15 @@ docker-compose up -d
 dotnet run --project src/Spamma.App/Spamma.App/Spamma.App.csproj
 ```
 
-**3. Frontend assets (if modified):**
+**3. Setup HTTPS development certificate (first time only):**
+
+```bash
+dotnet dev-certs https --trust
+```
+
+This trusts the ASP.NET Core development certificate for local HTTPS support. No manual certificate generation needed.
+
+**4. Frontend assets (if modified):**
 
 ```bash
 cd src/Spamma.App/Spamma.App

@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
         <PreserveCompilationContext>true</PreserveCompilationContext>
+        <UserSecretsId>cd5a2b1c-8d4e-4f2a-9c6b-1a3d5e7f8b2c</UserSecretsId>
     </PropertyGroup>
 
           <PropertyGroup>
