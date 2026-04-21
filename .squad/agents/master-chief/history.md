@@ -43,3 +43,12 @@
   - Redis also used for: UserStatusCache, SubdomainCache, ChaosAddressCache, Session state, API key validation/rate limiting
   - Auth cookies already fixed — no longer use Redis SessionStore (Program.cs:214-219)
   - Recommendation: Add `CAP.Transport` config switch ("Redis" vs "InMemory"). Default to Redis for prod, allow InMemory for dev. This removes mandatory Redis from local dev while preserving durability guarantees in production. ~2 hour implementation. Decision written to `decisions/inbox/master-chief-redis-eval-2026-04-21.md`.
+
+## User Directives & Decisions Captured (2026-04-21 Session)
+
+**Redis Infrastructure Decision (2026-04-21)**:
+- **User directive:** Redis stays for both dev and prod — no in-memory fallback
+- **Implementation:** Keep Redis transport for CAP across all environments
+- **Rationale:** Event durability critical for email deletion cleanup; Redis also used for caching (UserStatusCache, SubdomainCache, ChaosAddressCache) and rate limiting
+- **Configuration:** Redis provided via Docker Compose (dev) and managed service (prod)
+- **Status:** Decision locked in, no in-memory conditional logic needed

@@ -94,3 +94,9 @@
 - Frontend build pipeline (Webpack, Tailwind v4, TypeScript) properly configured
 
 **Remediation Status:** Findings documented in `.squad/decisions/inbox/guilty-spark-infra-review-2026-04-21.md`
+
+## Cross-Agent Dependencies (2026-04-21 Session)
+
+**guilty-spark-dashboard** ↔ **cortana-healthchecks**:
+- Aspire Dashboard monitors `/health` endpoint provided by cortana's health checks
+- Both agents coordinated on observability infrastructure stack

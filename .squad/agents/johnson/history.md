@@ -43,3 +43,9 @@
   - Run tests: `npm test` (run once), `npm run test:watch` (watch mode), `npm run test:ui` (UI mode)
   - All 11 tests passing: 3 for SetupAdmin, 8 for SetupEmailConfigurator
   - Tests validate DOM event wiring, preset application, Blazor binding triggers, public API methods
+
+## Cross-Agent Dependencies (2026-04-21 Session)
+
+**johnson-ts-tests** ↔ **arbiter-domain-tests**:
+- TypeScript frontend testing (Vitest) coordinates with backend testing strategy
+- Both agents implementing verification-based testing patterns for different layers

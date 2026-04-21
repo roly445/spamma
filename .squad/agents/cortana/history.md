@@ -42,3 +42,13 @@
     - UserManagement: UserDomainMembershipEventHandler
   * Command handlers now query UserManagement for user details before publishing events (via IQuerier)
 - `QueryResultStatus` enum is in `BluQube.Constants` namespace, not `BluQube.Queries` — need `using BluQube.Constants;` to use it
+
+## Cross-Agent Dependencies (2026-04-21 Session)
+
+**cortana-healthchecks** ↔ **guilty-spark-dashboard**:
+- Health checks provide `/health` endpoint monitored by Aspire Dashboard in docker-compose.yml
+- Both agents coordinated on observability infrastructure
+
+**cortana-cap-boundary** ↔ **arbiter-domain-tests**:
+- CAP subscriber assembly fix ensures integration events fire for DomainManagement cache invalidation
+- arbiter verified fixes via real SpammaMessageStore tests that depend on working CAP event flow
