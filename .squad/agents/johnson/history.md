@@ -7,6 +7,11 @@
 
 ## Learnings
 
+<!-- 2026-04-21: setup script bug fixes -->
+- `setup-admin.ts` was exporting `SetupAdmin` class but never instantiating it — always add `new ClassName()` at EOF (matching the pattern in `setup-keys.ts`)
+- `setup-email.ts` preset selectors used `[onclick="..."]` which never matched — Email.razor uses `data-preset` attributes; always verify selector strategy against the actual Razor HTML
+- `npm run build` fails if `node_modules` not present — run `npm install` first; webpack is not in PATH by default on this machine
+
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
 - Blazor server project (`Spamma.App`) is ONLY for static pages. All interactive components live in `Spamma.App.Client`
 - Static server pages must have `@attribute [ExcludeFromInteractiveRouting]` to prevent interactive routing

@@ -18,6 +18,8 @@
 - SMTP server port: 1025 (default, configurable)
 - `ReceivedEmailCommand` dispatched via `ICommander` after successful domain validation and content storage
 - SMTP response codes: `SmtpResponse.Ok` (success), `SmtpResponse.MailboxNameNotAllowed` (no valid domain), `SmtpResponse.TransactionFailed` (storage/command failure)
+- **Storage order matters**: content must be stored via `IMessageStoreProvider` BEFORE dispatching the command, not after — this enables rollback on command failure
+- **`BackgroundTaskService` DI pattern**: resolve `IMessageStoreProvider` (and `ICommander`) from a single scope created at service startup; pass both as parameters into `ExtractEmailAddressesAndSendCommand`
 
 ## Learnings — 2026-04-21 (Full Pipeline Review)
 

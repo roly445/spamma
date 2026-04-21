@@ -341,6 +341,7 @@ else
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseAntiforgery();

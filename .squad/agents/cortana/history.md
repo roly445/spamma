@@ -26,3 +26,6 @@
 - `ReceivedEmailCommand` and `CampaignEmailReceivedCommand` intentionally lack `[BluQubeCommand]` — they are SMTP-triggered internal commands, not WASM-facing
 - Validator coverage: all command handlers have a matching `AbstractValidator<T>` — no gaps found
 - CAP integration event pairs: all `[CapSubscribe]` constants match published events — no orphans found
+- Fix (2026-04-21): `PasskeyAuthenticated` event now carries `UserId`; `UserLookupProjection` patches by `@event.Data.UserId`; `Passkey.RecordAuthentication` passes `this.UserId` into the event
+- Fix (2026-04-21): `AuthenticateWithPasskeyCommandHandler` user-not-found path now returns `CommonErrorCodes.NotFound` instead of `UserManagementErrorCodes.AccountSuspended`
+- Fix (2026-04-21): `gat-by-id` typo corrected to `get-by-id` in both `GetDetailedDomainByIdQuery` and `GetDetailedSubdomainByIdQuery` `[BluQubeQuery]` path attributes

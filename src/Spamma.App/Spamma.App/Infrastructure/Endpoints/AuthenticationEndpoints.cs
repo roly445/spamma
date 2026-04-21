@@ -30,29 +30,23 @@ internal static class AuthenticationEndpoints
     {
         try
         {
-            // Generate a random 32-byte challenge
             var challenge = new byte[32];
             using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
                 rng.GetBytes(challenge);
             }
 
-            // Store challenge in session for verification
             httpContext.Session.SetString("webauthn_challenge", Convert.ToBase64String(challenge));
 
-            // Get RP ID from current request
             var rpId = httpContext.Request.Host.Host;
 
-            // For usernameless/discoverable credentials, return empty allowCredentials
-            // The browser will show available passkeys via resident keys
-            // This enables true passwordless authentication without username entry
             return Results.Json(new
             {
                 challenge = Convert.ToBase64String(challenge),
                 timeout = 60000,
                 rpId,
                 userVerification = "preferred",
-                allowCredentials = new object[] { }, // Empty for discoverable credentials
+                allowCredentials = new object[] { },
                 extensions = new object { },
                 status = "ok",
                 errorMessage = string.Empty,
@@ -75,46 +69,46 @@ internal static class AuthenticationEndpoints
     {
         try
         {
-            // Validate assertion data
             if (request?.Assertion?.Response == null)
             {
-                return Results.Json(new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid assertion data" } }, statusCode: 200);
+                return Results.Json(
+                    new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid assertion data" } },
+                    statusCode: 200);
             }
 
-            // Get stored challenge from session
             var challengeBase64 = httpContext.Session.GetString("webauthn_challenge");
             if (string.IsNullOrEmpty(challengeBase64))
             {
-                return Results.Json(new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "No active authentication session" } }, statusCode: 200);
+                return Results.Json(
+                    new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "No active authentication session" } },
+                    statusCode: 200);
             }
 
-            // Decode credential ID from standard base64 (matching registration format)
             byte[] credentialId;
+            byte[] authenticatorData;
+            byte[] clientDataJson;
+            byte[] signature;
+
             try
             {
                 credentialId = Convert.FromBase64String(request.Assertion.RawId);
-            }
-            catch
-            {
-                return Results.Json(new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid credential ID format" } }, statusCode: 200);
-            }
-
-            // Decode authenticator data from standard base64
-            byte[] authenticatorData;
-            try
-            {
                 authenticatorData = Convert.FromBase64String(request.Assertion.Response.AuthenticatorData);
+                clientDataJson = Convert.FromBase64String(request.Assertion.Response.ClientDataJson);
+                signature = Convert.FromBase64String(request.Assertion.Response.Signature);
             }
             catch
             {
-                return Results.Json(new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid assertion encoding" } }, statusCode: 200);
+                return Results.Json(
+                    new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid assertion encoding" } },
+                    statusCode: 200);
             }
 
-            // Extract sign count from authenticator data (bytes 33-36)
             if (authenticatorData.Length < 37)
             {
                 logger.LogWarning("Authenticator data too short: {Length} bytes (need at least 37)", authenticatorData.Length);
-                return Results.Json(new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid authenticator data length" } }, statusCode: 200);
+                return Results.Json(
+                    new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Invalid authenticator data length" } },
+                    statusCode: 200);
             }
 
             uint signCount = (uint)((authenticatorData[33] << 24) |
@@ -122,8 +116,19 @@ internal static class AuthenticationEndpoints
                 (authenticatorData[35] << 8) |
                 authenticatorData[36]);
 
-            // Execute authentication command
-            var authCommand = new AuthenticateWithPasskeyCommand(credentialId, signCount);
+            var expectedOrigin = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
+            var expectedRpId = httpContext.Request.Host.Host;
+
+            var authCommand = new AuthenticateWithPasskeyCommand(
+                CredentialId: credentialId,
+                SignCount: signCount,
+                AuthenticatorData: authenticatorData,
+                ClientDataJson: clientDataJson,
+                Signature: signature,
+                ExpectedChallengeBase64: challengeBase64,
+                ExpectedOrigin: expectedOrigin,
+                ExpectedRpId: expectedRpId);
+
             var commandResult = await commander.Send(authCommand, CancellationToken.None);
 
             if (commandResult.Status != CommandResultStatus.Succeeded)
@@ -133,7 +138,6 @@ internal static class AuthenticationEndpoints
                     statusCode: 200);
             }
 
-            // Look up the passkey by credential ID to get the user ID
             var query = new GetPasskeyByCredentialIdQuery(credentialId);
             var queryResult = await querier.Send(query, CancellationToken.None);
 
@@ -147,7 +151,6 @@ internal static class AuthenticationEndpoints
             var passkeyData = queryResult.Data;
             var userId = passkeyData.UserId;
 
-            // Query user details to get email and name
             var userQuery = new GetUserByIdQuery(userId);
             internalQueryStore.StoreQueryRef(userQuery);
             var userResult = await querier.Send(userQuery);
@@ -161,7 +164,6 @@ internal static class AuthenticationEndpoints
 
             var userDetails = userResult.Data;
 
-            // Create claims and sign in
             var claims = ClaimsBuilder.BuildClaims(
                 userDetails.Id,
                 userDetails.EmailAddress,
@@ -188,7 +190,6 @@ internal static class AuthenticationEndpoints
                 claimsPrincipal,
                 authProperties);
 
-            // Clear the challenge from session
             httpContext.Session.Remove("webauthn_challenge");
 
             return Results.Json(new
@@ -205,7 +206,9 @@ internal static class AuthenticationEndpoints
         catch (Exception ex)
         {
             logger.LogError(ex, "Error verifying assertion");
-            return Results.Json(new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Authentication failed" } }, statusCode: 200);
+            return Results.Json(
+                new { url = string.Empty, assertionVerificationResult = new { status = "error", errorMessage = "Authentication failed" } },
+                statusCode: 200);
         }
     }
 }

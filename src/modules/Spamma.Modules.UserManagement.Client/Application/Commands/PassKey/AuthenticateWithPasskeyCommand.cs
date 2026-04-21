@@ -4,4 +4,12 @@ using BluQube.Commands;
 namespace Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 
 [BluQubeCommand(Path = "api/user-management/authenticate-passkey")]
-public record AuthenticateWithPasskeyCommand(byte[] CredentialId, uint SignCount) : ICommand;
+public record AuthenticateWithPasskeyCommand(
+    byte[] CredentialId,
+    uint SignCount,
+    byte[] AuthenticatorData,
+    byte[] ClientDataJson,
+    byte[] Signature,
+    string ExpectedChallengeBase64,
+    string ExpectedOrigin,
+    string ExpectedRpId) : ICommand;

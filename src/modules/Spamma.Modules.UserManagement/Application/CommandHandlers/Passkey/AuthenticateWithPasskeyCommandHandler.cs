@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Application.Repositories;
+using Spamma.Modules.UserManagement.Application.Services;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
 using Spamma.Modules.UserManagement.Client.Contracts;
@@ -12,6 +13,7 @@ namespace Spamma.Modules.UserManagement.Application.CommandHandlers.Passkey;
 internal class AuthenticateWithPasskeyCommandHandler(
     IPasskeyRepository passkeyRepository,
     IUserRepository userRepository,
+    IWebAuthnAssertionVerifier assertionVerifier,
     TimeProvider timeProvider,
     IEnumerable<IValidator<AuthenticateWithPasskeyCommand>> validators,
     ILogger<AuthenticateWithPasskeyCommandHandler> logger) : CommandHandler<AuthenticateWithPasskeyCommand>(validators, logger)
@@ -38,11 +40,32 @@ internal class AuthenticateWithPasskeyCommandHandler(
             passkey.SignCount,
             request.SignCount);
 
+        var signatureValid = assertionVerifier.Verify(
+            storedAttestationObject: passkey.PublicKey,
+            storedAlgorithm: passkey.Algorithm,
+            authenticatorData: request.AuthenticatorData,
+            clientDataJson: request.ClientDataJson,
+            signature: request.Signature,
+            expectedChallengeBase64: request.ExpectedChallengeBase64,
+            expectedOrigin: request.ExpectedOrigin,
+            expectedRpId: request.ExpectedRpId);
+
+        if (!signatureValid)
+        {
+            logger.LogWarning(
+                "WebAuthn assertion verification failed for passkey {PasskeyId}. " +
+                "Check challenge, origin, rpId, and signature.",
+                passkey.Id);
+            return CommandResult.Failed(new BluQubeErrorData(
+                UserManagementErrorCodes.PasskeyVerificationFailed,
+                "Assertion verification failed"));
+        }
+
         var userMaybe = await userRepository.GetByIdAsync(passkey.UserId, cancellationToken);
         if (userMaybe.HasNoValue)
         {
             logger.LogWarning("User {UserId} not found for passkey", passkey.UserId);
-            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, "Account not found"));
+            return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.AccountSuspended, "Account not found"));
         }
 
         if (userMaybe.Value.IsSuspended)

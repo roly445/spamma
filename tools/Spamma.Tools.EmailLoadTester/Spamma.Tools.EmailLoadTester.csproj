@@ -10,8 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.9.0" />
-    <PackageReference Include="MimeKit" Version="4.9.0" />
+    <PackageReference Include="MailKit" Version="4.16.0" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.6" />
+    <PackageReference Include="MimeKit" Version="4.16.0" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

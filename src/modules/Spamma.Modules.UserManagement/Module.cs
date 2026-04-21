@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.UserManagement.Application.Repositories;
+using Spamma.Modules.UserManagement.Application.Services;
 using Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
 using Spamma.Modules.UserManagement.Infrastructure.Projections;
 using Spamma.Modules.UserManagement.Infrastructure.Repositories;
@@ -27,6 +28,7 @@ public static class Module
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasskeyRepository, PasskeyRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
+        services.AddSingleton<IWebAuthnAssertionVerifier, WebAuthnAssertionVerifier>();
         services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyValidationService, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyValidationService>();
         services.AddScoped<Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.IApiKeyRateLimiter, Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys.ApiKeyRateLimiter>();
 
