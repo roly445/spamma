@@ -33,9 +33,15 @@
 - **EmailInbox placeholder tests replaced 2026-04-21**: Replaced 3 `1.Should().Be(1)` placeholder QueryProcessor tests with proper skip messages. Implemented 4 real SpammaMessageStoreTests covering SMTP message flow (subdomain match, chaos address, no match, multiple recipients). All tests use Moq Strict, Maybe.From/Nothing patterns, verify background job queueing. LocalMessageStoreProviderTests already had 8 passing tests (file I/O).
 - **DomainManagement test status 2026-04-21**: 256/278 tests passing (18 failures in integration auth tests). All 16 command handlers have tests. 10 QueryProcessors completely untested - require integration tests with PostgreSqlFixture + Testcontainers pattern (fixture exists, tests need creation).
 - **PushNotificationManager not mockable**: Class has non-virtual methods - cannot use Moq. Use real instance in tests instead of attempting to mock.
+- **Catch-all TDD RED tests written 2026-04-21**: 4 tests in `SpammaMessageStoreCatchAllTests.cs` specify catch-all email mode for `SpammaMessageStore`. Tests mock `IEmailInboxSettingsService.GetCatchAllModeEnabledAsync()` and reference `CatchAllEmailCaptureJob` with `IsCatchAll` property and sentinel `CatchAllConstants.DomainId`. Build currently RED: Cortana's `CatchAllEmailCaptureJob` has S2325 violation (`IsCatchAll => true` must be static) + `SpammaMessageStore` doesn't yet implement catch-all branching. Duplicate `CatchAllConstants` in `Infrastructure.Constants` vs `Infrastructure.Services` — should be resolved.
+- **CatchAllConstants duplicate**: Two static classes named `CatchAllConstants` exist — `Infrastructure.Constants.CatchAllConstants` (cafe GUIDs: `DomainId=00000000-cafe-cafe-cafe-000000000001`) and `Infrastructure.Services.CatchAllConstants` (zero GUIDs: `DomainId=00000000-0000-0000-0000-000000000001`). Tests use `Infrastructure.Constants` version (matches SpammaMessageStore imports). Cortana must merge/remove duplicate.
 
 ## Cross-Agent Dependencies (2026-04-21 Session)
 
 **arbiter-domain-tests** ↔ **cortana-cap-boundary**:
 - SpammaMessageStore tests depend on fixed CAP subscriber assembly registration for DomainManagement
 - Real SMTP tests verify integration event flow that cortana fixed
+
+**arbiter-catchall-tests-red** ↔ **cortana-catchall-implementation**:
+- 4 RED tests specify catch-all branching logic for SpammaMessageStore
+- Cortana must fix S2325 in CatchAllEmailCaptureJob + implement IEmailInboxSettingsService resolution + add catch-all branch

@@ -13,6 +13,13 @@
 - `npm run build` fails if `node_modules` not present — run `npm install` first; webpack is not in PATH by default on this machine
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+
+<!-- 2026-04-21: autocomplete overflow fix -->
+- **ModalBase has overflow-hidden by default** — this clips absolutely-positioned children (dropdowns, tooltips). When adding any component with a `position: absolute` dropdown inside a modal, check ModalBase first.
+- **bUnit 2.x API changed**: `TestContext` → `BunitContext`, `RenderComponent<T>` → `Render<T>`. Always check the bUnit migration docs when adding component tests.
+- **bUnit 2.7.2 works on net10.0** — install with `dotnet add package bunit --prerelease` from `tests/Spamma.App.Tests/`.
+- **overflow-hidden on rounded modal containers** — Tailwind's `rounded-lg` does NOT require `overflow-hidden` to clip corners when child content supplies its own rounded wrapper. Removing `overflow-hidden` from the outer container is safe here.
+- **TDD for Razor HTML structure**: Use bUnit to assert class presence/absence on rendered DOM elements — more reliable than file-content string checks.
 - Blazor server project (`Spamma.App`) is ONLY for static pages. All interactive components live in `Spamma.App.Client`
 - Static server pages must have `@attribute [ExcludeFromInteractiveRouting]` to prevent interactive routing
 - Frontend assets: SCSS + TypeScript in `src/Spamma.App/Spamma.App/Assets/`. Compiled by webpack to `wwwroot/`

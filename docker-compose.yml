@@ -35,7 +35,8 @@ services:
   mailhog:
     image: mailhog/mailhog
     ports:
-      - 1025:1025 # smtp server
+      - 1025:1025 # smtp server (strict mode — domain validation required)
+      # - 1026:1026 # catch-all smtp port (enable via SmtpServer:CatchAllPortEnabled=true)
       - 8025:8025 # web ui
     restart: unless-stopped
   

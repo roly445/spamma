@@ -55,3 +55,29 @@ The pipeline has been significantly refactored. `SpammaMessageStore` no longer c
 - Domain validation falls back gracefully to database via `SearchSubdomainsQuery` when Redis cache misses.
 - `SearchSubdomainsQueryProcessor` handles unauthenticated callers (SMTP context) by returning all subdomains when no HTTP context present (no domain access filter added for unauthenticated users).
 - Chaos address handling correctly returns configurable SMTP response codes.
+
+## Learnings — Email Viewer Component (2026-04-21)
+
+### Blazor WebAssembly Email Rendering
+- Email viewer component: `Spamma.App.Client/Components/UserControls/EmailViewer.razor` + `.razor.cs`
+- Renders email HTML content in iframe with `srcdoc` attribute for security isolation
+- Sandbox attributes prevent email scripts from accessing parent page
+- `PrepareHtmlForIframe()` injects `<base target="_blank">` to force all links to open in new tabs
+- Iframe requires `sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"` for links to work
+- Static helper methods (like `PrepareHtmlForIframe`) must be placed before instance members per StyleCop SA1204
+
+## Learnings — Catch-All SMTP Assessment (2026-04-21)
+
+### SmtpServer 11.0.0 Hooks
+- `IMailboxFilter` interface has `CanDeliverToAsync(ISessionContext, IMailbox to, IMailbox from, CancellationToken) → Task<bool>` — fires at RCPT TO stage
+- No `IMailboxFilter` is currently registered → default `MailboxFilter` base class accepts all recipients already
+- SmtpServer resolves `IMailboxFilter` via the ASP.NET Core `IServiceProvider` passed to its constructor → register with `services.AddTransient<IMailboxFilter, ...>()`
+- `ISessionContext.EndpointDefinition.Endpoint` is `IPEndPoint` → `.Port` is accessible in both filter and message store — enables port-based catch-all differentiation
+- Multiple endpoints are trivially configured: multiple `.Endpoint(builder => builder.Port(...))` calls on `SmtpServerOptionsBuilder`
+
+### Catch-All Implementation Design
+- Catch-all rejection currently happens at **application level** in `SpammaMessageStore.SaveAsync`, not SMTP protocol level
+- Minimal change: check catch-all flag before domain validation loop, skip to `StandardEmailCaptureJob` with sentinel IDs
+- Best virtual domain strategy: seeded system domain with well-known GUID constants (Option B) — maintains referential integrity and authorization model
+- Dual-port approach (port 25 strict, port 1026 catch-all) is clean and viable — port check in `SaveAsync` via `context.EndpointDefinition.Endpoint.Port`
+- Assessment written to: `C:\Code\spamma\.squad\decisions\inbox\foehammer-catchall-smtp-assessment.md`

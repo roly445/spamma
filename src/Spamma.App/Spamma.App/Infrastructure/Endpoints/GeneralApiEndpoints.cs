@@ -42,6 +42,7 @@ internal static class GeneralApiEndpoints
             {
                 settings.Value.MailServerHostname,
                 settings.Value.MxPriority,
+                settings.Value.CatchAllModeEnabled,
             },
         });
     }

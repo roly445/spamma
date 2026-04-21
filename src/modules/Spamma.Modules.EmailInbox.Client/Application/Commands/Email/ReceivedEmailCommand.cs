@@ -8,4 +8,6 @@ public record ReceivedEmailCommand(
     Guid SubdomainId,
     string Subject,
     DateTimeOffset WhenSent,
-    IReadOnlyList<EmailAddress> EmailAddresses) : ICommand;
+    IReadOnlyList<EmailAddress> EmailAddresses,
+    bool IsCatchAll = false,
+    Guid? CatchAllDomainId = null) : ICommand;

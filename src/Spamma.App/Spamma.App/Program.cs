@@ -41,6 +41,7 @@ using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.DomainManagement;
 using Spamma.Modules.DomainManagement.Infrastructure.Services;
 using Spamma.Modules.EmailInbox;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.UserManagement;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 using Spamma.Modules.UserManagement.Infrastructure.JsonConverters;
@@ -118,6 +119,7 @@ builder.Services.AddDataProtection()
 
 builder.Services.Configure<Settings>(opt => builder.Configuration.GetSection("Settings").Bind(opt));
 builder.Services.Configure<SetupSettings>(opt => builder.Configuration.GetSection("Setup").Bind(opt));
+builder.Services.Configure<Spamma.Modules.EmailInbox.Infrastructure.Settings.EmailInboxSettings>(opt => builder.Configuration.GetSection("SmtpServer").Bind(opt));
 
 builder.Services.AddUserManagement()
     .AddDomainManagement().AddEmailInbox();
@@ -332,6 +334,17 @@ builder.Services.AddHealthChecks()
 builder.Host.ApplyJasperFxExtensions();
 
 var app = builder.Build();
+
+using (var seedScope = app.Services.CreateScope())
+{
+    var documentSession = seedScope.ServiceProvider.GetRequiredService<IDocumentSession>();
+    var existingSettings = await documentSession.LoadAsync<EmailInboxSettingsDocument>(EmailInboxSettingsDocument.SettingsId);
+    if (existingSettings == null)
+    {
+        documentSession.Store(new EmailInboxSettingsDocument());
+        await documentSession.SaveChangesAsync();
+    }
+}
 
 app.UseForwardedHeaders();
 

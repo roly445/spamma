@@ -2,6 +2,7 @@ using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
@@ -13,9 +14,13 @@ internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHtt
     public async Task<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
         var user = accessor.HttpContext.ToUserAuthInfo();
+        var isDomainAdmin = (user.SystemRole & SystemRole.DomainManagement) == SystemRole.DomainManagement;
+        var catchAllSubdomainId = EmailInboxSettingsDocument.CatchAllSubdomainId;
 
         var query = documentSession.Query<EmailLookup>()
-            .Where(x => user.ViewableSubdomains.Contains(x.SubdomainId) && x.DeletedAt == null);
+            .Where(x => (user.ViewableSubdomains.Contains(x.SubdomainId) ||
+                         (isDomainAdmin && x.SubdomainId == catchAllSubdomainId))
+                        && x.DeletedAt == null);
 
         // Apply campaign email filter - hide campaign emails by default unless user wants to see them
         if (!request.ShowCampaignEmails)

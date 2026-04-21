@@ -6,6 +6,7 @@ using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SmtpServer;
 using SmtpServer.Storage;
 using Spamma.Modules.EmailInbox.Application.Repositories;
@@ -14,6 +15,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
+using Spamma.Modules.EmailInbox.Infrastructure.Settings;
 
 namespace Spamma.Modules.EmailInbox;
 
@@ -43,17 +45,18 @@ public static class Module
         // SMTP certificate service
         services.AddSingleton<SmtpCertificateService>();
 
-        // Configure SMTP server with optional TLS port
+        // Configure SMTP server with optional TLS port and optional catch-all port
         services.AddSingleton(provider =>
         {
             var certService = provider.GetRequiredService<SmtpCertificateService>();
             var certificate = certService.FindCertificate();
+            var emailSettings = provider.GetRequiredService<IOptions<EmailInboxSettings>>().Value;
 
             var optionsBuilder = new SmtpServerOptionsBuilder()
                 .ServerName("Spamma SMTP Server")
                 .Endpoint(builder =>
                 {
-                    builder.Port(25, false);
+                    builder.Port(emailSettings.Port, false);
                 });
 
             // Add port 587 (STARTTLS) with certificate if available
@@ -67,12 +70,22 @@ public static class Module
                 });
             }
 
+            // Add optional catch-all port (always accepts any domain)
+            if (emailSettings.CatchAllPortEnabled)
+            {
+                optionsBuilder.Endpoint(builder =>
+                {
+                    builder.Port(emailSettings.CatchAllPort, false);
+                });
+            }
+
             return new SmtpServer.SmtpServer(optionsBuilder.Build(), provider.GetRequiredService<IServiceProvider>());
         });
 
         services.AddHostedService<SmtpHostedService>();
         services.AddHostedService<EmailCleanupBackgroundService>();
         services.AddSingleton<IMessageStoreProvider, LocalMessageStoreProvider>();
+        services.AddScoped<IEmailInboxSettingsService, EmailInboxSettingsService>();
         return services;
     }
 
@@ -95,6 +108,7 @@ public static class Module
 
         options.Schema.For<EmailLookup>().Identity(x => x.Id);
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
+        options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
 
         return options;
     }
