@@ -56,3 +56,28 @@
 **johnson-ts-tests** ↔ **arbiter-domain-tests**:
 - TypeScript frontend testing (Vitest) coordinates with backend testing strategy
 - Both agents implementing verification-based testing patterns for different layers
+
+
+## Catch-All Inbox UI (2026-04-21 Session)
+
+**Task**: Build the Catch-All Inbox UI per design decision from Master Chief.
+
+### What was built
+- **CatchAllInbox.razor** (/inbox/catch-all) — amber-accented inbox page grouping catch-all emails by recipient domain
+- **AppSettings.razor** (/admin/settings) — admin settings page with catch-all toggle (enable/disable) + warning banner
+- **AppLayout nav** — "Catch-All" top-bar link shown when CatchAllModeEnabled = true; "Settings" entry in administration dropdown
+- **GetCatchAllEmailsQuery** + **GetCatchAllEmailsQueryResult** stubs in EmailInbox.Client with [BluQubeQuery] attribute
+- **CatchAllModeEnabled** added to Spamma.Modules.Common.Settings and Spamma.App.Client.Infrastructure.Contracts.Settings
+- **dynamicsettings.json** endpoint updated to expose CatchAllModeEnabled to WASM client
+- **3 bUnit tests** (TDD) in Spamma.App.Tests/CatchAllInboxTests.cs — disabled state, empty state, grouped emails
+- Fixed backend SonarQube S2325 on CatchAllEmailCaptureJob (removed dead static property)
+
+### Key design choices
+- Amber/yellow as catch-all accent colour — visually distinct from blue domain inboxes
+- AppSettings class name used instead of Settings to avoid namespace conflict with config class in same namespace
+- TDD: wrote tests first (bUnit 2.x with BunitContext / Render<T>), all 3 green
+- QueryResult<T>.Succeeded(data) factory method (not object initializer — API uses primary ctor with Maybe<T>)
+
+### Build result
+- dotnet build Spamma.sln — 0 errors, 0 warnings
+- dotnet test filter CatchAllInbox — 3/3 passed
