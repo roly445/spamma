@@ -22,16 +22,8 @@ public class InMemorySetupAuthService : IInMemorySetupAuthService
 
         if (this._setupModeEnabled)
         {
-            // Generate a random setup password on startup
-            this._setupPassword = GenerateSetupPassword();
-
-            // Log the password prominently
-            this._logger.LogCritical("=".PadRight(80, '='));
-            this._logger.LogCritical("SPAMMA SETUP MODE ENABLED");
-            this._logger.LogCritical("Reason: {SetupReason}", this.setupReason);
-            this._logger.LogCritical("SETUP PASSWORD: {SetupPassword}", this._setupPassword);
-            this._logger.LogCritical("Access setup wizard at: /setup-login");
-            this._logger.LogCritical("=".PadRight(80, '='));
+            this._setupPassword = this.ResolveSetupPassword();
+            this.LogSetupModeActive("SETUP MODE ENABLED", this.setupReason);
         }
         else
         {
@@ -85,19 +77,12 @@ public class InMemorySetupAuthService : IInMemorySetupAuthService
     public void EnableMaintenanceMode(string reason)
     {
         this._setupModeEnabled = true;
-        this._setupPassword = GenerateSetupPassword();
-
-        this._logger.LogCritical("=".PadRight(80, '='));
-        this._logger.LogCritical("SPAMMA MAINTENANCE MODE ENABLED");
-        this._logger.LogCritical("Reason: {Reason}", reason);
-        this._logger.LogCritical("SETUP PASSWORD: {SetupPassword}", this._setupPassword);
-        this._logger.LogCritical("Access setup wizard at: /setup-login");
-        this._logger.LogCritical("=".PadRight(80, '='));
+        this._setupPassword = this.ResolveSetupPassword();
+        this.LogSetupModeActive("MAINTENANCE MODE ENABLED", reason);
     }
 
     private static string GenerateSetupPassword()
     {
-        // Generate a readable but secure password
         var adjectives = new[] { "Quick", "Blue", "Smart", "Cool", "Fast", "Bright", "Strong", "Swift" };
         var nouns = new[] { "Tiger", "Eagle", "Wolf", "Bear", "Lion", "Hawk", "Fox", "Shark" };
 
@@ -106,6 +91,29 @@ public class InMemorySetupAuthService : IInMemorySetupAuthService
         var number = RandomNumberGenerator.GetInt32(100, 999);
 
         return $"{adjectives[adjIndex]}{nouns[nounIndex]}{number}";
+    }
+
+    private string ResolveSetupPassword()
+    {
+        var envPassword = Environment.GetEnvironmentVariable("SPAMMA_SETUP_PASSWORD");
+        if (!string.IsNullOrWhiteSpace(envPassword))
+        {
+            this._logger.LogCritical("Using SPAMMA_SETUP_PASSWORD environment variable for setup authentication");
+            return envPassword;
+        }
+
+        return GenerateSetupPassword();
+    }
+
+    private void LogSetupModeActive(string heading, string reason)
+    {
+        this._logger.LogCritical("=".PadRight(80, '='));
+        this._logger.LogCritical("SPAMMA {Heading}", heading);
+        this._logger.LogCritical("Reason: {Reason}", reason);
+        this._logger.LogCritical("SETUP PASSWORD: {SetupPassword}", this._setupPassword);
+        this._logger.LogCritical("Access setup wizard at: /setup-login");
+        this._logger.LogCritical("Recovery: set SPAMMA_SETUP_PASSWORD env var and restart to override");
+        this._logger.LogCritical("=".PadRight(80, '='));
     }
 
     private void CreateSetupCompletionMarker()
