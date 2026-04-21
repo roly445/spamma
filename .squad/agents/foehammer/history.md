@@ -81,3 +81,28 @@ The pipeline has been significantly refactored. `SpammaMessageStore` no longer c
 - Best virtual domain strategy: seeded system domain with well-known GUID constants (Option B) — maintains referential integrity and authorization model
 - Dual-port approach (port 25 strict, port 1026 catch-all) is clean and viable — port check in `SaveAsync` via `context.EndpointDefinition.Endpoint.Port`
 - Assessment written to: `C:\Code\spamma\.squad\decisions\inbox\foehammer-catchall-smtp-assessment.md`
+
+## Learnings — Catch-All Port 1026 Implementation (2026-04-21)
+
+### What Was Implemented
+- Dual-port catch-all SMTP listener: port 1025 (strict) + optional port 1026 (catch-all)
+- `EmailInboxSettings` added to `Infrastructure/Settings/` with `Port`, `CatchAllPort`, `CatchAllPortEnabled`
+- Registered via `builder.Services.Configure<EmailInboxSettings>` on `"SmtpServer"` config section
+- `CatchAllConstants` in `Infrastructure/Constants/` with distinct DomainId + SubdomainId GUIDs
+- `SpammaMessageStore` checks `context.EndpointDefinition.Endpoint.Port` — if matches `CatchAllPort` AND `CatchAllPortEnabled`, skips domain validation and queues `StandardEmailCaptureJob` with sentinel GUIDs
+- `Module.cs` conditionally adds second SmtpServer endpoint on `CatchAllPort` when enabled
+- `appsettings.json` has `SmtpServer` section; `docker-compose.yml` documents port 1026 (commented)
+
+### Pre-Existing Issues Fixed
+- `EmailInboxSettingsService` was referencing old class name `EmailInboxSettings` (renamed to `EmailInboxSettingsDocument`) — fixed
+- `CatchAllEmailCaptureJob.IsCatchAll` triggered SA2325 (make static) — fixed
+- `CatchAllConstants` in `Infrastructure.Services` had duplicate GUID for DomainId/SubdomainId — deleted, replaced by correct version in `Infrastructure.Constants`
+- `Module.cs` was missing `IEmailInboxSettingsService` registration — added
+
+### Key Architecture Decisions
+- Port-based approach: `CatchAllPortEnabled=false` → port 1026 not added as endpoint → defence in depth (even if port check triggers, `CatchAllPortEnabled=false` guard prevents bypass)
+- Use `StandardEmailCaptureJob` with sentinel GUIDs instead of a separate `CatchAllEmailCaptureJob` for catch-all path — simpler, `BackgroundTaskService` doesn't need changes
+- `EmailInboxSettings.Port` defaults to 25 in C# class; set to 1025 in `appsettings.json` for development/production parity
+
+### TDD Results
+- 9 `SpammaMessageStore` tests passing (4 existing + 2 new catch-all port + 3 port-boundary scenarios)

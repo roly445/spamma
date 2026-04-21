@@ -60,11 +60,8 @@ public class AddModeratorToDomainCommandHandlerTests
 
         this._querierMock
             .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
-            .ReturnsAsync(new QueryResult<GetUserByIdQueryResult>
-            {
-                Status = QueryResultStatus.Succeeded,
-                Data = new GetUserByIdQueryResult(userId, "Test User", "test@example.com", false, Spamma.Modules.Common.Client.SystemRole.None, new DateTime(2024, 1, 1), null, null, null, null, [], [], []),
-            });
+            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
+                new GetUserByIdQueryResult(userId, "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))

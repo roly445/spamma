@@ -7,7 +7,6 @@ using Spamma.App.Client.Infrastructure.Contracts;
 using Spamma.App.Client.Pages.Inbox;
 using Xunit;
 using BluQube.Queries;
-using BluQube.Constants;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Tests;
@@ -40,13 +39,8 @@ public class CatchAllInboxTests : BunitContext
         var querierMock = new Mock<IQuerier>();
         querierMock
             .Setup(x => x.Send(It.IsAny<GetCatchAllEmailsQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new QueryResult<GetCatchAllEmailsQueryResult>
-            {
-                Status = QueryResultStatus.Succeeded,
-                Data = new GetCatchAllEmailsQueryResult(
-                    [],
-                    0),
-            });
+            .ReturnsAsync(QueryResult<GetCatchAllEmailsQueryResult>.Succeeded(
+                new GetCatchAllEmailsQueryResult([], 0)));
         Services.AddSingleton(querierMock.Object);
 
         // Act
@@ -77,11 +71,8 @@ public class CatchAllInboxTests : BunitContext
         var querierMock = new Mock<IQuerier>();
         querierMock
             .Setup(x => x.Send(It.IsAny<GetCatchAllEmailsQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new QueryResult<GetCatchAllEmailsQueryResult>
-            {
-                Status = QueryResultStatus.Succeeded,
-                Data = new GetCatchAllEmailsQueryResult(groups, 1),
-            });
+            .ReturnsAsync(QueryResult<GetCatchAllEmailsQueryResult>.Succeeded(
+                new GetCatchAllEmailsQueryResult(groups, 1)));
         Services.AddSingleton(querierMock.Object);
 
         // Act
