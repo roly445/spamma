@@ -42,7 +42,7 @@ internal class AuthenticateWithPasskeyCommandHandler(
         if (userMaybe.HasNoValue)
         {
             logger.LogWarning("User {UserId} not found for passkey", passkey.UserId);
-            return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.AccountSuspended, "Account not found"));
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, "Account not found"));
         }
 
         if (userMaybe.Value.IsSuspended)

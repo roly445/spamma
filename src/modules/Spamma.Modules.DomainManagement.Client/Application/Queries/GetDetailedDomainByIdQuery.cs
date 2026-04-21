@@ -3,5 +3,5 @@ using BluQube.Queries;
 
 namespace Spamma.Modules.DomainManagement.Client.Application.Queries;
 
-[BluQubeQuery(Path = "api/domains/gat-by-id")]
+[BluQubeQuery(Path = "api/domains/get-by-id")]
 public record GetDetailedDomainByIdQuery(Guid DomainId) : IQuery<GetDetailedDomainByIdQueryResult>;

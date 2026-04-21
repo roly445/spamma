@@ -120,7 +120,7 @@ public sealed partial class Passkey : AggregateRoot
                     "Sign count decreased - possible credential cloning"));
         }
 
-        var authenticationEvent = new PasskeyAuthenticated(newSignCount, usedAt);
+        var authenticationEvent = new PasskeyAuthenticated(this.UserId, newSignCount, usedAt);
         this.RaiseEvent(authenticationEvent);
         return ResultWithError.Ok<BluQubeErrorData>();
     }

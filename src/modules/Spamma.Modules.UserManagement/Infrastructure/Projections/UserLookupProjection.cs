@@ -59,7 +59,7 @@ public class UserLookupProjection : EventProjection
     [UsedImplicitly]
     public void Project(IEvent<PasskeyAuthenticated> @event, IDocumentOperations ops)
     {
-        ops.Patch<UserLookup>(@event.StreamId)
+        ops.Patch<UserLookup>(@event.Data.UserId)
             .Set(x => x.LastPasskeyAuthenticationAt, @event.Data.UsedAt);
     }
 }
