@@ -32,3 +32,13 @@
 - Fix (2026-04-21): `PasskeyAuthenticated` event now carries `UserId`; `UserLookupProjection` patches by `@event.Data.UserId`; `Passkey.RecordAuthentication` passes `this.UserId` into the event
 - Fix (2026-04-21): `AuthenticateWithPasskeyCommandHandler` user-not-found path now returns `CommonErrorCodes.NotFound` instead of `UserManagementErrorCodes.AccountSuspended`
 - Fix (2026-04-21): `gat-by-id` typo corrected to `get-by-id` in both `GetDetailedDomainByIdQuery` and `GetDetailedSubdomainByIdQuery` `[BluQubeQuery]` path attributes
+- CAP assembly registration (2026-04-21): DomainManagement.Module assembly was missing from CAP `.AddSubscriberAssembly()` call in Program.cs; added alongside UserManagement, EmailInbox, and Program assemblies
+- Projection boundary violations (2026-04-21): DomainManagement projections were directly referencing and patching `UserManagement.Infrastructure.ReadModels.UserLookup` (cross-module infrastructure dependency); fixed by:
+  * Removing UserManagement reference from DomainManagement.csproj (added UserManagement.Client for queries only)
+  * DomainManagement projections now only update their own read models (counters only)
+  * Integration events enhanced to carry UserName/UserEmail (UserAddedAsDomainModerator, UserAddedAsSubdomainModerator, UserAddedAsSubdomainViewer)
+  * CAP subscribers in each module patch their own read models:
+    - DomainManagement: DomainModeratorListEventHandler, SubdomainModeratorListEventHandler
+    - UserManagement: UserDomainMembershipEventHandler
+  * Command handlers now query UserManagement for user details before publishing events (via IQuerier)
+- `QueryResultStatus` enum is in `BluQube.Constants` namespace, not `BluQube.Queries` — need `using BluQube.Constants;` to use it
