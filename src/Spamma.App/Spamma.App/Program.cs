@@ -62,10 +62,12 @@ var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"]
 Console.WriteLine($"[OTEL] Configuring OpenTelemetry with endpoint: {otlpEndpoint}");
 
 builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService("spamma"))
     .WithTracing(tracing =>
     {
         Console.WriteLine("[OTEL] Configuring tracing with AspNetCore, HttpClient, and OTLP exporter");
         tracing
+            .SetSampler(new AlwaysOnSampler())
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddOtlpExporter(opts => opts.Endpoint = new Uri(otlpEndpoint));
@@ -77,9 +79,13 @@ builder.Services.AddOpenTelemetry()
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
-            .AddOtlpExporter(opts => opts.Endpoint = new Uri(otlpEndpoint));
-    })
-    .ConfigureResource(r => r.AddService("spamma"));
+            .AddOtlpExporter(
+                (exporterOptions, readerOptions) =>
+                {
+                    exporterOptions.Endpoint = new Uri(otlpEndpoint);
+                    readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
+                });
+    });
 
 builder.Logging.AddOpenTelemetry(options =>
 {
