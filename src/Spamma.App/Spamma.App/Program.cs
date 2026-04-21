@@ -325,6 +325,10 @@ builder.Services.AddSingleton<ICacheProvider, LocalFileSystemCacheProvider>();
 builder.Services.AddSingleton<IRuleProvider, CachedHttpRuleProvider>();
 builder.Services.AddSingleton<IDomainParser, DomainParser>();
 
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection not configured"))
+    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis not configured"));
+
 builder.Host.ApplyJasperFxExtensions();
 
 var app = builder.Build();
@@ -386,6 +390,8 @@ using (var scope = app.Services.CreateScope())
 // Map API endpoints organized by feature
 app.MapGeneralApiEndpoints();
 app.MapAuthenticationEndpoints();
+
+app.MapHealthChecks("/health");
 
 app.MapHub<NotifierHub>($"/{Lookups.NotificationHubName}");
 
