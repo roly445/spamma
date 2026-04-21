@@ -15,7 +15,7 @@ public class AuthenticateWithPasskeyCommandValidatorTests
     public void Validate_WithValidCredentialId_ShouldNotHaveErrors()
     {
         // Arrange
-        var command = new AuthenticateWithPasskeyCommand(new byte[] { 0x01, 0x02, 0x03 }, 42);
+        var command = MakeCommand(new byte[] { 0x01, 0x02, 0x03 });
 
         // Act
         var result = this._validator.TestValidate(command);
@@ -28,7 +28,7 @@ public class AuthenticateWithPasskeyCommandValidatorTests
     public void Validate_WithEmptyCredentialId_ShouldHaveRequiredError()
     {
         // Arrange
-        var command = new AuthenticateWithPasskeyCommand(Array.Empty<byte>(), 42);
+        var command = MakeCommand(Array.Empty<byte>());
 
         // Act
         var result = this._validator.TestValidate(command);
@@ -37,4 +37,7 @@ public class AuthenticateWithPasskeyCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CredentialId)
             .WithErrorCode(CommonValidationCodes.Required);
     }
+
+    private static AuthenticateWithPasskeyCommand MakeCommand(byte[] credentialId) =>
+        new(credentialId, 42, new byte[37], new byte[1], new byte[1], "challenge==", "https://localhost", "localhost");
 }

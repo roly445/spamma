@@ -13,7 +13,7 @@ public class AuthenticateWithPasskeyCommandAuthorizerTests
     {
         // Arrange
         var authorizer = new AuthenticateWithPasskeyCommandAuthorizer();
-        var command = new AuthenticateWithPasskeyCommand([1, 2, 3], 0);
+        var command = MakeCommand([1, 2, 3], 0);
 
         // Act
         authorizer.BuildPolicy(command);
@@ -27,7 +27,7 @@ public class AuthenticateWithPasskeyCommandAuthorizerTests
     {
         // Arrange
         var authorizer = new AuthenticateWithPasskeyCommandAuthorizer();
-        var command = new AuthenticateWithPasskeyCommand([1, 2, 3], 0);
+        var command = MakeCommand([1, 2, 3], 0);
 
         // Act
         authorizer.BuildPolicy(command);
@@ -42,8 +42,8 @@ public class AuthenticateWithPasskeyCommandAuthorizerTests
         // Arrange
         var authorizer1 = new AuthenticateWithPasskeyCommandAuthorizer();
         var authorizer2 = new AuthenticateWithPasskeyCommandAuthorizer();
-        var command1 = new AuthenticateWithPasskeyCommand([1, 2, 3], 0);
-        var command2 = new AuthenticateWithPasskeyCommand([10, 11, 12], 1);
+        var command1 = MakeCommand([1, 2, 3], 0);
+        var command2 = MakeCommand([10, 11, 12], 1);
 
         // Act
         authorizer1.BuildPolicy(command1);
@@ -55,4 +55,7 @@ public class AuthenticateWithPasskeyCommandAuthorizerTests
         authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustNotBeAuthenticatedRequirement");
         authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustNotBeAuthenticatedRequirement");
     }
+
+    private static AuthenticateWithPasskeyCommand MakeCommand(byte[] credentialId, uint signCount) =>
+        new(credentialId, signCount, new byte[37], new byte[1], new byte[1], "challenge==", "https://localhost", "localhost");
 }

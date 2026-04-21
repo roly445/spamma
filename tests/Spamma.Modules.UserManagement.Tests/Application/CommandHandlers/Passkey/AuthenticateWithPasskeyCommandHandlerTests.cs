@@ -44,9 +44,6 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             this._loggerMock.Object);
     }
 
-    private static AuthenticateWithPasskeyCommand BuildCommand(byte[] credentialId, uint signCount) =>
-        new(credentialId, signCount, new byte[37], new byte[1], new byte[1], "challenge==", "https://localhost", "localhost");
-
     [Fact]
     public async Task Handle_ValidPasskeyWithValidSignCount_AuthenticatesSuccessfully()
     {
@@ -67,7 +64,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .WithEmail("user@example.com")
             .Build();
 
-        var command = BuildCommand(credentialId, 6);
+        var command = MakeCommand(credentialId, 6);
 
         this._assertionVerifierMock
             .Setup(x => x.Verify(
@@ -109,7 +106,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
     {
         // Arrange
         var credentialId = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF };
-        var command = BuildCommand(credentialId, 1);
+        var command = MakeCommand(credentialId, 1);
 
         this._passkeyRepositoryMock
             .Setup(x => x.GetByCredentialIdAsync(credentialId, CancellationToken.None))
@@ -141,7 +138,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .WithSignCount(5)
             .Build();
 
-        var command = BuildCommand(credentialId, 6);
+        var command = MakeCommand(credentialId, 6);
 
         this._assertionVerifierMock
             .Setup(x => x.Verify(
@@ -176,7 +173,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .WithSignCount(5)
             .Build();
 
-        var command = BuildCommand(credentialId, 6);
+        var command = MakeCommand(credentialId, 6);
 
         this._assertionVerifierMock
             .Setup(x => x.Verify(
@@ -226,7 +223,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .Build();
         suspendedUser.Suspend(AccountSuspensionReason.Administrative, "Test suspension", this._fixedUtcNow);
 
-        var command = BuildCommand(credentialId, 6);
+        var command = MakeCommand(credentialId, 6);
 
         this._assertionVerifierMock
             .Setup(x => x.Verify(
@@ -275,7 +272,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .WithEmail("user@example.com")
             .Build();
 
-        var command = BuildCommand(credentialId, 5); // sign count NOT incremented (potential cloning attack)
+        var command = MakeCommand(credentialId, 5); // sign count NOT incremented (potential cloning attack)
 
         this._assertionVerifierMock
             .Setup(x => x.Verify(
@@ -323,7 +320,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             .WithEmail("user@example.com")
             .Build();
 
-        var command = BuildCommand(credentialId, 6);
+        var command = MakeCommand(credentialId, 6);
 
         this._assertionVerifierMock
             .Setup(x => x.Verify(
@@ -359,4 +356,7 @@ public class AuthenticateWithPasskeyCommandHandlerTests
             x => x.SaveAsync(It.IsAny<Spamma.Modules.UserManagement.Domain.PasskeyAggregate.Passkey>(), CancellationToken.None),
             Times.Once);
     }
+
+    private static AuthenticateWithPasskeyCommand MakeCommand(byte[] credentialId, uint signCount) =>
+        new(credentialId, signCount, new byte[37], new byte[1], new byte[1], "challenge==", "https://localhost", "localhost");
 }
