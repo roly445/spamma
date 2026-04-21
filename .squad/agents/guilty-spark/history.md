@@ -19,6 +19,20 @@
 - Marten auto-creates event and snapshot tables on first run
 - CAP framework uses Redis for integration event message queues — set appropriate Redis eviction policies
 
+### Security Fixes (2026-04-21)
+
+**Secrets Sanitization:**
+- `appsettings.Development.json` certificate password replaced with placeholder `<SET_VIA_ENV_OR_USER_SECRETS>`
+- File now in `.gitignore` along with pattern `appsettings.*.json` to prevent future secret commits
+- Connection strings still point to local dev defaults — acceptable for local dev only (Docker Compose credentials)
+
+**NuGet CVE Resolutions:**
+- Microsoft.Bcl.Memory: 9.0.0 → 10.0.6 (HIGH severity CVE fixed)
+- MimeKit: 4.14.0/4.9.0 → 4.16.0 (MODERATE severity CVE fixed)
+- MailKit: 4.14.1/4.9.0 → 4.16.0 (MODERATE severity CVE fixed)
+- All 18 projects in solution updated via `dotnet add` commands
+- Build now succeeds without vulnerability warnings (pre-existing CS0120 and webcil errors unrelated to CVE fixes)
+
 ### Infrastructure Review (2026-04-21)
 
 **Critical Issues Found (Build Blocking):**
