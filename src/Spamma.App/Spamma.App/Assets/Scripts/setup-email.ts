@@ -44,10 +44,8 @@ class SetupEmailConfigurator {
     private setupPresetHandlers(): void {
         // Add event listeners for all preset buttons
         Object.keys(this.presets).forEach(provider => {
-            const button = document.querySelector(`[onclick="setSmtpPreset('${provider}')"]`) as HTMLButtonElement;
+            const button = document.querySelector(`[data-preset="${provider}"]`) as HTMLButtonElement;
             if (button) {
-                // Remove the inline onclick and add proper event listener
-                button.removeAttribute('onclick');
                 button.addEventListener('click', () => {
                     this.setSmtpPreset(provider);
                 });
