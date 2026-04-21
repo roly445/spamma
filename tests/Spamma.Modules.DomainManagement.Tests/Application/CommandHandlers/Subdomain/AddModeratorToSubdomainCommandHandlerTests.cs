@@ -60,6 +60,11 @@ public class AddModeratorToSubdomainCommandHandlerTests
 
         var command = new AddModeratorToSubdomainCommand(subdomainId, userId);
 
+        this._querierMock
+            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
+            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
+                new GetUserByIdQueryResult(userId, "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
+
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(subdomainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(subdomain));
@@ -140,6 +145,11 @@ public class AddModeratorToSubdomainCommandHandlerTests
 
         var command1 = new AddModeratorToSubdomainCommand(subdomainId, userId1);
         var command2 = new AddModeratorToSubdomainCommand(subdomainId, userId2);
+
+        this._querierMock
+            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
+            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
+                new GetUserByIdQueryResult(Guid.NewGuid(), "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(subdomainId, CancellationToken.None))

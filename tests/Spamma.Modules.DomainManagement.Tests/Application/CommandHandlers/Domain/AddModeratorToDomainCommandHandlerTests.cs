@@ -140,6 +140,11 @@ public class AddModeratorToDomainCommandHandlerTests
 
         var command = new AddModeratorToDomainCommand(domainId, userId);
 
+        this._querierMock
+            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
+            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
+                new GetUserByIdQueryResult(userId, "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
+
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
             .ReturnsAsync(Maybe.From(domain));
@@ -178,6 +183,11 @@ public class AddModeratorToDomainCommandHandlerTests
 
         var command1 = new AddModeratorToDomainCommand(domainId, userId1);
         var command2 = new AddModeratorToDomainCommand(domainId, userId2);
+
+        this._querierMock
+            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
+            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
+                new GetUserByIdQueryResult(Guid.NewGuid(), "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))

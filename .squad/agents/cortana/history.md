@@ -7,7 +7,14 @@
 
 ## Learnings
 
-<!-- Append new learnings below. Each entry is something lasting about the project. -->
+- Catch-all mode implementation (2026-04-21): Settings stored in `EmailInboxSettingsDocument` (Marten document, Id = `00000000-0000-0000-0000-000000000002`). Sentinel GUIDs: `CatchAllConstants.DomainId` = `CatchAllConstants.SubdomainId` = `00000000-0000-0000-0000-000000000001`. Design chose flag-based (not port-based) approach per master-chief decision.
+- `SpammaMessageStore` resolves `IEmailInboxSettingsService` from the DI scope (not constructor-injected) since `MessageStore` base class manages its own DI scope. Use `scope.ServiceProvider.GetRequiredService<T>()` for any services needed conditionally.
+- `CatchAllEmailCaptureJob` is a dedicated background job type for catch-all emails; `BackgroundTaskService` handles it by calling `ExtractEmailAddressesAndSendCommand` with `isCatchAll: true`.
+- `SearchEmailsQueryProcessor` now includes catch-all emails (sentinel SubdomainId) for users with `SystemRole.DomainManagement` flag — no ViewableSubdomains membership required.
+- `EmailInboxSettingsDocument` seeded at startup in `Program.cs` (before middleware pipeline) to ensure the settings document exists in Marten with default `CatchAllModeEnabled = false`.
+- `UpdateCatchAllModeCommand` is a WASM-facing command (`[BluQubeCommand]`) requiring `MustBeAuthenticatedRequirement`. Reads/writes via `IEmailInboxSettingsService` (scoped).
+- When writing test for `SpammaMessageStore` rejection path: must register `IEmailInboxSettingsService` returning `false` in the service provider — `SpammaMessageStore` calls `GetRequiredService<IEmailInboxSettingsService>()` only when no valid subdomain found.
+
 - Health checks (2026-04-21): Added `AspNetCore.HealthChecks.NpgSql` and `AspNetCore.HealthChecks.Redis` (both v9.0.0) — latest stable, multi-targets net9.0, compatible with net10.0. Connection string keys are `DefaultConnection` (PostgreSQL) and `Redis`. Endpoint mapped at `/health`. No TDD cycle needed for infrastructure wiring like this; confirm via build + smoke-test against running infra.
 - `dotnet build --no-restore` will succeed even without new packages downloaded if the assemblies are already cached from the implicit restore that ran before; always run the full `dotnet build` (with restore) after adding NuGet packages to confirm packages resolve correctly.
 - .NET 10 upgrade (2026-04-21): All project TFMs were already on `net10.0` and `global.json` already targeted SDK `10.0.0`. The only work needed was updating 7 Microsoft.AspNetCore.*/Microsoft.Extensions.* packages from `9.0.x` to `10.0.6` in `Spamma.App.csproj`, `Spamma.App.Client.csproj`, and `Spamma.App.Tests.csproj`. No code changes required; build remained at 0 errors/0 warnings throughout.
