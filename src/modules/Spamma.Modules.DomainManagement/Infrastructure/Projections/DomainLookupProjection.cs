@@ -6,7 +6,6 @@ using Marten.Patching;
 using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
-using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 using DomainModerationUserAdded = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events.ModerationUserAdded;
 using DomainModerationUserRemoved = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events.ModerationUserRemoved;
 
@@ -64,40 +63,16 @@ internal class DomainLookupProjection : EventProjection
     }
 
     [UsedImplicitly]
-    public async Task Project(IEvent<DomainModerationUserAdded> @event, IDocumentOperations ops)
+    public void Project(IEvent<DomainModerationUserAdded> @event, IDocumentOperations ops)
     {
-        var user = await ops.LoadAsync<UserLookup>(@event.Data.UserId);
-        var name = user?.Name ?? string.Empty;
-        var email = user?.EmailAddress ?? string.Empty;
-
-        ops.Patch<UserLookup>(@event.Data.UserId)
-            .Append(x => x.ModeratedDomains, @event.StreamId);
-
         ops.Patch<DomainLookup>(@event.StreamId)
-            .Append(x => x.DomainModerators, new DomainModerator
-            {
-                UserId = @event.Data.UserId,
-                Name = name,
-                Email = email,
-                CreatedAt = @event.Data.AddedAt,
-            })
             .Increment(x => x.AssignedModeratorCount);
     }
 
     [UsedImplicitly]
-    public async Task Project(IEvent<DomainModerationUserRemoved> @event, IDocumentOperations ops)
+    public void Project(IEvent<DomainModerationUserRemoved> @event, IDocumentOperations ops)
     {
-        var user = await ops.LoadAsync<UserLookup>(@event.Data.UserId);
-        var name = user?.Name ?? string.Empty;
-        var email = user?.EmailAddress ?? string.Empty;
-
-        ops.Patch<UserLookup>(@event.Data.UserId)
-            .Remove(x => x.ModeratedDomains, @event.StreamId);
-
         ops.Patch<DomainLookup>(@event.StreamId)
-            .Remove(
-                x => x.DomainModerators,
-                dm => dm.UserId == @event.Data.UserId && dm.Name == name && dm.Email == email)
             .Increment(x => x.AssignedModeratorCount, -1);
     }
 

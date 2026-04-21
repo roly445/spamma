@@ -11,7 +11,9 @@
     "moduleResolution": "nodenext"
   },
   "include": [
-    "Assets/Scripts/*.ts"
+    "Assets/Scripts/*.ts",
+    "Assets/Scripts/**/*.test.ts",
+    "Assets/Scripts/**/*.spec.ts"
   ],
   "exclude": [
     "node_modules"

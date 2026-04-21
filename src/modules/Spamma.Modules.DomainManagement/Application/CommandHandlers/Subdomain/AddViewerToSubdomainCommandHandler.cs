@@ -1,4 +1,5 @@
 ﻿using BluQube.Commands;
+using BluQube.Queries;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -6,6 +7,7 @@ using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
@@ -13,7 +15,8 @@ internal class AddViewerToSubdomainCommandHandler(
     ISubdomainRepository repository, TimeProvider timeProvider,
     IEnumerable<IValidator<AddViewerToSubdomainCommand>> validators,
     ILogger<AddViewerToSubdomainCommandHandler> logger,
-    IIntegrationEventPublisher eventPublisher)
+    IIntegrationEventPublisher eventPublisher,
+    IQuerier querier)
     : CommandHandler<AddViewerToSubdomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(AddViewerToSubdomainCommand request, CancellationToken cancellationToken)
@@ -22,6 +25,12 @@ internal class AddViewerToSubdomainCommandHandler(
         if (subdomainMaybe.HasNoValue)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Subdomain with ID {request.SubdomainId} not found"));
+        }
+
+        var userResult = await querier.Send(new GetUserByIdQuery(request.UserId), cancellationToken);
+        if (userResult.Status != QueryResultStatus.Succeeded)
+        {
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"User with ID {request.UserId} not found"));
         }
 
         var subdomain = subdomainMaybe.Value;
@@ -37,7 +46,13 @@ internal class AddViewerToSubdomainCommandHandler(
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
         }
 
-        await eventPublisher.PublishAsync(new UserAddedAsSubdomainViewerIntegrationEvent(request.UserId, request.SubdomainId), cancellationToken);
+        await eventPublisher.PublishAsync(
+            new UserAddedAsSubdomainViewerIntegrationEvent(
+                request.UserId,
+                request.SubdomainId,
+                userResult.Data.Name,
+                userResult.Data.EmailAddress),
+            cancellationToken);
         return CommandResult.Succeeded();
     }
 }

@@ -160,7 +160,7 @@ builder.Services.AddCap(capOptions =>
     capOptions.UsePostgreSql(connectionString);
     capOptions.UseDashboard();
 })
-    .AddSubscriberAssembly(typeof(Spamma.Modules.UserManagement.Module).Assembly, typeof(Program).Assembly, typeof(Spamma.Modules.EmailInbox.Module).Assembly);
+    .AddSubscriberAssembly(typeof(Spamma.Modules.UserManagement.Module).Assembly, typeof(Spamma.Modules.DomainManagement.Module).Assembly, typeof(Program).Assembly, typeof(Spamma.Modules.EmailInbox.Module).Assembly);
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));

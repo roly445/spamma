@@ -1,14 +1,17 @@
-using FluentAssertions;
+using Xunit;
 
 namespace Spamma.Modules.EmailInbox.Tests.Application.QueryProcessors;
 
+/// <summary>
+/// Unit tests for GetEmailByIdQueryProcessor.
+/// NOTE: Full integration tests exist in Integration/QueryProcessors/ using Testcontainers + PostgreSQL.
+/// These unit tests are placeholders until we have a way to test Marten projections without a database.
+/// </summary>
 public class GetEmailByIdQueryProcessorTests
 {
-    [Fact]
-    public void Constructor_Initializes_Successfully()
+    [Fact(Skip = "QueryProcessor unit tests require Marten projection mocking - use Integration tests instead")]
+    public async Task Handle_WithValidEmailId_ReturnsEmail()
     {
-        // Placeholder for query processor tests
-        // Full integration tests for Marten query processors require database context
-        1.Should().Be(1);
+        await Task.CompletedTask;
     }
 }

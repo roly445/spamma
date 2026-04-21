@@ -8,6 +8,7 @@
 ## Learnings
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+- **2026-04-21 Aspire Evaluation:** Assessed .NET Aspire for Spamma. Verdict: don't adopt full Aspire — ROI wrong for a single-process modular monolith. Recommended: (1) swap Jaeger for standalone Aspire Dashboard container (best feature, zero migration), (2) add health checks directly via AspNetCore.HealthChecks packages, (3) leave manual OTEL config as-is. Key risks identified: Aspire Redis/PostgreSQL integrations conflict with CAP and Marten's own connection management; custom SMTP server has no Aspire integration; AppHost orchestration model is designed for distributed systems, not monoliths. Decision written to `decisions/inbox/master-chief-aspire-eval-2026-04-21.md`.
 - Modular monolith under `src/modules/` — each module has `.Client` (contracts/DTOs) and server-side implementation
 - Clean Architecture enforced: Domain → Application → Infrastructure, no layer leaking
 - One type per file (SA1649 enforced). CQRS split into separate files: Query, QueryResult, data models, QueryProcessor

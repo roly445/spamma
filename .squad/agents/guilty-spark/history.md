@@ -9,6 +9,28 @@
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
 
+### Aspire Dashboard Observability (2026-04-21)
+
+**Decision:** Replace Jaeger with standalone Aspire Dashboard for distributed tracing.
+
+**Implementation:**
+- `docker-compose.yml`: Removed Jaeger service, added Aspire Dashboard
+- Dashboard image: `mcr.microsoft.com/dotnet/aspire-dashboard:latest`
+- Ports: 18888 (UI), 18889 (OTLP gRPC receiver)
+- Configuration: Anonymous access enabled (`DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true`)
+- Migration path: Zero code changes — existing OTLP exporters point to new endpoint (port 18889)
+- Health check: Monitors `/health` endpoint on port 18888
+
+**Rationale:** Lighter-weight alternative to Jaeger, fully integrated with .NET observability ecosystem. Addresses Aspire win #1 (standalone dashboard) without adopting full AppHost orchestration.
+
+**Services after change:**
+- postgres (16)
+- redis (7-alpine)
+- mailhog (latest)
+- aspire-dashboard (latest)
+
+**Commit:** `71b7ec7`
+
 ### .NET 10 Infrastructure Upgrade (2026-04-21)
 
 **Scope & Changes:**

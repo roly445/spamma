@@ -1,4 +1,5 @@
 ﻿using BluQube.Commands;
+using BluQube.Queries;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -6,6 +7,7 @@ using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 
@@ -13,7 +15,8 @@ internal class AddModeratorToDomainCommandHandler(
     IDomainRepository repository, TimeProvider timeProvider,
     IEnumerable<IValidator<AddModeratorToDomainCommand>> validators,
     ILogger<AddModeratorToDomainCommandHandler> logger,
-    IIntegrationEventPublisher eventPublisher)
+    IIntegrationEventPublisher eventPublisher,
+    IQuerier querier)
     : CommandHandler<AddModeratorToDomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(AddModeratorToDomainCommand request, CancellationToken cancellationToken)
@@ -22,6 +25,12 @@ internal class AddModeratorToDomainCommandHandler(
         if (domainMaybe.HasNoValue)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Domain with ID {request.DomainId} not found"));
+        }
+
+        var userResult = await querier.Send(new GetUserByIdQuery(request.UserId), cancellationToken);
+        if (userResult.Status != QueryResultStatus.Succeeded)
+        {
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"User with ID {request.UserId} not found"));
         }
 
         var domain = domainMaybe.Value;
@@ -37,7 +46,13 @@ internal class AddModeratorToDomainCommandHandler(
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
         }
 
-        await eventPublisher.PublishAsync(new UserAddedAsDomainModeratorIntegrationEvent(request.UserId, request.DomainId), cancellationToken);
+        await eventPublisher.PublishAsync(
+            new UserAddedAsDomainModeratorIntegrationEvent(
+                request.UserId,
+                request.DomainId,
+                userResult.Data.Name,
+                userResult.Data.EmailAddress),
+            cancellationToken);
         return CommandResult.Succeeded();
     }
 }
