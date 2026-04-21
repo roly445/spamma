@@ -8,6 +8,25 @@
 ## Learnings
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+
+### .NET 10 Infrastructure Upgrade (2026-04-21)
+
+**Scope & Changes:**
+- Updated `Dockerfile.build`: SDK and runtime images from 9.0 → 10.0
+- `global.json`, `Dockerfile`, `Dockerfile.runtime`: Already at 10.0
+- GitHub Actions workflows (ci.yml, release.yml, pr.yml): Already configured for 10.x
+- `docker-compose.yml`: No .NET version changes needed (PostgreSQL, Redis, MailHog only)
+
+**Files Modified:**
+- `src/Spamma.App/Spamma.App/Dockerfile.build`: Line 16 (`sdk:9.0` → `10.0`), Line 52 (`aspnet:9.0` → `10.0`)
+
+**Verification:**
+- Build infrastructure now consistently targets .NET 10 across all Dockerfiles
+- CI/CD pipelines continue to use `dotnet-version: 10.x` (no changes needed)
+- Commit: `6bca2f3` (chore: upgrade infrastructure to .NET 10)
+
+**Key Insight:** Most infrastructure was already prepared for .NET 10; only the build Dockerfile needed updating.
+
 - Docker Compose at repo root: services include PostgreSQL, Redis, MailHog
 - Default ports: SMTP 1025, PostgreSQL 5432, Redis 6379, app 7181
 - Default PostgreSQL connection: `postgresql://postgres:password@localhost:5432/spamma`
