@@ -1,0 +1,20 @@
+{
+  "assignments": [
+    {
+      "assignment_id": "spamma-halo-2026-04-21",
+      "universe": "Halo",
+      "created_at": "2026-04-21T10:59:38Z",
+      "requested_by": "Andrew Davis",
+      "agents": [
+        { "name": "master-chief", "role": "Lead / Architect" },
+        { "name": "cortana", "role": "Backend Dev" },
+        { "name": "johnson", "role": "Frontend Dev" },
+        { "name": "arbiter", "role": "Tester" },
+        { "name": "guilty-spark", "role": "DevOps / Infra" },
+        { "name": "halsey", "role": "Security / Auth" },
+        { "name": "foehammer", "role": "Email / SMTP" },
+        { "name": "virgil", "role": "Docs / DevRel" }
+      ]
+    }
+  ]
+}

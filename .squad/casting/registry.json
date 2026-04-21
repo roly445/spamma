@@ -1,0 +1,84 @@
+{
+  "agents": {
+    "master-chief": {
+      "persistent_name": "Master Chief",
+      "universe": "Halo",
+      "role": "Lead / Architect",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "cortana": {
+      "persistent_name": "Cortana",
+      "universe": "Halo",
+      "role": "Backend Dev",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "johnson": {
+      "persistent_name": "Johnson",
+      "universe": "Halo",
+      "role": "Frontend Dev",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "arbiter": {
+      "persistent_name": "Arbiter",
+      "universe": "Halo",
+      "role": "Tester",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "guilty-spark": {
+      "persistent_name": "Guilty Spark",
+      "universe": "Halo",
+      "role": "DevOps / Infra",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "halsey": {
+      "persistent_name": "Halsey",
+      "universe": "Halo",
+      "role": "Security / Auth",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "foehammer": {
+      "persistent_name": "Foehammer",
+      "universe": "Halo",
+      "role": "Email / SMTP",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "virgil": {
+      "persistent_name": "Virgil",
+      "universe": "Halo",
+      "role": "Docs / DevRel",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "scribe": {
+      "persistent_name": "Scribe",
+      "universe": "exempt",
+      "role": "Session Logger",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    },
+    "ralph": {
+      "persistent_name": "Ralph",
+      "universe": "exempt",
+      "role": "Work Monitor",
+      "created_at": "2026-04-21T10:59:38Z",
+      "legacy_named": false,
+      "status": "active"
+    }
+  }
+}
