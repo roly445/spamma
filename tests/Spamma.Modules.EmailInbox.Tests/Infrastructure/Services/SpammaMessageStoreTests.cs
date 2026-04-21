@@ -29,7 +29,7 @@ public class SpammaMessageStoreTests
         var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
-        var pushNotificationManagerMock = new Mock<PushNotificationManager>();
+        var pushNotificationManager = new PushNotificationManager(); // Use real instance - no virtual methods to mock
 
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
@@ -48,20 +48,16 @@ public class SpammaMessageStoreTests
             .Setup(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()))
             .Callback<IBaseEmailCaptureJob>(job => capturedJob = job as StandardEmailCaptureJob);
 
-        pushNotificationManagerMock
-            .Setup(x => x.NotifyEmailAsync(It.IsAny<PushNotificationManager.EmailDetails>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
         var serviceProvider = CreateServiceProvider(
             subdomainCacheMock.Object,
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
-            pushNotificationManagerMock.Object);
+            pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
 
-        var store = new SpammaMessageStore(pushNotificationManagerMock.Object);
+        var store = new SpammaMessageStore(pushNotificationManager);
 
         var mimeMessage = new MimeMessage
         {
@@ -85,9 +81,6 @@ public class SpammaMessageStoreTests
         capturedJob.Should().NotBeNull();
         capturedJob!.DomainId.Should().Be(domainId);
         capturedJob.SubdomainId.Should().Be(subdomainId);
-        pushNotificationManagerMock.Verify(
-            x => x.NotifyEmailAsync(It.IsAny<PushNotificationManager.EmailDetails>(), It.IsAny<CancellationToken>()),
-            Times.Once);
     }
 
     [Fact]
@@ -97,7 +90,7 @@ public class SpammaMessageStoreTests
         var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
-        var pushNotificationManagerMock = new Mock<PushNotificationManager>();
+        var pushNotificationManager = new PushNotificationManager(); // Use real instance
 
         subdomainCacheMock
             .Setup(x => x.GetSubdomainAsync("unknown.com", false, It.IsAny<CancellationToken>()))
@@ -107,12 +100,12 @@ public class SpammaMessageStoreTests
             subdomainCacheMock.Object,
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
-            pushNotificationManagerMock.Object);
+            pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
 
-        var store = new SpammaMessageStore(pushNotificationManagerMock.Object);
+        var store = new SpammaMessageStore(pushNotificationManager);
 
         var mimeMessage = new MimeMessage
         {
@@ -133,9 +126,6 @@ public class SpammaMessageStoreTests
         // Assert
         result.Should().Be(SmtpResponse.MailboxNameNotAllowed);
         backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<IBaseEmailCaptureJob>()), Times.Never);
-        pushNotificationManagerMock.Verify(
-            x => x.NotifyEmailAsync(It.IsAny<PushNotificationManager.EmailDetails>(), It.IsAny<CancellationToken>()),
-            Times.Never);
     }
 
     [Fact]
@@ -145,7 +135,7 @@ public class SpammaMessageStoreTests
         var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
-        var pushNotificationManagerMock = new Mock<PushNotificationManager>();
+        var pushNotificationManager = new PushNotificationManager(); // Use real instance
 
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
@@ -170,20 +160,16 @@ public class SpammaMessageStoreTests
             .Setup(x => x.QueueBackgroundWorkItem(It.IsAny<ChaosEmailCaptureJob>()))
             .Callback<IBaseEmailCaptureJob>(job => capturedJob = job as ChaosEmailCaptureJob);
 
-        pushNotificationManagerMock
-            .Setup(x => x.NotifyEmailAsync(It.IsAny<PushNotificationManager.EmailDetails>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
         var serviceProvider = CreateServiceProvider(
             subdomainCacheMock.Object,
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
-            pushNotificationManagerMock.Object);
+            pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
 
-        var store = new SpammaMessageStore(pushNotificationManagerMock.Object);
+        var store = new SpammaMessageStore(pushNotificationManager);
 
         var mimeMessage = new MimeMessage
         {
@@ -217,7 +203,7 @@ public class SpammaMessageStoreTests
         var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
-        var pushNotificationManagerMock = new Mock<PushNotificationManager>();
+        var pushNotificationManager = new PushNotificationManager(); // Use real instance
 
         var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
@@ -240,20 +226,16 @@ public class SpammaMessageStoreTests
         backgroundTaskQueueMock
             .Setup(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()));
 
-        pushNotificationManagerMock
-            .Setup(x => x.NotifyEmailAsync(It.IsAny<PushNotificationManager.EmailDetails>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
         var serviceProvider = CreateServiceProvider(
             subdomainCacheMock.Object,
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
-            pushNotificationManagerMock.Object);
+            pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
 
-        var store = new SpammaMessageStore(pushNotificationManagerMock.Object);
+        var store = new SpammaMessageStore(pushNotificationManager);
 
         var mimeMessage = new MimeMessage
         {

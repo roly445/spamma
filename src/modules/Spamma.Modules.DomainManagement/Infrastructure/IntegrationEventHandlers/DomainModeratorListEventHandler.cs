@@ -1,5 +1,6 @@
 using DotNetCore.CAP;
 using Marten;
+using Marten.Patching;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.IntegrationEvents;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;

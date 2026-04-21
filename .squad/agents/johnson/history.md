@@ -34,3 +34,12 @@
   - `setup-hosting.ts` typo: `existingHostingSctions` (missing 'e').
   - `AppLayout.razor.cs` uses `.Wait()` in Dispose() on an async method — should use IAsyncDisposable.
   - Inline styles in Keys.razor (`min-height: 300px; cursor: crosshair`) and DomainIcon.razor could be Tailwind classes.
+- **2026-04-21 TypeScript Test Infrastructure:**
+  - Vitest chosen over Jest (TypeScript-first, native ESM, no Babel config needed)
+  - `happy-dom` environment faster than jsdom for simple DOM tests
+  - Test files use `.test.ts` suffix in `Assets/Scripts/` directory
+  - `vitest.config.ts` includes `globals: true` for describe/it/expect without imports
+  - `tsconfig.json` must include test files in `include` array for TypeScript resolution
+  - Run tests: `npm test` (run once), `npm run test:watch` (watch mode), `npm run test:ui` (UI mode)
+  - All 11 tests passing: 3 for SetupAdmin, 8 for SetupEmailConfigurator
+  - Tests validate DOM event wiring, preset application, Blazor binding triggers, public API methods
