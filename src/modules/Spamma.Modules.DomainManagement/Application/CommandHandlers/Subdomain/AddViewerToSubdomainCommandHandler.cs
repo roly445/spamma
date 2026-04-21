@@ -1,4 +1,5 @@
 ﻿using BluQube.Commands;
+using BluQube.Constants;
 using BluQube.Queries;
 using FluentValidation;
 using Microsoft.Extensions.Logging;

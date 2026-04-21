@@ -1,3 +1,4 @@
+using BluQube.Queries;
 using FluentAssertions;
 using FluentValidation;
 using MaybeMonad;
@@ -10,6 +11,7 @@ using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Domain;
 
@@ -17,6 +19,7 @@ public class AddModeratorToDomainCommandHandlerTests
 {
     private readonly Mock<IDomainRepository> _repositoryMock;
     private readonly Mock<IIntegrationEventPublisher> _eventPublisherMock;
+    private readonly Mock<IQuerier> _querierMock;
     private readonly Mock<ILogger<AddModeratorToDomainCommandHandler>> _loggerMock;
     private readonly AddModeratorToDomainCommandHandler _handler;
     private readonly TimeProvider _timeProvider;
@@ -26,6 +29,7 @@ public class AddModeratorToDomainCommandHandlerTests
     {
         this._repositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
         this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._querierMock = new Mock<IQuerier>(MockBehavior.Strict);
         this._loggerMock = new Mock<ILogger<AddModeratorToDomainCommandHandler>>();
         this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
@@ -36,7 +40,8 @@ public class AddModeratorToDomainCommandHandlerTests
             this._timeProvider,
             validators,
             this._loggerMock.Object,
-            this._eventPublisherMock.Object);
+            this._eventPublisherMock.Object,
+            this._querierMock.Object);
     }
 
     [Fact]
@@ -52,6 +57,14 @@ public class AddModeratorToDomainCommandHandlerTests
             .Build();
 
         var command = new AddModeratorToDomainCommand(domainId, userId);
+
+        this._querierMock
+            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
+            .ReturnsAsync(new QueryResult<GetUserByIdQueryResult>
+            {
+                Status = QueryResultStatus.Succeeded,
+                Data = new GetUserByIdQueryResult(userId, "Test User", "test@example.com", false, Spamma.Modules.Common.Client.SystemRole.None, new DateTime(2024, 1, 1), null, null, null, null, [], [], []),
+            });
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(domainId, CancellationToken.None))
@@ -84,7 +97,7 @@ public class AddModeratorToDomainCommandHandlerTests
         this._eventPublisherMock.Verify(
             x => x.PublishAsync(
                 It.Is<UserAddedAsDomainModeratorIntegrationEvent>(e =>
-                    e.UserId == userId && e.DomainId == domainId),
+                    e.UserId == userId && e.DomainId == domainId && e.UserName == "Test User" && e.UserEmail == "test@example.com"),
                 CancellationToken.None),
             Times.Once);
     }

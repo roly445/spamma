@@ -1,3 +1,4 @@
+using BluQube.Queries;
 using FluentAssertions;
 using FluentValidation;
 using MaybeMonad;
@@ -10,6 +11,7 @@ using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Subdomain;
 
@@ -17,6 +19,7 @@ public class AddViewerToSubdomainCommandHandlerTests
 {
     private readonly Mock<ISubdomainRepository> _repositoryMock;
     private readonly Mock<IIntegrationEventPublisher> _eventPublisherMock;
+    private readonly Mock<IQuerier> _querierMock;
     private readonly Mock<ILogger<AddViewerToSubdomainCommandHandler>> _loggerMock;
     private readonly AddViewerToSubdomainCommandHandler _handler;
     private readonly TimeProvider _timeProvider;
@@ -26,6 +29,7 @@ public class AddViewerToSubdomainCommandHandlerTests
     {
         this._repositoryMock = new Mock<ISubdomainRepository>(MockBehavior.Strict);
         this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
+        this._querierMock = new Mock<IQuerier>(MockBehavior.Strict);
         this._loggerMock = new Mock<ILogger<AddViewerToSubdomainCommandHandler>>();
         this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
@@ -36,7 +40,8 @@ public class AddViewerToSubdomainCommandHandlerTests
             this._timeProvider,
             validators,
             this._loggerMock.Object,
-            this._eventPublisherMock.Object);
+            this._eventPublisherMock.Object,
+            this._querierMock.Object);
     }
 
     [Fact]

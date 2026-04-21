@@ -37,3 +37,9 @@
   - Domain layer across all modules is clean — zero infrastructure leaking
   - CQRS handler patterns are consistent across all 3 modules
   - Integration events properly decoupled via CAP with Redis — no direct cross-module command/query calls
+- **2026-04-21 Redis vs In-Memory CAP Evaluation:** Andrew asked whether Redis is still needed for CAP in a modular monolith. Verdict: **keep Redis for CAP transport, make it environment-configurable**. Key findings:
+  - 28 CAP subscribers across 4 assemblies — mostly fire-and-forget projections/notifications
+  - One critical event: `EmailDeleted` → file cleanup (durability matters here)
+  - Redis also used for: UserStatusCache, SubdomainCache, ChaosAddressCache, Session state, API key validation/rate limiting
+  - Auth cookies already fixed — no longer use Redis SessionStore (Program.cs:214-219)
+  - Recommendation: Add `CAP.Transport` config switch ("Redis" vs "InMemory"). Default to Redis for prod, allow InMemory for dev. This removes mandatory Redis from local dev while preserving durability guarantees in production. ~2 hour implementation. Decision written to `decisions/inbox/master-chief-redis-eval-2026-04-21.md`.
