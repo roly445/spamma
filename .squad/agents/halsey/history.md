@@ -8,6 +8,10 @@
 ## Learnings
 
 <!-- Append new learnings below. Each entry is something lasting about the project. -->
+- WebAuthn assertion verification is implemented in `WebAuthnAssertionVerifier` (injectable via `IWebAuthnAssertionVerifier`). Checks: type="webauthn.get", challenge match (byte-level, base64url decode), origin match, rpIdHash match (SHA-256), user-present flag, ECDSA/RSA signature over `authenticatorData || SHA-256(clientDataJSON)`.
+- Stored `PublicKey` on passkey is the full CBOR attestation object (not just the COSE key). COSE key is extracted from `authData` at verification time via `System.Formats.Cbor`. Format depends on registration not being changed.
+- `UseAuthentication()` must appear before `UseAuthorization()` in the middleware pipeline — without it HttpContext.User is never populated.
+- `WebAuthnAssertionVerifier` is a singleton service (not static) to support test mocking via `IWebAuthnAssertionVerifier`.
 - Auth scheme: `CookieAuthenticationDefaults.AuthenticationScheme`. Cookie name: `SpammaAuth`, HttpOnly: true, SecurePolicy: SameAsRequest
 - Authentication methods: magic links (primary), WebAuthn passkeys (alternative)
 - Magic links: time-limited GUID tokens. Flow: email → validate token → issue `SpammaAuth` cookie with claims (UserId, email, roles)
