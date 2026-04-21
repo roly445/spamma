@@ -17,3 +17,15 @@
 - Client components use `ICommander` (for commands) and `IQuerier` (for queries) — injected via DI, no raw HTTP
 - `IJSRuntime` for browser API access (WebAuthn, localStorage) — available in client WASM context
 - Tailwind CSS v4 via webpack integration
+- **2026-04-21 Frontend Review findings:**
+  - `setup-email.ts` preset handler uses wrong selector (`[onclick="setSmtpPreset(...)"]`) — Email.razor uses `data-preset` buttons. Presets are silently broken.
+  - `setup-admin.ts` exports class but never instantiates it — script runs as a no-op on /setup/admin.
+  - `webpack.config.js` uses `devtool: 'inline-source-map'` globally — TypeScript source embeds in production bundles. No env split.
+  - `webpack.config.js` has leftover `generator: { filename: 'abc.js' }` in ts-loader rule — harmless dead config.
+  - `package.json` has dead Parcel config (`parcel-namer-rewrite`, `targets.default.distDir`) — leftover from migration to webpack.
+  - `Home.razor.cs` calls StateHasChanged() redundantly after each SignalR callback that already calls LoadEmails() (which itself calls StateHasChanged).
+  - `login.ts` has a large commented-out initiatePasskeyLogin() block — should be deleted.
+  - `setup-admin.ts` has dead `setExample()` helper — defined, never called.
+  - `setup-hosting.ts` typo: `existingHostingSctions` (missing 'e').
+  - `AppLayout.razor.cs` uses `.Wait()` in Dispose() on an async method — should use IAsyncDisposable.
+  - Inline styles in Keys.razor (`min-height: 300px; cursor: crosshair`) and DomainIcon.razor could be Tailwind classes.

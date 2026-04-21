@@ -18,3 +18,24 @@
 - Webpack errors: clear with `npm ci && npm run build`
 - Marten auto-creates event and snapshot tables on first run
 - CAP framework uses Redis for integration event message queues — set appropriate Redis eviction policies
+
+### Infrastructure Review (2026-04-21)
+
+**Critical Issues Found (Build Blocking):**
+- NuGet package vulnerabilities: Microsoft.Bcl.Memory (HIGH), MimeKit + MailKit (MODERATE) require immediate updates
+- Hardcoded certificate password in `appsettings.Development.json` exposed in source control
+- Frontend assets (`wwwroot/`) not built — missing from repository
+
+**Warnings Identified:**
+- `appsettings.Development.json` should be in `.gitignore` (user-specific config)
+- Kestrel binding to non-standard port/hostname `app.spamma.local:50055` — requires setup
+- MailHog container missing health check in docker-compose.yml
+- PostgreSQL credentials weak in docker-compose.yml (acceptable for local dev only)
+
+**Positive Findings:**
+- Docker Compose infrastructure well-configured (health checks, volumes, restart policies)
+- CI/CD pipeline comprehensive (frontend + backend builds, tests, multi-arch Docker)
+- Project structure and .gitignore generally sound
+- Frontend build pipeline (Webpack, Tailwind v4, TypeScript) properly configured
+
+**Remediation Status:** Findings documented in `.squad/decisions/inbox/guilty-spark-infra-review-2026-04-21.md`

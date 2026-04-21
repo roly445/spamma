@@ -18,7 +18,8 @@ public class BackgroundTaskService(
     {
         using var scope = serviceProvider.CreateScope();
         var commander = scope.ServiceProvider.GetRequiredService<ICommander>();
-        var hostEnv = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+        var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
+
         while (!stoppingToken.IsCancellationRequested)
         {
             var workItem = await taskQueue.DequeueAsync(stoppingToken);
@@ -43,8 +44,9 @@ public class BackgroundTaskService(
 
                         if (result is { Status: CommandResultStatus.Succeeded, Data.IsFirstEmail: true })
                         {
-                            await ExtractEmailAddressesAndSendCommand(messageId, message, commander, workItem,
-                                hostEnv.ContentRootPath, result.Data.CampaignId, cancellationToken: stoppingToken);
+                            await ExtractEmailAddressesAndSendCommand(messageId, message, commander,
+                                messageStoreProvider, workItem, result.Data.CampaignId,
+                                cancellationToken: stoppingToken);
                         }
 
                         break;
@@ -56,8 +58,8 @@ public class BackgroundTaskService(
                             stoppingToken);
                         break;
                     case StandardEmailCaptureJob standardJob:
-                        await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander, workItem,
-                            hostEnv.ContentRootPath, cancellationToken: stoppingToken);
+                        await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
+                            messageStoreProvider, workItem, cancellationToken: stoppingToken);
                         break;
                 }
             }
@@ -74,8 +76,15 @@ public class BackgroundTaskService(
 
     private static async Task ExtractEmailAddressesAndSendCommand(
         Guid messageId, MimeMessage message, ICommander commander,
-        IBaseEmailCaptureJob workItem, string contentPath, Guid? campaignId = null, CancellationToken cancellationToken = default)
+        IMessageStoreProvider messageStoreProvider,
+        IBaseEmailCaptureJob workItem, Guid? campaignId = null, CancellationToken cancellationToken = default)
     {
+        var storeResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
+        if (!storeResult.IsSuccess)
+        {
+            return;
+        }
+
         var addresses = message.To.Mailboxes
             .Select(x => new EmailAddress(x.Address, x.Name, EmailAddressType.To))
             .ToList();
@@ -86,9 +95,10 @@ public class BackgroundTaskService(
         addresses.AddRange(message.From.Mailboxes
             .Select(x => new EmailAddress(x.Address, x.Name, EmailAddressType.From)));
 
+        CommandResult commandResult;
         if (campaignId == null)
         {
-            await commander.Send(
+            commandResult = await commander.Send(
                 new ReceivedEmailCommand(
                     messageId,
                     workItem.DomainId,
@@ -99,7 +109,7 @@ public class BackgroundTaskService(
         }
         else
         {
-            await commander.Send(
+            commandResult = await commander.Send(
                 new CampaignEmailReceivedCommand(
                     messageId,
                     workItem.DomainId,
@@ -110,9 +120,9 @@ public class BackgroundTaskService(
                     addresses), cancellationToken);
         }
 
-        var messagesDir = Path.Combine(contentPath, "messages");
-        Directory.CreateDirectory(messagesDir);
-        var filePath = Path.Combine(messagesDir, $"{messageId}.eml");
-        await message.WriteToAsync(filePath, cancellationToken);
+        if (commandResult.Status != CommandResultStatus.Succeeded)
+        {
+            await messageStoreProvider.DeleteMessageContentAsync(messageId, cancellationToken);
+        }
     }
 }

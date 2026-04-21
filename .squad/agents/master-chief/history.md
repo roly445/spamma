@@ -18,3 +18,21 @@
 - Blazor server project (`Spamma.App`) handles only static pages (Login, Setup, Error) — mark with `[ExcludeFromInteractiveRouting]`
 - All interactive UI lives in `Spamma.App.Client` Blazor WASM project
 - Authentication: cookie-based (`SpammaAuth`), HttpOnly, issued server-side after magic link or passkey validation
+- **2026-04-21 Architecture Review Findings:**
+  - DomainManagement projections directly reference `UserManagement.Infrastructure.ReadModels` (UserLookup) — cross-module infrastructure coupling
+  - EmailInbox directly references `UserManagement.Infrastructure.Services.ApiKeys.IApiKeyValidationService` — should go through Common abstraction
+  - DomainManagement.csproj has hard references to both EmailInbox and UserManagement server projects — creates tight dependency graph
+  - CAP subscriber registration in Program.cs is missing `DomainManagement.Module` assembly — `CacheInvalidationEventHandler` subscribers may not be discovered
+  - `IAuthTokenProvider.cs` in Common has 3 public types in one file (ErrorCodes enum, IAuthTokenProvider interface, AuthTokenProvider class) — SA1649 violation
+  - `IEmailSender.cs` in Common has 2 public types (EmailTemplateSection enum + IEmailSender interface) — SA1649 violation
+  - `IInternalQueryStore.cs` in Common has 2 public types (interface + class) — SA1649 violation
+  - `StartAuthenticationCommand` and `CompleteAuthenticationCommand` missing `[BluQubeCommand]` — intentional (server-only auth flow, not WASM-routed)
+  - `GetUserByIdQuery` missing `[BluQubeQuery]` — likely intentional (admin server-only query)
+  - `ReceivedEmailCommand` and `CampaignEmailReceivedCommand` missing `[BluQubeCommand]` — intentional (internal SMTP pipeline, not WASM-routed)
+  - `GetDetailedDomainByIdQuery` and `GetDetailedSubdomainByIdQuery` have typo in path: `"gat-by-id"` should be `"get-by-id"`
+  - `Settings.cs` in Common mixes auth settings with domain-specific settings (MailServerHostname, MxPriority)
+  - EmailRepository directly accesses filesystem (`File.Exists`, `File.OpenRead`) instead of delegating to `IMessageStoreProvider`
+  - EmailInbox.csproj has duplicate `Common.Client` ProjectReference (lines 47 and 71)
+  - Domain layer across all modules is clean — zero infrastructure leaking
+  - CQRS handler patterns are consistent across all 3 modules
+  - Integration events properly decoupled via CAP with Redis — no direct cross-module command/query calls
