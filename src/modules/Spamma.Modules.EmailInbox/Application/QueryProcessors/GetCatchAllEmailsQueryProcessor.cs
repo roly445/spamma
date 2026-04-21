@@ -30,9 +30,9 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession)
         var groups = emails
             .GroupBy(e =>
             {
-                var toAddress = e.EmailAddresses.FirstOrDefault(a => a.EmailAddressType == EmailAddressType.To)?.Address ?? string.Empty;
-                var atIndex = toAddress.IndexOf('@');
-                return atIndex >= 0 ? toAddress[(atIndex + 1)..] : string.Empty;
+                var fromAddress = e.EmailAddresses.FirstOrDefault(a => a.EmailAddressType == EmailAddressType.From)?.Address ?? string.Empty;
+                var atIndex = fromAddress.IndexOf('@');
+                return atIndex >= 0 ? fromAddress[(atIndex + 1)..] : string.Empty;
             })
             .Select(g => new GetCatchAllEmailsQueryResult.DomainGroup(
                 g.Key,

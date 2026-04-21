@@ -6,7 +6,6 @@ using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using SmtpServer;
 using SmtpServer.Storage;
 using Spamma.Modules.EmailInbox.Application.Repositories;
@@ -15,7 +14,6 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
-using Spamma.Modules.EmailInbox.Infrastructure.Settings;
 
 namespace Spamma.Modules.EmailInbox;
 
@@ -45,18 +43,17 @@ public static class Module
         // SMTP certificate service
         services.AddSingleton<SmtpCertificateService>();
 
-        // Configure SMTP server with optional TLS port and optional catch-all port
+        // Configure SMTP server with optional TLS port
         services.AddSingleton(provider =>
         {
             var certService = provider.GetRequiredService<SmtpCertificateService>();
             var certificate = certService.FindCertificate();
-            var emailSettings = provider.GetRequiredService<IOptions<EmailInboxSettings>>().Value;
 
             var optionsBuilder = new SmtpServerOptionsBuilder()
                 .ServerName("Spamma SMTP Server")
                 .Endpoint(builder =>
                 {
-                    builder.Port(emailSettings.Port, false);
+                    builder.Port(25, false);
                 });
 
             // Add port 587 (STARTTLS) with certificate if available
@@ -67,15 +64,6 @@ public static class Module
                     builder
                         .Port(587, true)
                         .Certificate(certificate.Value);
-                });
-            }
-
-            // Add optional catch-all port (always accepts any domain)
-            if (emailSettings.CatchAllPortEnabled)
-            {
-                optionsBuilder.Endpoint(builder =>
-                {
-                    builder.Port(emailSettings.CatchAllPort, false);
                 });
             }
 

@@ -81,7 +81,7 @@ public class CatchAllInboxTests : BunitContext
 
         // Verify
         cut.FindAll("[data-testid='domain-group']").Should().HaveCount(1);
-        cut.Markup.Should().Contain("example.com");
+        cut.Markup.Should().Contain("From: example.com");
         cut.Markup.Should().Contain("Hello World");
     }
 }

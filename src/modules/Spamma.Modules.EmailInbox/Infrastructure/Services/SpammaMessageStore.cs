@@ -1,19 +1,16 @@
 using System.Buffers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using SmtpServer;
 using SmtpServer.Protocol;
 using SmtpServer.Storage;
 using Spamma.Modules.Common.Caching;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
-using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
-using Spamma.Modules.EmailInbox.Infrastructure.Settings;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-public class SpammaMessageStore(PushNotificationManager pushNotificationManager, IOptions<EmailInboxSettings>? settings = null) : MessageStore
+public class SpammaMessageStore(PushNotificationManager pushNotificationManager) : MessageStore
 {
     public override async Task<SmtpResponse> SaveAsync(
         ISessionContext context,
@@ -23,6 +20,8 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager,
     {
         var scope = context.ServiceProvider.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SpammaMessageStore>>();
+        var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
+        var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
         var backgroundTaskQueue = scope.ServiceProvider.GetRequiredService<IBackgroundTaskQueue>();
 
         var memoryStream = new MemoryStream((int)buffer.Length);
@@ -42,32 +41,6 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager,
         {
             recipients.AddRange(toList.Mailboxes);
         }
-
-        var messageId = Guid.NewGuid();
-
-        var incomingPort = context.EndpointDefinition?.Endpoint?.Port ?? 0;
-        var emailInboxSettingsOptions = settings ?? scope.ServiceProvider.GetService<IOptions<EmailInboxSettings>>();
-        if (emailInboxSettingsOptions?.Value?.CatchAllPortEnabled == true && incomingPort == emailInboxSettingsOptions.Value.CatchAllPort)
-        {
-            backgroundTaskQueue.QueueBackgroundWorkItem(
-                new StandardEmailCaptureJob(memoryStream, CatchAllConstants.DomainId, CatchAllConstants.SubdomainId, messageId));
-
-            await pushNotificationManager.NotifyEmailAsync(
-                new PushNotificationManager.EmailDetails(
-                    messageId,
-                    CatchAllConstants.SubdomainId,
-                    message.From?.ToString() ?? string.Empty,
-                    recipients.FirstOrDefault()?.Address ?? string.Empty,
-                    message.Subject ?? string.Empty,
-                    message.TextBody ?? message.HtmlBody ?? string.Empty,
-                    DateTimeOffset.Now),
-                cancellationToken);
-
-            return SmtpResponse.Ok;
-        }
-
-        var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
-        var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
 
         ISubdomainCache.CachedSubdomain? foundValidSubdomain = null;
 
@@ -106,9 +79,10 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager,
 
         if (foundValidSubdomain == null)
         {
-            var catchAllSettings = scope.ServiceProvider.GetService<IEmailInboxSettings>();
+            var settingsService = scope.ServiceProvider.GetRequiredService<IEmailInboxSettingsService>();
+            var catchAllEnabled = await settingsService.GetCatchAllModeEnabledAsync(cancellationToken);
 
-            if (catchAllSettings?.CatchAllModeEnabled != true)
+            if (!catchAllEnabled)
             {
                 logger.LogWarning("Email rejected - no valid subdomain for recipients");
                 return SmtpResponse.MailboxNameNotAllowed;
@@ -117,37 +91,27 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager,
             logger.LogInformation("Catch-all mode active - accepting email for unregistered domain");
 
             var catchAllMessageId = Guid.NewGuid();
-            var messageStoreProvider = scope.ServiceProvider.GetService<IMessageStoreProvider>();
+            backgroundTaskQueue.QueueBackgroundWorkItem(new CatchAllEmailCaptureJob(
+                memoryStream,
+                CatchAllConstants.DomainId,
+                CatchAllConstants.SubdomainId,
+                catchAllMessageId));
 
-            if (messageStoreProvider != null)
-            {
-                var storeResult = await messageStoreProvider.StoreMessageContentAsync(catchAllMessageId, message, cancellationToken);
-                if (!storeResult.IsSuccess)
-                {
-                    return SmtpResponse.TransactionFailed;
-                }
-            }
-
-            try
-            {
-                backgroundTaskQueue.QueueBackgroundWorkItem(new CatchAllEmailCaptureJob(
-                    memoryStream,
-                    EmailInboxSettingsDocument.CatchAllDomainId,
-                    EmailInboxSettingsDocument.CatchAllSubdomainId,
-                    catchAllMessageId));
-            }
-            catch
-            {
-                if (messageStoreProvider != null)
-                {
-                    await messageStoreProvider.DeleteMessageContentAsync(catchAllMessageId, cancellationToken);
-                }
-
-                return SmtpResponse.TransactionFailed;
-            }
+            await pushNotificationManager.NotifyEmailAsync(
+                new PushNotificationManager.EmailDetails(
+                    catchAllMessageId,
+                    CatchAllConstants.SubdomainId,
+                    message.From?.ToString() ?? string.Empty,
+                    recipients.FirstOrDefault()?.Address ?? string.Empty,
+                    message.Subject ?? string.Empty,
+                    message.TextBody ?? message.HtmlBody ?? string.Empty,
+                    DateTimeOffset.Now),
+                cancellationToken);
 
             return SmtpResponse.Ok;
         }
+
+        var messageId = Guid.NewGuid();
 
         if (string.IsNullOrWhiteSpace(campaignHeader))
         {
