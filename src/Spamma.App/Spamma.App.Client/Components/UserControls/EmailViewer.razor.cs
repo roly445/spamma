@@ -169,6 +169,42 @@ public partial class EmailViewer(
         return 0;
     }
 
+    private static string PrepareHtmlForIframe(string htmlContent)
+    {
+        if (string.IsNullOrEmpty(htmlContent))
+        {
+            return htmlContent;
+        }
+
+        // Inject <base target="_blank"> to force all links to open in new tabs
+        // This handles both <head> tag presence and absence
+        var baseTag = "<base target=\"_blank\">";
+
+        // Try to inject after <head> tag if present
+        var headIndex = htmlContent.IndexOf("<head>", StringComparison.OrdinalIgnoreCase);
+        if (headIndex >= 0)
+        {
+            var insertPosition = headIndex + "<head>".Length;
+            return htmlContent.Insert(insertPosition, baseTag);
+        }
+
+        // If no <head> tag, try to inject after <html> tag
+        var htmlIndex = htmlContent.IndexOf("<html", StringComparison.OrdinalIgnoreCase);
+        if (htmlIndex >= 0)
+        {
+            // Find the closing > of the <html> tag
+            var closingBracket = htmlContent.IndexOf('>', htmlIndex);
+            if (closingBracket >= 0)
+            {
+                var insertPosition = closingBracket + 1;
+                return htmlContent.Insert(insertPosition, $"<head>{baseTag}</head>");
+            }
+        }
+
+        // If no <html> or <head> tag, prepend it to the content
+        return baseTag + htmlContent;
+    }
+
     private void SetViewportSize(int? width, string name)
     {
         this._currentViewportWidth = width;

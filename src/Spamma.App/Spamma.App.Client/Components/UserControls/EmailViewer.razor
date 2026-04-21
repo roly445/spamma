@@ -287,9 +287,9 @@
                 {
                     <div class="h-full flex justify-center overflow-x-auto bg-gray-100 p-4">
                         <div class="@GetIframeContainerClasses()" style="@GetIframeContainerStyle()">
-                            <iframe srcdoc="@_activeTab.Content"
+                            <iframe srcdoc="@PrepareHtmlForIframe(_activeTab.Content)"
                                     class="w-full h-full border border-gray-300 bg-white shadow-lg rounded"
-                                    sandbox="allow-same-origin">
+                                    sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox">
                             </iframe>
                         </div>
                     </div>
