@@ -28,6 +28,7 @@ using Spamma.App.Infrastructure.Configuration;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Contracts.Settings;
 using Spamma.App.Infrastructure.Endpoints;
+using Spamma.App.Infrastructure.Endpoints.Admin;
 using Spamma.App.Infrastructure.Hubs;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
@@ -413,6 +414,7 @@ using (var scope = app.Services.CreateScope())
 // Map API endpoints organized by feature
 app.MapGeneralApiEndpoints();
 app.MapAuthenticationEndpoints();
+app.MapAdminApiEndpoints();
 
 app.MapHealthChecks("/health");
 

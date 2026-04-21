@@ -10,10 +10,14 @@ namespace Spamma.App.Client.Pages.Admin;
 public partial class AppSettings(
     ICommander commander,
     IOptions<Spamma.App.Client.Infrastructure.Contracts.Settings> settings,
-    INotificationService notificationService) : ComponentBase
+    INotificationService notificationService,
+    HttpClient httpClient,
+    NavigationManager navigationManager) : ComponentBase
 {
     private bool _catchAllEnabled;
     private bool _isSaving;
+    private bool _showMaintenanceConfirm;
+    private bool _isEnteringMaintenance;
 
     protected override void OnInitialized()
     {
@@ -51,6 +55,36 @@ public partial class AppSettings(
         finally
         {
             this._isSaving = false;
+            this.StateHasChanged();
+        }
+    }
+
+    private void ShowMaintenanceConfirm()
+    {
+        this._showMaintenanceConfirm = true;
+    }
+
+    private async Task ConfirmMaintenanceMode()
+    {
+        this._isEnteringMaintenance = true;
+        this.StateHasChanged();
+
+        try
+        {
+            var response = await httpClient.PostAsync("api/admin/maintenance", null);
+            if (response.IsSuccessStatusCode)
+            {
+                navigationManager.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                notificationService.ShowError("Failed to enter maintenance mode");
+                this._showMaintenanceConfirm = false;
+            }
+        }
+        finally
+        {
+            this._isEnteringMaintenance = false;
             this.StateHasChanged();
         }
     }

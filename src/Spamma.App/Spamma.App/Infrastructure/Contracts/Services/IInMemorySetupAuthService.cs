@@ -10,5 +10,7 @@ public interface IInMemorySetupAuthService
 
     void DisableSetupMode();
 
+    void EnableMaintenanceMode(string reason);
+
     string GetSetupReason();
 }

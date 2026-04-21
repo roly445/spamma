@@ -100,3 +100,31 @@
 **guilty-spark-dashboard** ↔ **cortana-healthchecks**:
 - Aspire Dashboard monitors `/health` endpoint provided by cortana's health checks
 - Both agents coordinated on observability infrastructure stack
+
+### ASP.NET Core Developer Certificate Configuration (2026-04-22)
+
+**Decision:** Migrate from manual `cert.pfx` management to automatic ASP.NET Core dev cert store.
+
+**Rationale:**
+- Modern .NET approach eliminates manual certificate generation/management
+- Kestrel automatically uses dev cert from machine store when no explicit Certificate path specified
+- Reduces setup friction — developers only run `dotnet dev-certs https --trust` once
+- Eliminates risk of committing certificate files to source control
+
+**Changes Made:**
+- `appsettings.Development.json`: Removed explicit Certificate block from HttpsDefaultCert endpoint
+- `Spamma.App.csproj`: Added `UserSecretsId` for future secrets management via `dotnet user-secrets`
+- `.gitignore`: Already had `*.pfx` pattern — no changes needed
+- `README.md`: Added setup instruction: `dotnet dev-certs https --trust`
+
+**Impact:**
+- No code changes needed — Kestrel behavior unchanged
+- HTTPS endpoint automatically uses trusted dev cert on localhost
+- Development setup now requires one additional command (one-time per machine)
+- Prevents accidental cert.pfx commits to repository
+
+**Related Services:**
+- Kestrel endpoints: `http://app.spamma.local:50055`, `https://app.spamma.local:50056`
+- Dev cert store: Managed by .NET SDK on Windows/macOS/Linux
+
+**Commit:** `592a57f` (chore: switch to dev cert store for local HTTPS, gitignore cert.pfx)

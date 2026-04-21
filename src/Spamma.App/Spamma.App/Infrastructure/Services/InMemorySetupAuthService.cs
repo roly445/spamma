@@ -7,7 +7,7 @@ public class InMemorySetupAuthService : IInMemorySetupAuthService
 {
     private readonly string setupReason;
     private readonly ILogger<InMemorySetupAuthService> _logger;
-    private readonly string _setupPassword;
+    private string _setupPassword;
     private bool _setupModeEnabled;
 
     public InMemorySetupAuthService(
@@ -80,6 +80,19 @@ public class InMemorySetupAuthService : IInMemorySetupAuthService
 
         // Optional: Create setup completion marker
         this.CreateSetupCompletionMarker();
+    }
+
+    public void EnableMaintenanceMode(string reason)
+    {
+        this._setupModeEnabled = true;
+        this._setupPassword = GenerateSetupPassword();
+
+        this._logger.LogCritical("=".PadRight(80, '='));
+        this._logger.LogCritical("SPAMMA MAINTENANCE MODE ENABLED");
+        this._logger.LogCritical("Reason: {Reason}", reason);
+        this._logger.LogCritical("SETUP PASSWORD: {SetupPassword}", this._setupPassword);
+        this._logger.LogCritical("Access setup wizard at: /setup-login");
+        this._logger.LogCritical("=".PadRight(80, '='));
     }
 
     private static string GenerateSetupPassword()
