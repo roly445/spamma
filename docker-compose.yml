@@ -39,19 +39,17 @@ services:
       - 8025:8025 # web ui
     restart: unless-stopped
   
-  # Jaeger - trace collection and visualization
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: spamma-jaeger
+  # Aspire Dashboard — distributed traces, metrics, and structured logs (OTLP on :18889, UI on :18888)
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    container_name: spamma-aspire-dashboard
     ports:
-      - "16686:16686"   # Jaeger UI
-      - "4317:4317"     # OTLP gRPC receiver
-      - "4318:4318"     # OTLP HTTP receiver
-      - "9411:9411"     # Zipkin receiver (for compatibility)
+      - "18888:18888"   # Dashboard UI
+      - "18889:18889"   # OTLP endpoint (gRPC)
     environment:
-      - COLLECTOR_OTLP_ENABLED=true
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:14269/"]
+      test: ["CMD", "curl", "-f", "http://localhost:18888/health"]
       interval: 10s
       timeout: 5s
       retries: 5
