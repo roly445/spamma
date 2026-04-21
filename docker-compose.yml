@@ -35,8 +35,7 @@ services:
   mailhog:
     image: mailhog/mailhog
     ports:
-      - 1025:1025 # smtp server (strict mode — domain validation required)
-      # - 1026:1026 # catch-all smtp port (enable via SmtpServer:CatchAllPortEnabled=true)
+      - 2025:1025 # smtp capture (app outbound mail → MailHog; host:2025 avoids conflict with Spamma's inbound SMTP on :1025)
       - 8025:8025 # web ui
     restart: unless-stopped
   
