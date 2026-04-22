@@ -3,11 +3,11 @@ using BluQube.Queries;
 namespace Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 public record GetCatchAllEmailsQueryResult(
-    IReadOnlyList<GetCatchAllEmailsQueryResult.DomainGroup> Groups,
+    IReadOnlyList<GetCatchAllEmailsQueryResult.SenderGroup> Groups,
     int TotalCount) : IQueryResult
 {
-    public record DomainGroup(
-        string Domain,
+    public record SenderGroup(
+        string SenderAddress,
         IReadOnlyList<EmailSummary> Emails);
 
     public record EmailSummary(

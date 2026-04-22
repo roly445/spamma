@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ResultMonad;
@@ -25,7 +26,7 @@ public interface IAuthTokenProvider
         Guid AuthenticationAttemptId);
 }
 
-public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
+public class AuthTokenProvider(IOptions<Settings> settings, ILogger<AuthTokenProvider> logger) : IAuthTokenProvider
 {
     private const string UserIdClaimType = "spamma-user-id";
     private const string SecurityTokenClaimType = "spamma-security-token";
@@ -74,7 +75,24 @@ public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
     private Result<string> GetToken(Guid userId, Guid securityStamp, DateTime whenCreated,
         IReadOnlyDictionary<string, string>? otherData = null)
     {
-        var signingKey = new SymmetricSecurityKey(Convert.FromBase64String(this._settings.SigningKeyBase64));
+        if (string.IsNullOrWhiteSpace(this._settings.SigningKeyBase64))
+        {
+            logger.LogError("SigningKeyBase64 is not configured — cannot generate authentication token. Run the setup wizard to configure the signing key.");
+            return Result.Fail<string>();
+        }
+
+        byte[] keyBytes;
+        try
+        {
+            keyBytes = Convert.FromBase64String(this._settings.SigningKeyBase64);
+        }
+        catch (FormatException ex)
+        {
+            logger.LogError(ex, "SigningKeyBase64 is not valid Base64 — cannot generate authentication token");
+            return Result.Fail<string>();
+        }
+
+        var signingKey = new SymmetricSecurityKey(keyBytes);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -98,8 +116,24 @@ public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
 
     private Result<TokenResult, ErrorData> ProcessToken(string token)
     {
+        if (string.IsNullOrWhiteSpace(this._settings.SigningKeyBase64))
+        {
+            logger.LogError("SigningKeyBase64 is not configured — cannot validate authentication token");
+            return Result.Fail<TokenResult, ErrorData>(new ErrorData(ErrorCodes.TokenNotValid, "Signing key not configured"));
+        }
+
+        byte[] key;
+        try
+        {
+            key = Convert.FromBase64String(this._settings.SigningKeyBase64);
+        }
+        catch (FormatException ex)
+        {
+            logger.LogError(ex, "SigningKeyBase64 is not valid Base64 — cannot validate authentication token");
+            return Result.Fail<TokenResult, ErrorData>(new ErrorData(ErrorCodes.TokenNotValid, "Token not valid"));
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Convert.FromBase64String(this._settings.SigningKeyBase64);
 
         var validationParameters = new TokenValidationParameters
         {
@@ -116,8 +150,9 @@ public class AuthTokenProvider(IOptions<Settings> settings) : IAuthTokenProvider
         {
             claimsPrincipal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogWarning(ex, "JWT token validation failed — token rejected as invalid");
             return Result.Fail<TokenResult, ErrorData>(new ErrorData(ErrorCodes.TokenNotValid, "Token not valid"));
         }
 

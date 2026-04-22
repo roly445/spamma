@@ -101,3 +101,17 @@
 - Build: 0 errors, 0 warnings.
 - **Primary diagnosis:** `Settings.SigningKeyBase64` missing/empty causes token generation to throw, which was previously swallowed. Secondary: SMTP port mismatch (dev config uses 2025, Docker MailHog default is 1025).
 
+## Task: Magic link trace — zero logs investigation (2026-04-22)
+
+- User reported ZERO log output after the previous session's logging was added. This means `HandleInternal` is never reached.
+- Root-cause analysis traced the full SSR Blazor form → MediatR pipeline path.
+- **Key gap found:** `Login.razor.cs` had no logging of its own — couldn't distinguish "form not submitted" from "command rejected at auth layer."
+- **Most likely cause of zero handler logs:** Stale `SpammaAuth` cookie makes the user "authenticated" → `StartAuthenticationCommandAuthorizer` uses `MustNotBeAuthenticatedRequirement` → authorization fails → BluQube `CommandHandler<T>` returns `CommandResult.Failed()` WITHOUT calling `HandleInternal` and WITHOUT logging. Zero logs from handler, yet the UI still shows "Magic link sent!" (success flag was set unconditionally).
+- **Secondary cause (still relevant):** `SigningKeyBase64` empty → `Convert.FromBase64String("")` threw `FormatException` in `GetToken()` which had no try-catch. This caused the CAP subscriber to crash silently.
+- **Fix 1:** `Login.razor.cs` — injected `ILogger<Login>`, added canary `LogInformation` as first line of `HandleSendMagicLink`, added `LogWarning` if command result is Failed.
+- **Fix 2:** `IAuthTokenProvider.cs` — `GetToken()` and `ProcessToken()` both now guard empty/invalid `SigningKeyBase64` with `LogError` + `Result.Fail` instead of throwing unhandled exceptions.
+- Build: 0 errors, 0 warnings.
+- Diagnosis doc: `.squad/decisions/inbox/cortana-magic-link-trace.md`
+- **To clear suspected stale-cookie cause:** user should clear browser cookies for the site and retry login.
+
+

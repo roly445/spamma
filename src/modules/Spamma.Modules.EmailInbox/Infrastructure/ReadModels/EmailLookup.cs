@@ -21,4 +21,6 @@ public class EmailLookup
     public Guid? CampaignId { get; init; }
 
     public string? CampaignValue { get; init; }
+
+    public Guid? CatchAllSenderAddressId { get; init; }
 }

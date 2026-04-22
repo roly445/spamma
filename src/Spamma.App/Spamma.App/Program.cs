@@ -52,6 +52,29 @@ using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Handle --reset-setup flag: clears setup completion from database so the app restarts in setup mode.
+// Usage: dotnet run --reset-setup
+if (args.Contains("--reset-setup"))
+{
+    var resetConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+    Console.WriteLine("[RESET] --reset-setup flag detected. Clearing setup configuration...");
+    try
+    {
+        await using var resetConnection = new Npgsql.NpgsqlConnection(resetConnectionString);
+        await resetConnection.OpenAsync();
+        var deleted = await Dapper.SqlMapper.ExecuteAsync(
+            resetConnection,
+            "DELETE FROM app_configuration WHERE key IN ('setup.completed', 'setup.version')");
+        Console.WriteLine($"[RESET] Cleared {deleted} setup configuration row(s). App will start in setup mode.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[RESET] Failed to clear setup configuration: {ex.Message}");
+        Console.WriteLine("[RESET] Ensure the database is running and the connection string is correct.");
+        return 1;
+    }
+}
+
 // Configure OpenTelemetry for logs, metrics, and traces
 // Uses OTLP exporter for maximum flexibility with any backend
 // Configure endpoint via appsettings or environment: OTEL_EXPORTER_OTLP_ENDPOINT
@@ -179,6 +202,10 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 
 // FluentEmail now uses database configuration with fallbacks
+var smtpHost = builder.Configuration["Settings:EmailSmtpHost"] ?? "localhost";
+var smtpPort = int.Parse(builder.Configuration["Settings:EmailSmtpPort"] ?? "587");
+Console.WriteLine($"[EMAIL] Outbound SMTP configured: host={smtpHost} port={smtpPort}");
+
 builder.Services
     .AddFluentEmail(
         builder.Configuration["Settings:FromEmailAddress"] ?? "noreply@example.com",
@@ -187,8 +214,8 @@ builder.Services
     .AddSmtpSender(() =>
     {
         var client = new SmtpClient();
-        client.Host = builder.Configuration["Settings:EmailSmtpHost"] ?? "localhost";
-        client.Port = int.Parse(builder.Configuration["Settings:EmailSmtpPort"] ?? "587");
+        client.Host = smtpHost;
+        client.Port = smtpPort;
         var username = builder.Configuration["Settings:EmailSmtpUsername"];
         if (username != null)
         {
@@ -420,4 +447,6 @@ app.MapHealthChecks("/health");
 
 app.MapHub<NotifierHub>($"/{Lookups.NotificationHubName}");
 
-return await app.RunJasperFxCommands(args);
+// Strip our custom flags before JasperFx processes args to avoid "unknown argument" errors
+var jasperArgs = args.Where(a => a != "--reset-setup").ToArray();
+return await app.RunJasperFxCommands(jasperArgs);

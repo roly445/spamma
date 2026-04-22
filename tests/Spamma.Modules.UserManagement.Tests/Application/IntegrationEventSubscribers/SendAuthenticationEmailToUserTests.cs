@@ -20,7 +20,11 @@ public class SendAuthenticationEmailToUserTests
         this._authTokenProviderMock = new Mock<IAuthTokenProvider>(MockBehavior.Strict);
         this._emailSenderMock = new Mock<IEmailSender>(MockBehavior.Strict);
         this._settings = Options.Create(new Settings { BaseUri = "https://spamma.io" });
-        this._subscriber = new SendAuthenticationEmailToUser(this._authTokenProviderMock.Object, this._emailSenderMock.Object, this._settings);
+        this._subscriber = new SendAuthenticationEmailToUser(
+            new Mock<Microsoft.Extensions.Logging.ILogger<SendAuthenticationEmailToUser>>().Object,
+            this._authTokenProviderMock.Object,
+            this._emailSenderMock.Object,
+            this._settings);
     }
 
     [Fact]

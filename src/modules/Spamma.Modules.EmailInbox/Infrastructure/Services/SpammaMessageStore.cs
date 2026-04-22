@@ -7,6 +7,7 @@ using SmtpServer.Storage;
 using Spamma.Modules.Common.Caching;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -23,6 +24,7 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
         var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
         var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
         var backgroundTaskQueue = scope.ServiceProvider.GetRequiredService<IBackgroundTaskQueue>();
+        var catchAllSenderAddressCache = scope.ServiceProvider.GetRequiredService<ICatchAllSenderAddressCache>();
 
         var memoryStream = new MemoryStream((int)buffer.Length);
         var position = buffer.GetPosition(0);
@@ -90,12 +92,27 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
 
             logger.LogInformation("Catch-all mode active - accepting email for unregistered domain");
 
+            var fromAddress = message.From.Mailboxes.FirstOrDefault()?.Address?.ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(fromAddress))
+            {
+                logger.LogWarning("Catch-all mode: email rejected - no From address present");
+                return SmtpResponse.MailboxNameNotAllowed;
+            }
+
+            var cachedSender = await catchAllSenderAddressCache.GetSenderAddressAsync(fromAddress, false, cancellationToken);
+            if (cachedSender == null)
+            {
+                logger.LogWarning("Catch-all mode: sender {FromAddress} is not whitelisted", fromAddress);
+                return SmtpResponse.MailboxNameNotAllowed;
+            }
+
             var catchAllMessageId = Guid.NewGuid();
             backgroundTaskQueue.QueueBackgroundWorkItem(new CatchAllEmailCaptureJob(
                 memoryStream,
                 CatchAllConstants.DomainId,
                 CatchAllConstants.SubdomainId,
-                catchAllMessageId));
+                catchAllMessageId,
+                cachedSender.SenderAddressId));
 
             await pushNotificationManager.NotifyEmailAsync(
                 new PushNotificationManager.EmailDetails(

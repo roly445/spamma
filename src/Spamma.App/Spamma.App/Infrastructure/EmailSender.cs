@@ -1,12 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
 using FluentEmail.Core;
+using Microsoft.Extensions.Logging;
 using ResultMonad;
 using Spamma.Modules.Common;
 
 namespace Spamma.App.Infrastructure;
 
-public class EmailSender(IFluentEmail fluentEmail) : IEmailSender
+public class EmailSender(IFluentEmail fluentEmail, ILogger<EmailSender> logger) : IEmailSender
 {
     private static readonly IReadOnlyDictionary<EmailTemplateSection, string> EmailTemplateSections = new Dictionary<EmailTemplateSection, string>
     {
@@ -42,8 +43,22 @@ public class EmailSender(IFluentEmail fluentEmail) : IEmailSender
             "Spamma",
         };
 
+        logger.LogInformation("Sending email to {EmailAddress} with subject {Subject}", emailAddress, subject);
+
         var sendResponse = await email.SendAsync(cancellationToken);
-        return sendResponse.Successful ? Result.Ok() : Result.Fail();
+
+        if (sendResponse.Successful)
+        {
+            logger.LogInformation("Email sent successfully to {EmailAddress}", emailAddress);
+            return Result.Ok();
+        }
+
+        logger.LogError(
+            "Failed to send email to {EmailAddress} with subject {Subject}. Errors: {Errors}",
+            emailAddress,
+            subject,
+            string.Join("; ", sendResponse.ErrorMessages));
+        return Result.Fail();
     }
 
     public sealed record EmailModel(IReadOnlyList<string> BodyContent);

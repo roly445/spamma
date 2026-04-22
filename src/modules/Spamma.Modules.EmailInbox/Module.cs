@@ -14,6 +14,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
 
 namespace Spamma.Modules.EmailInbox;
 
@@ -29,6 +30,7 @@ public static class Module
         services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
         services.AddScoped<IEmailRepository, EmailRepository>();
         services.AddScoped<ICampaignRepository, CampaignRepository>();
+        services.AddScoped<ICatchAllSenderAddressRepository, CatchAllSenderAddressRepository>();
         services.AddSingleton<PushNotificationManager>();
         services.AddScoped<EmailPushGrpcService>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
@@ -74,6 +76,7 @@ public static class Module
         services.AddHostedService<EmailCleanupBackgroundService>();
         services.AddSingleton<IMessageStoreProvider, LocalMessageStoreProvider>();
         services.AddScoped<IEmailInboxSettingsService, EmailInboxSettingsService>();
+        services.AddScoped<ICatchAllSenderAddressCache, CatchAllSenderAddressCache>();
         return services;
     }
 
@@ -93,8 +96,10 @@ public static class Module
     {
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
+        options.Projections.Add<CatchAllSenderAddressLookupProjection>(ProjectionLifecycle.Inline);
 
         options.Schema.For<EmailLookup>().Identity(x => x.Id);
+        options.Schema.For<CatchAllSenderAddressLookup>().Identity(x => x.Id);
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
         options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
 

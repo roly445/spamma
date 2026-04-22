@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Moq;
 using Spamma.Modules.Common;
 
 namespace Spamma.Modules.UserManagement.Tests.Application;
@@ -21,7 +23,7 @@ public class AuthTokenProviderTests
         };
 
         var options = Options.Create(this._settings);
-        this._authTokenProvider = new AuthTokenProvider(options);
+        this._authTokenProvider = new AuthTokenProvider(options, new Mock<Microsoft.Extensions.Logging.ILogger<AuthTokenProvider>>().Object);
     }
 
     [Fact]

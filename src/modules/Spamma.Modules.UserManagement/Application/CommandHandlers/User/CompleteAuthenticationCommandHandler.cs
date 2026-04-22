@@ -17,14 +17,21 @@ internal class CompleteAuthenticationCommandHandler(
     IEnumerable<IValidator<CompleteAuthenticationCommand>> validators,
     ILogger<CompleteAuthenticationCommandHandler> logger) : CommandHandler<CompleteAuthenticationCommand>(validators, logger)
 {
+    private readonly ILogger<CompleteAuthenticationCommandHandler> _logger = logger;
     private readonly Settings _settings = settings.Value;
 
     protected override async Task<CommandResult> HandleInternal(CompleteAuthenticationCommand request, CancellationToken cancellationToken)
     {
+        this._logger.LogInformation(
+            "Completing authentication for user {UserId}, attempt {AttemptId}",
+            request.UserId,
+            request.AuthenticationAttemptId);
+
         var userMaybe = await repository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (userMaybe.HasNoValue)
         {
+            this._logger.LogWarning("CompleteAuthentication failed — no user found for {UserId}", request.UserId);
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"User with ID {request.UserId} not found"));
         }
 
@@ -37,10 +44,26 @@ internal class CompleteAuthenticationCommandHandler(
 
         if (authResult.IsFailure)
         {
+            this._logger.LogWarning(
+                "ProcessAuthentication failed for {UserId}, attempt {AttemptId}: {ErrorCode}",
+                request.UserId,
+                request.AuthenticationAttemptId,
+                authResult.Error);
             return CommandResult.Failed(authResult.Error);
         }
 
         var saveResult = await repository.SaveAsync(user, cancellationToken);
-        return !saveResult.IsSuccess ? CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed)) : CommandResult.Succeeded();
+        if (!saveResult.IsSuccess)
+        {
+            this._logger.LogError("Failed to persist completed authentication for {UserId}", request.UserId);
+            return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
+        }
+
+        this._logger.LogInformation(
+            "Authentication completed successfully for {UserId}, attempt {AttemptId}",
+            request.UserId,
+            request.AuthenticationAttemptId);
+
+        return CommandResult.Succeeded();
     }
 }

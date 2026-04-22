@@ -10,4 +10,5 @@ public record ReceivedEmailCommand(
     DateTimeOffset WhenSent,
     IReadOnlyList<EmailAddress> EmailAddresses,
     bool IsCatchAll = false,
-    Guid? CatchAllDomainId = null) : ICommand;
+    Guid? CatchAllDomainId = null,
+    Guid? CatchAllSenderAddressId = null) : ICommand;

@@ -24,6 +24,7 @@ public class EmailLookupProjection : EventProjection
             SubdomainId = @event.Data.SubdomainId,
             Subject = @event.Data.Subject,
             SentAt = @event.Data.SentAt,
+            CatchAllSenderAddressId = @event.Data.CatchAllSenderAddressId,
         });
 
         foreach (var emailAddress in emailAddresses)

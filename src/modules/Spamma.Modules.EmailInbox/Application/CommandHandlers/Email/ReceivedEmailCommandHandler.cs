@@ -15,7 +15,7 @@ internal class ReceivedEmailCommandHandler(
     protected override async Task<CommandResult> HandleInternal(ReceivedEmailCommand request, CancellationToken cancellationToken)
     {
         var emailResult = Domain.EmailAggregate.Email.Create(
-            request.EmailId, request.DomainId, request.SubdomainId, request.Subject, request.WhenSent, request.EmailAddresses.Select(x => new EmailReceived.EmailAddress(x.Address, x.Name, x.EmailAddressType)).ToList());
+            request.EmailId, request.DomainId, request.SubdomainId, request.Subject, request.WhenSent, request.EmailAddresses.Select(x => new EmailReceived.EmailAddress(x.Address, x.Name, x.EmailAddressType)).ToList(), request.CatchAllSenderAddressId);
 
         if (emailResult.IsFailure)
         {

@@ -9,7 +9,7 @@ namespace Spamma.App.Client.Pages.Inbox;
 
 public partial class CatchAllInbox(IQuerier querier, IOptions<Settings> settings) : ComponentBase
 {
-    private IReadOnlyList<GetCatchAllEmailsQueryResult.DomainGroup> _groups = [];
+    private IReadOnlyList<GetCatchAllEmailsQueryResult.SenderGroup> _groups = [];
     private GetCatchAllEmailsQueryResult.EmailSummary? _selectedEmail;
     private bool _isLoading;
     private bool _catchAllEnabled;

@@ -60,7 +60,9 @@ public class BackgroundTaskService(
                         break;
                     case CatchAllEmailCaptureJob catchAllJob:
                         await ExtractEmailAddressesAndSendCommand(catchAllJob.MessageId, message, commander,
-                            messageStoreProvider, workItem, isCatchAll: true, cancellationToken: stoppingToken);
+                            messageStoreProvider, workItem, isCatchAll: true,
+                            catchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId,
+                            cancellationToken: stoppingToken);
                         break;
                     case StandardEmailCaptureJob standardJob:
                         await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
@@ -82,7 +84,8 @@ public class BackgroundTaskService(
     private static async Task ExtractEmailAddressesAndSendCommand(
         Guid messageId, MimeMessage message, ICommander commander,
         IMessageStoreProvider messageStoreProvider,
-        IBaseEmailCaptureJob workItem, Guid? campaignId = null, bool isCatchAll = false, CancellationToken cancellationToken = default)
+        IBaseEmailCaptureJob workItem, Guid? campaignId = null, bool isCatchAll = false,
+        Guid? catchAllSenderAddressId = null, CancellationToken cancellationToken = default)
     {
         var storeResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
         if (!storeResult.IsSuccess)
@@ -112,7 +115,8 @@ public class BackgroundTaskService(
                     message.Date,
                     addresses,
                     isCatchAll,
-                    isCatchAll ? workItem.DomainId : null), cancellationToken);
+                    isCatchAll ? workItem.DomainId : null,
+                    catchAllSenderAddressId), cancellationToken);
         }
         else
         {

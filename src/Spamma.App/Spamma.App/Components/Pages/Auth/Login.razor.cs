@@ -1,15 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
+using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Auth;
 
-/// <summary>
-/// Code-behind for the Login component.
-/// </summary>
-public partial class Login(ICommander commander) : ComponentBase
+public partial class Login(ICommander commander, ILogger<Login> logger) : ComponentBase
 {
     private bool showSuccessMessage;
 
@@ -20,8 +18,19 @@ public partial class Login(ICommander commander) : ComponentBase
 
     private async Task HandleSendMagicLink()
     {
+        logger.LogInformation("CANARY — HandleSendMagicLink invoked for {EmailAddress}", this.Model!.EmailAddress);
+
         var cmd = new StartAuthenticationCommand(this.Model!.EmailAddress);
-        await commander.Send(cmd);
+        var result = await commander.Send(cmd);
+
+        if (result.Status != CommandResultStatus.Succeeded)
+        {
+            logger.LogWarning(
+                "StartAuthenticationCommand failed for {EmailAddress}: {ErrorMessage}",
+                this.Model.EmailAddress,
+                result.ErrorData?.Message);
+        }
+
         this.showSuccessMessage = true;
     }
 

@@ -14,12 +14,12 @@ public class SendWelcomeEmailToNewUsers(
     : ICapSubscribe
 {
     [CapSubscribe(IntegrationEventNames.UserCreated)]
-    public Task Process(UserCreatedIntegrationEvent ev)
+    public async Task Process(UserCreatedIntegrationEvent ev)
     {
         if (!ev.SendWelcome)
         {
             logger.LogInformation("Skipping welcome email for user {UserId} as SendWelcome is false", ev.UserId);
-            return Task.CompletedTask;
+            return;
         }
 
         var emailBody = new List<Tuple<EmailTemplateSection, ImmutableArray<string>>>
@@ -30,6 +30,16 @@ public class SendWelcomeEmailToNewUsers(
             new(EmailTemplateSection.Text, ["Best regards,"]),
             new(EmailTemplateSection.Text, ["The Spamma Team"]),
         };
-        return emailSender.SendEmailAsync(ev.Name, ev.EmailAddress, "Register", emailBody);
+
+        logger.LogInformation("Sending welcome email to {EmailAddress} for user {UserId}", ev.EmailAddress, ev.UserId);
+
+        var result = await emailSender.SendEmailAsync(ev.Name, ev.EmailAddress, "Register", emailBody);
+        if (result.IsFailure)
+        {
+            logger.LogError("Failed to send welcome email to {EmailAddress} for user {UserId}", ev.EmailAddress, ev.UserId);
+            return;
+        }
+
+        logger.LogInformation("Welcome email sent successfully to {EmailAddress} for user {UserId}", ev.EmailAddress, ev.UserId);
     }
 }
