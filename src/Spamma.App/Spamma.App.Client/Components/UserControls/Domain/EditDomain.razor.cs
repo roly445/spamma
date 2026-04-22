@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -10,7 +10,7 @@ namespace Spamma.App.Client.Components.UserControls.Domain;
 /// <summary>
 /// Code-behind for the Edit Domain user control.
 /// </summary>
-public partial class EditDomain(ICommander commander, INotificationService notificationService) : ComponentBase
+public partial class EditDomain(ICommandRunner commander, INotificationService notificationService) : ComponentBase
 {
     private Model model = new();
     private bool isVisible;

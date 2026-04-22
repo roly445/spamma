@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using BluQube.Constants;
 using BluQube.Queries;
 using MaybeMonad;
@@ -12,7 +12,7 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
 public class ChaosAddressCache(
     IConnectionMultiplexer redisMultiplexer,
-    IQuerier querier,
+    IQueryRunner querier,
     ILogger<ChaosAddressCache> logger, IInternalQueryStore internalQueryStore) : IChaosAddressCache
 {
     private const string CacheKeyPrefix = "chaos:";

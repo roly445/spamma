@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using BluQube.Constants;
 using BluQube.Queries;
 using MaybeMonad;
@@ -9,7 +9,7 @@ using StackExchange.Redis;
 
 namespace Spamma.App.Infrastructure.Services;
 
-public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQuerier querier, IInternalQueryStore internalQueryStore)
+public class UserStatusCache(IConnectionMultiplexer redisMultiplexer, IQueryRunner querier, IInternalQueryStore internalQueryStore)
 {
     private const string Prefix = "userstatus:";
     private readonly IDatabase _redis = redisMultiplexer.GetDatabase();

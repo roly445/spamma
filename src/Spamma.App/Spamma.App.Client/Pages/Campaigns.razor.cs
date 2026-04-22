@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +14,7 @@ namespace Spamma.App.Client.Pages;
 /// Code-behind for the Campaigns page.
 /// </summary>
 public partial class Campaigns(
-    IQuerier querier, ICommander commander, INotificationService notificationService)
+    IQueryRunner querier, ICommandRunner commander, INotificationService notificationService)
 {
     private GetCampaignsQueryResult? _campaigns;
     private List<SubdomainSummary>? _subdomains;

@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
@@ -8,7 +8,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 namespace Spamma.App.Client.Pages.Admin;
 
 public partial class AppSettings(
-    ICommander commander,
+    ICommandRunner commander,
     IOptions<Spamma.App.Client.Infrastructure.Contracts.Settings> settings,
     INotificationService notificationService,
     HttpClient httpClient,

@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -14,7 +14,7 @@ namespace Spamma.App.Client.Pages.Admin;
 /// <summary>
 /// Code-behind for the Users page.
 /// </summary>
-public partial class Users(ICommander commander, IQuerier querier, INotificationService notificationService) : ComponentBase
+public partial class Users(ICommandRunner commander, IQueryRunner querier, INotificationService notificationService) : ComponentBase
 {
     private UserSearchRequest _searchRequest = new();
     private SearchUsersQueryResult pagedResult = new(new List<SearchUsersQueryResult.UserSummary>(), 0, 0, 0, 0);

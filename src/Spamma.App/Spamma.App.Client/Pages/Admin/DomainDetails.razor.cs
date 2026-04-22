@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -11,7 +11,7 @@ namespace Spamma.App.Client.Pages.Admin;
 /// <summary>
 /// Code-behind for the DomainDetails page.
 /// </summary>
-public partial class DomainDetails(ICommander commander, IQuerier querier, NavigationManager navigation, IJSRuntime jsRuntime) : ComponentBase
+public partial class DomainDetails(ICommandRunner commander, IQueryRunner querier, NavigationManager navigation, IJSRuntime jsRuntime) : ComponentBase
 {
     private GetDetailedDomainByIdQueryResult? domain;
     private bool _isLoading = true;

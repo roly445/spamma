@@ -1,4 +1,4 @@
-using BluQube.Constants;
+﻿using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -9,7 +9,7 @@ namespace Spamma.App.Client.Pages;
 /// <summary>
 /// Code-behind for the Campaign Detail page.
 /// </summary>
-public partial class CampaignDetail(IQuerier querier, NavigationManager navigationManager)
+public partial class CampaignDetail(IQueryRunner querier, NavigationManager navigationManager)
 {
     private GetCampaignDetailQueryResult? _campaignDetail;
     private SearchEmailsQueryResult.EmailSummary? _emailSummary;

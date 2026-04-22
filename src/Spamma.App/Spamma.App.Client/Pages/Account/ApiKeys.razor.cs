@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -14,7 +14,7 @@ namespace Spamma.App.Client.Pages.Account;
 /// <summary>
 /// Code-behind for the ApiKeys page.
 /// </summary>
-public partial class ApiKeys(ICommander commander, IQuerier querier, INotificationService notificationService, IJSRuntime jsRuntime) : ComponentBase
+public partial class ApiKeys(ICommandRunner commander, IQueryRunner querier, INotificationService notificationService, IJSRuntime jsRuntime) : ComponentBase
 {
     private CreateApiKeyModel createModel = new();
     private bool isCreating;

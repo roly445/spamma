@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
@@ -11,8 +11,8 @@ namespace Spamma.App.Client.Pages;
 /// <summary>
 /// Code-behind for the ChaosAddresses page.
 /// </summary>
-public partial class ChaosAddresses(IQuerier querier,
-    ICommander commander,
+public partial class ChaosAddresses(IQueryRunner querier,
+    ICommandRunner commander,
     INotificationService notificationService)
 {
     private bool isLoading = true;

@@ -20,9 +20,9 @@
 
     <ItemGroup>
       <PackageReference Include="StackExchange.Redis" Version="2.9.32" />
-      <PackageReference Include="BluQube" Version="1.0.3" />
+      <PackageReference Include="BluQube" Version="1.1.0" />
       <PackageReference Include="Certes" Version="3.0.4" />
-      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
       <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.6" />
       <PackageReference Include="MimeKit" Version="4.16.0" />
       <PackageReference Include="ResultMonad" Version="1.0.1" />

@@ -17,7 +17,7 @@ public class BackgroundTaskService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var scope = serviceProvider.CreateScope();
-        var commander = scope.ServiceProvider.GetRequiredService<ICommander>();
+        var commander = scope.ServiceProvider.GetRequiredService<ICommandRunner>();
         var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
 
         while (!stoppingToken.IsCancellationRequested)
@@ -82,7 +82,7 @@ public class BackgroundTaskService(
     }
 
     private static async Task ExtractEmailAddressesAndSendCommand(
-        Guid messageId, MimeMessage message, ICommander commander,
+        Guid messageId, MimeMessage message, ICommandRunner commander,
         IMessageStoreProvider messageStoreProvider,
         IBaseEmailCaptureJob workItem, Guid? campaignId = null, bool isCatchAll = false,
         Guid? catchAllSenderAddressId = null, CancellationToken cancellationToken = default)

@@ -1,4 +1,4 @@
-using Grpc.Core;
+﻿using Grpc.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys;
@@ -91,7 +91,7 @@ public sealed class EmailPushGrpcService(
         logger.LogInformation("GetEmailContent requested for email: {EmailId}", emailId);
 
         // Placeholder response - real implementation will retrieve actual email content
-        // Future enhancement: Inject IQuerier to call GetEmailMimeMessageByIdQuery
+        // Future enhancement: Inject IQueryRunner to call GetEmailMimeMessageByIdQuery
         // and verify user has permission to access this email via the API key
         return new global::Spamma.Modules.EmailInbox.Client.Application.Grpc.GetEmailContentResponse
         {

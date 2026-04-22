@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -12,7 +12,7 @@ namespace Spamma.App.Client.Components.UserControls;
 /// <summary>
 /// Code-behind for the UserAssignment component.
 /// </summary>
-public partial class UserAssignment(ICommander commander, IQuerier querier, INotificationService notificationService) : ComponentBase
+public partial class UserAssignment(ICommandRunner commander, IQueryRunner querier, INotificationService notificationService) : ComponentBase
 {
     private List<UserDetails> assignedUsers = new();
     private UserSearchRequest _searchRequest = new();

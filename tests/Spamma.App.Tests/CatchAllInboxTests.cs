@@ -1,4 +1,4 @@
-using Bunit;
+﻿using Bunit;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -19,7 +19,7 @@ public class CatchAllInboxTests : BunitContext
         // Arrange
         Services.AddSingleton<IOptions<Settings>>(Options.Create(new Settings { CatchAllModeEnabled = false }));
 
-        var querierMock = new Mock<IQuerier>();
+        var querierMock = new Mock<IQueryRunner>();
         Services.AddSingleton(querierMock.Object);
 
         // Act
@@ -36,7 +36,7 @@ public class CatchAllInboxTests : BunitContext
         // Arrange
         Services.AddSingleton<IOptions<Settings>>(Options.Create(new Settings { CatchAllModeEnabled = true }));
 
-        var querierMock = new Mock<IQuerier>();
+        var querierMock = new Mock<IQueryRunner>();
         querierMock
             .Setup(x => x.Send(It.IsAny<GetCatchAllEmailsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(QueryResult<GetCatchAllEmailsQueryResult>.Succeeded(
@@ -68,7 +68,7 @@ public class CatchAllInboxTests : BunitContext
             new("example.com", emails),
         };
 
-        var querierMock = new Mock<IQuerier>();
+        var querierMock = new Mock<IQueryRunner>();
         querierMock
             .Setup(x => x.Send(It.IsAny<GetCatchAllEmailsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(QueryResult<GetCatchAllEmailsQueryResult>.Succeeded(

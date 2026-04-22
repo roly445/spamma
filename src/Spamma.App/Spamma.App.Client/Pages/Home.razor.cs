@@ -1,4 +1,4 @@
-using BluQube.Constants;
+﻿using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -10,7 +10,7 @@ namespace Spamma.App.Client.Pages;
 /// <summary>
 /// Code-behind for the Home page.
 /// </summary>
-public partial class Home(IQuerier querier, ISignalRService signalRService) : IDisposable
+public partial class Home(IQueryRunner querier, ISignalRService signalRService) : IDisposable
 {
     private const int DefaultPageSize = 25;
     private IReadOnlyList<SearchEmailsQueryResult.EmailSummary> emails = new List<SearchEmailsQueryResult.EmailSummary>();

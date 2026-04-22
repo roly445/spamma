@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,7 +41,7 @@ public class EmailCleanupBackgroundService(
     {
         using var scope = serviceProvider.CreateScope();
         var documentSession = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-        var commander = scope.ServiceProvider.GetRequiredService<ICommander>();
+        var commander = scope.ServiceProvider.GetRequiredService<ICommandRunner>();
 
         var cutoffDate = timeProvider.GetUtcNow().DateTime.Subtract(EmailRetentionPeriod);
 

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -11,7 +11,7 @@ namespace Spamma.App.Client.Components.UserControls.Domain;
 /// <summary>
 /// Code-behind for the SuspendDomain component.
 /// </summary>
-public partial class SuspendDomain(ICommander commander, INotificationService notificationService) : ComponentBase
+public partial class SuspendDomain(ICommandRunner commander, INotificationService notificationService) : ComponentBase
 {
     private Model model = new();
     private bool isVisible;

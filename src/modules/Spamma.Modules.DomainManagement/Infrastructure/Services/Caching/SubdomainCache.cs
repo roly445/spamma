@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using BluQube.Constants;
 using BluQube.Queries;
 using MaybeMonad;
@@ -13,7 +13,7 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 
 public class SubdomainCache(
     IConnectionMultiplexer redisMultiplexer,
-    IQuerier querier,
+    IQueryRunner querier,
     ILogger<SubdomainCache> logger, IInternalQueryStore internalQueryStore) : ISubdomainCache
 {
     private const string CacheKeyPrefix = "subdomain:";

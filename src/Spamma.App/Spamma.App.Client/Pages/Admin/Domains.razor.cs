@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -14,8 +14,8 @@ namespace Spamma.App.Client.Pages.Admin;
 /// Code-behind for the Domains page.
 /// </summary>
 public partial class Domains(
-    ICommander commander,
-    IQuerier querier,
+    ICommandRunner commander,
+    IQueryRunner querier,
     NavigationManager navigationManager,
     IDomainValidationService domainValidationService,
     IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase

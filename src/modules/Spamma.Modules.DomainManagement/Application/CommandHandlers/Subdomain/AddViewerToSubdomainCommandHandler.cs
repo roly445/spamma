@@ -17,7 +17,7 @@ internal class AddViewerToSubdomainCommandHandler(
     IEnumerable<IValidator<AddViewerToSubdomainCommand>> validators,
     ILogger<AddViewerToSubdomainCommandHandler> logger,
     IIntegrationEventPublisher eventPublisher,
-    IQuerier querier)
+    IQueryRunner querier)
     : CommandHandler<AddViewerToSubdomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(AddViewerToSubdomainCommand request, CancellationToken cancellationToken)

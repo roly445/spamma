@@ -17,7 +17,7 @@ internal class AddModeratorToSubdomainCommandHandler(
     IEnumerable<IValidator<AddModeratorToSubdomainCommand>> validators,
     ILogger<AddModeratorToSubdomainCommandHandler> logger,
     IIntegrationEventPublisher eventPublisher,
-    IQuerier querier)
+    IQueryRunner querier)
     : CommandHandler<AddModeratorToSubdomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(AddModeratorToSubdomainCommand request, CancellationToken cancellationToken)

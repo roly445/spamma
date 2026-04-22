@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
@@ -9,7 +9,7 @@ namespace Spamma.App.Client.Components.UserControls.Subdomain;
 /// <summary>
 /// Code-behind for the UnsuspendSubdomain component.
 /// </summary>
-public partial class UnsuspendSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
+public partial class UnsuspendSubdomain(ICommandRunner commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;
     private bool isProcessing;

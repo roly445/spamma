@@ -1,4 +1,4 @@
-using BluQube.Constants;
+﻿using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Options;
@@ -7,7 +7,7 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Inbox;
 
-public partial class CatchAllInbox(IQuerier querier, IOptions<Settings> settings) : ComponentBase
+public partial class CatchAllInbox(IQueryRunner querier, IOptions<Settings> settings) : ComponentBase
 {
     private IReadOnlyList<GetCatchAllEmailsQueryResult.SenderGroup> _groups = [];
     private GetCatchAllEmailsQueryResult.EmailSummary? _selectedEmail;

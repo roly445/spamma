@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
@@ -9,7 +9,7 @@ namespace Spamma.App.Client.Components.UserControls.Subdomain;
 /// <summary>
 /// Code-behind for the CheckMxRecord component.
 /// </summary>
-public partial class CheckMxRecord(ICommander commander) : ComponentBase
+public partial class CheckMxRecord(ICommandRunner commander) : ComponentBase
 {
     private bool isVisible;
     private DataModel? _dataModel;

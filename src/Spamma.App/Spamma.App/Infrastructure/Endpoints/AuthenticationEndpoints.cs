@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -62,8 +62,8 @@ internal static class AuthenticationEndpoints
     private static async Task<IResult> MakeAssertion(
         HttpContext httpContext,
         ILogger<Program> logger,
-        ICommander commander,
-        IQuerier querier,
+        ICommandRunner commander,
+        IQueryRunner querier,
         AssertionRequest request,
         IInternalQueryStore internalQueryStore)
     {

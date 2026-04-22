@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -12,7 +12,7 @@ namespace Spamma.App.Client.Components.UserControls;
 /// <summary>
 /// Code-behind for the AddUser component.
 /// </summary>
-public partial class AddUser(ICommander commander, INotificationService notificationService) : ComponentBase
+public partial class AddUser(ICommandRunner commander, INotificationService notificationService) : ComponentBase
 {
     private bool showAssignUserModal;
     private bool isAssigningUser;

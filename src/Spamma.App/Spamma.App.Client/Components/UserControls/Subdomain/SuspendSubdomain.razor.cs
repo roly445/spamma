@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -11,7 +11,7 @@ namespace Spamma.App.Client.Components.UserControls.Subdomain;
 /// <summary>
 /// Code-behind for the SuspendSubdomain component.
 /// </summary>
-public partial class SuspendSubdomain(ICommander commander, INotificationService notificationService) : ComponentBase
+public partial class SuspendSubdomain(ICommandRunner commander, INotificationService notificationService) : ComponentBase
 {
     private bool isVisible;
     private bool isProcessing = false;

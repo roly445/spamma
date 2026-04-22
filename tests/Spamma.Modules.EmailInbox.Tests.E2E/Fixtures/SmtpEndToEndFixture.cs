@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,8 +55,8 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 
         // Register BluQube CQRS infrastructure
-        builder.Services.AddScoped<BluQube.Commands.ICommander, BluQube.Commands.Commander>();
-        builder.Services.AddScoped<BluQube.Queries.IQuerier, BluQube.Queries.Querier>();
+        builder.Services.AddScoped<BluQube.Commands.ICommandRunner, BluQube.Commands.CommandRunner>();
+        builder.Services.AddScoped<BluQube.Queries.IQueryRunner, BluQube.Queries.QueryRunner>();
 
         // Register real modules
         builder.Services

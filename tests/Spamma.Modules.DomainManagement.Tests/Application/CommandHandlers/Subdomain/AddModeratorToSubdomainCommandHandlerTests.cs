@@ -1,4 +1,4 @@
-using BluQube.Queries;
+﻿using BluQube.Queries;
 using FluentAssertions;
 using FluentValidation;
 using MaybeMonad;
@@ -19,7 +19,7 @@ public class AddModeratorToSubdomainCommandHandlerTests
 {
     private readonly Mock<ISubdomainRepository> _repositoryMock;
     private readonly Mock<IIntegrationEventPublisher> _eventPublisherMock;
-    private readonly Mock<IQuerier> _querierMock;
+    private readonly Mock<IQueryRunner> _querierMock;
     private readonly Mock<ILogger<AddModeratorToSubdomainCommandHandler>> _loggerMock;
     private readonly AddModeratorToSubdomainCommandHandler _handler;
     private readonly TimeProvider _timeProvider;
@@ -29,7 +29,7 @@ public class AddModeratorToSubdomainCommandHandlerTests
     {
         this._repositoryMock = new Mock<ISubdomainRepository>(MockBehavior.Strict);
         this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        this._querierMock = new Mock<IQuerier>(MockBehavior.Strict);
+        this._querierMock = new Mock<IQueryRunner>(MockBehavior.Strict);
         this._loggerMock = new Mock<ILogger<AddModeratorToSubdomainCommandHandler>>();
         this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
@@ -144,8 +144,8 @@ builder.Services.AddRazorComponents()
         options => options.SerializeAllClaims = true);
 
 builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddScoped<ICommander, Commander>();
-builder.Services.AddScoped<IQuerier, Querier>();
+builder.Services.AddScoped<ICommandRunner, CommandRunner>();
+builder.Services.AddScoped<IQueryRunner, QueryRunner>();
 
 // Configure data protection for consistent cookie encryption across container restarts
 builder.Services.AddDataProtection()
@@ -286,7 +286,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             if (isDisabled.HasNoValue)
             {
                 // Not in cache: fetch from DB, then cache it
-                var userManager = context.HttpContext.RequestServices.GetRequiredService<IQuerier>();
+                var userManager = context.HttpContext.RequestServices.GetRequiredService<IQueryRunner>();
                 var tempObjectStore = context.HttpContext.RequestServices.GetRequiredService<IInternalQueryStore>();
                 var query = new GetUserByIdQuery(userId);
                 tempObjectStore.StoreQueryRef(query);

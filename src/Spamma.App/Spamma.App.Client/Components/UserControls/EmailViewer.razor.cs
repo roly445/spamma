@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -15,7 +15,7 @@ namespace Spamma.App.Client.Components.UserControls;
 /// Code-behind for the EmailViewer component.
 /// </summary>
 public partial class EmailViewer(
-    IQuerier querier, ICommander commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
+    IQueryRunner querier, ICommandRunner commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
 {
     private MimeMessage? _mimeMessage;
     private List<EmailTab> _tabs = new();

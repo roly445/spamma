@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -10,7 +10,7 @@ namespace Spamma.App.Client.Components.UserControls.Domain;
 /// Code-behind for the VerifyDomain component.
 /// </summary>
 public partial class VerifyDomain(
-    ICommander commander,
+    ICommandRunner commander,
     IJSRuntime jsRuntime) : ComponentBase
 {
     private bool isVisible;

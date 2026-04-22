@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Components.Layout;
@@ -15,7 +15,7 @@ namespace Spamma.App.Components.Pages.Setup;
 public partial class Admin(
     IAppConfigurationService appConfigurationService,
     IInternalQueryStore internalQueryStore,
-    ILogger<Admin> logger, ICommander commander)
+    ILogger<Admin> logger, ICommandRunner commander)
 {
     private string? successMessage;
 

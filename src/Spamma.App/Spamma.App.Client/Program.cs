@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -36,8 +36,8 @@ builder.Services.AddOpenTelemetry()
 // Now you can configure IOptions as usual
 builder.Services.Configure<Settings>(builder.Configuration.GetSection("Settings"));
 
-builder.Services.AddScoped<ICommander, Commander>();
-builder.Services.AddScoped<IQuerier, Querier>();
+builder.Services.AddScoped<ICommandRunner, CommandRunner>();
+builder.Services.AddScoped<IQueryRunner, QueryRunner>();
 builder.Services.AddScoped<IDomainValidationService, DomainValidationService>();
 
 builder.Services.AddHttpClient(

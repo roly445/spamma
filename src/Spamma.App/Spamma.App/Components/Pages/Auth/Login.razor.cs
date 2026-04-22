@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -7,7 +7,7 @@ using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.App.Components.Pages.Auth;
 
-public partial class Login(ICommander commander, ILogger<Login> logger) : ComponentBase
+public partial class Login(ICommandRunner commander, ILogger<Login> logger) : ComponentBase
 {
     private bool showSuccessMessage;
 

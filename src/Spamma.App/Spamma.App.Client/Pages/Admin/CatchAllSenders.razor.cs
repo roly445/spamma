@@ -1,4 +1,4 @@
-using BluQube.Commands;
+﻿using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
@@ -9,8 +9,8 @@ using Spamma.Modules.EmailInbox.Client.Application.Queries;
 namespace Spamma.App.Client.Pages.Admin;
 
 public partial class CatchAllSenders(
-    ICommander commander,
-    IQuerier querier,
+    ICommandRunner commander,
+    IQueryRunner querier,
     INotificationService notificationService) : ComponentBase
 {
     private IReadOnlyList<SearchCatchAllSenderAddressesQueryResult.SenderAddressSummary> _items =

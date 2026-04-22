@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -15,7 +15,7 @@ namespace Spamma.App.Client.Pages.Account;
 /// <summary>
 /// Code-behind for the Passkeys page.
 /// </summary>
-public partial class Passkeys(ICommander commander, IQuerier querier, IJSRuntime jsRuntime, ILogger<Passkeys> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
+public partial class Passkeys(ICommandRunner commander, IQueryRunner querier, IJSRuntime jsRuntime, ILogger<Passkeys> logger, AuthenticationStateProvider authenticationStateProvider, INotificationService notificationService) : ComponentBase
 {
     private const string WebAuthnUtilsWindowHandle = "WebAuthnUtils";
 

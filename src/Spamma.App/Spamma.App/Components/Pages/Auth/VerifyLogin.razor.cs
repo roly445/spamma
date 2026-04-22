@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
@@ -17,10 +17,10 @@ namespace Spamma.App.Components.Pages.Auth;
 /// Code-behind for the VerifyLogin component.
 /// </summary>
 public partial class VerifyLogin(
-    ICommander commander,
+    ICommandRunner commander,
     NavigationManager navigation,
     ILogger<VerifyLogin> logger, IAuthTokenProvider authTokenProvider,
-    IHttpContextAccessor httpContextAccessor, IQuerier querier,
+    IHttpContextAccessor httpContextAccessor, IQueryRunner querier,
     UserStatusCache userStatusCache, IInternalQueryStore internalQueryStore) : ComponentBase
 {
     private string? errorMessage;
