@@ -194,7 +194,7 @@ internal static class AuthenticationEndpoints
 
             return Results.Json(new
             {
-                url = "/app",
+                url = "/inbox",
                 assertionVerificationResult = new
                 {
                     credentialId = request.Assertion.Id,

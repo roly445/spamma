@@ -63,7 +63,7 @@ public class CatchAllInboxTests : BunitContext
             new(Guid.NewGuid(), "Hello World", "user@example.com", DateTimeOffset.UtcNow, false),
         };
 
-        var groups = new List<GetCatchAllEmailsQueryResult.DomainGroup>
+        var groups = new List<GetCatchAllEmailsQueryResult.SenderGroup>
         {
             new("example.com", emails),
         };

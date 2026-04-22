@@ -103,3 +103,36 @@
 
 ### Build result
 - dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+
+## Route Change: /app → /inbox (2026-04-21 Session)
+
+**Task**: Change the home/landing page route from `/app` to `/inbox`.
+
+### What was changed
+- **Home.razor** (`@page "/app"` → `@page "/inbox"`) — the main inbox page in `Spamma.App.Client/Pages/`
+- **AppLayout.razor** — logo/brand link `href="/app"` → `href="/inbox"`
+- **Index.razor** (server landing page) — "Open App" link `href="/app"` → `href="/inbox"`
+- **AuthenticationEndpoints.cs** — post-magic-link-login redirect `url = "/app"` → `url = "/inbox"`
+- **VerifyLogin.razor.cs** — post-passkey-login `NavigateTo("/app")` → `NavigateTo("/inbox")`
+
+### What was NOT changed
+- `Program.cs` `/app/certs/keys` — file system path, not a route
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+- dotnet build Spamma.App.csproj --no-restore — 0 errors, 0 warnings
+
+## Route Rename: /app → /inbox (2026-04-21 Session)
+
+**Task**: Change the main home/app page route from `/app` to `/inbox`.
+
+### Files changed
+- `Spamma.App.Client/Pages/Home.razor` — `@page "/app"` → `@page "/inbox"`
+- `Spamma.App.Client/Layout/AppLayout.razor` — logo `href="/app"` → `href="/inbox"`
+- `Spamma.App/Components/Pages/Auth/VerifyLogin.razor.cs` — `NavigateTo("/app")` → `NavigateTo("/inbox")`
+- `Spamma.App/Components/Pages/Index.razor` — "Open App" button `href="/app"` → `href="/inbox"`
+- `Spamma.App/Infrastructure/Endpoints/AuthenticationEndpoints.cs` — passkey post-auth redirect `url = "/app"` → `url = "/inbox"`
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+- dotnet build Spamma.App.csproj --no-restore — 0 errors, 0 warnings

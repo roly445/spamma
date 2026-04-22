@@ -72,6 +72,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Samples.GrpcEmailPushClient", "samples\Spamma.Samples.GrpcEmailPushClient\Spamma.Samples.GrpcEmailPushClient.csproj", "{656942D4-2AD8-4260-9C89-016B981DE3D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.App.Tests", "tests\Spamma.App.Tests\Spamma.App.Tests.csproj", "{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spamma.Tests.Common","tests\Spamma.Tests.Common\Spamma.Tests.Common.csproj", "{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -286,6 +290,30 @@ Global
 		{656942D4-2AD8-4260-9C89-016B981DE3D8}.Release|x64.Build.0 = Release|Any CPU
 		{656942D4-2AD8-4260-9C89-016B981DE3D8}.Release|x86.ActiveCfg = Release|Any CPU
 		{656942D4-2AD8-4260-9C89-016B981DE3D8}.Release|x86.Build.0 = Release|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Debug|x64.Build.0 = Debug|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Debug|x86.Build.0 = Debug|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Release|x64.ActiveCfg = Release|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Release|x64.Build.0 = Release|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Release|x86.ActiveCfg = Release|Any CPU
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE}.Release|x86.Build.0 = Release|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Debug|x64.Build.0 = Debug|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Debug|x86.Build.0 = Debug|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Release|x64.ActiveCfg = Release|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Release|x64.Build.0 = Release|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Release|x86.ActiveCfg = Release|Any CPU
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -311,6 +339,8 @@ Global
 		{DBDF3B64-B4F1-420C-AAC4-74BDFB636965} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
 		{FDAEE41B-F7DF-4792-89D0-A9769D6C4D22} = {5BC516BF-B2E3-4E84-9D10-269229350608}
 		{656942D4-2AD8-4260-9C89-016B981DE3D8} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
+		{4550B6D6-3EE1-42B7-AE4D-D3773C78C6EE} = {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
+		{C2D47A1B-2F58-4AA0-9258-CA9115DEF54A}= {C4F5E3A1-7B2D-4A1F-8C9E-5D3F2A1B4C7E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		shared\Spamma.Shared\Spamma.Shared.projitems*{09c769cc-9fee-495c-816c-32017d026ee1}*SharedItemsImports = 5
