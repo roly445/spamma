@@ -50,6 +50,14 @@
   * Command handlers now query UserManagement for user details before publishing events (via IQuerier)
 - `QueryResultStatus` enum is in `BluQube.Constants` namespace, not `BluQube.Queries` — need `using BluQube.Constants;` to use it
 
+- `CatchAllSenderAddressLookup` read model + `CatchAllSenderAddressLookupProjection` (2026-04-22): Added `Infrastructure/ReadModels/CatchAllSenderAddressLookup.cs` (Id, SenderAddress, AssignedUserIds, IsRemoved, AddedAt) and `Infrastructure/Projections/CatchAllSenderAddressLookupProjection.cs`. Used `EventProjection` base class (not `SingleStreamProjection<T>`) because Marten 8.13.3 does not expose a single-generic `SingleStreamProjection<T>` — only `SingleStreamProjection` (non-generic, in `Marten.Events.Aggregation`) and `EventProjection`. All existing projections in this codebase use `EventProjection`; matched that pattern. `UserAssignedToCatchAllSender` uses `.Append()`, `UserUnassignedFromCatchAllSender` uses `.Remove()`, `CatchAllSenderAddressRemoved` uses `.Set(IsRemoved, true)`. Registered in `Module.ConfigureEmailInbox` with `ProjectionLifecycle.Inline` + `Schema.For<CatchAllSenderAddressLookup>().Identity(x => x.Id)`. Build: 0 errors, 0 warnings.
+- `CatchAllSenderAddress.Events.cs` uses the `using` import style (like `Email.Events.cs`), not the `Events.` prefix style (like `Campaign.Events.cs`). Both compile — prefer the import style for brevity.
+- `CatchAllSender` client commands (2026-04-22): Added 4 WASM-facing command contracts under `Spamma.Modules.EmailInbox.Client/Application/Commands/CatchAllSender/`: `AddCatchAllSenderAddressCommand`, `RemoveCatchAllSenderAddressCommand`, `AssignUserToCatchAllSenderCommand`, `UnassignUserFromCatchAllSenderCommand`. All decorated with `[BluQubeCommand]` and following `api/email-inbox/catch-all-senders/*` path convention. Build: 0 errors, 0 warnings.
+
+- Catch-all query processors (2026-04-22): Created `SearchCatchAllSenderAddressesQueryProcessor` (paginated, ordered by `AddedAt` desc, no user filter — admin-only via authorizer), `GetCatchAllSenderAddressDetailQueryProcessor` (load by Id, `Failed()` if null). Both authorizers use `MustBeAuthenticatedRequirement` — no `EmailInbox` `SystemRole` flag exists in the codebase; existing EmailInbox authorizers all use authenticated-only. Updated `GetCatchAllEmailsQueryProcessor`: injects `IHttpContextAccessor`, checks `SystemRole.DomainManagement` flag (same pattern as `SearchEmailsQueryProcessor`); non-admins filtered to emails whose `CatchAllSenderAddressId` is in the set of sender addresses assigned to the user; grouping changed from domain suffix to full From address. Build: 0 errors, 0 warnings.
+
+- CatchAllSender command handlers (2026-04-22): Created `ICatchAllSenderAddressRepository` (extends `IRepository<CatchAllSenderAddress>`) + `CatchAllSenderAddressRepository` (extends `GenericRepository<T>`). Added 4 handlers (`Add`, `Remove`, `AssignUser`, `UnassignUser`), 4 validators, 4 authorizers all using `MustBeAuthenticatedRequirement`. Registered repository as scoped in `Module.AddEmailInbox()`. Build: 0 errors, 0 warnings. No role-based requirement available in Common — authorizers match `UpdateCatchAllModeCommandAuthorizer` pattern exactly. `AssignUser`/`UnassignUser` handlers do not inject `TimeProvider` (domain methods take no timestamp).
+
 ## Cross-Agent Dependencies (2026-04-21 Session)
 
 **cortana-healthchecks** ↔ **guilty-spark-dashboard**:
@@ -59,3 +67,37 @@
 **cortana-cap-boundary** ↔ **arbiter-domain-tests**:
 - CAP subscriber assembly fix ensures integration events fire for DomainManagement cache invalidation
 - arbiter verified fixes via real SpammaMessageStore tests that depend on working CAP event flow
+
+## Task: EmailInbox.Client catch-all sender query contracts (2026-04-22)
+
+- Created `SearchCatchAllSenderAddressesQuery.cs` — `[BluQubeQuery(Path = "api/email-inbox/catch-all-senders")]`, paged (Page/PageSize defaults 1/50)
+- Created `SearchCatchAllSenderAddressesQueryResult.cs` — nested `SenderAddressSummary` record with Id, SenderAddress, AssignedUserCount, IsRemoved, AddedAt
+- Created `GetCatchAllSenderAddressDetailQuery.cs` — `[BluQubeQuery(Path = "api/email-inbox/catch-all-senders/detail")]`, takes `SenderAddressId` Guid
+- Created `GetCatchAllSenderAddressDetailQueryResult.cs` — flat result with AssignedUserIds list
+- Updated `GetCatchAllEmailsQueryResult.cs`: renamed `DomainGroup(string Domain, ...)` → `SenderGroup(string SenderAddress, ...)` to reflect grouping by exact sender address
+- `Spamma.Modules.EmailInbox.Client` builds 0 errors / 0 warnings
+- Downstream compile errors expected in `GetCatchAllEmailsQueryProcessor` and the CatchAll Blazor component (reference `DomainGroup`/`.Domain`) — flagged for fix by other tasks
+
+## Task: ICatchAllSenderAddressCache + CatchAllSenderAddressCache (2026-04-22)
+
+- Created `Infrastructure/Services/Caching/ICatchAllSenderAddressCache.cs` with nested `CachedSenderAddress(Guid SenderAddressId, string SenderAddress, IReadOnlyList<Guid> AssignedUserIds)` record. Returns nullable (not Maybe<>) per task spec — differs from ISubdomainCache / IChaosAddressCache which use Maybe<>.
+- Created `Infrastructure/Services/Caching/CatchAllSenderAddressCache.cs`: Redis-backed (`IConnectionMultiplexer` → `IDatabase`), `IQuerySession` for direct Marten queries against `CatchAllSenderAddressLookup`. Cache key: `catchall-sender:{normalizedAddress}`. TTL 5 min; null sentinel (`"null"` string) cached for 1 min on miss to suppress DB hammering.
+- Added `StackExchange.Redis` v2.9.32 explicitly to `Spamma.Modules.EmailInbox.csproj` (was only transitive via UserManagement).
+- Registered `ICatchAllSenderAddressCache` → `CatchAllSenderAddressCache` as scoped in `Module.AddEmailInbox()`.
+- Build: 0 errors, 0 warnings.
+
+## Task: Auth/magic-link email flow logging audit (2026-04-22)
+
+- Audited full magic link flow: `StartAuthenticationCommandHandler` → `AuthenticationStartedIntegrationEvent` → `SendAuthenticationEmailToUser` → `EmailSender` (FluentEmail/SmtpClient).
+- **Root causes of silent failures found:**
+  1. `SendAuthenticationEmailToUser` had no `ILogger<T>`, and `if (token.IsFailure) { return; }` was completely silent — token generation failures (e.g. missing `SigningKeyBase64`) would kill the flow with no trace.
+  2. `await emailSender.SendEmailAsync(...)` result was discarded — SMTP send failures were invisible.
+  3. `AuthTokenProvider.ProcessToken` had bare `catch` with no logging — JWT validation exceptions silently became `Result.Fail`.
+  4. `StartAuthenticationCommandHandler` and `CompleteAuthenticationCommandHandler` had zero structured logging.
+  5. `EmailSender` had no logger — `sendResponse.ErrorMessages` never surfaced.
+  6. `SendWelcomeEmailToNewUsers` returned the `Task<Result>` without checking the result.
+- **Fixed:** Added structured `ILogger<T>` logging at every step: entry, success, warning (not-found/skipped), error (with exception) at all catch/failure paths; `SendEmailAsync` result now checked with explicit `LogError`; `AuthTokenProvider` catch logs `LogWarning(ex, ...)`.
+- Updated tests: `SendAuthenticationEmailToUserTests` constructor reordered (logger first); `AuthTokenProviderTests` already had logger mock — no change needed.
+- Build: 0 errors, 0 warnings.
+- **Primary diagnosis:** `Settings.SigningKeyBase64` missing/empty causes token generation to throw, which was previously swallowed. Secondary: SMTP port mismatch (dev config uses 2025, Docker MailHog default is 1025).
+

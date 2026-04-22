@@ -81,3 +81,25 @@
 ### Build result
 - dotnet build Spamma.sln — 0 errors, 0 warnings
 - dotnet test filter CatchAllInbox — 3/3 passed
+
+## Catch-All Senders Admin Page (2026-04-21 Session)
+
+**Task**: Build `/admin/catch-all-senders` admin page per Andrew Davis request.
+
+### What was built
+- **CatchAllSenders.razor** (`/admin/catch-all-senders`) — amber-accented admin page for managing catch-all sender addresses
+- **CatchAllSenders.razor.cs** — code-behind with full state management and CQRS wiring
+- **AppLayout.razor** — added "Catch-All Senders" nav link (amber filter icon) in the Administration dropdown section, before Settings
+
+### Key design choices
+- Amber colour scheme throughout to match the catch-all inbox theme
+- Expandable table rows (click row → user assignment panel appears inline below the row)
+- Removed addresses show with `opacity-50 line-through` and no Remove button; row click is disabled
+- `@onclick:stopPropagation="true"` on Remove button to prevent row expansion toggling when clicking Remove
+- Add modal is inline conditional (`@if (_showAddModal)`) — not a separate component file, per task spec
+- User assignment panel shows raw GUIDs for now — user name lookup is a follow-up task
+- Inline validation in `HandleAddAddress` — empty check + `@` presence check before sending command
+- Fixed pre-existing build error: `CatchAllInbox.razor.cs` referenced `DomainGroup` / `group.Domain` but Cortana renamed the nested type to `SenderGroup` / `SenderAddress` — updated both the .cs and .razor files
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings

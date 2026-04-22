@@ -106,3 +106,65 @@ The pipeline has been significantly refactored. `SpammaMessageStore` no longer c
 
 ### TDD Results
 - 9 `SpammaMessageStore` tests passing (4 existing + 2 new catch-all port + 3 port-boundary scenarios)
+
+## Learnings — CatchAllSenderAddressId Plumbing (2026-04-22)
+
+### What Was Implemented
+- `ReceivedEmailCommand` gains optional `Guid? CatchAllSenderAddressId = null` — all existing call sites compile unchanged
+- `EmailReceived` domain event gains optional `Guid? CatchAllSenderAddressId = null` as last positional parameter — event sourcing safe (existing stored events deserialise with null default)
+- `Email.Create(...)` both overloads updated to accept and forward `catchAllSenderAddressId` to `EmailReceived`
+- `ReceivedEmailCommandHandler` passes `command.CatchAllSenderAddressId` through to `Email.Create`
+- `EmailLookup` read model gains `Guid? CatchAllSenderAddressId { get; init; }`
+- `EmailLookupProjection` maps `CatchAllSenderAddressId` from event to read model on insert
+
+### Pre-Existing Bugs Fixed (Opportunistic)
+- `GetCatchAllEmailsQueryProcessor` referenced `GetCatchAllEmailsQueryResult.DomainGroup` — type had been renamed to `SenderGroup` in the client contract; fixed the processor
+- `CatchAllSenderAddressLookupProjection` used `SingleStreamProjection<T>` which no longer exists in the Marten version in use — converted to `EventProjection` pattern (matching all other projections); `Apply` methods replaced with `Project(IEvent<T>, IDocumentOperations)` + Marten patch API
+
+### Key Notes
+- `CatchAllEmailCaptureJob` and `StandardEmailCaptureJob` will pass the actual sender address ID in a future task; for now the field flows as null on standard emails
+- Marten event sourcing: adding optional params with defaults to positional records is safe — existing events stored in PostgreSQL deserialise without the field and get the default value
+
+## Learnings — Catch-All Sender Whitelist Enforcement (2026-04-22)
+
+### What Was Implemented
+- `SpammaMessageStore.SaveAsync` now enforces `ICatchAllSenderAddressCache` whitelist on the catch-all path
+- `ICatchAllSenderAddressCache` is resolved from the per-request DI scope (same pattern as `ISubdomainCache`, `IChaosAddressCache`)
+- After `catchAllEnabled` is confirmed: extract `From:` mailbox address (first `MailboxAddress`, normalised to lowercase), call `GetSenderAddressAsync`
+- If sender not whitelisted (null result) → return `SmtpResponse.MailboxNameNotAllowed` — email rejected at SMTP level
+- If sender is whitelisted → `cachedSender.SenderAddressId` passed as `CatchAllSenderAddressId` into `CatchAllEmailCaptureJob`
+- `CatchAllEmailCaptureJob` record gains `Guid? CatchAllSenderAddressId = null` as optional last parameter (backward-compatible)
+- `BackgroundTaskService.ExtractEmailAddressesAndSendCommand` gains `Guid? catchAllSenderAddressId = null` parameter
+- `ReceivedEmailCommand` constructed with `catchAllSenderAddressId` — the value now flows all the way through to the domain event
+
+### Priority Rule Preserved
+- Subdomain routing path is UNTOUCHED — `CatchAllSenderAddressId` stays null for subdomain-routed emails
+- Whitelist check only executes when `foundValidSubdomain == null` AND `catchAllEnabled == true`
+
+### Build Status
+- `Spamma.Modules.EmailInbox` module build: ✅ succeeded, 0 errors, 0 warnings
+- Full solution build: ✅ 0 C# compiler errors; only MSB3027/MSB3021 file-lock errors from a running `Spamma.App` dev process (pre-existing, not caused by this change)
+
+## Learnings — Outbound SMTP Email Audit (2026-04-22)
+
+### Diagnosis
+- Outbound SMTP config (MailHog `localhost:2025`) was correct in `appsettings.Development.json`
+- Emails were being attempted but failures were **completely silent** — no logging at any layer
+- `SendAuthenticationEmailToUser`: token failure silently returned; `SendEmailAsync` result unchecked; no try/catch on SMTP exceptions
+- `EmailSender.SendEmailAsync`: no logging of recipient/subject, no error detail from `sendResponse.ErrorMessages`
+
+### What Was Added
+- `EmailSender` now logs `Info` before/after send, and `Error` with full FluentEmail error messages on failure
+- `SendAuthenticationEmailToUser` now logs `Info` at entry, `Error` on token failure, `Error` on send failure, and catches/logs SMTP exceptions with full stack trace
+- `Program.cs` now logs `[EMAIL] Outbound SMTP configured: host=X port=Y` at startup
+- Pre-existing SA1101 violations fixed in `StartAuthenticationCommandHandler` and `CompleteAuthenticationCommandHandler`
+- Test constructors updated for `SendAuthenticationEmailToUserTests` and `AuthTokenProviderTests` (pre-existing breaks due to logger being added to `AuthTokenProvider`)
+
+### MailHog Ports
+- MailHog SMTP: host port `2025` → container `1025` (avoids conflict with Spamma inbound SMTP on host `1025`)
+- MailHog Web UI: `http://localhost:8025`
+- `appsettings.Development.json` correctly sets `Settings:EmailSmtpPort=2025`
+
+### Build Status
+- Full solution build: ✅ 0 errors, 0 warnings
+
