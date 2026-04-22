@@ -123,4 +123,16 @@
 - **Breaking change 3 — renamed concrete types:** `Commander` → `CommandRunner`, `Querier` → `QueryRunner`. Affected DI registrations in `Spamma.App/Program.cs`, `Spamma.App.Client/Program.cs`, and `SmtpEndToEndFixture.cs`.
 - Build: 0 errors, 0 warnings after all fixes. Committed as `chore: update BluQube 1.0.3 -> 1.1.0 and fix breaking changes`.
 
+## Task: BluQube ICommandRunner runtime IL type resolution fix (2026-04-22)
+
+- **Root cause:** `Spamma.App.Tests` was not in `Spamma.sln`. Solution-level `dotnet clean` / `dotnet build` never touched it, so its `bin/Debug/net10.0/BluQube.dll` was the old 1.0.3 artifact (31/10/2025). When bunit tests load the app, the Mono IL loader finds BluQube 1.0.3 (containing `ICommander`) but the compiled WASM assemblies reference `ICommandRunner` from 1.1.0 → runtime `ManagedError: Could not resolve type`.
+- **Secondary bug:** `CatchAllInboxTests.cs` still used `GetCatchAllEmailsQueryResult.DomainGroup` — type was renamed to `SenderGroup` in a previous session. This went unnoticed because the project was outside the solution.
+- **Fixes:**
+  1. Cleaned solution (`dotnet clean Spamma.sln`) to remove all 1.0.3 artifacts.
+  2. Built `Spamma.App.Tests` directly; found + fixed `DomainGroup` → `SenderGroup` compile error.
+  3. Added `Spamma.App.Tests` and `Spamma.Tests.Common` to `Spamma.sln` so solution builds cover them going forward.
+  4. Removed spurious "Spamma.App" solution folder `dotnet sln add` auto-created (name conflicted with the real `Spamma.App` project; caused MSB5004 error).
+- **All 7 `BluQube.dll`** in bin directories now show 20/04/2026 timestamp (all 1.1.0).
+- Build: 0 errors, 0 warnings. Committed as `fix: resolve BluQube ICommandRunner runtime IL error`.
+
 
