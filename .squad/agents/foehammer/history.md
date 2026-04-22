@@ -145,6 +145,21 @@ The pipeline has been significantly refactored. `SpammaMessageStore` no longer c
 - `Spamma.Modules.EmailInbox` module build: ✅ succeeded, 0 errors, 0 warnings
 - Full solution build: ✅ 0 C# compiler errors; only MSB3027/MSB3021 file-lock errors from a running `Spamma.App` dev process (pre-existing, not caused by this change)
 
+## Learnings — BluQube 1.1.0 Breaking Change: ICommandRunner Rename (2026-04-22)
+
+### What Changed (Cortana — cross-agent impact)
+- BluQube `1.0.3` → `1.1.0` renamed `ICommander` → `ICommandRunner` and `IQuerier` → `IQueryRunner`
+- All 47 usages across the solution were updated by Cortana
+- **Directly affects Foehammer's SMTP pipeline**: `BackgroundTaskService` dispatches `ReceivedEmailCommand` via `ICommandRunner` (was `ICommander`); `SpammaMessageStore` uses `IQueryRunner` (was `IQuerier`) for `SearchSubdomainsQuery`
+- Concrete types also renamed: `Commander` → `CommandRunner`, `Querier` → `QueryRunner` in DI registration
+- `SmtpEndToEndFixture.cs` updated: mock declarations use `Mock<ICommandRunner>` and `Mock<IQueryRunner>`
+- All new Foehammer test code must use `ICommandRunner` / `IQueryRunner` — the old names no longer exist
+
+### FluentValidation Bump
+- `FluentValidation` and `FluentValidation.DependencyInjectionExtensions` bumped `12.0.0` → `12.1.0` to resolve `NU1605` transitive conflict introduced by BluQube 1.1.0
+
+---
+
 ## Learnings — Outbound SMTP Email Audit (2026-04-22)
 
 ### Diagnosis

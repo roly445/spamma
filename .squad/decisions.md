@@ -823,3 +823,70 @@ Design contracts: sentinel ID = `CatchAllConstants.DomainId`, settings via `IEma
 **Last consolidated:** 2026-04-22T08:30Z  
 **Items merged:** 36 inbox decisions from agents across 2 sprint sessions  
 **Agents covered:** Cortana, Foehammer, Johnson, Arbiter, Halsey, Guilty Spark, Master Chief
+
+---
+
+# IMPLEMENTATION DECISIONS — Sprint 3 (2026-04-22 continued)
+
+---
+
+## BACKEND IMPLEMENTATIONS — Cortana
+
+### Magic Link Auth Root Cause Investigation (2026-04-22)
+
+**Date:** 2026-04-22  
+**Author:** Cortana (Backend Dev)
+
+Two root causes of the missing magic link flow identified and fixed:
+
+1. **`MustNotBeAuthenticatedRequirement` silent rejection** — If a stale `SpammaAuth` cookie is present, `IsAuthenticated = true` → authorization fails → BluQube short-circuits before `HandleInternal` → zero logs. Added canary `LogInformation` at entry of `Login.razor.cs` `HandleSendMagicLink`; added `LogWarning` when `CommandResult.Status != Succeeded`.
+
+2. **`SigningKeyBase64` unconfigured → silent `FormatException`** — `Convert.FromBase64String("")` threw `FormatException` inside a bare `catch { return Result.Fail(); }` in `AuthTokenProvider`. `SendAuthenticationEmailToUser` received `token.IsFailure` and silently returned — no email sent, no log. Fixed: `AuthTokenProvider.GetToken()` and `ProcessToken()` now guard for empty key (`LogError` + `Result.Fail`) and wrap `Convert.FromBase64String` in a try-catch that logs the exception.
+
+**Modified Files:**
+- `src/Spamma.App/Spamma.App/Components/Pages/Auth/Login.razor.cs`
+- `src/modules/Spamma.Modules.Common/IAuthTokenProvider.cs`
+
+**Build:** 0 errors, 0 warnings
+
+---
+
+### BluQube NuGet Upgrade 1.0.3 → 1.1.0 (2026-04-22)
+
+**Date:** 2026-04-22  
+**Author:** Cortana (Backend Dev)  
+**Requested by:** Andrew Davis
+
+Upgraded all `BluQube` package references from `1.0.3` to `1.1.0` across the solution.
+
+**Package versions updated:**
+
+| Package | Old | New | Projects |
+|---|---|---|---|
+| `BluQube` | 1.0.3 | 1.1.0 | All 10 projects |
+| `FluentValidation` | 12.0.0 | 12.1.0 | Spamma.App + 3 modules |
+| `FluentValidation.DependencyInjectionExtensions` | 12.0.0 | 12.1.0 | Spamma.App + 3 modules |
+
+**Breaking changes fixed:**
+
+1. **FluentValidation version conflict** — BluQube 1.1.0 requires `FluentValidation >= 12.1.0`. Projects pinned to `12.0.0` caused `NU1605` downgrade error. Fixed by bumping all direct FluentValidation references to `12.1.0`.
+
+2. **Renamed interfaces (47 files)**
+   - `ICommander` → `ICommandRunner` (namespace `BluQube.Commands`)
+   - `IQuerier` → `IQueryRunner` (namespace `BluQube.Queries`)
+
+3. **Renamed concrete types (3 files)**
+   - `Commander` → `CommandRunner`
+   - `Querier` → `QueryRunner`
+   - Files: `Spamma.App/Program.cs`, `Spamma.App.Client/Program.cs`, `SmtpEndToEndFixture.cs`
+
+**Outcome:** Build 0 errors, 0 warnings  
+**Commit:** `chore: update BluQube 1.0.3 -> 1.1.0 and fix breaking changes`
+
+---
+
+## Session Status: ALL INBOX ITEMS MERGED ✅
+
+**Last consolidated:** 2026-04-22T10:00Z  
+**Items merged:** 38 inbox decisions from agents across 3 sprint sessions  
+**Agents covered:** Cortana, Foehammer, Johnson, Arbiter, Halsey, Guilty Spark, Master Chief

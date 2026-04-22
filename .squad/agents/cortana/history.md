@@ -114,4 +114,13 @@
 - Diagnosis doc: `.squad/decisions/inbox/cortana-magic-link-trace.md`
 - **To clear suspected stale-cookie cause:** user should clear browser cookies for the site and retry login.
 
+## Task: BluQube NuGet upgrade 1.0.3 → 1.1.0 (2026-04-22)
+
+- Upgraded `BluQube` from `1.0.3` to `1.1.0` in all 10 projects (6 src, 2 app, 2 test).
+- No central `Directory.Packages.props` — versions are set individually in each `.csproj`.
+- **Breaking change 1 — FluentValidation downgrade conflict:** BluQube 1.1.0 requires `FluentValidation >= 12.1.0`; all projects were on `12.0.0`. Fixed by bumping `FluentValidation` and `FluentValidation.DependencyInjectionExtensions` to `12.1.0` in `Spamma.App.csproj` and all three module projects.
+- **Breaking change 2 — renamed interfaces:** `ICommander` → `ICommandRunner`, `IQuerier` → `IQueryRunner`. Affected 47 `.cs` files across src and tests.
+- **Breaking change 3 — renamed concrete types:** `Commander` → `CommandRunner`, `Querier` → `QueryRunner`. Affected DI registrations in `Spamma.App/Program.cs`, `Spamma.App.Client/Program.cs`, and `SmtpEndToEndFixture.cs`.
+- Build: 0 errors, 0 warnings after all fixes. Committed as `chore: update BluQube 1.0.3 -> 1.1.0 and fix breaking changes`.
+
 
