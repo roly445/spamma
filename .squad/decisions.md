@@ -613,6 +613,248 @@ Spamma is a single-process modular monolith. Aspire's value is orchestrating dis
 
 ---
 
+# IMPLEMENTATION DECISIONS — Sprint 4+ (2026-04-23 and later)
+
+---
+
+## BACKEND IMPLEMENTATIONS — Cortana
+
+### BluQube ICommandRunner Runtime IL Fix (2026-04-22)
+
+**Date:** 2026-04-22  
+**Author:** Cortana (Backend Dev)  
+**Commit:** `fix: resolve BluQube ICommandRunner runtime IL error`
+
+After upgrading BluQube 1.0.3 → 1.1.0 (previous session), the app threw:
+```
+ManagedError: Could not resolve type with token 0100004d from typeref
+(expected class 'BluQube.Commands.ICommandRunner' in assembly)
+```
+
+**Root Cause:** `Spamma.App.Tests` was **not included in `Spamma.sln`**. This orphaned project never got cleaned or rebuilt, leaving `tests\Spamma.App.Tests\bin\Debug\net10.0\BluQube.dll` as the **1.0.3 artifact from 31/10/2025** (containing `ICommander`). When bunit tests boot, the Mono IL loader encounters the stale 1.0.3 DLL and cannot resolve the renamed interface.
+
+**Secondary Bug:** `CatchAllInboxTests.cs` still referenced `GetCatchAllEmailsQueryResult.DomainGroup` (renamed to `SenderGroup`), masked by the orphaned project being outside the solution build.
+
+**Fixes Applied:**
+| Change | File |
+|--------|------|
+| Renamed `DomainGroup` → `SenderGroup` | `tests/Spamma.App.Tests/CatchAllInboxTests.cs` |
+| Added `Spamma.App.Tests` + `Spamma.Tests.Common` to solution | `Spamma.sln` |
+| Removed spurious "Spamma.App" solution folder (name conflict MSB5004) | `Spamma.sln` |
+
+**Verification:** All 7 `BluQube.dll` files show `20/04/2026` timestamp. `dotnet build Spamma.sln` → **0 errors, 0 warnings**.
+
+**Prevention:** All test projects now in solution. `dotnet build Spamma.sln` covers the full repo — stale artifacts impossible.
+
+---
+
+### MediatR Pipeline Tracing Behavior (2026-04-23)
+
+**Date:** 2026-04-23  
+**Author:** Cortana (Backend Dev)  
+**Commit:** `aa65b55`
+
+Added `CommandQueryTracingBehavior<TRequest, TResponse>` as a global MediatR `IPipelineBehavior<,>` for OpenTelemetry tracing and structured logging of every command/query handler execution.
+
+**Key Decisions:**
+- **Generic file naming:** Uses CLR backtick-N notation per SA1649: `CommandQueryTracingBehavior`2.cs`
+- **ActivitySource name:** `"Spamma.Server.Pipeline"` (must match `.WithTracing().AddSource(...)` in Program.cs)
+- **Registration order:** `AddCommonBehaviors()` called **before** module registration — tracing is outermost pipeline layer
+- **Status extraction:** Uses `dynamic` to avoid constraining `TResponse` — both `CommandResult` and `QueryResult<T>` have `.Status`
+- **Error detection:** Status string containing `"Failed"` or `"Error"` triggers `ActivityStatusCode.Error`
+
+**Files Modified:**
+- `src/modules/Spamma.Modules.Common/Application/Behaviors/CommandQueryTracingBehavior`2.cs` (created)
+- `src/modules/Spamma.Modules.Common/Module.cs` (created)
+- `src/Spamma.App/Spamma.App/Program.cs`
+- `src/modules/Spamma.Modules.EmailInbox/Application/CommandHandlers/Email/UpdateCatchAllModeCommandHandler.cs`
+
+---
+
+### Fix AmbiguousMatchException — api/email-inbox/catch-all-senders (2026-04-22)
+
+**Date:** 2026-04-22  
+**Author:** Cortana (Backend Dev)  
+**Status:** Resolved  
+**Commit:** `fix: deduplicate catch-all sender API paths`
+
+`POST api/email-inbox/catch-all-senders` threw `AmbiguousMatchException` — two endpoints matched:
+
+```
+HTTP: POST api/email-inbox/catch-all-senders
+HTTP: POST api/email-inbox/catch-all-senders
+```
+
+**Root Cause:** Both `AddCatchAllSenderAddressCommand` and `SearchCatchAllSenderAddressesQuery` were decorated with identical path. BluQube 1.1.0 registers both as HTTP POST → route conflict.
+
+**Fix:** Updated `AddCatchAllSenderAddressCommand.cs` path from `api/email-inbox/catch-all-senders` → `api/email-inbox/catch-all-senders/add`
+
+**Final Path Layout:**
+| Type | Path |
+|------|------|
+| SearchCatchAllSenderAddressesQuery | `api/email-inbox/catch-all-senders` |
+| GetCatchAllSenderAddressDetailQuery | `api/email-inbox/catch-all-senders/detail` |
+| AddCatchAllSenderAddressCommand | `api/email-inbox/catch-all-senders/add` |
+| RemoveCatchAllSenderAddressCommand | `api/email-inbox/catch-all-senders/remove` |
+| AssignUserToCatchAllSenderCommand | `api/email-inbox/catch-all-senders/assign-user` |
+| UnassignUserFromCatchAllSenderCommand | `api/email-inbox/catch-all-senders/unassign-user` |
+
+**Prevention:** When adding `[BluQubeCommand]` or `[BluQubeQuery]`, verify paths are unique across **both** types — all register as POST.
+
+---
+
+### Self-signed Certificate for Local/Dev Domains (2026-04-23)
+
+**Date:** 2026-04-23  
+**Author:** Cortana (Backend Dev)
+
+`CertificateRenewalBackgroundService` calls Let's Encrypt for all mail server hostnames. In local dev (`mail.spamma.dev.localhost`), Let's Encrypt rejects `.localhost` as non-public.
+
+**Decision:** Detect local domains and generate **self-signed certificate** instead.
+
+**Local Domain Definition:**
+- Ends with `.localhost`
+- Ends with `.local`
+- Exactly `localhost`
+- Loopback IP addresses (`IPAddress.IsLoopback` — `127.x.x.x`, `::1`)
+
+**Implementation:**
+- `LocalDomainDetector` — static pure detection logic, no DI dependency
+- `ISelfSignedCertificateService` / `SelfSignedCertificateService` — uses `System.Security.Cryptography.X509Certificates.CertificateRequest`, RSA-2048, SHA-256, 1-year validity, PFX export with password `"letmein"`
+- **Singleton registration** — stateless pure computation
+- `CertificateRenewalBackgroundService` — forks on domain type; email settings check deferred to Let's Encrypt path only
+
+**Files Created (5):**
+- `src/modules/Spamma.Modules.DomainManagement/Domain/LocalDomainDetector.cs`
+- `src/modules/Spamma.Modules.DomainManagement/Infrastructure/Services/ISelfSignedCertificateService.cs`
+- `src/modules/Spamma.Modules.DomainManagement/Infrastructure/Services/SelfSignedCertificateService.cs`
+- `tests/Spamma.Modules.DomainManagement.Tests/Domain/LocalDomainDetectorTests.cs`
+- `tests/Spamma.Modules.DomainManagement.Tests/Infrastructure/Services/SelfSignedCertificateServiceTests.cs`
+
+**Files Modified (2):**
+- `src/modules/Spamma.Modules.DomainManagement/Infrastructure/Services/CertificateRenewalBackgroundService.cs`
+- `src/modules/Spamma.Modules.DomainManagement/Module.cs`
+
+**Test Coverage:** 11 tests passing (5 detection + 6 generation)
+
+---
+
+## FRONTEND IMPLEMENTATIONS — Johnson
+
+### Align CatchAllSenders Page to Admin Page Style Standard (2026-04-21)
+
+**Date:** 2026-04-21  
+**Author:** Johnson (Frontend Dev)  
+**Requested by:** Andrew Davis
+
+Rewrote `/admin/catch-all-senders` layout skeleton to match established pattern used by `admin/users` and `admin/domains`.
+
+**Changes:**
+- Moved `<AdminHeader>` inside `<div class="min-h-screen bg-gray-50">` wrapper
+- Changed content area from `max-w-5xl py-6` → `max-w-7xl py-8`
+- Added search panel (`bg-white rounded-lg shadow-sm border p-6 mb-6`) with text input
+- Card header upgraded from `text-sm` → `text-lg` font-medium
+- Loading state: replaced border spinner with standard SVG animated spinner
+- Table wrapped in `<div class="overflow-x-auto">`
+- Empty state: replaced large card-with-icon with simple `text-center py-12` SVG pattern
+- Table iteration changed from `_items` to `FilteredItems` for search support
+
+**CatchAllSenders.razor.cs:**
+- Added `_searchTerm` string field
+- Added `FilteredItems` computed property (filters by SenderAddress, case-insensitive contains)
+- Fixed `GetRowClasses` to remove duplicate hover state
+
+**Rationale:** All interactive admin pages share structural skeleton:
+1. `min-h-screen bg-gray-50` outer wrapper containing AdminHeader
+2. `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8` content container
+3. White search panel above table
+4. Table card with `text-lg` header, SVG spinner, overflow wrapper, empty state
+
+**Build:** 0 errors, 0 warnings
+
+---
+
+### CatchAllSenders UI Fix (2026-04-21)
+
+**Date:** 2026-04-21  
+**Author:** Johnson (Frontend Dev)  
+**File:** `src/Spamma.App/Spamma.App.Client/Pages/Admin/CatchAllSenders.razor`
+
+Two UX issues fixed:
+
+1. **Missing padding:** Added header strip (`px-6 py-4 border-b border-gray-200`) to white card matching `Domains.razor` pattern. Avoids double-padding (card + cell).
+
+2. **Remove button visibility:** Added Tailwind `group` to each row, wrapped Remove button in `opacity-0 group-hover:opacity-100 transition-opacity`. Used CSS hover (not C# state) because selected state is for expand/collapse — independent button visibility for better UX.
+
+**Build Result:** 0 errors, 0 warnings
+
+---
+
+### Home Route Changed from /app to /inbox (2026-04-21)
+
+**Date:** 2026-04-21  
+**Author:** Johnson (Frontend Dev)  
+**Requested by:** Andrew Davis
+
+Main landing page route renamed `/app` → `/inbox` for clearer URL semantics.
+
+**Files Changed:**
+| File | Change |
+|------|--------|
+| `Spamma.App.Client/Pages/Home.razor` | `@page "/app"` → `@page "/inbox"` |
+| `Spamma.App.Client/Layout/AppLayout.razor` | Logo link `href="/app"` → `href="/inbox"` |
+| `Spamma.App/Components/Pages/Index.razor` | "Open App" button → `/inbox` |
+| `Spamma.App/Infrastructure/Endpoints/AuthenticationEndpoints.cs` | Post-magic-link redirect → `/inbox` |
+| `Spamma.App/Components/Pages/Auth/VerifyLogin.razor.cs` | Post-passkey `NavigateTo` → `/inbox` |
+
+**Note:** `Program.cs` has `/app/certs/keys` — file system path, not a route. Left unchanged.
+
+---
+
+### Modal/Slideout Overlay Audit & Migration (2026-04-21)
+
+**Date:** 2026-04-21  
+**Author:** Johnson (Frontend Dev)  
+**Requested by:** Andrew Davis
+
+Full audit of overlay implementations ensuring use of `ModalBase.razor` and `SlideoutBase.razor` base components rather than raw `fixed inset-0` patterns.
+
+**Audit Results:**
+
+**Fixed:** `Users.razor` edit slide-out panel (lines 233–358)
+- Migrated hand-rolled `<div class="fixed inset-0...">` to `<SlideoutBase>`
+- ChildContent structured as header (`flex-shrink-0`), body (`flex-1`), optional footer
+
+**Skipped (correct choices):**
+- `#blazor-error-ui` divs (MainLayout & AppLayout) — Blazor runtime queries by ID; must remain raw HTML
+- `UserTypeahead.razor` dropdown — `absolute` positioning (not `fixed` overlay)
+- `AppLayout.razor` settings dropdown — `absolute right-0` standard dropdown pattern
+
+**Pattern Established:**
+| Use Case | Component |
+|----------|-----------|
+| Centred dialog/modal | `<ModalBase>` |
+| Side panel (right) | `<SlideoutBase>` |
+| Side panel (left) | `<SlideoutBase Direction="left">` |
+| Blazor error UI | Raw HTML only |
+| Dropdowns/tooltips | Raw `absolute` positioning |
+
+**SlideoutBase ChildContent Structure:**
+```razor
+<SlideoutBase ...>
+    <!-- Header: flex-shrink-0 prevents collapse -->
+    <div class="px-4 sm:px-6 pt-6 flex-shrink-0">...</div>
+    <!-- Body: flex-1 fills space -->
+    <div class="flex-1 px-4 sm:px-6 pb-6 overflow-y-auto">...</div>
+    <!-- Optional Footer: flex-shrink-0 -->
+    <div class="px-4 sm:px-6 py-4 border-t flex-shrink-0">...</div>
+</SlideoutBase>
+```
+
+**Build:** 0 errors, 0 warnings
+
+---
+
 ## BACKEND IMPLEMENTATIONS — Cortana
 
 ### .NET 10 Package Upgrade (2026-04-21) — Commit `184680b`

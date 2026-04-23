@@ -127,6 +127,26 @@
 - **Most likely cause of zero handler logs:** Stale `SpammaAuth` cookie makes the user "authenticated" → `StartAuthenticationCommandAuthorizer` uses `MustNotBeAuthenticatedRequirement` → authorization fails → BluQube `CommandHandler<T>` returns `CommandResult.Failed()` WITHOUT calling `HandleInternal` and WITHOUT logging. Zero logs from handler, yet the UI still shows "Magic link sent!" (success flag was set unconditionally).
 - **Secondary cause (still relevant):** `SigningKeyBase64` empty → `Convert.FromBase64String("")` threw `FormatException` in `GetToken()` which had no try-catch. This caused the CAP subscriber to crash silently.
 - **Fix 1:** `Login.razor.cs` — injected `ILogger<Login>`, added canary `LogInformation` as first line of `HandleSendMagicLink`, added `LogWarning` if command result is Failed.
+
+## Task: Self-signed certificate generation for local domains (2026-04-23)
+
+- `CertificateRenewalBackgroundService` calls Let's Encrypt for all domains. Local dev uses `mail.spamma.dev.localhost` — Let's Encrypt rejects `.localhost` as non-public → SMTP service fails to start.
+- **Decision:** Auto-detect local domains and fork to self-signed cert path instead of Let's Encrypt.
+- **Local domain definition:** Ends with `.localhost`, `.local`, exactly `localhost`, or loopback IP (`IPAddress.IsLoopback`).
+- **Created `LocalDomainDetector`:** Static pure detection logic (no DI, no I/O) — used by background service to branch behavior.
+- **Created `ISelfSignedCertificateService` / `SelfSignedCertificateService`:** Uses `System.Security.Cryptography.X509Certificates.CertificateRequest`, RSA-2048, SHA-256 signature, 1-year validity. Exports as PFX with password `"letmein"` (matches existing cert service constants).
+- **Registered as singleton:** Stateless cryptographic computation.
+- **Refactored `CertificateRenewalBackgroundService`:**
+  * Check `LocalDomainDetector.IsLocalDomain(hostname)` first.
+  * If local: call `_selfSignedService.GenerateSelfSignedCertificateAsync(hostname, ct)` and skip email settings validation.
+  * If public: existing Let's Encrypt flow (unchanged).
+  * Extracted `SaveCertificateAsync(byte[] certData, CancellationToken)` helper — shared save + cleanup logic for both paths.
+  * `ICertesLetsEncryptService` and email settings only resolved when needed (not local domain).
+- **Created 11 unit tests (all passing):**
+  * LocalDomainDetectorTests (5): `.localhost`, `.local`, `localhost`, loopback IPs, public domains
+  * SelfSignedCertificateServiceTests (6): Happy path generation, CN validation, 365-day validity, RSA-2048 key, SHA256WithRSA signature, invalid hostname error
+- **Build:** 0 errors, 0 warnings.
+- **No integration test needed** — background service itself already tested; cert generation is pure, deterministic, testable at unit level.
 - **Fix 2:** `IAuthTokenProvider.cs` — `GetToken()` and `ProcessToken()` both now guard empty/invalid `SigningKeyBase64` with `LogError` + `Result.Fail` instead of throwing unhandled exceptions.
 - Build: 0 errors, 0 warnings.
 - Diagnosis doc: `.squad/decisions/inbox/cortana-magic-link-trace.md`
@@ -152,5 +172,7 @@
   4. Removed spurious "Spamma.App" solution folder `dotnet sln add` auto-created (name conflicted with the real `Spamma.App` project; caused MSB5004 error).
 - **All 7 `BluQube.dll`** in bin directories now show 20/04/2026 timestamp (all 1.1.0).
 - Build: 0 errors, 0 warnings. Committed as `fix: resolve BluQube ICommandRunner runtime IL error`.
+
+- Self-signed certificate for local domains (current session): Added `ISelfSignedCertificateService` (public interface) + `SelfSignedCertificateService` (internal sealed implementation) in `Spamma.Modules.EmailInbox/Infrastructure/Services/`. Added `LocalDomainDetector` static helper — detects `.localhost`, `.local`, `localhost`, and loopback IPs via `IPAddress.IsLoopback`. Refactored `CertificateRenewalBackgroundService.PerformCertificateRenewalAsync`: email settings check now deferred to the Let's Encrypt branch (not needed for self-signed), save+cleanup DRY'd into `SaveCertificateAsync(byte[], CancellationToken)`, `certService`/`challengeResponder` resolved only in the non-local branch. Registered `ISelfSignedCertificateService` as singleton in `Module.AddEmailInbox()`. 11 tests: 7 `LocalDomainDetectorTests` (Theory) + 4 `SelfSignedCertificateServiceTests`. Build: 0 errors, 0 warnings; all 11 tests passed.
 
 

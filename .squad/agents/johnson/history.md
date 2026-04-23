@@ -154,6 +154,110 @@
 ### Build result
 - dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
 
+## Align CatchAllSenders Page to Admin Page Style Standard (2026-04-21 Session)
+
+**Task**: Rewrite layout skeleton of `/admin/catch-all-senders` to match established pattern from `admin/users` and `admin/domains`.
+
+### Architecture changes (unified admin page pattern)
+1. **Outer wrapper:** `<div class="min-h-screen bg-gray-50">` containing `<AdminHeader>` (was: header outside wrapper)
+2. **Content container:** `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8` (was: `max-w-5xl py-6`)
+3. **Search panel:** White card `bg-white rounded-lg shadow-sm border p-6 mb-6` with text input bound via `oninput` (was: no search)
+4. **Table card header:** Upgraded from `h3 text-sm font-medium text-gray-700` to `text-lg font-medium text-gray-900`
+5. **Loading state:** Replaced `border-b-2` border spinner with standard SVG animated spinner
+6. **Table overflow:** Wrapped in `<div class="overflow-x-auto">`
+7. **Empty state:** Replaced large centered card-with-icon with `text-center py-12` SVG + text pattern
+8. **Table binding:** Changed from `@foreach (var item in _items)` to `@foreach (var item in FilteredItems)`
+
+### Code-behind changes (CatchAllSenders.razor.cs)
+- Added `_searchTerm` string field (initialized empty)
+- Added `FilteredItems` computed property: returns all items when search is empty, filters by SenderAddress (case-insensitive contains match) when search has text
+- Fixed `GetRowClasses(item)` method: removed duplicate `hover:bg-amber-50` from selected state; non-selected uses `hover:bg-gray-50` per reference
+
+### Verification
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+
+## Home Route Changed from /app to /inbox (2026-04-21 Session)
+
+**Task**: Rename main landing page route from `/app` to `/inbox` for clearer URL semantics.
+
+### Files changed
+| File | Change |
+|------|--------|
+| `Spamma.App.Client/Pages/Home.razor` | `@page "/app"` → `@page "/inbox"` |
+| `Spamma.App.Client/Layout/AppLayout.razor` | Logo link `href="/app"` → `href="/inbox"` |
+| `Spamma.App/Components/Pages/Index.razor` | "Open App" button link → `/inbox` |
+| `Spamma.App/Infrastructure/Endpoints/AuthenticationEndpoints.cs` | Post-magic-link redirect → `/inbox` |
+| `Spamma.App/Components/Pages/Auth/VerifyLogin.razor.cs` | Post-passkey `NavigateTo` → `/inbox` |
+
+### Rationale
+`/inbox` better describes the page purpose (email inbox view) and aligns with existing `/inbox/catch-all` sub-route.
+
+### Note
+- `Program.cs` has `/app/certs/keys` — this is a **file system path**, not a route. Left unchanged.
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+- dotnet build Spamma.App.csproj --no-restore — 0 errors, 0 warnings
+
+## Modal/Slideout Overlay Audit & Migration (2026-04-21 Session)
+
+**Task**: Full audit of all `.razor` components to ensure overlay implementations use base components (`ModalBase`, `SlideoutBase`) rather than raw `fixed inset-0` patterns.
+
+### Audit scope
+- All `.razor` files under `src/Spamma.App/Spamma.App.Client/`
+- All `.razor` files under `src/Spamma.App/Spamma.App/Components/`
+
+### Audit results & decisions
+
+**FIXED: Users.razor edit slide-out panel**
+- **Before (lines 233–358):** Hand-rolled `<div class="fixed inset-0 overflow-hidden z-50">` pattern with nested backdrop and panel divs
+- **After:** Migrated to `<SlideoutBase IsVisible="@showEditPanel" OnClose="CloseEditPanel" AllowBackdropClose="true" WidthClass="max-w-md" AriaLabelledBy="editUserPanelLabel">`
+- **ChildContent structure:** Header (`flex-shrink-0` prevents collapse), Body (`flex-1` fills space, `overflow-y-auto`), optional Footer (`flex-shrink-0`)
+
+**SKIPPED: Blazor error UI (`#blazor-error-ui` in MainLayout & AppLayout)**
+- Reason: Blazor runtime queries by ID + data attributes (`data-nosnippet`) + CSS class selectors (`.reload`, `.dismiss`) triggered by Blazor's error handling JS
+- Wrapping in `<ModalBase>` would break Blazor's error recovery mechanism
+- Must remain as raw HTML
+
+**SKIPPED: Dropdown patterns (UserTypeahead, AppLayout settings)**
+- UserTypeahead uses `absolute` positioning (not `fixed`) — standard relative-to-input dropdown
+- AppLayout settings uses `absolute right-0 mt-2` — same pattern
+- These are not viewport overlays; no base component needed
+
+### Pattern established going forward
+
+| Use Case | Component |
+|----------|-----------|
+| Centred dialog/modal | `<ModalBase>` |
+| Side panel from right | `<SlideoutBase>` (default) |
+| Side panel from left | `<SlideoutBase Direction="left">` |
+| Blazor framework error UI | Raw HTML only (required by framework) |
+| Dropdowns/typeaheads/tooltips | Raw `absolute` positioning (no base component) |
+
+### SlideoutBase ChildContent pattern (established)
+
+```razor
+<SlideoutBase ...>
+    <!-- Header: use flex-shrink-0 to prevent collapse when body scrolls -->
+    <div class="px-4 sm:px-6 pt-6 flex-shrink-0">
+        <h2 id="...">Title</h2>
+    </div>
+    <!-- Body: use flex-1 to fill remaining space, overflow-y-auto to scroll if needed -->
+    <div class="mt-6 relative flex-1 px-4 sm:px-6 pb-6 overflow-y-auto">
+        Content...
+    </div>
+    <!-- Optional Footer: use flex-shrink-0 -->
+    <div class="px-4 sm:px-6 py-4 border-t flex-shrink-0">
+        Actions...
+    </div>
+</SlideoutBase>
+```
+
+**Important:** SlideoutBase provides the outer `flex h-full flex-col overflow-y-auto bg-white shadow-xl` — do NOT add an extra white div wrapper.
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+
 ## CatchAllSenders Style Alignment (2026-04-21 Session)
 
 **Task**: Bring `/admin/catch-all-senders` fully in line with `admin/users` and `admin/domains` style.
