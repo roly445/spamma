@@ -12,9 +12,13 @@ internal class UpdateCatchAllModeCommandHandler(
     IEmailInboxSettingsService settingsService)
     : CommandHandler<UpdateCatchAllModeCommand>(validators, logger)
 {
+    private readonly ILogger<UpdateCatchAllModeCommandHandler> _logger = logger;
+
     protected override async Task<CommandResult> HandleInternal(UpdateCatchAllModeCommand request, CancellationToken cancellationToken)
     {
+        this._logger.LogInformation("Updating catch-all mode: {Enabled}", request.CatchAllModeEnabled);
         await settingsService.SetCatchAllModeEnabledAsync(request.CatchAllModeEnabled, cancellationToken);
+        this._logger.LogInformation("Catch-all mode updated: {Enabled}", request.CatchAllModeEnabled);
         return CommandResult.Succeeded();
     }
 }

@@ -94,6 +94,7 @@ builder.Services.AddOpenTelemetry()
             .SetSampler(new AlwaysOnSampler())
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
+            .AddSource("Spamma.Server.Pipeline")
             .AddOtlpExporter(opts => opts.Endpoint = new Uri(otlpEndpoint));
     })
     .WithMetrics(metrics =>
@@ -155,6 +156,7 @@ builder.Services.Configure<Settings>(opt => builder.Configuration.GetSection("Se
 builder.Services.Configure<SetupSettings>(opt => builder.Configuration.GetSection("Setup").Bind(opt));
 builder.Services.Configure<Spamma.Modules.EmailInbox.Infrastructure.Settings.EmailInboxSettings>(opt => builder.Configuration.GetSection("SmtpServer").Bind(opt));
 
+builder.Services.AddCommonBehaviors();
 builder.Services.AddUserManagement()
     .AddDomainManagement().AddEmailInbox();
 
