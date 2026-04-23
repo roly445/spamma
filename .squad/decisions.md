@@ -890,3 +890,45 @@ Upgraded all `BluQube` package references from `1.0.3` to `1.1.0` across the sol
 **Last consolidated:** 2026-04-22T10:00Z  
 **Items merged:** 38 inbox decisions from agents across 3 sprint sessions  
 **Agents covered:** Cortana, Foehammer, Johnson, Arbiter, Halsey, Guilty Spark, Master Chief
+
+---
+
+# SCRIBE SESSION — 2026-04-23T12:22
+
+## Decision: StyleCop Generic Type Filename Convention
+
+**Status:** ✅ Established & Applied  
+**Scope:** All generic types across project  
+**Enforced by:** stylecop.json — `fileNamingConvention=metadata`
+
+### Decision Statement
+
+Generic type files must use **CIL arity notation** with backticks:
+- **Format:** `TypeName`{arity}.cs`
+- **Example:** `CommandQueryTracingBehavior`2.cs` (2 type parameters)
+- **Not:** `CommandQueryTracingBehavior_TRequest_TResponse.cs` (invalid)
+- **Not:** `CommandQueryTracingBehavior.cs` (violates SA1649)
+
+### Rationale
+
+1. **StyleCop Compliance:** Project uses `fileNamingConvention=metadata` (CIL format) — this is the authoritative naming convention
+2. **Consistency:** Aligns all generic type filenames with .NET CIL conventions
+3. **SA1649 Enforcement:** Ensures one public type per file (backtick-arity prevents collision with non-generic `TypeName.cs`)
+4. **Code Generation:** BlueQube attributes and reflection-based tools can correctly identify generic types
+
+### Application
+
+Implemented in:
+- `src/modules/Spamma.Modules.Common/Application/Behaviors/CommandQueryTracingBehavior`2.cs`
+  - MediatR pipeline behavior for command/query tracing
+  - 2 type parameters: `TRequest`, `TResponse`
+  - Registered in Module.cs and Program.cs
+
+### Future References
+
+All new generic types must follow this pattern:
+- Generic class with N parameters → `ClassName`N.cs`
+- Generic interface with N parameters → `IInterfaceName`N.cs`
+- Generic record with N parameters → `RecordName`N.cs`
+
+**Related decision:** Coordinator previously corrected this naming (was about to be renamed incorrectly).

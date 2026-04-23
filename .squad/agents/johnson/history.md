@@ -136,3 +136,65 @@
 ### Build result
 - dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
 - dotnet build Spamma.App.csproj --no-restore — 0 errors, 0 warnings
+
+## CatchAllSenders UI Fix (2026-04-21 Session)
+
+**Task**: Fix two UI issues on `/admin/catch-all-senders` reported by Andrew Davis.
+
+### What was changed
+- **CatchAllSenders.razor** — added `<div class="px-6 py-4 border-b border-gray-200">` header strip ("Sender Addresses") as first child of white card, matching Domains.razor table card pattern
+- **CatchAllSenders.razor** — added `group` class to each `<tr>`, wrapped the Remove button in `<div class="opacity-0 group-hover:opacity-100 transition-opacity">` so it only appears on row hover
+
+### Key design choices
+- Padding fix follows Domains.razor: table cards have a padded header strip (`px-6 py-4 border-b`), not `p-6` on the card itself (which would double-pad table cells)
+- Hover pattern uses CSS `group`/`group-hover` (Tailwind) — no existing codebase precedent for group-hover, but chosen over C# state (`_selectedItemId`) to keep Remove independent of expand/collapse row state
+- "Add Address" button in AdminHeader.Controls left always visible (primary action, not a per-row button)
+- Unassign button inside expanded detail row unaffected — it only renders when a row is selected (already contextual)
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+
+## CatchAllSenders Style Alignment (2026-04-21 Session)
+
+**Task**: Bring `/admin/catch-all-senders` fully in line with `admin/users` and `admin/domains` style.
+
+### Gaps identified and fixed
+- **AdminHeader placement**: Was outside `min-h-screen bg-gray-50` wrapper; moved inside to match Users/Domains structure
+- **Content area width**: `max-w-5xl py-6` → `max-w-7xl py-8` (matches reference pages)
+- **Search bar**: Added `bg-white rounded-lg shadow-sm border p-6 mb-6` search panel with `oninput`-bound text input
+- **Card header**: `text-sm font-medium text-gray-700` → `text-lg font-medium text-gray-900` (matches reference)
+- **Loading spinner**: Replaced simple `border-b-2` div spinner with full SVG animated spinner (matches reference)
+- **Table wrapper**: Added `overflow-x-auto` div around `<table>` (matches reference)
+- **Row hover**: `hover:bg-amber-50` → `hover:bg-gray-50` in `GetRowClasses`; selected rows retain `bg-amber-50` for visual distinction
+- **Empty state**: Replaced large centred card-with-icon empty state with simple `text-center py-12` SVG + headings pattern (matches reference). Message is context-aware: different text when search is active
+- **`_searchTerm` + `FilteredItems`**: Added `_searchTerm` field and computed `FilteredItems` property in code-behind; table iterates `FilteredItems` instead of `_items`
+
+### Build result
+- dotnet build Spamma.App.Client.csproj --no-restore — 0 errors, 0 warnings
+
+## Modal/Slideout Overlay Audit (2026-04-21 Session)
+
+**Task**: Audit all Razor files for raw `fixed inset-0` overlay implementations and migrate any found to `<ModalBase>` or `<SlideoutBase>`.
+
+### Audit findings
+
+| File | Pattern found | Status |
+|------|--------------|--------|
+| `MainLayout.razor` | `fixed inset-0 z-50` — `#blazor-error-ui` | **Skip** — Blazor framework-owned element |
+| `AppLayout.razor` | `fixed inset-0 z-50` — `#blazor-error-ui` + `z-50` dropdown | **Skip** — framework element; dropdown is `absolute`, not an overlay |
+| `UserTypeahead.razor` | `absolute z-50` | **Skip** — typeahead dropdown, not a modal/slideout overlay |
+| `Users.razor` (lines 233-358) | `fixed inset-0 overflow-hidden z-50` raw slideout | **Fixed** — migrated to `<SlideoutBase>` |
+| `Users.razor` — Add User modal | `<ModalBase>` | Already correct |
+| `Users.razor` — Suspend modal | `<ModalBase>` | Already correct |
+| `Users.razor` — Unsuspend modal | `<ConfirmModal>` | Already correct |
+
+### Key decisions
+
+- **`#blazor-error-ui` exemption**: These divs use `fixed inset-0 z-50` but are controlled entirely by Blazor's JS runtime via the element id, `data-nosnippet`, and `.reload`/`.dismiss` class selectors. They must stay raw.
+- **Dropdown `z-50` exemption**: `absolute z-50` on `UserTypeahead` and the settings dropdown in `AppLayout` are positioned relative to their parent containers, not viewport-fixed overlays.
+- **`@if` guard preserved**: Kept `@if (showEditPanel && selectedUser != null)` wrapper for null-safety on `selectedUser` inside the template.
+- **SlideoutBase padding pattern**: Outer `py-6` on the removed flex container redistributed as `pt-6 flex-shrink-0` on the header div and `pb-6` on the content div.
+
+### Build result
+
+- `dotnet build Spamma.App.Client.csproj --no-restore -v q` — exit code 0, 0 errors, 0 warnings

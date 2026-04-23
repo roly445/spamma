@@ -58,6 +58,24 @@
 
 - CatchAllSender command handlers (2026-04-22): Created `ICatchAllSenderAddressRepository` (extends `IRepository<CatchAllSenderAddress>`) + `CatchAllSenderAddressRepository` (extends `GenericRepository<T>`). Added 4 handlers (`Add`, `Remove`, `AssignUser`, `UnassignUser`), 4 validators, 4 authorizers all using `MustBeAuthenticatedRequirement`. Registered repository as scoped in `Module.AddEmailInbox()`. Build: 0 errors, 0 warnings. No role-based requirement available in Common — authorizers match `UpdateCatchAllModeCommandAuthorizer` pattern exactly. `AssignUser`/`UnassignUser` handlers do not inject `TimeProvider` (domain methods take no timestamp).
 
+## Task: Fix AmbiguousMatchException on POST api/email-inbox/catch-all-senders (2026-04-22)
+
+- **Root cause:** `AddCatchAllSenderAddressCommand` had `[BluQubeCommand(Path = "api/email-inbox/catch-all-senders")]` — missing the `/add` suffix. BluQube registers both Commands and Queries as POST endpoints; `SearchCatchAllSenderAddressesQuery` uses the same base path `api/email-inbox/catch-all-senders`, causing two POST registrations at the same route.
+- **Fix:** Updated `AddCatchAllSenderAddressCommand.cs` path to `api/email-inbox/catch-all-senders/add`.
+- All 4 commands now have unique paths: `/add`, `/remove`, `/assign-user`, `/unassign-user`.
+- Build: 0 errors, 0 warnings (EmailInbox.Client module).
+
+## Task: MediatR Pipeline Tracing Behavior (2026-04-23)
+
+- Created `CommandQueryTracingBehavior`2.cs` in `Spamma.Modules.Common/Application/Behaviors/`. Generic classes in this codebase use CLR backtick notation for file names (e.g., `GenericRepository`1.cs`, `CommandQueryTracingBehavior`2.cs`) — SA1649 enforces this.
+- Created `Spamma.Modules.Common/Module.cs` with `AddCommonBehaviors()` extension method — Common had no Module.cs prior to this task.
+- `IPipelineBehavior<,>` is available in Common via transitive dependency through `MediatR.Behaviors.Authorization`; no need to add MediatR explicitly to Common.csproj.
+- Behavior registration order matters: `AddCommonBehaviors()` must be called in Program.cs BEFORE `AddUserManagement()/AddDomainManagement()/AddEmailInbox()` so the tracing behavior is outermost in the pipeline (wraps auth and handler invocation).
+- `AddSource("Spamma.Server.Pipeline")` added to OTEL `.WithTracing(...)` chain in Program.cs — without this, ActivitySource activities are never sampled/exported.
+- `UpdateCatchAllModeCommandHandler` already had `ILogger<T>` injected (passed to base class). Added `_logger` field and `LogInformation` calls before/after `SetCatchAllModeEnabledAsync`. Property is `CatchAllModeEnabled` (not `Enabled`).
+- `dynamic` cast for status/errorData extraction wrapped in try/catch per spec — `CommandResult` and `QueryResult<T>` both have `.Status` property; the dynamic approach handles both without requiring generic constraints.
+- Build: 0 errors, 0 warnings (Common and EmailInbox modules verified individually; full App build had file-lock warnings only from a running process).
+
 ## Cross-Agent Dependencies (2026-04-21 Session)
 
 **cortana-healthchecks** ↔ **guilty-spark-dashboard**:
