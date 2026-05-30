@@ -1,13 +1,13 @@
-using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
+using BluQube.Authorization;
 using Spamma.Modules.UserManagement.Client.Application.Commands.ApiKeys;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.ApiKey;
 
-internal class CreateApiKeyCommandAuthorizer : AbstractRequestAuthorizer<CreateApiKeyCommand>
+internal class CreateApiKeyCommandAuthorizer : IBluQubeAuthorizer<CreateApiKeyCommand>
 {
-    public override void BuildPolicy(CreateApiKeyCommand request)
+    public Task<AuthorizationResult> Authorize(CreateApiKeyCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new AllowPublicApiAccessRequirement());
+        return Task.FromResult(AuthorizationResult.Succeed());
     }
 }
+

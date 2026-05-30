@@ -7,7 +7,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
 internal class GetEmailByIdQueryProcessor(IDocumentSession session) : IQueryProcessor<GetEmailByIdQuery, GetEmailByIdQueryResult>
 {
-    public async Task<QueryResult<GetEmailByIdQueryResult>> Handle(GetEmailByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetEmailByIdQueryResult>> Handle(GetEmailByIdQuery request, CancellationToken cancellationToken)
     {
         var email = await session.Query<EmailLookup>()
             .FirstOrDefaultAsync(e => e.Id == request.EmailId, cancellationToken);

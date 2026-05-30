@@ -12,7 +12,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession, IHttpContextAccessor accessor)
     : IQueryProcessor<GetCatchAllEmailsQuery, GetCatchAllEmailsQueryResult>
 {
-    public async Task<QueryResult<GetCatchAllEmailsQueryResult>> Handle(GetCatchAllEmailsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetCatchAllEmailsQueryResult>> Handle(GetCatchAllEmailsQuery request, CancellationToken cancellationToken)
     {
         var catchAllSubdomainId = EmailInboxSettingsDocument.CatchAllSubdomainId;
         var user = accessor.HttpContext.ToUserAuthInfo();
@@ -61,3 +61,4 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
             new GetCatchAllEmailsQueryResult(groups, totalCount));
     }
 }
+

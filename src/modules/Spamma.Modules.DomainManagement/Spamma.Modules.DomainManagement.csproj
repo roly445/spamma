@@ -11,7 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BluQube" Version="1.1.0" />
+        <PackageReference Include="BluQube" Version="1.2.0" />
         <PackageReference Include="DnsClient" Version="1.8.0" />
         <PackageReference Include="DotNetCore.CAP" Version="8.4.1" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
@@ -35,6 +35,12 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
+    <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
+      <ItemGroup>
+        <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
+      </ItemGroup>
+    </Target>
+
     <ItemGroup>
         <ProjectReference Include="..\..\Spamma.Analyzers\Spamma.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
       <ProjectReference Include="..\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
@@ -57,6 +63,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <InternalsVisibleTo Include="Spamma.App" />
       <InternalsVisibleTo Include="Spamma.Modules.DomainManagement.Tests" />
       <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
         <InternalsVisibleTo Include="Spamma.Modules.EmailInbox.Tests.E2E" />

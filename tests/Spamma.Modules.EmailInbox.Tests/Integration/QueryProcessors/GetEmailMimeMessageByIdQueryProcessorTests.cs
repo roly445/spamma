@@ -3,7 +3,9 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using MimeKit;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
+using Spamma.Modules.EmailInbox.Tests.Builders;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
@@ -17,9 +19,21 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
     [Fact]
     public async Task Handle_WithValidEmailId_ReturnsCompressedBase64MimeMessage()
     {
-        // Arrange
         var messageId = Guid.NewGuid();
+        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
         var messageStoreProvider = this.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
+
+        var email = EmailLookupTestFactory.Create(
+            id: messageId,
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Test Email with MIME",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>());
+        this.Session.Store(email);
+        await this.Session.SaveChangesAsync();
 
         var mimeMessage = new MimeMessage
         {
@@ -32,25 +46,20 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
             },
         };
 
-        // Store the MIME message
         var storeResult = await messageStoreProvider.StoreMessageContentAsync(messageId, mimeMessage);
         storeResult.IsSuccess.Should().BeTrue("MIME message should be stored successfully");
 
         var query = new GetEmailMimeMessageByIdQuery(messageId);
 
-        // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
         result.Data!.FileContent.Should().NotBeNullOrEmpty();
 
-        // Verify the content is valid base64
         var act = () => Convert.FromBase64String(result.Data.FileContent);
         act.Should().NotThrow("FileContent should be valid base64");
 
-        // Verify we can decompress and read the MIME message
         var compressedBytes = Convert.FromBase64String(result.Data.FileContent);
         using var compressedStream = new MemoryStream(compressedBytes);
         using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
@@ -66,14 +75,11 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
     [Fact]
     public async Task Handle_WithNonExistentEmailId_ReturnsFailed()
     {
-        // Arrange
         var nonExistentEmailId = Guid.NewGuid();
         var query = new GetEmailMimeMessageByIdQuery(nonExistentEmailId);
 
-        // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
 
-        // Assert - QueryResult<T>.Data throws InvalidOperationException when Status is not Succeeded
         result.Should().NotBeNull();
         var act = () => result.Data;
         act.Should().Throw<InvalidOperationException>();
@@ -82,9 +88,21 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
     [Fact]
     public async Task Handle_WithMultipartMessage_ReturnsCompressedMimeMessage()
     {
-        // Arrange
         var messageId = Guid.NewGuid();
+        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
         var messageStoreProvider = this.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
+
+        var email = EmailLookupTestFactory.Create(
+            id: messageId,
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Multipart Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>());
+        this.Session.Store(email);
+        await this.Session.SaveChangesAsync();
 
         var multipart = new Multipart("mixed");
         multipart.Add(new TextPart("plain")
@@ -109,15 +127,12 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
 
         var query = new GetEmailMimeMessageByIdQuery(messageId);
 
-        // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
         result.Data!.FileContent.Should().NotBeNullOrEmpty();
 
-        // Decompress and verify multipart structure
         var compressedBytes = Convert.FromBase64String(result.Data.FileContent);
         using var compressedStream = new MemoryStream(compressedBytes);
         using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
@@ -133,11 +148,22 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
     [Fact]
     public async Task Handle_WithLargeMessage_ReturnsCompressedData()
     {
-        // Arrange
         var messageId = Guid.NewGuid();
+        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
         var messageStoreProvider = this.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
 
-        // Create a large message body (100KB of text)
+        var email = EmailLookupTestFactory.Create(
+            id: messageId,
+            subdomainId: subdomainId,
+            domainId: domainId,
+            subject: "Large Email Message",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>());
+        this.Session.Store(email);
+        await this.Session.SaveChangesAsync();
+
         var largeText = new string('A', 100 * 1024);
 
         var mimeMessage = new MimeMessage
@@ -156,19 +182,15 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
 
         var query = new GetEmailMimeMessageByIdQuery(messageId);
 
-        // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
 
-        // Assert
         result.Should().NotBeNull();
         result.Data.Should().NotBeNull();
         result.Data!.FileContent.Should().NotBeNullOrEmpty();
 
-        // Verify compression actually reduced the size
         var compressedBytes = Convert.FromBase64String(result.Data.FileContent);
         compressedBytes.Length.Should().BeLessThan(100 * 1024, "Compressed data should be smaller than original 100KB text");
 
-        // Verify we can still decompress and read it
         using var compressedStream = new MemoryStream(compressedBytes);
         using var gzipStream = new GZipStream(compressedStream, CompressionMode.Decompress);
         using var decompressedStream = new MemoryStream();
@@ -179,7 +201,6 @@ public class GetEmailMimeMessageByIdQueryProcessorTests : QueryProcessorIntegrat
         decompressedMessage.Subject.Should().Be("Large Email Message");
         var textBody = (TextPart?)decompressedMessage.Body;
 
-        // MIME encoding may add line wrapping, so text could be slightly larger than original
         textBody.Should().NotBeNull();
         textBody!.Text.Should().NotBeNullOrEmpty();
         textBody.Text!.Should().Contain("AAAAAAAAAAAAAAAA", "Text should contain large repeated pattern");

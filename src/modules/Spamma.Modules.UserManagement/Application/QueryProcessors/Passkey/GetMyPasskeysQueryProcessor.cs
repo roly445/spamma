@@ -13,7 +13,7 @@ internal class GetMyPasskeysQueryProcessor(
     IHttpContextAccessor httpContextAccessor,
     ILogger<GetMyPasskeysQueryProcessor> logger) : IQueryProcessor<GetMyPasskeysQuery, GetMyPasskeysQueryResult>
 {
-    public async Task<QueryResult<GetMyPasskeysQueryResult>> Handle(GetMyPasskeysQuery query, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetMyPasskeysQueryResult>> Handle(GetMyPasskeysQuery query, CancellationToken cancellationToken)
     {
         try
         {

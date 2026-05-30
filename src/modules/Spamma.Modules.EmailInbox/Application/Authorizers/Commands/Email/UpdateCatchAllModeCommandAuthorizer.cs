@@ -1,13 +1,15 @@
-using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Commands.Email;
 
-internal class UpdateCatchAllModeCommandAuthorizer : AbstractRequestAuthorizer<UpdateCatchAllModeCommand>
+internal class UpdateCatchAllModeCommandAuthorizer(IHttpContextAccessor httpContextAccessor) : IBluQubeAuthorizer<UpdateCatchAllModeCommand>
 {
-    public override void BuildPolicy(UpdateCatchAllModeCommand request)
+    public Task<AuthorizationResult> Authorize(UpdateCatchAllModeCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        return Task.FromResult(user.IsAuthenticated ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
     }
 }

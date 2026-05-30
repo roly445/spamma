@@ -1,4 +1,4 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using BluQube.Queries;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
@@ -7,7 +7,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
 internal class GetEmailMimeMessageByIdQueryProcessor(IMessageStoreProvider messageStoreProvider) : IQueryProcessor<GetEmailMimeMessageByIdQuery, GetEmailMimeMessageByIdQueryResult>
 {
-    public async Task<QueryResult<GetEmailMimeMessageByIdQueryResult>> Handle(GetEmailMimeMessageByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetEmailMimeMessageByIdQueryResult>> Handle(GetEmailMimeMessageByIdQuery request, CancellationToken cancellationToken)
     {
         var message = await messageStoreProvider.LoadMessageContentAsync(request.EmailId, cancellationToken);
         if (message.HasNoValue)

@@ -233,128 +233,111 @@
 <!-- Edit User Slide-out Panel -->
 @if (showEditPanel && selectedUser != null)
 {
-    <div class="fixed inset-0 overflow-hidden z-50" @onclick="CloseEditPanel">
-        <div class="absolute inset-0 overflow-hidden">
-            <!-- Background overlay -->
-            <div class="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"></div>
-            
-            <!-- Panel -->
-            <div class="fixed inset-y-0 right-0 pl-10 max-w-full flex" @onclick:stopPropagation="true">
-                <div class="w-screen max-w-md">
-                    <div class="h-full flex flex-col py-6 bg-white shadow-xl overflow-y-scroll">
-                        <!-- Header -->
-                        <div class="px-4 sm:px-6">
-                            <div class="flex items-center justify-between">
-                                <h2 class="text-lg font-medium text-gray-900">Edit User</h2>
-                                <button @onclick="CloseEditPanel" class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <svg class="h-6 w-6 fill-none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
+    <SlideoutBase IsVisible="@showEditPanel" OnClose="CloseEditPanel" AllowBackdropClose="true" WidthClass="max-w-md" AriaLabelledBy="editUserPanelLabel">
+        <!-- Header -->
+        <div class="px-4 sm:px-6 pt-6 flex-shrink-0">
+            <div class="flex items-center justify-between">
+                <h2 id="editUserPanelLabel" class="text-lg font-medium text-gray-900">Edit User</h2>
+                <button @onclick="CloseEditPanel" class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg class="h-6 w-6 fill-none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mt-6 relative flex-1 px-4 sm:px-6 pb-6">
+            <!-- User Avatar and Basic Info -->
+            <div class="text-center mb-6">
+                <UserListItem UserName="@selectedUser.DisplayName" UserEmail="@selectedUser.Email" ShowName="false" Size="20" />
+                <h3 class="mt-4 text-lg font-medium text-gray-900">@(selectedUser.DisplayName ?? "No Name")</h3>
+                <p class="text-sm text-gray-500">@selectedUser.Email</p>
+            </div>
+
+            <!-- Edit Form -->
+            <EditForm Model="@_editUserModel" OnValidSubmit="@HandleSaveUser" FormName="EditUserForm">
+                <DataAnnotationsValidator />
+
+                <!-- Basic Information -->
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Basic Information</h4>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Display Name</label>
+                                <InputText @bind-Value="_editUserModel.DisplayName"
+                                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                                <ValidationMessage For="@(() => _editUserModel.DisplayName)" class="mt-1 text-sm text-red-600" />
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                                <InputText @bind-Value="_editUserModel.Email"
+                                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                                <ValidationMessage For="@(() => _editUserModel.Email)" class="mt-1 text-sm text-red-600" />
+                            </div>
+
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900 mb-2">Roles</h4>
+                                <div class="space-y-2">
+                                    @foreach (SystemRole role in Enum.GetValues(typeof(SystemRole)))
+                                    {
+                                        <div class="flex items-center">
+                                            <input type="checkbox"
+                                                   checked="@IsRoleSelected(role, _editUserModel.Roles)"
+                                                   @onchange="(e) => ToggleRole(role, _editUserModel, e.Value ?? false)"
+                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                                            <label class="ml-2 text-sm text-gray-700">@role.GetDescription()</label>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Content -->
-                        <div class="mt-6 relative flex-1 px-4 sm:px-6">
-                            <!-- User Avatar and Basic Info -->
-                            <div class="text-center mb-6">
-                                <UserListItem UserName="@selectedUser.DisplayName" UserEmail="@selectedUser.Email" ShowName="false" Size="20" />
-                                <h3 class="mt-4 text-lg font-medium text-gray-900">@(selectedUser.DisplayName ?? "No Name")</h3>
-                                <p class="text-sm text-gray-500">@selectedUser.Email</p>
+                    </div>
+
+                    <!-- Account Details -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Account Details</h4>
+                        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Account Created</span>
+                                <span class="text-sm text-gray-900">@selectedUser.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
                             </div>
-
-                            <!-- Edit Form -->
-                            <EditForm Model="@_editUserModel" OnValidSubmit="@HandleSaveUser" FormName="EditUserForm">
-                                <DataAnnotationsValidator />
-                                
-                                <!-- Basic Information -->
-                                <div class="space-y-6">
-                                    <div>
-                                        <h4 class="text-sm font-medium text-gray-900 mb-3">Basic Information</h4>
-                                        
-                                        <div class="space-y-4">
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700">Display Name</label>
-                                                <InputText @bind-Value="_editUserModel.DisplayName" 
-                                                          class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                                                <ValidationMessage For="@(() => _editUserModel.DisplayName)" class="mt-1 text-sm text-red-600" />
-                                            </div>
-
-                                            <div>
-                                                <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                                                <InputText @bind-Value="_editUserModel.Email" 
-                                                           class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                                                <ValidationMessage For="@(() => _editUserModel.Email)" class="mt-1 text-sm text-red-600" />
-                                            </div>
-                                            
-                                            <div>
-                                                <h4 class="text-sm font-medium text-gray-900 mb-2">Roles</h4>
-                                                <div class="space-y-2">
-                                                    @foreach (SystemRole role in Enum.GetValues(typeof(SystemRole)))
-                                                    {
-                                                        <div class="flex items-center">
-                                                            <input type="checkbox"
-                                                                   checked="@IsRoleSelected(role, _editUserModel.Roles)"
-                                                                   @onchange="(e) => ToggleRole(role, _editUserModel, e.Value ?? false)"
-                                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-                                                            <label class="ml-2 text-sm text-gray-700">@role.GetDescription()</label>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </div>
-
-                                            
-                                        </div>
-                                    </div>
-
-                                    <!-- Account Details -->
-                                    <div>
-                                        <h4 class="text-sm font-medium text-gray-900 mb-3">Account Details</h4>
-                                        <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-                                            <div class="flex justify-between">
-                                                <span class="text-sm text-gray-500">Account Created</span>
-                                                <span class="text-sm text-gray-900">@selectedUser.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")</span>
-                                            </div>
-                                            <div class="flex justify-between">
-                                                <span class="text-sm text-gray-500">Last Login</span>
-                                                <span class="text-sm text-gray-900">@(selectedUser.LastLoginAt?.ToString("MMM dd, yyyy 'at' h:mm tt") ?? "Never")</span>
-                                            </div>
-                                           
-                                        </div>
-                                    </div>
-
-
-                                </div>
-
-                                <!-- Form Actions -->
-                                <div class="mt-6 flex justify-end space-x-3">
-                                    <button type="button" @onclick="CloseEditPanel" 
-                                           class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" 
-                                           class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        @if (isSavingUser)
-                                        {
-                                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            <span>Saving...</span>
-                                        }
-                                        else
-                                        {
-                                            <span>Save Changes</span>
-                                        }
-                                    </button>
-                                </div>
-                            </EditForm>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-500">Last Login</span>
+                                <span class="text-sm text-gray-900">@(selectedUser.LastLoginAt?.ToString("MMM dd, yyyy 'at' h:mm tt") ?? "Never")</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+
+                <!-- Form Actions -->
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" @onclick="CloseEditPanel"
+                           class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                           class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        @if (isSavingUser)
+                        {
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Saving...</span>
+                        }
+                        else
+                        {
+                            <span>Save Changes</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
         </div>
-    </div>
+    </SlideoutBase>
 }
 
 @if (showAddUserModal)

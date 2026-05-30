@@ -1,6 +1,0 @@
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Spamma.Modules.UserManagement.Tests")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Spamma.Modules.UserManagement.Tests")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Spamma.Modules.UserManagement.Tests")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("DynamicProxyGenAssembly2")]

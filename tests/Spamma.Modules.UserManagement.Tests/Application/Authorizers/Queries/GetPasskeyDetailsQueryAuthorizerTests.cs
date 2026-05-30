@@ -1,79 +1,30 @@
 using FluentAssertions;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Application.Authorizers.Queries;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
+using Spamma.Modules.UserManagement.Tests.Application.Authorizers;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Authorizers.Queries;
 
 public class GetPasskeyDetailsQueryAuthorizerTests
 {
     [Fact]
-    public void BuildPolicy_AddsAuthenticatedRequirement()
+    public async Task Authorize_WhenUserIsAdministrator_Succeeds()
     {
-        // Arrange
-        var authorizer = new GetPasskeyDetailsQueryAuthorizer();
-        var passkeyId = Guid.NewGuid();
-        var query = new GetPasskeyDetailsQuery(passkeyId);
+        var authorizer = new GetPasskeyDetailsQueryAuthorizer(AuthorizerTestContext.CreateAuthenticated(SystemRole.UserManagement));
 
-        // Act
-        authorizer.BuildPolicy(query);
+        var result = await authorizer.Authorize(new GetPasskeyDetailsQuery(Guid.NewGuid()), CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().ContainSingle(r => r is MustBeAuthenticatedRequirement);
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public void BuildPolicy_AddsUserAdministratorRequirement()
+    public async Task Authorize_WhenUserIsNotAdministrator_Fails()
     {
-        // Arrange
-        var authorizer = new GetPasskeyDetailsQueryAuthorizer();
-        var passkeyId = Guid.NewGuid();
-        var query = new GetPasskeyDetailsQuery(passkeyId);
+        var authorizer = new GetPasskeyDetailsQueryAuthorizer(AuthorizerTestContext.CreateAuthenticated());
 
-        // Act
-        authorizer.BuildPolicy(query);
+        var result = await authorizer.Authorize(new GetPasskeyDetailsQuery(Guid.NewGuid()), CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().ContainSingle(r => r is MustBeUserAdministratorRequirement);
-    }
-
-    [Fact]
-    public void BuildPolicy_AddsExactlyTwoRequirements()
-    {
-        // Arrange
-        var authorizer = new GetPasskeyDetailsQueryAuthorizer();
-        var passkeyId = Guid.NewGuid();
-        var query = new GetPasskeyDetailsQuery(passkeyId);
-
-        // Act
-        authorizer.BuildPolicy(query);
-
-        // Assert
-        authorizer.Requirements.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public void BuildPolicy_WithDifferentPasskeyIds_ProducesSameRequirements()
-    {
-        // Arrange
-        var authorizer1 = new GetPasskeyDetailsQueryAuthorizer();
-        var authorizer2 = new GetPasskeyDetailsQueryAuthorizer();
-        var passkeyId1 = Guid.NewGuid();
-        var passkeyId2 = Guid.NewGuid();
-        var query1 = new GetPasskeyDetailsQuery(passkeyId1);
-        var query2 = new GetPasskeyDetailsQuery(passkeyId2);
-
-        // Act
-        authorizer1.BuildPolicy(query1);
-        authorizer2.BuildPolicy(query2);
-
-        // Assert
-        authorizer1.Requirements.Should().HaveCount(2);
-        authorizer2.Requirements.Should().HaveCount(2);
-        authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
-        authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
-        authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeUserAdministratorRequirement");
-        authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeUserAdministratorRequirement");
+        result.IsAuthorized.Should().BeFalse();
     }
 }

@@ -1,18 +1,40 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.ChaosAddress;
 
-internal class EnableChaosAddressCommandAuthorizer : AbstractRequestAuthorizer<EnableChaosAddressCommand>
+internal class EnableChaosAddressCommandAuthorizer(IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession) : IBluQubeAuthorizer<EnableChaosAddressCommand>
 {
-    public override void BuildPolicy(EnableChaosAddressCommand request)
+    public async Task<AuthorizationResult> Authorize(EnableChaosAddressCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustHaveAccessChaosAddressRequirement
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
         {
-            ChaosAddressId = request.ChaosAddressId,
-        });
+            return AuthorizationResult.Fail();
+        }
+
+        var chaosAddress = await documentSession.LoadAsync<ChaosAddressLookup>(request.ChaosAddressId, cancellationToken);
+        if (chaosAddress == null)
+        {
+            return AuthorizationResult.Fail();
+        }
+
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
+            user.ModeratedSubdomains.Contains(chaosAddress.SubdomainId) ||
+            user.ViewableSubdomains.Contains(chaosAddress.SubdomainId))
+        {
+            return AuthorizationResult.Succeed();
+        }
+
+        var hasSubdomainAccess = await documentSession.Query<SubdomainLookup>()
+            .AnyAsync(x => x.Id == chaosAddress.SubdomainId && user.ModeratedDomains.Contains(x.DomainId), token: cancellationToken);
+
+        return hasSubdomainAccess ? AuthorizationResult.Succeed() : AuthorizationResult.Fail();
     }
 }
+

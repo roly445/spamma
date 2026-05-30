@@ -1,13 +1,12 @@
-using MediatR.Behaviors.Authorization;
+using BluQube.Authorization;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Email;
 
-internal class ReceivedEmailCommandAuthorizer : AbstractRequestAuthorizer<ReceivedEmailCommand>
+internal class ReceivedEmailCommandAuthorizer : IBluQubeAuthorizer<ReceivedEmailCommand>
 {
-    public override void BuildPolicy(ReceivedEmailCommand request)
+    public Task<AuthorizationResult> Authorize(ReceivedEmailCommand request, CancellationToken cancellationToken)
     {
-        // No authorization requirements - this is an internal system command
-        // triggered by SMTP message processing
+        return Task.FromResult(AuthorizationResult.Succeed());
     }
 }

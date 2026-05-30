@@ -9,7 +9,7 @@ internal class GetPasskeyDetailsQueryProcessor(
     IPasskeyRepository passkeyRepository,
     ILogger<GetPasskeyDetailsQueryProcessor> logger) : IQueryProcessor<GetPasskeyDetailsQuery, PasskeyDetailsResult>
 {
-    public async Task<QueryResult<PasskeyDetailsResult>> Handle(GetPasskeyDetailsQuery query, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<PasskeyDetailsResult>> Handle(GetPasskeyDetailsQuery query, CancellationToken cancellationToken)
     {
         try
         {

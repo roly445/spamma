@@ -1,15 +1,27 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-internal class SearchSubdomainViewersQueryAuthorizer : AbstractRequestAuthorizer<SearchSubdomainViewersQuery>
+internal class SearchSubdomainViewersQueryAuthorizer(IHttpContextAccessor httpContextAccessor) : IBluQubeAuthorizer<SearchSubdomainViewersQuery>
 {
-    public override void BuildPolicy(SearchSubdomainViewersQuery request)
+    public Task<AuthorizationResult> Authorize(SearchSubdomainViewersQuery request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustBeModeratorToAtLeastOneSubdomainRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
+        {
+            return Task.FromResult(AuthorizationResult.Fail());
+        }
+
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) || user.ModeratedDomains.Any() || user.ModeratedSubdomains.Any())
+        {
+            return Task.FromResult(AuthorizationResult.Succeed());
+        }
+
+        return Task.FromResult(AuthorizationResult.Fail());
     }
 }
+

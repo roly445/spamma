@@ -7,7 +7,7 @@ namespace Spamma.Modules.UserManagement.Application.QueryProcessors.Passkey;
 internal class GetPasskeyByCredentialIdQueryProcessor(
     IPasskeyRepository passkeyRepository) : IQueryProcessor<GetPasskeyByCredentialIdQuery, GetPasskeyByCredentialIdQueryResult>
 {
-    public async Task<QueryResult<GetPasskeyByCredentialIdQueryResult>> Handle(GetPasskeyByCredentialIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetPasskeyByCredentialIdQueryResult>> Handle(GetPasskeyByCredentialIdQuery request, CancellationToken cancellationToken)
     {
         var passkeyMaybe = await passkeyRepository.GetByCredentialIdAsync(request.CredentialId, cancellationToken);
 
@@ -32,4 +32,5 @@ internal class GetPasskeyByCredentialIdQueryProcessor(
         return QueryResult<GetPasskeyByCredentialIdQueryResult>.Succeeded(result);
     }
 }
+
 

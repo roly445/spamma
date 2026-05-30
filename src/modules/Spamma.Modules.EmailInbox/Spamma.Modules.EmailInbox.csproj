@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Spamma.App" />
         <InternalsVisibleTo Include="Spamma.Modules.EmailInbox.Tests" />
     </ItemGroup>
 
@@ -18,9 +19,15 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
+    <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
+      <ItemGroup>
+        <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
+      </ItemGroup>
+    </Target>
+
     <ItemGroup>
       <PackageReference Include="StackExchange.Redis" Version="2.9.32" />
-      <PackageReference Include="BluQube" Version="1.1.0" />
+      <PackageReference Include="BluQube" Version="1.2.0" />
       <PackageReference Include="Certes" Version="3.0.4" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
       <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.6" />
@@ -41,7 +48,6 @@
         </PackageReference>
       <PackageReference Include="Grpc.Tools" Version="2.67.0" />
       <PackageReference Include="Google.Protobuf" Version="3.29.2" />
-      <PackageReference Include="MediatR.Behaviors.Authorization" Version="12.5.0" />
     </ItemGroup>
 
     <ItemGroup>

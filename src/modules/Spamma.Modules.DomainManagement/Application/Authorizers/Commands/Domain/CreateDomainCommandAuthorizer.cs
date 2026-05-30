@@ -1,15 +1,22 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Domain;
 
-internal class CreateDomainCommandAuthorizer : AbstractRequestAuthorizer<CreateDomainCommand>
+internal class CreateDomainCommandAuthorizer(IHttpContextAccessor httpContextAccessor) : IBluQubeAuthorizer<CreateDomainCommand>
 {
-    public override void BuildPolicy(CreateDomainCommand request)
+    public Task<AuthorizationResult> Authorize(CreateDomainCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustBeDomainAdministratorRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
+        {
+            return Task.FromResult(AuthorizationResult.Fail());
+        }
+
+        return Task.FromResult(user.SystemRole.HasFlag(SystemRole.DomainManagement) ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
     }
 }
+

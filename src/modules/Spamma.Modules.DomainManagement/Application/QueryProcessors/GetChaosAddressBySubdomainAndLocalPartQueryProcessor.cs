@@ -7,14 +7,14 @@ namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
 internal class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSession session) : IQueryProcessor<GetChaosAddressBySubdomainAndLocalPartQuery, GetChaosAddressBySubdomainAndLocalPartQueryResult>
 {
-    public Task<QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>> Handle(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
+    public ValueTask<QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>> Handle(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
     {
         var match = session.Query<ChaosAddressLookup>()
             .FirstOrDefault(x => x.SubdomainId == request.SubdomainId && x.LocalPart.Equals(request.LocalPart, StringComparison.OrdinalIgnoreCase));
 
         if (match == null)
         {
-            return Task.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Failed());
+            return ValueTask.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Failed());
         }
 
         var summary = new GetChaosAddressBySubdomainAndLocalPartQueryResult(
@@ -24,6 +24,6 @@ internal class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSes
             match.LocalPart,
             match.ConfiguredSmtpCode,
             match.Enabled);
-        return Task.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Succeeded(summary));
+        return ValueTask.FromResult(QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Succeeded(summary));
     }
 }

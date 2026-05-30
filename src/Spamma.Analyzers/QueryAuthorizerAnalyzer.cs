@@ -16,11 +16,11 @@ public sealed class QueryAuthorizerAnalyzer : DiagnosticAnalyzer
     private static readonly LocalizableString Title = "Query should have authorizer";
 
     private static readonly LocalizableString MessageFormat =
-        "Query '{0}' does not have a corresponding AbstractRequestAuthorizer<{0}> implementation. " +
+        "Query '{0}' does not have a corresponding IBluQubeAuthorizer<{0}> implementation. " +
         "Queries should have authorization handlers to enforce access control.";
 
     private static readonly LocalizableString Description =
-        "CQRS queries should have authorization handlers that inherit from AbstractRequestAuthorizer. " +
+        "CQRS queries should have authorization handlers that implement IBluQubeAuthorizer<T>. " +
         "This ensures that authorization logic is explicitly defined and enforced before query processing.";
 
     private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
@@ -166,7 +166,16 @@ public sealed class QueryAuthorizerAnalyzer : DiagnosticAnalyzer
 
         private static bool IsAuthorizerType(INamedTypeSymbol typeSymbol)
         {
-            // Check base classes for AbstractRequestAuthorizer
+            // Check if the type implements IBluQubeAuthorizer<T> interface (BluQube 1.2.0+)
+            if (typeSymbol.AllInterfaces.Any(i =>
+                    i.Name == "IBluQubeAuthorizer" &&
+                    i.IsGenericType &&
+                    i.ContainingNamespace?.ToString() == "BluQube.Authorization"))
+            {
+                return true;
+            }
+
+            // Legacy: Check base classes for AbstractRequestAuthorizer
             var baseClass = typeSymbol.BaseType;
             while (baseClass is not null)
             {
@@ -183,7 +192,19 @@ public sealed class QueryAuthorizerAnalyzer : DiagnosticAnalyzer
 
         private static ITypeSymbol? ExtractAuthorizedQueryType(INamedTypeSymbol authorizerType)
         {
-            // Check base class for AbstractRequestAuthorizer<TQuery>
+            // Check interfaces for IBluQubeAuthorizer<T> (BluQube 1.2.0+)
+            var bluQubeInterface = authorizerType.AllInterfaces.FirstOrDefault(i =>
+                i.Name == "IBluQubeAuthorizer" &&
+                i.IsGenericType &&
+                i.ContainingNamespace?.ToString() == "BluQube.Authorization" &&
+                i.TypeArguments.Length == 1);
+
+            if (bluQubeInterface is not null)
+            {
+                return bluQubeInterface.TypeArguments[0];
+            }
+
+            // Legacy: Check base class for AbstractRequestAuthorizer<TQuery>
             var baseClass = authorizerType.BaseType;
             while (baseClass is not null)
             {

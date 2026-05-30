@@ -11,6 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Spamma.App" />
         <InternalsVisibleTo Include="Spamma.Modules.UserManagement.Tests" />
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
     </ItemGroup>
@@ -23,7 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="BluQube" Version="1.1.0" />
+      <PackageReference Include="BluQube" Version="1.2.0" />
       <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
       <PackageReference Include="DotNetCore.CAP" Version="8.4.1" />
       <PackageReference Include="Fido2" Version="4.0.0" />
@@ -49,6 +50,11 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
+    <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
+      <ItemGroup>
+        <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
+      </ItemGroup>
+    </Target>
 
     <ItemGroup>
       <Compile Update="Domain\UserAggregate\User.Events.cs">
@@ -61,7 +67,6 @@
         <DependentUpon>ApiKey.cs</DependentUpon>
       </Compile>
     </ItemGroup>
-
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
 

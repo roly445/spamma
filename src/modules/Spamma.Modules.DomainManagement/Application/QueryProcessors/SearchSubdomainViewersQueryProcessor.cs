@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +11,7 @@ namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
 internal class SearchSubdomainViewersQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchSubdomainViewersQuery, SearchSubdomainViewersQueryResult>
 {
-    public async Task<QueryResult<SearchSubdomainViewersQueryResult>> Handle(SearchSubdomainViewersQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<SearchSubdomainViewersQueryResult>> Handle(SearchSubdomainViewersQuery request, CancellationToken cancellationToken)
     {
         var baseQuery = session.Query<SubdomainLookup>();
         var baseWhereConditions = new List<Expression<Func<SubdomainLookup, bool>>>

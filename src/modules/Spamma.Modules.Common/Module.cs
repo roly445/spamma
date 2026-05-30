@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.Common.Application.Behaviors;
 
@@ -8,7 +8,7 @@ public static class Module
 {
     public static IServiceCollection AddCommonBehaviors(this IServiceCollection services)
     {
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommandQueryTracingBehavior<,>));
+        services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(CommandQueryTracingBehavior<,>));
         return services;
     }
 }

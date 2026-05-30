@@ -14,6 +14,7 @@ using Spamma.Modules.Common.Client;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
 using Xunit;
 
 namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
@@ -28,6 +29,7 @@ public class SpammaMessageStoreTests
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
         var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
         var pushNotificationManager = new PushNotificationManager();
 
         var subdomainId = Guid.NewGuid();
@@ -52,6 +54,7 @@ public class SpammaMessageStoreTests
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
             settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
             pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
@@ -92,6 +95,7 @@ public class SpammaMessageStoreTests
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
         var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
         var pushNotificationManager = new PushNotificationManager();
 
         subdomainCacheMock
@@ -107,6 +111,7 @@ public class SpammaMessageStoreTests
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
             settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
             pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
@@ -144,6 +149,7 @@ public class SpammaMessageStoreTests
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
         var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
         var pushNotificationManager = new PushNotificationManager();
 
         subdomainCacheMock
@@ -153,6 +159,11 @@ public class SpammaMessageStoreTests
         settingsServiceMock
             .Setup(x => x.GetCatchAllModeEnabledAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
+
+        var senderAddressId = Guid.NewGuid();
+        catchAllSenderAddressCacheMock
+            .Setup(x => x.GetSenderAddressAsync("sender@test.com", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ICatchAllSenderAddressCache.CachedSenderAddress(senderAddressId, "sender@test.com", []));
 
         CatchAllEmailCaptureJob? capturedJob = null;
         backgroundTaskQueueMock
@@ -164,6 +175,7 @@ public class SpammaMessageStoreTests
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
             settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
             pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
@@ -204,6 +216,7 @@ public class SpammaMessageStoreTests
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
         var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
         var pushNotificationManager = new PushNotificationManager();
 
         var subdomainId = Guid.NewGuid();
@@ -234,6 +247,7 @@ public class SpammaMessageStoreTests
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
             settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
             pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
@@ -275,6 +289,7 @@ public class SpammaMessageStoreTests
         var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
         var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
         var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
         var pushNotificationManager = new PushNotificationManager();
 
         var subdomainId = Guid.NewGuid();
@@ -301,6 +316,7 @@ public class SpammaMessageStoreTests
             chaosAddressCacheMock.Object,
             backgroundTaskQueueMock.Object,
             settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
             pushNotificationManager);
 
         var sessionContextMock = new Mock<ISessionContext>();
@@ -339,6 +355,7 @@ public class SpammaMessageStoreTests
         IChaosAddressCache chaosAddressCache,
         IBackgroundTaskQueue backgroundTaskQueue,
         IEmailInboxSettingsService emailInboxSettingsService,
+        ICatchAllSenderAddressCache catchAllSenderAddressCache,
         PushNotificationManager pushNotificationManager)
     {
         var services = new ServiceCollection();
@@ -346,6 +363,7 @@ public class SpammaMessageStoreTests
         services.AddSingleton(chaosAddressCache);
         services.AddSingleton(backgroundTaskQueue);
         services.AddSingleton(emailInboxSettingsService);
+        services.AddSingleton(catchAllSenderAddressCache);
         services.AddSingleton(pushNotificationManager);
         services.AddSingleton<ILogger<SpammaMessageStore>>(new Mock<ILogger<SpammaMessageStore>>().Object);
         return services.BuildServiceProvider();

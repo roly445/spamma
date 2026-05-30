@@ -1,18 +1,34 @@
-using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-internal class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer : AbstractRequestAuthorizer<GetChaosAddressBySubdomainAndLocalPartQuery>
+internal class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession) : IBluQubeAuthorizer<GetChaosAddressBySubdomainAndLocalPartQuery>
 {
-    public override void BuildPolicy(GetChaosAddressBySubdomainAndLocalPartQuery request)
+    public async Task<AuthorizationResult> Authorize(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustHaveAccessToSubdomainRequirement
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
         {
-            SubdomainId = request.SubdomainId,
-        });
+            return AuthorizationResult.Fail();
+        }
+
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
+            user.ModeratedSubdomains.Contains(request.SubdomainId) ||
+            user.ViewableSubdomains.Contains(request.SubdomainId))
+        {
+            return AuthorizationResult.Succeed();
+        }
+
+        var hasSubdomainAccess = await documentSession.Query<SubdomainLookup>()
+            .AnyAsync(x => x.Id == request.SubdomainId && user.ModeratedDomains.Contains(x.DomainId), token: cancellationToken);
+
+        return hasSubdomainAccess ? AuthorizationResult.Succeed() : AuthorizationResult.Fail();
     }
 }
+

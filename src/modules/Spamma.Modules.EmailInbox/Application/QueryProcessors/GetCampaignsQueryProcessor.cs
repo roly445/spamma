@@ -7,7 +7,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
 internal class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProcessor<GetCampaignsQuery, GetCampaignsQueryResult>
 {
-    public async Task<QueryResult<GetCampaignsQueryResult>> Handle(GetCampaignsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetCampaignsQueryResult>> Handle(GetCampaignsQuery request, CancellationToken cancellationToken)
     {
         var query = session.Query<CampaignSummary>()
             .Where(c => c.SubdomainId == request.SubdomainId);

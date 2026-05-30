@@ -1,9 +1,10 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using BluQube.Attributes;
+using BluQube.Authorization;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;
-using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
+using Mediator;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +23,7 @@ public static class Module
     {
         services.AddValidatorsFromAssembly(typeof(Module).Assembly);
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Module).Assembly));
-        services.AddMediatorAuthorization(typeof(Module).Assembly);
-        services.AddAuthorizersFromAssembly(typeof(Module).Assembly);
+        services.AddBluQubeAuthorization(typeof(Module).Assembly);
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasskeyRepository, PasskeyRepository>();
         services.AddScoped<IApiKeyRepository, ApiKeyRepository>();
@@ -38,6 +37,8 @@ public static class Module
             options.ServerName = "Spamma";
             options.Origins = new HashSet<string> { "http://localhost:5173", "https://localhost:7181" };
         });
+
+        RegisterHandlers(services, typeof(Module).Assembly);
 
         return services;
     }
@@ -66,5 +67,17 @@ public static class Module
         options.Projections.Add<PasskeyProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<ApiKeyProjection>(ProjectionLifecycle.Inline);
         return options;
+    }
+
+    private static void RegisterHandlers(IServiceCollection services, System.Reflection.Assembly assembly)
+    {
+        var requestHandlerType = typeof(IRequestHandler<,>);
+        foreach (var type in assembly.GetTypes().Where(t => !t.IsAbstract && !t.IsInterface))
+        {
+            foreach (var iface in type.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == requestHandlerType))
+            {
+                services.Add(new ServiceDescriptor(iface, type, ServiceLifetime.Scoped));
+            }
+        }
     }
 }

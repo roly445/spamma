@@ -10,7 +10,7 @@ internal class GetUserPasskeysQueryProcessor(
     IDocumentSession documentSession,
     ILogger<GetUserPasskeysQueryProcessor> logger) : IQueryProcessor<GetUserPasskeysQuery, GetUserPasskeysQueryResult>
 {
-    public async Task<QueryResult<GetUserPasskeysQueryResult>> Handle(GetUserPasskeysQuery query, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetUserPasskeysQueryResult>> Handle(GetUserPasskeysQuery query, CancellationToken cancellationToken)
     {
         try
         {

@@ -1,62 +1,31 @@
 using FluentAssertions;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Application.Authorizers.Commands.Passkey;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
+using Spamma.Modules.UserManagement.Tests.Application.Authorizers;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Authorizers.Commands.Passkey;
 
 public class RevokePasskeyCommandAuthorizerTests
 {
     [Fact]
-    public void BuildPolicy_AddsAuthenticatedRequirement()
+    public async Task Authorize_WhenUserIsAuthenticated_Succeeds()
     {
-        // Arrange
-        var authorizer = new RevokePasskeyCommandAuthorizer();
-        var passkeyId = Guid.NewGuid();
-        var command = new RevokePasskeyCommand(passkeyId);
+        var authorizer = new RevokePasskeyCommandAuthorizer(AuthorizerTestContext.CreateAuthenticated());
+        var command = new RevokePasskeyCommand(Guid.NewGuid());
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().ContainSingle(r => r is MustBeAuthenticatedRequirement);
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public void BuildPolicy_AddsExactlyOneRequirement()
+    public async Task Authorize_WhenUserIsUnauthenticated_Fails()
     {
-        // Arrange
-        var authorizer = new RevokePasskeyCommandAuthorizer();
-        var passkeyId = Guid.NewGuid();
-        var command = new RevokePasskeyCommand(passkeyId);
+        var authorizer = new RevokePasskeyCommandAuthorizer(AuthorizerTestContext.CreateUnauthenticated());
+        var command = new RevokePasskeyCommand(Guid.NewGuid());
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public void BuildPolicy_WithDifferentPasskeyIds_ProducesSameRequirements()
-    {
-        // Arrange
-        var authorizer1 = new RevokePasskeyCommandAuthorizer();
-        var authorizer2 = new RevokePasskeyCommandAuthorizer();
-        var passkeyId1 = Guid.NewGuid();
-        var passkeyId2 = Guid.NewGuid();
-        var command1 = new RevokePasskeyCommand(passkeyId1);
-        var command2 = new RevokePasskeyCommand(passkeyId2);
-
-        // Act
-        authorizer1.BuildPolicy(command1);
-        authorizer2.BuildPolicy(command2);
-
-        // Assert
-        authorizer1.Requirements.Should().HaveCount(1);
-        authorizer2.Requirements.Should().HaveCount(1);
-        authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
-        authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
+        result.IsAuthorized.Should().BeFalse();
     }
 }

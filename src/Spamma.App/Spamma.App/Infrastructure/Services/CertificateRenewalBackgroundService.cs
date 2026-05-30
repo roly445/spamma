@@ -93,21 +93,12 @@ public sealed class CertificateRenewalBackgroundService(
         try
         {
             var configService = scope.ServiceProvider.GetRequiredService<IAppConfigurationService>();
-            var certService = scope.ServiceProvider.GetRequiredService<ICertesLetsEncryptService>();
-            var challengeResponder = scope.ServiceProvider.GetRequiredService<IAcmeChallengeResponder>();
 
             // Get application configuration
             var appSettings = await configService.GetApplicationSettingsAsync();
             if (appSettings is null || string.IsNullOrWhiteSpace(appSettings.MailServerHostname))
             {
                 logger.LogWarning("Application settings not configured, skipping renewal");
-                return;
-            }
-
-            var emailSettings = await configService.GetEmailSettingsAsync();
-            if (emailSettings is null || string.IsNullOrWhiteSpace(emailSettings.FromEmail))
-            {
-                logger.LogWarning("Email settings not configured, skipping renewal");
                 return;
             }
 
@@ -121,14 +112,32 @@ public sealed class CertificateRenewalBackgroundService(
 
             logger.LogInformation("Certificate needs renewal, starting generation");
 
-            // Use mail server hostname as primary domain for certificate
             var domain = appSettings.MailServerHostname;
-            var email = emailSettings.FromEmail;
+
+            // For local/dev domains, use self-signed cert instead of Let's Encrypt
+            if (LocalDomainDetector.IsLocalDomain(domain))
+            {
+                logger.LogInformation("Domain {Domain} is local — generating self-signed certificate", domain);
+                var selfSignedService = scope.ServiceProvider.GetRequiredService<ISelfSignedCertificateService>();
+                var pfxBytes = selfSignedService.GenerateSelfSignedCertificate(domain);
+                await this.SaveCertificateAsync(pfxBytes, cancellationToken);
+                return;
+            }
+
+            var emailSettings = await configService.GetEmailSettingsAsync();
+            if (emailSettings is null || string.IsNullOrWhiteSpace(emailSettings.FromEmail))
+            {
+                logger.LogWarning("Email settings not configured, skipping renewal");
+                return;
+            }
+
+            var certService = scope.ServiceProvider.GetRequiredService<ICertesLetsEncryptService>();
+            var challengeResponder = scope.ServiceProvider.GetRequiredService<IAcmeChallengeResponder>();
 
             // Generate new certificate using production Let's Encrypt
             var result = await certService.GenerateCertificateAsync(
                 domain,
-                email,
+                emailSettings.FromEmail,
                 useStaging: false,
                 challengeResponder,
                 progressPublisher: null,
@@ -140,20 +149,23 @@ public sealed class CertificateRenewalBackgroundService(
                 return;
             }
 
-            // Save the new certificate
-            var certFileName = CertificateRenewalBackgroundService.GenerateCertificateFileName();
-            var certFilePath = Path.Combine(this._certificatesPath, certFileName);
-
-            await File.WriteAllBytesAsync(certFilePath, result.Value, cancellationToken);
-            logger.LogInformation("Certificate saved to {Path}", certFilePath);
-
-            // Clean up old certificates, keep only last 3
-            this.CleanupOldCertificates();
+            await this.SaveCertificateAsync(result.Value, cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error during certificate renewal process");
         }
+    }
+
+    private async Task SaveCertificateAsync(byte[] pfxBytes, CancellationToken cancellationToken)
+    {
+        var certFileName = CertificateRenewalBackgroundService.GenerateCertificateFileName();
+        var certFilePath = Path.Combine(this._certificatesPath, certFileName);
+
+        await File.WriteAllBytesAsync(certFilePath, pfxBytes, cancellationToken);
+        logger.LogInformation("Certificate saved to {Path}", certFilePath);
+
+        this.CleanupOldCertificates();
     }
 
     private FileInfo? FindLatestCertificate()

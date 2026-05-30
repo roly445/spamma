@@ -1,12 +1,12 @@
-using System.Reflection;
 using System.Security.Claims;
 using FluentAssertions;
-using Marten;
-using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
-using Moq;
+using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Subdomain;
+using Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
+using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Tests.Integration.AuthorizationRequirements;
@@ -27,15 +27,13 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
 
     public async Task InitializeAsync()
     {
-        // Seed test data: create domains and subdomains with parent-child relationships
         this._domainId = Guid.NewGuid();
         this._subdomain1Id = Guid.NewGuid();
         this._subdomain2Id = Guid.NewGuid();
         this._otherDomainId = Guid.NewGuid();
         this._otherSubdomainId = Guid.NewGuid();
 
-        // Create subdomain lookups for authorization queries
-        var subdomain1 = new SubdomainLookup
+        this._fixture.Session!.Store(new SubdomainLookup
         {
             Id = this._subdomain1Id,
             DomainId = this._domainId,
@@ -44,9 +42,9 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             IsSuspended = false,
             FullName = "app.example.com",
             ParentName = "example.com",
-        };
+        });
 
-        var subdomain2 = new SubdomainLookup
+        this._fixture.Session.Store(new SubdomainLookup
         {
             Id = this._subdomain2Id,
             DomainId = this._domainId,
@@ -55,9 +53,9 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             IsSuspended = false,
             FullName = "api.example.com",
             ParentName = "example.com",
-        };
+        });
 
-        var otherSubdomain = new SubdomainLookup
+        this._fixture.Session.Store(new SubdomainLookup
         {
             Id = this._otherSubdomainId,
             DomainId = this._otherDomainId,
@@ -66,11 +64,8 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             IsSuspended = false,
             FullName = "app.otherdomain.com",
             ParentName = "otherdomain.com",
-        };
+        });
 
-        this._fixture.Session!.Store(subdomain1);
-        this._fixture.Session.Store(subdomain2);
-        this._fixture.Session.Store(otherSubdomain);
         await this._fixture.Session.SaveChangesAsync();
     }
 
@@ -80,325 +75,155 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     }
 
     [Fact]
-    public async Task MustHaveAccessToSubdomain_UserModeratesParentDomain_Succeeds()
+    public async Task UpdateSubdomainDetails_WhenUserModeratesParentDomain_Succeeds()
     {
-        // Arrange: User moderates domain, tries to access subdomain under that domain
-        var userId = Guid.NewGuid();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var authorizer = new UpdateSubdomainDetailsCommandAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser(moderatedDomains: [this._domainId])), this._fixture.Session!);
+        var command = new UpdateSubdomainDetailsCommand(this._subdomain1Id, "updated");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            new[] { this._domainId },
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeTrue("user moderates parent domain so should have access to subdomain");
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public async Task MustHaveAccessToSubdomain_UserViewsSubdomain_Succeeds()
+    public async Task UpdateSubdomainDetails_WhenUserModeratesOtherDomain_Fails()
     {
-        // Arrange: User has viewable subdomain claim (not moderator)
-        var userId = Guid.NewGuid();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var authorizer = new UpdateSubdomainDetailsCommandAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser(moderatedDomains: [this._otherDomainId])), this._fixture.Session!);
+        var command = new UpdateSubdomainDetailsCommand(this._subdomain1Id, "updated");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>(),
-            new[] { this._subdomain1Id });
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeTrue("user has viewable subdomain claim");
+        result.IsAuthorized.Should().BeFalse();
     }
 
     [Fact]
-    public async Task MustHaveAccessToSubdomain_UserModeratesOtherDomain_Fails()
+    public async Task UpdateSubdomainDetails_WhenSystemAdministrator_Succeeds()
     {
-        // Arrange: User moderates different domain, tries to access subdomain
-        var userId = Guid.NewGuid();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var authorizer = new UpdateSubdomainDetailsCommandAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser(systemRole: SystemRole.DomainManagement)), this._fixture.Session!);
+        var command = new UpdateSubdomainDetailsCommand(this._subdomain1Id, "updated");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            new[] { this._otherDomainId },
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeFalse("user moderates different domain, not the subdomain's parent domain");
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public async Task MustHaveAccessToSubdomain_UserHasNoAccess_Fails()
+    public async Task GetChaosAddressBySubdomainAndLocalPart_WhenUserViewsSubdomain_Succeeds()
     {
-        // Arrange: User has no domain, subdomain, or viewable claims
-        var userId = Guid.NewGuid();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var authorizer = new GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser(viewableSubdomains: [this._subdomain1Id])), this._fixture.Session!);
+        var query = new GetChaosAddressBySubdomainAndLocalPartQuery(this._subdomain1Id, "chaos");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(query, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeFalse("user has no access claims");
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public async Task MustBeModeratorToSubdomain_UserModeratesParentDomain_Succeeds()
+    public async Task GetChaosAddressBySubdomainAndLocalPart_WhenUserHasNoAccess_Fails()
     {
-        // Arrange: User moderates domain, tries to moderate subdomain under that domain
-        var userId = Guid.NewGuid();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var authorizer = new GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser()), this._fixture.Session!);
+        var query = new GetChaosAddressBySubdomainAndLocalPartQuery(this._subdomain1Id, "chaos");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            new[] { this._domainId },
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(query, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeTrue("user moderates parent domain, so has moderator rights on subdomain");
+        result.IsAuthorized.Should().BeFalse();
     }
 
     [Fact]
-    public async Task MustBeModeratorToSubdomain_UserModeratesMultipleSubdomainsUnderSameDomain_Succeeds()
+    public async Task GetChaosAddressBySubdomainAndLocalPart_WhenUserDirectlyModeratesSubdomain_Succeeds()
     {
-        // Arrange: User moderates parent domain, tries to access multiple subdomains
-        var userId = Guid.NewGuid();
-        var requirement1 = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
-        var requirement2 = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain2Id };
+        var authorizer = new GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser(moderatedSubdomains: [this._subdomain1Id])), this._fixture.Session!);
+        var query = new GetChaosAddressBySubdomainAndLocalPartQuery(this._subdomain1Id, "chaos");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            new[] { this._domainId },
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(query, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result1 = await handler.Handle(requirement1, CancellationToken.None);
-        var result2 = await handler.Handle(requirement2, CancellationToken.None);
-
-        // Assert
-        result1.IsAuthorized.Should().BeTrue("user moderates parent domain for subdomain1");
-        result2.IsAuthorized.Should().BeTrue("user moderates parent domain for subdomain2");
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public async Task MustBeModeratorToSubdomain_UserViewsSubdomainButNotModerator_Fails()
+    public async Task GetChaosAddressBySubdomainAndLocalPart_CrossDomainIsolation_EnforcesStrictBoundaries()
     {
-        // Arrange: User has viewable claim but not moderator claim
-        var userId = Guid.NewGuid();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var authorizer = new GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(CreateHttpContextAccessor(CreateAuthenticatedUser(moderatedDomains: [this._domainId])), this._fixture.Session!);
+        var query = new GetChaosAddressBySubdomainAndLocalPartQuery(this._otherSubdomainId, "chaos");
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>(),
-            new[] { this._subdomain1Id });
+        var result = await authorizer.Authorize(query, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeFalse("user has viewable claim, not moderator claim");
+        result.IsAuthorized.Should().BeFalse();
     }
 
     [Fact]
-    public async Task MustHaveAccessToSubdomain_UserDirectlyModeratesSubdomain_Succeeds()
+    public async Task SearchSubdomains_WhenInternalQueryIsStored_Succeeds()
     {
-        // Arrange: User directly moderates subdomain (not via parent domain)
-        var userId = Guid.NewGuid();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var query = new SearchSubdomainsQuery(null, null, null, 1, 10, "Name", false);
+        var internalQueryStore = new InternalQueryStore();
+        internalQueryStore.StoreQueryRef(query);
+        var authorizer = new SearchSubdomainsQueryAuthorizer(internalQueryStore, CreateHttpContextAccessor(CreateUnauthenticatedHttpContext()));
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "User",
-            "user@example.com",
-            0,
-            Array.Empty<Guid>(),
-            new[] { this._subdomain1Id },
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(query, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeTrue("user directly moderates subdomain");
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public async Task MustBeModeratorToSubdomain_SystemAdministrator_AlwaysSucceeds()
+    public async Task SearchSubdomains_WhenUnauthenticated_Fails()
     {
-        // Arrange: System administrator (DomainManagement role)
-        var userId = Guid.NewGuid();
-        var requirement = new MustBeModeratorToSubdomainRequirement { SubdomainId = this._subdomain1Id };
+        var query = new SearchSubdomainsQuery(null, null, null, 1, 10, "Name", false);
+        var authorizer = new SearchSubdomainsQueryAuthorizer(new InternalQueryStore(), CreateHttpContextAccessor(CreateUnauthenticatedHttpContext()));
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
-            "Admin",
-            "admin@example.com",
-            SystemRole.DomainManagement,
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
+        var result = await authorizer.Authorize(query, CancellationToken.None);
 
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustBeModeratorToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeTrue("system administrator bypasses all checks");
+        result.IsAuthorized.Should().BeFalse();
     }
 
     [Fact]
-    public async Task MustHaveAccessToSubdomain_CrossDomainIsolation_EnforcesStrictBoundaries()
+    public async Task SearchSubdomains_WhenUserModeratesDomain_Succeeds()
     {
-        // Arrange: User moderates one domain, tries to access subdomain from different domain
-        // This is a critical security test - ensures users cannot access resources across tenant boundaries
-        var userId = Guid.NewGuid();
-        var requirement = new MustHaveAccessToSubdomainRequirement { SubdomainId = this._otherSubdomainId };
+        var query = new SearchSubdomainsQuery(null, null, null, 1, 10, "Name", false);
+        var authorizer = new SearchSubdomainsQueryAuthorizer(new InternalQueryStore(), CreateHttpContextAccessor(CreateAuthenticatedUser(moderatedDomains: [this._domainId])));
 
-        var userAuthInfo = UserAuthInfo.Authenticated(
-            userId,
+        var result = await authorizer.Authorize(query, CancellationToken.None);
+
+        result.IsAuthorized.Should().BeTrue();
+    }
+
+    private static UserAuthInfo CreateAuthenticatedUser(
+        SystemRole systemRole = 0,
+        Guid[]? moderatedDomains = null,
+        Guid[]? moderatedSubdomains = null,
+        Guid[]? viewableSubdomains = null)
+    {
+        return UserAuthInfo.Authenticated(
+            Guid.NewGuid(),
             "User",
             "user@example.com",
-            0,
-            new[] { this._domainId }, // User moderates _domainId
-            Array.Empty<Guid>(),
-            Array.Empty<Guid>());
-
-        var httpContextMock = CreateHttpContextWithUserAuthInfo(userAuthInfo);
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>(MockBehavior.Strict);
-        httpContextAccessorMock.Setup(x => x.HttpContext).Returns(httpContextMock);
-
-        var handler = CreateMustHaveAccessToSubdomainHandler(httpContextAccessorMock.Object, this._fixture.Session!);
-
-        // Act
-        var result = await handler.Handle(requirement, CancellationToken.None);
-
-        // Assert
-        result.IsAuthorized.Should().BeFalse(
-            "cross-domain access must be denied - user moderates different domain (tenant isolation)");
+            systemRole,
+            moderatedDomains ?? [],
+            moderatedSubdomains ?? [],
+            viewableSubdomains ?? []);
     }
 
-    private static IAuthorizationHandler<MustBeModeratorToSubdomainRequirement> CreateMustBeModeratorToSubdomainHandler(
-        IHttpContextAccessor httpContextAccessor,
-        IDocumentSession documentSession)
+    private static HttpContextAccessor CreateHttpContextAccessor(UserAuthInfo userAuthInfo)
     {
-        var requirementType = typeof(MustBeModeratorToSubdomainRequirement);
-        var handlerType = requirementType.GetNestedType("MustBeModeratorToSubdomainRequirementHandler", BindingFlags.NonPublic);
-        return (IAuthorizationHandler<MustBeModeratorToSubdomainRequirement>)Activator.CreateInstance(handlerType!, httpContextAccessor, documentSession)!;
+        return new HttpContextAccessor
+        {
+            HttpContext = CreateAuthenticatedHttpContext(userAuthInfo),
+        };
     }
 
-    private static IAuthorizationHandler<MustHaveAccessToSubdomainRequirement> CreateMustHaveAccessToSubdomainHandler(
-        IHttpContextAccessor httpContextAccessor,
-        IDocumentSession documentSession)
+    private static HttpContextAccessor CreateHttpContextAccessor(HttpContext httpContext)
     {
-        var requirementType = typeof(MustHaveAccessToSubdomainRequirement);
-        var handlerType = requirementType.GetNestedType("MustHaveAccessToSubdomainRequirementHandler", BindingFlags.NonPublic);
-        return (IAuthorizationHandler<MustHaveAccessToSubdomainRequirement>)Activator.CreateInstance(handlerType!, httpContextAccessor, documentSession)!;
+        return new HttpContextAccessor
+        {
+            HttpContext = httpContext,
+        };
     }
 
-    private static HttpContext CreateHttpContextWithUserAuthInfo(UserAuthInfo userAuthInfo)
+    private static HttpContext CreateAuthenticatedHttpContext(UserAuthInfo userAuthInfo)
     {
         var httpContext = new DefaultHttpContext();
-
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, userAuthInfo!.UserId.ToString()),
+            new(ClaimTypes.NameIdentifier, userAuthInfo.UserId.ToString()),
             new(ClaimTypes.Name, userAuthInfo.Name ?? string.Empty),
             new(ClaimTypes.Email, userAuthInfo.EmailAddress ?? string.Empty),
             new(ClaimTypes.Role, userAuthInfo.SystemRole.ToString()),
@@ -419,10 +244,15 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             claims.Add(new Claim("viewable_subdomain", subdomainId.ToString()));
         }
 
-        var identity = new ClaimsIdentity(claims, "TestAuthType");
-        var principal = new ClaimsPrincipal(identity);
-        httpContext.User = principal;
-
+        httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType"));
         return httpContext;
+    }
+
+    private static HttpContext CreateUnauthenticatedHttpContext()
+    {
+        return new DefaultHttpContext
+        {
+            User = new ClaimsPrincipal(new ClaimsIdentity()),
+        };
     }
 }

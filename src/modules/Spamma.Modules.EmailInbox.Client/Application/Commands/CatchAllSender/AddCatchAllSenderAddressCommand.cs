@@ -3,5 +3,5 @@ using BluQube.Commands;
 
 namespace Spamma.Modules.EmailInbox.Client.Application.Commands.CatchAllSender;
 
-[BluQubeCommand(Path = "api/email-inbox/catch-all-senders")]
+[BluQubeCommand(Path = "api/email-inbox/catch-all-senders/add")]
 public record AddCatchAllSenderAddressCommand(string SenderAddress) : ICommand;

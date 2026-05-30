@@ -1,13 +1,11 @@
 using System.Security.Claims;
+using BluQube.Queries;
 using Marten;
-using Marten.Patching;
-using MediatR;
-using MediatR.Behaviors.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
-using Spamma.Modules.EmailInbox.Application.AuthorizationRequirements;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Tests.Integration;
@@ -15,13 +13,13 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration;
 public class QueryProcessorIntegrationTestBase : IAsyncLifetime
 {
     private PostgreSqlFixture? _fixture;
-    private ISender? _sender;
+    private IQueryRunner? _querier;
     private MockHttpContextAccessor? _httpContextAccessor;
     private IServiceProvider? _serviceProvider;
 
-    protected ISender Sender => this._sender ?? throw new InvalidOperationException("Sender not initialized");
+    protected IQueryRunner Sender => this._querier ?? throw new InvalidOperationException("Sender not initialized");
 
-    protected ISender Querier => this.Sender;
+    protected IQueryRunner Querier => this.Sender;
 
     protected IDocumentSession Session => this._fixture?.Session ?? throw new InvalidOperationException("Fixture not initialized");
 
@@ -35,11 +33,9 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         await this._fixture.InitializeAsync();
 
         var services = new ServiceCollection();
-
-        // Add logging services (required by LocalMessageStoreProvider)
         services.AddLogging();
-
-        // Add file system wrappers (required by LocalMessageStoreProvider)
+        services.AddScoped<IQueryRunner, QueryRunner>();
+        services.AddSingleton<IInternalQueryStore, InternalQueryStore>();
         services.AddTransient<Spamma.Modules.Common.Application.Contracts.IDirectoryWrapper, Spamma.Modules.Common.Application.Contracts.DirectoryWrapper>();
         services.AddTransient<Spamma.Modules.Common.Application.Contracts.IFileWrapper, Spamma.Modules.Common.Application.Contracts.FileWrapper>();
 
@@ -47,61 +43,17 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         {
             opts.Connection(this._fixture.ConnectionString!);
             opts.DatabaseSchemaName = "public";
-
-            // Configure EmailInbox projections and document mappings
             Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(opts);
-    });
+        });
 
-        services.AddEmailInbox(); // Server module - registers query processors via MediatR
+        services.AddEmailInbox();
 
-        // Register HTTP context accessor with mock HttpContext containing subdomain claims
         this._httpContextAccessor = new MockHttpContextAccessor();
         services.AddSingleton<IHttpContextAccessor>(this._httpContextAccessor);
 
-        // Replace real authorization handlers with mock ones that always succeed (for testing)
-        var mustBeAuthDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IAuthorizationHandler<MustBeAuthenticatedRequirement>));
-        if (mustBeAuthDescriptor != null)
-        {
-            services.Remove(mustBeAuthDescriptor);
-        }
-
-        services.AddTransient<IAuthorizationHandler<MustBeAuthenticatedRequirement>, AlwaysAuthorizeHandler>();
-
-        var campaignAccessDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IAuthorizationHandler<MustHaveAccessToAtLeastOneCampaignRequirement>));
-        if (campaignAccessDescriptor != null)
-        {
-            services.Remove(campaignAccessDescriptor);
-        }
-
-        services.AddTransient<IAuthorizationHandler<MustHaveAccessToAtLeastOneCampaignRequirement>, AlwaysAuthorizeCampaignAccessHandler>();
-
-        var mustHaveAccessToCampaignDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IAuthorizationHandler<MustHaveAccessToCampaignRequirement>));
-        if (mustHaveAccessToCampaignDescriptor != null)
-        {
-            services.Remove(mustHaveAccessToCampaignDescriptor);
-        }
-
-        services.AddTransient<IAuthorizationHandler<MustHaveAccessToCampaignRequirement>, AlwaysAuthorizeSpecificCampaignAccessHandler>();
-
-        var mustHaveAccessToSubdomainDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IAuthorizationHandler<MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement>));
-        if (mustHaveAccessToSubdomainDescriptor != null)
-        {
-            services.Remove(mustHaveAccessToSubdomainDescriptor);
-        }
-
-        services.AddTransient<IAuthorizationHandler<MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement>, AlwaysAuthorizeSubdomainEmailAccessHandler>();
-
-        var mustHaveAccessToSubdomainViaEmailDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(IAuthorizationHandler<MustHaveAccessToSubdomainViaEmailRequirement>));
-        if (mustHaveAccessToSubdomainViaEmailDescriptor != null)
-        {
-            services.Remove(mustHaveAccessToSubdomainViaEmailDescriptor);
-        }
-
-        services.AddTransient<IAuthorizationHandler<MustHaveAccessToSubdomainViaEmailRequirement>, AlwaysAuthorizeSubdomainViaEmailAccessHandler>();
-
         var provider = services.BuildServiceProvider();
         this._serviceProvider = provider;
-        this._sender = provider.GetRequiredService<ISender>();
+        this._querier = provider.GetRequiredService<IQueryRunner>();
     }
 
     public async Task DisposeAsync()
@@ -162,12 +114,17 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
 
     protected void PersistEmailAddresses(EmailLookup email)
     {
-        // No-op: EmailAddresses are now set via init property on EmailLookup during creation
+        // Email address persistence is handled by the seeded read models used in these tests.
     }
 
     protected class MockHttpContextAccessor : IHttpContextAccessor
     {
         private readonly List<Guid> _subdomainIds = new();
+
+        public MockHttpContextAccessor()
+        {
+            this.UpdateHttpContext();
+        }
 
         public HttpContext? HttpContext { get; set; }
 
@@ -190,6 +147,7 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
                 new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
                 new(ClaimTypes.Name, "Test User"),
                 new(ClaimTypes.Email, "test@example.com"),
+                new(ClaimTypes.Role, SystemRole.DomainManagement.ToString()),
             };
 
             foreach (var id in this._subdomainIds)
@@ -202,46 +160,6 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
             {
                 User = new ClaimsPrincipal(identity),
             };
-        }
-    }
-
-    private class AlwaysAuthorizeHandler : IAuthorizationHandler<MustBeAuthenticatedRequirement>
-    {
-        public Task<AuthorizationResult> Handle(MustBeAuthenticatedRequirement requirement, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(AuthorizationResult.Succeed());
-        }
-    }
-
-    private class AlwaysAuthorizeCampaignAccessHandler : IAuthorizationHandler<MustHaveAccessToAtLeastOneCampaignRequirement>
-    {
-        public Task<AuthorizationResult> Handle(MustHaveAccessToAtLeastOneCampaignRequirement requirement, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(AuthorizationResult.Succeed());
-        }
-    }
-
-    private class AlwaysAuthorizeSpecificCampaignAccessHandler : IAuthorizationHandler<MustHaveAccessToCampaignRequirement>
-    {
-        public Task<AuthorizationResult> Handle(MustHaveAccessToCampaignRequirement requirement, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(AuthorizationResult.Succeed());
-        }
-    }
-
-    private class AlwaysAuthorizeSubdomainEmailAccessHandler : IAuthorizationHandler<MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement>
-    {
-        public Task<AuthorizationResult> Handle(MustHaveAccessToAtLeastOneSubdomainToViewEmailsRequirement requirement, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(AuthorizationResult.Succeed());
-        }
-    }
-
-    private class AlwaysAuthorizeSubdomainViaEmailAccessHandler : IAuthorizationHandler<MustHaveAccessToSubdomainViaEmailRequirement>
-    {
-        public Task<AuthorizationResult> Handle(MustHaveAccessToSubdomainViaEmailRequirement requirement, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(AuthorizationResult.Succeed());
         }
     }
 }

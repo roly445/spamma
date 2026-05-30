@@ -7,6 +7,8 @@
         <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
         <PreserveCompilationContext>true</PreserveCompilationContext>
         <UserSecretsId>cd5a2b1c-8d4e-4f2a-9c6b-1a3d5e7f8b2c</UserSecretsId>
+        <!-- MSG0001/MSG0005 expected: server project references client requester stubs, causing duplicate handler warnings -->
+        <WarningsNotAsErrors>MSG0001;MSG0005</WarningsNotAsErrors>
     </PropertyGroup>
 
           <PropertyGroup>
@@ -46,9 +48,13 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.6" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
-        <PackageReference Include="Marten" Version="8.13.3" />
+        <PackageReference Include="Marten" Version="8.37.0" />
         <PackageReference Include="Marten.AspNetCore" Version="8.13.3" />
-        <PackageReference Include="BluQube" Version="1.1.0" />
+        <PackageReference Include="BluQube" Version="1.2.0" />
+        <PackageReference Include="Mediator.SourceGenerator" Version="3.0.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.6" />
         <PackageReference Include="Nager.PublicSuffix" Version="3.7.0" />
         <PackageReference Include="SmtpServer" Version="11.0.0" />

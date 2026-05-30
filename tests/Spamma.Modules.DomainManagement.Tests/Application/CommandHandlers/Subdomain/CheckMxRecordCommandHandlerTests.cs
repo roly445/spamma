@@ -86,7 +86,7 @@ public class CheckMxRecordCommandHandlerTests
             .Throws(new Exception("Subdomain lookup not found"));
 
         // Act & Verify - Should handle the exception gracefully
-        var ex = await Assert.ThrowsAsync<Exception>(() => this._handler.Handle(command, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<Exception>(async () => await this._handler.Handle(command, CancellationToken.None));
         ex.Message.Should().Contain("not found");
 
         this._repositoryMock.Verify(
@@ -124,7 +124,7 @@ public class CheckMxRecordCommandHandlerTests
             .Throws<InvalidOperationException>();
 
         // Act & Verify
-        await Assert.ThrowsAsync<InvalidOperationException>(() => this._handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await this._handler.Handle(command, CancellationToken.None));
     }
 
     [Fact]
@@ -161,6 +161,6 @@ public class CheckMxRecordCommandHandlerTests
             .ReturnsAsync(Result.Fail());
 
         // Act & Verify - Throws due to database error
-        await Assert.ThrowsAsync<InvalidOperationException>(() => this._handler.Handle(command, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await this._handler.Handle(command, CancellationToken.None));
     }
 }

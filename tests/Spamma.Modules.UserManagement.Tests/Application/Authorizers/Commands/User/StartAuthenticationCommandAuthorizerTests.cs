@@ -1,58 +1,31 @@
 using FluentAssertions;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.UserManagement.Application.Authorizers.Commands.User;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
+using Spamma.Modules.UserManagement.Tests.Application.Authorizers;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Authorizers.Commands.User;
 
 public class StartAuthenticationCommandAuthorizerTests
 {
     [Fact]
-    public void BuildPolicy_AddsNotAuthenticatedRequirement()
+    public async Task Authorize_WhenUserIsUnauthenticated_Succeeds()
     {
-        // Arrange
-        var authorizer = new StartAuthenticationCommandAuthorizer();
-        var command = new StartAuthenticationCommand("user@example.com");
+        var authorizer = new StartAuthenticationCommandAuthorizer(AuthorizerTestContext.CreateUnauthenticated());
+        var command = new StartAuthenticationCommand("test@example.com");
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().ContainSingle(r => r is MustNotBeAuthenticatedRequirement);
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public void BuildPolicy_AddsExactlyOneRequirement()
+    public async Task Authorize_WhenUserIsAuthenticated_Fails()
     {
-        // Arrange
-        var authorizer = new StartAuthenticationCommandAuthorizer();
-        var command = new StartAuthenticationCommand("user@example.com");
+        var authorizer = new StartAuthenticationCommandAuthorizer(AuthorizerTestContext.CreateAuthenticated());
+        var command = new StartAuthenticationCommand("test@example.com");
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public void BuildPolicy_WithDifferentEmails_ProducesSameRequirements()
-    {
-        // Arrange
-        var authorizer1 = new StartAuthenticationCommandAuthorizer();
-        var authorizer2 = new StartAuthenticationCommandAuthorizer();
-        var command1 = new StartAuthenticationCommand("user1@example.com");
-        var command2 = new StartAuthenticationCommand("user2@example.com");
-
-        // Act
-        authorizer1.BuildPolicy(command1);
-        authorizer2.BuildPolicy(command2);
-
-        // Assert
-        authorizer1.Requirements.Should().HaveCount(1);
-        authorizer2.Requirements.Should().HaveCount(1);
-        authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustNotBeAuthenticatedRequirement");
-        authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustNotBeAuthenticatedRequirement");
+        result.IsAuthorized.Should().BeFalse();
     }
 }

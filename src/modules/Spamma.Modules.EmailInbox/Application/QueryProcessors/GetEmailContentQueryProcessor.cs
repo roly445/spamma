@@ -9,7 +9,7 @@ internal class GetEmailContentQueryProcessor(
     IEmailRepository emailRepository)
     : IQueryProcessor<GetEmailContentQuery, GetEmailContentQueryResult>
 {
-    public async Task<QueryResult<GetEmailContentQueryResult>> Handle(
+    public async ValueTask<QueryResult<GetEmailContentQueryResult>> Handle(
         GetEmailContentQuery query,
         CancellationToken cancellationToken)
     {

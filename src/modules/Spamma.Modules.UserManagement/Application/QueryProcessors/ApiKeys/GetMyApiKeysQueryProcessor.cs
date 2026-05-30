@@ -11,7 +11,7 @@ namespace Spamma.Modules.UserManagement.Application.QueryProcessors.ApiKeys;
 internal class GetMyApiKeysQueryProcessor(IDocumentSession session, IHttpContextAccessor httpContextAccessor)
     : IQueryProcessor<GetMyApiKeysQuery, GetMyApiKeysQueryResult>
 {
-    public async Task<QueryResult<GetMyApiKeysQueryResult>> Handle(GetMyApiKeysQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetMyApiKeysQueryResult>> Handle(GetMyApiKeysQuery request, CancellationToken cancellationToken)
     {
         // Get current authenticated user ID from claims
         var userAuthInfo = httpContextAccessor.HttpContext.ToUserAuthInfo();

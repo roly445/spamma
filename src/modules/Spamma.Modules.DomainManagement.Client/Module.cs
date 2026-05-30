@@ -8,9 +8,6 @@ public static class Module
 {
     public static IServiceCollection AddDomainManagement(this IServiceCollection services)
     {
-        services.AddMediatR(
-            configuration => configuration.RegisterServicesFromAssemblies(
-                typeof(Module).Assembly));
         services.AddBluQubeRequesters();
 
         return services;

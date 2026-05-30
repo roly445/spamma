@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +12,7 @@ namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
 internal class SearchDomainsQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor) : IQueryProcessor<SearchDomainsQuery, SearchDomainsQueryResult>
 {
-    public async Task<QueryResult<SearchDomainsQueryResult>> Handle(SearchDomainsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<SearchDomainsQueryResult>> Handle(SearchDomainsQuery request, CancellationToken cancellationToken)
     {
         var baseQuery = session.Query<DomainLookup>();
 

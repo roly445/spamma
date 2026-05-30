@@ -1,11 +1,13 @@
-using MediatR.Behaviors.Authorization;
+using BluQube.Authorization;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers;
 
-internal class GetPasskeyByCredentialIdQueryAuthorizer : AbstractRequestAuthorizer<GetPasskeyByCredentialIdQuery>
+internal class GetPasskeyByCredentialIdQueryAuthorizer : IBluQubeAuthorizer<GetPasskeyByCredentialIdQuery>
 {
-    public override void BuildPolicy(GetPasskeyByCredentialIdQuery request)
+    public Task<AuthorizationResult> Authorize(GetPasskeyByCredentialIdQuery request, CancellationToken cancellationToken)
     {
+        return Task.FromResult(AuthorizationResult.Succeed());
     }
 }
+

@@ -1,15 +1,16 @@
 ﻿using BluQube.Commands;
-using BluQube.Constants;
+using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
+using Spamma.App.Client.Extensions;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
 public partial class AppSettings(
     ICommandRunner commander,
-    IOptions<Spamma.App.Client.Infrastructure.Contracts.Settings> settings,
+    IQueryRunner querier,
     INotificationService notificationService,
     HttpClient httpClient,
     NavigationManager navigationManager) : ComponentBase
@@ -19,9 +20,16 @@ public partial class AppSettings(
     private bool _showMaintenanceConfirm;
     private bool _isEnteringMaintenance;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        this._catchAllEnabled = settings.Value.CatchAllModeEnabled;
+        await querier.ExecuteAsync(
+            new GetEmailInboxSettingsQuery(),
+            onSuccess: result =>
+            {
+                this._catchAllEnabled = result.CatchAllModeEnabled;
+                return Task.CompletedTask;
+            },
+            onError: _ => Task.CompletedTask);
     }
 
     private async Task ToggleCatchAll()
@@ -32,25 +40,28 @@ public partial class AppSettings(
         try
         {
             var newValue = !this._catchAllEnabled;
-            var result = await commander.Send(new UpdateCatchAllModeCommand(newValue));
-
-            if (result.Status == CommandResultStatus.Succeeded)
-            {
-                this._catchAllEnabled = newValue;
-
-                if (newValue)
+            await commander.ExecuteAsync(
+                new UpdateCatchAllModeCommand(newValue),
+                onSuccess: () =>
                 {
-                    notificationService.ShowSuccess("Catch-All Mode enabled");
-                }
-                else
+                    this._catchAllEnabled = newValue;
+                    if (newValue)
+                    {
+                        notificationService.ShowSuccess("Catch-All Mode enabled");
+                    }
+                    else
+                    {
+                        notificationService.ShowInfo("Catch-All Mode disabled");
+                    }
+
+                    return Task.CompletedTask;
+                },
+                onValidationErrors: _ => Task.CompletedTask,
+                onError: _ =>
                 {
-                    notificationService.ShowInfo("Catch-All Mode disabled");
-                }
-            }
-            else
-            {
-                notificationService.ShowError("Failed to update Catch-All Mode setting");
-            }
+                    notificationService.ShowError("Failed to update Catch-All Mode setting");
+                    return Task.CompletedTask;
+                });
         }
         finally
         {
@@ -90,7 +101,7 @@ public partial class AppSettings(
     }
 
     private string GetToggleClasses() =>
-        this._catchAllEnabled ? "bg-amber-500" : "bg-gray-200";
+        this._catchAllEnabled ? "bg-blue-600" : "bg-gray-200";
 
     private string GetToggleKnobClasses() =>
         this._catchAllEnabled ? "translate-x-5" : "translate-x-0";

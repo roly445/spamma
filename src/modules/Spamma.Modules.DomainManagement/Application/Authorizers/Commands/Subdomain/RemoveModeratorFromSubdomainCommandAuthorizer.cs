@@ -1,18 +1,32 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Subdomain;
 
-internal class RemoveModeratorFromSubdomainCommandAuthorizer : AbstractRequestAuthorizer<RemoveModeratorFromSubdomainCommand>
+internal class RemoveModeratorFromSubdomainCommandAuthorizer(IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession) : IBluQubeAuthorizer<RemoveModeratorFromSubdomainCommand>
 {
-    public override void BuildPolicy(RemoveModeratorFromSubdomainCommand request)
+    public async Task<AuthorizationResult> Authorize(RemoveModeratorFromSubdomainCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustBeModeratorToSubdomainRequirement
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
         {
-            SubdomainId = request.SubdomainId,
-        });
+            return AuthorizationResult.Fail();
+        }
+
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) || user.ModeratedSubdomains.Contains(request.SubdomainId))
+        {
+            return AuthorizationResult.Succeed();
+        }
+
+        var hasDomainAccess = await documentSession.Query<SubdomainLookup>()
+            .AnyAsync(x => x.Id == request.SubdomainId && user.ModeratedDomains.Contains(x.DomainId), token: cancellationToken);
+
+        return hasDomainAccess ? AuthorizationResult.Succeed() : AuthorizationResult.Fail();
     }
 }
+

@@ -1,18 +1,37 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.EmailInbox.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Commands.Email;
 
-internal class DeleteEmailCommandAuthorizer : AbstractRequestAuthorizer<DeleteEmailCommand>
+internal class DeleteEmailCommandAuthorizer(IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession) : IBluQubeAuthorizer<DeleteEmailCommand>
 {
-    public override void BuildPolicy(DeleteEmailCommand request)
+    public async Task<AuthorizationResult> Authorize(DeleteEmailCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustHaveAccessToSubdomainViaEmailRequirement
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
         {
-            EmailId = request.EmailId,
-        });
+            return AuthorizationResult.Fail();
+        }
+
+        var email = await documentSession.LoadAsync<EmailLookup>(request.EmailId, cancellationToken);
+        if (email == null)
+        {
+            return AuthorizationResult.Fail();
+        }
+
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
+            user.ModeratedDomains.Contains(email.DomainId) ||
+            user.ModeratedSubdomains.Contains(email.SubdomainId) ||
+            user.ViewableSubdomains.Contains(email.SubdomainId))
+        {
+            return AuthorizationResult.Succeed();
+        }
+
+        return AuthorizationResult.Fail();
     }
 }

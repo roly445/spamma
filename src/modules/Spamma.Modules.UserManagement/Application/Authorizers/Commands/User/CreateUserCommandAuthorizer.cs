@@ -1,22 +1,27 @@
-using MediatR.Behaviors.Authorization;
+using BluQube.Authorization;
+using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.User;
 
-internal class CreateUserCommandAuthorizer(IInternalQueryStore internalQueryStore) : AbstractRequestAuthorizer<CreateUserCommand>
+internal class CreateUserCommandAuthorizer(IInternalQueryStore internalQueryStore, IHttpContextAccessor httpContextAccessor) : IBluQubeAuthorizer<CreateUserCommand>
 {
-    public override void BuildPolicy(CreateUserCommand request)
+    public Task<AuthorizationResult> Authorize(CreateUserCommand request, CancellationToken cancellationToken)
     {
         if (internalQueryStore.IsQueryStored(request))
         {
-            return;
+            return Task.FromResult(AuthorizationResult.Succeed());
         }
 
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustBeUserAdministratorRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
+        {
+            return Task.FromResult(AuthorizationResult.Fail());
+        }
+
+        return Task.FromResult(user.SystemRole.HasFlag(SystemRole.UserManagement) ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
     }
 }
+

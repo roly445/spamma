@@ -8,7 +8,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 internal class SearchCatchAllSenderAddressesQueryProcessor(IDocumentSession documentSession)
     : IQueryProcessor<SearchCatchAllSenderAddressesQuery, SearchCatchAllSenderAddressesQueryResult>
 {
-    public async Task<QueryResult<SearchCatchAllSenderAddressesQueryResult>> Handle(SearchCatchAllSenderAddressesQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<SearchCatchAllSenderAddressesQueryResult>> Handle(SearchCatchAllSenderAddressesQuery request, CancellationToken cancellationToken)
     {
         var page = Math.Max(1, request.Page);
         var pageSize = Math.Max(1, Math.Min(100, request.PageSize));
@@ -38,3 +38,4 @@ internal class SearchCatchAllSenderAddressesQueryProcessor(IDocumentSession docu
             new SearchCatchAllSenderAddressesQueryResult(summaries, totalCount, page, pageSize, totalPages));
     }
 }
+

@@ -45,6 +45,8 @@ builder.Services.AddHttpClient(
     client => { client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); });
 builder.Services.AddTransient<CommandResultConverter>();
 
+builder.Services.AddMediator(options => { options.GenerateTypesAsInternal = true; });
+
 builder.Services.AddUserManagement()
     .AddDomainManagement()
     .AddEmailInbox();

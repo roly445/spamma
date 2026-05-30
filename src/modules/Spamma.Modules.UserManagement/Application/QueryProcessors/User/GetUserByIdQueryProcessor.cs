@@ -1,4 +1,4 @@
-﻿using BluQube.Queries;
+using BluQube.Queries;
 using Marten;
 using Microsoft.Extensions.Options;
 using Spamma.Modules.Common;
@@ -12,7 +12,7 @@ public class GetUserByIdQueryProcessor(IDocumentSession session, IOptions<Settin
 {
     private const SystemRole AdminRoles = SystemRole.DomainManagement | SystemRole.UserManagement;
 
-    public async Task<QueryResult<GetUserByIdQueryResult>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetUserByIdQueryResult>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         var user = await session.Query<UserLookup>().SingleOrDefaultAsync(x => x.Id == request.UserId, token: cancellationToken);
 

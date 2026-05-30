@@ -1,14 +1,16 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
+using BluQube.Authorization;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.User;
 
-internal class CompleteAuthenticationCommandAuthorizer : AbstractRequestAuthorizer<CompleteAuthenticationCommand>
+internal class CompleteAuthenticationCommandAuthorizer(IHttpContextAccessor httpContextAccessor) : IBluQubeAuthorizer<CompleteAuthenticationCommand>
 {
-    public override void BuildPolicy(CompleteAuthenticationCommand request)
+    public Task<AuthorizationResult> Authorize(CompleteAuthenticationCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustNotBeAuthenticatedRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        return Task.FromResult(user.IsAuthenticated ? AuthorizationResult.Fail() : AuthorizationResult.Succeed());
     }
 }
+

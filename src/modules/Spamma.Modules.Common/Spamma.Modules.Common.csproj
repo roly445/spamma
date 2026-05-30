@@ -13,9 +13,9 @@
     <ItemGroup>
       <PackageReference Include="DotNetCore.CAP" Version="8.4.1" />
       <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-      <PackageReference Include="Marten" Version="8.13.3" />
+      <PackageReference Include="Marten" Version="8.37.0" />
       <PackageReference Include="MaybeMonad" Version="1.0.1.1" />
-      <PackageReference Include="MediatR.Behaviors.Authorization" Version="12.5.0" />
+      <PackageReference Include="Mediator.Abstractions" Version="3.0.2" />
       <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
       <PackageReference Include="ResultMonad" Version="1.0.1" />
       <PackageReference Include="SmtpServer" Version="11.0.0" />
@@ -36,8 +36,13 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
-  <ProjectReference Include="..\Spamma.Modules.Common.Client\Spamma.Modules.Common.Client.csproj" />
     </ItemGroup>
+
+    <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
+      <ItemGroup>
+        <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
+      </ItemGroup>
+    </Target>
 
     <Import Project="..\..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
 

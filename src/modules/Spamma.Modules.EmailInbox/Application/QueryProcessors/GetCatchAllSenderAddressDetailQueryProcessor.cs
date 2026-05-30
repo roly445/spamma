@@ -8,7 +8,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 internal class GetCatchAllSenderAddressDetailQueryProcessor(IDocumentSession documentSession)
     : IQueryProcessor<GetCatchAllSenderAddressDetailQuery, GetCatchAllSenderAddressDetailQueryResult>
 {
-    public async Task<QueryResult<GetCatchAllSenderAddressDetailQueryResult>> Handle(GetCatchAllSenderAddressDetailQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetCatchAllSenderAddressDetailQueryResult>> Handle(GetCatchAllSenderAddressDetailQuery request, CancellationToken cancellationToken)
     {
         var lookup = await documentSession.Query<CatchAllSenderAddressLookup>()
             .FirstOrDefaultAsync(x => x.Id == request.SenderAddressId, cancellationToken);
@@ -27,3 +27,4 @@ internal class GetCatchAllSenderAddressDetailQueryProcessor(IDocumentSession doc
                 lookup.AddedAt));
     }
 }
+

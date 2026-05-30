@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using BluQube.Queries;
 using Marten;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
@@ -8,7 +8,7 @@ namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
 internal class SearchSubdomainModeratorsQueryProcessor(IDocumentSession session) : IQueryProcessor<SearchSubdomainModeratorsQuery, SearchSubdomainModeratorsQueryResult>
 {
-    public async Task<QueryResult<SearchSubdomainModeratorsQueryResult>> Handle(SearchSubdomainModeratorsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<SearchSubdomainModeratorsQueryResult>> Handle(SearchSubdomainModeratorsQuery request, CancellationToken cancellationToken)
     {
         var baseQuery = session.Query<SubdomainLookup>()
             .Where(d => d.Id == request.SubdomainId)

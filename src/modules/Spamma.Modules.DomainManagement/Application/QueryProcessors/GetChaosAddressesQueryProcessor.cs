@@ -7,7 +7,7 @@ namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
 internal class GetChaosAddressesQueryProcessor(IDocumentSession session) : IQueryProcessor<GetChaosAddressesQuery, GetChaosAddressesQueryResult>
 {
-    public async Task<QueryResult<GetChaosAddressesQueryResult>> Handle(GetChaosAddressesQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetChaosAddressesQueryResult>> Handle(GetChaosAddressesQuery request, CancellationToken cancellationToken)
     {
         var baseQuery = session.Query<ChaosAddressLookup>();
 

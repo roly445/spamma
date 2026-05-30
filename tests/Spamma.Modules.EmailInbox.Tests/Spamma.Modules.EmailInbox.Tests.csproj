@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -33,7 +32,7 @@
     </PackageReference>
     <PackageReference Include="Testcontainers" Version="4.1.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
-  <PackageReference Include="Grpc.Core" Version="2.46.6" />
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,6 +47,12 @@
   </ItemGroup>
 
   <Import Project="..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
+
+  <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <!-- Exclude corrupted test file; replaced by IntegrationNotifierHttpTests and IntegrationNotifierGrpcTests -->

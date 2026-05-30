@@ -7,7 +7,6 @@ using BluQube.Constants;
 using BluQube.Queries;
 using JasperFx;
 using Marten;
-using MediatR.Behaviors.Authorization.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
@@ -33,7 +32,6 @@ using Spamma.App.Infrastructure.Hubs;
 using Spamma.App.Infrastructure.Middleware;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
 using Spamma.Modules.Common.Application.Contracts;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -157,8 +155,31 @@ builder.Services.Configure<SetupSettings>(opt => builder.Configuration.GetSectio
 builder.Services.Configure<Spamma.Modules.EmailInbox.Infrastructure.Settings.EmailInboxSettings>(opt => builder.Configuration.GetSection("SmtpServer").Bind(opt));
 
 builder.Services.AddCommonBehaviors();
+
+// Register Mediator with Scoped lifetime so handlers (which inject IDocumentSession)
+// work correctly within request scope. Module registrations below add real server-side
+// handlers via reflection (last-wins on IRequestHandler<,>). Concrete type registrations
+// for Generic*QueryProcessor (from *.Client assemblies) are removed afterwards.
+builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
+
 builder.Services.AddUserManagement()
     .AddDomainManagement().AddEmailInbox();
+
+// Remove Generic*QueryProcessor service descriptors (from *.Client assemblies) so
+// server DI validation doesn't fail on their unresolvable dependencies.
+var clientAssemblies = new System.Collections.Generic.HashSet<System.Reflection.Assembly>
+{
+    typeof(Spamma.Modules.UserManagement.Client.Module).Assembly,
+    typeof(Spamma.Modules.DomainManagement.Client.Module).Assembly,
+    typeof(Spamma.Modules.EmailInbox.Client.Module).Assembly,
+};
+var clientDescriptors = builder.Services
+    .Where(sd => sd.ImplementationType != null && clientAssemblies.Contains(sd.ImplementationType.Assembly))
+    .ToList();
+foreach (var sd in clientDescriptors)
+{
+    builder.Services.Remove(sd);
+}
 
 builder.Services.AddGrpc();
 
@@ -188,9 +209,6 @@ builder.Services.AddMarten(options =>
 
     options.Logger(new ConsoleMartenLogger());
 }).ApplyAllDatabaseChangesOnStartup();
-
-builder.Services.AddMediatorAuthorization(typeof(MustBeAuthenticatedRequirement).Assembly);
-builder.Services.AddAuthorizersFromAssembly(typeof(MustBeAuthenticatedRequirement).Assembly);
 
 builder.Services.AddCap(capOptions =>
 {

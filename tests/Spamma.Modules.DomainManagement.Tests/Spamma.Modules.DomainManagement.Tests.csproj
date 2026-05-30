@@ -22,9 +22,9 @@
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Moq" Version="4.20.70" />
-    <PackageReference Include="Marten" Version="8.13.3" />
+    <PackageReference Include="Marten" Version="8.37.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.1.0" />
-    <PackageReference Include="BluQube" Version="1.1.0" />
+    <PackageReference Include="BluQube" Version="1.2.0" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -47,5 +47,11 @@
   </ItemGroup>
 
   <Import Project="..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
+
+  <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

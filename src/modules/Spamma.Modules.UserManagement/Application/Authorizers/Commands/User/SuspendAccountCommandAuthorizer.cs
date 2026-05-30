@@ -1,16 +1,22 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
+using BluQube.Authorization;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
 
 namespace Spamma.Modules.UserManagement.Application.Authorizers.Commands.User;
 
-internal class SuspendAccountCommandAuthorizer : AbstractRequestAuthorizer<SuspendAccountCommand>
+internal class SuspendAccountCommandAuthorizer(IHttpContextAccessor httpContextAccessor) : IBluQubeAuthorizer<SuspendAccountCommand>
 {
-    public override void BuildPolicy(SuspendAccountCommand request)
+    public Task<AuthorizationResult> Authorize(SuspendAccountCommand request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
-        this.UseRequirement(new MustBeUserAdministratorRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
+        {
+            return Task.FromResult(AuthorizationResult.Fail());
+        }
+
+        return Task.FromResult(user.SystemRole.HasFlag(SystemRole.UserManagement) ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
     }
 }
+

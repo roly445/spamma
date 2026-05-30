@@ -1,85 +1,43 @@
 using FluentAssertions;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.UserManagement.Application.AuthorizationRequirements;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.UserManagement.Application.Authorizers.Commands.Passkey;
-using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.PassKey;
+using Spamma.Modules.UserManagement.Tests.Application.Authorizers;
 
 namespace Spamma.Modules.UserManagement.Tests.Application.Authorizers.Commands.Passkey;
 
 public class RevokeUserPasskeyCommandAuthorizerTests
 {
     [Fact]
-    public void BuildPolicy_AddsAuthenticatedRequirement()
+    public async Task Authorize_WhenUserIsAdministrator_Succeeds()
     {
-        // Arrange
-        var authorizer = new RevokeUserPasskeyCommandAuthorizer();
-        var userId = Guid.NewGuid();
-        var passkeyId = Guid.NewGuid();
-        var command = new RevokeUserPasskeyCommand(userId, passkeyId);
+        var authorizer = new RevokeUserPasskeyCommandAuthorizer(AuthorizerTestContext.CreateAuthenticated(SystemRole.UserManagement));
+        var command = new RevokeUserPasskeyCommand(Guid.NewGuid(), Guid.NewGuid());
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().ContainSingle(r => r is MustBeAuthenticatedRequirement);
+        result.IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
-    public void BuildPolicy_AddsUserAdministratorRequirement()
+    public async Task Authorize_WhenUserIsAuthenticatedButNotAdministrator_Fails()
     {
-        // Arrange
-        var authorizer = new RevokeUserPasskeyCommandAuthorizer();
-        var userId = Guid.NewGuid();
-        var passkeyId = Guid.NewGuid();
-        var command = new RevokeUserPasskeyCommand(userId, passkeyId);
+        var authorizer = new RevokeUserPasskeyCommandAuthorizer(AuthorizerTestContext.CreateAuthenticated());
+        var command = new RevokeUserPasskeyCommand(Guid.NewGuid(), Guid.NewGuid());
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().ContainSingle(r => r is MustBeUserAdministratorRequirement);
+        result.IsAuthorized.Should().BeFalse();
     }
 
     [Fact]
-    public void BuildPolicy_AddsExactlyTwoRequirements()
+    public async Task Authorize_WhenUserIsUnauthenticated_Fails()
     {
-        // Arrange
-        var authorizer = new RevokeUserPasskeyCommandAuthorizer();
-        var userId = Guid.NewGuid();
-        var passkeyId = Guid.NewGuid();
-        var command = new RevokeUserPasskeyCommand(userId, passkeyId);
+        var authorizer = new RevokeUserPasskeyCommandAuthorizer(AuthorizerTestContext.CreateUnauthenticated());
+        var command = new RevokeUserPasskeyCommand(Guid.NewGuid(), Guid.NewGuid());
 
-        // Act
-        authorizer.BuildPolicy(command);
+        var result = await authorizer.Authorize(command, CancellationToken.None);
 
-        // Assert
-        authorizer.Requirements.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public void BuildPolicy_WithDifferentIds_ProducesSameRequirements()
-    {
-        // Arrange
-        var authorizer1 = new RevokeUserPasskeyCommandAuthorizer();
-        var authorizer2 = new RevokeUserPasskeyCommandAuthorizer();
-        var userId1 = Guid.NewGuid();
-        var passkeyId1 = Guid.NewGuid();
-        var userId2 = Guid.NewGuid();
-        var passkeyId2 = Guid.NewGuid();
-        var command1 = new RevokeUserPasskeyCommand(userId1, passkeyId1);
-        var command2 = new RevokeUserPasskeyCommand(userId2, passkeyId2);
-
-        // Act
-        authorizer1.BuildPolicy(command1);
-        authorizer2.BuildPolicy(command2);
-
-        // Assert
-        authorizer1.Requirements.Should().HaveCount(2);
-        authorizer2.Requirements.Should().HaveCount(2);
-        authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
-        authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeAuthenticatedRequirement");
-        authorizer1.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeUserAdministratorRequirement");
-        authorizer2.Requirements.Should().ContainSingle(r => r.GetType().Name == "MustBeUserAdministratorRequirement");
+        result.IsAuthorized.Should().BeFalse();
     }
 }

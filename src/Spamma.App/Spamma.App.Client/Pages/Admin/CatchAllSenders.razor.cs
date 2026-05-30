@@ -1,10 +1,11 @@
-﻿using BluQube.Commands;
+using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.CatchAllSender;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
+using Spamma.Modules.UserManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
@@ -20,9 +21,24 @@ public partial class CatchAllSenders(
     private bool _showAddModal;
     private string _newSenderAddress = string.Empty;
     private string? _addError;
-    private Guid? _selectedItemId;
-    private GetCatchAllSenderAddressDetailQueryResult? _selectedDetail;
-    private bool _isLoadingDetail;
+    private string _searchTerm = string.Empty;
+
+    private bool _showManageModal;
+    private Guid? _managingItemId;
+    private GetCatchAllSenderAddressDetailQueryResult? _managingDetail;
+    private bool _isLoadingManageDetail;
+    private Dictionary<Guid, string> _assignedUserEmails = new();
+
+    private string _assignSearchTerm = string.Empty;
+    private IReadOnlyList<SearchUsersQueryResult.UserSummary> _assignSearchResults =
+        Array.Empty<SearchUsersQueryResult.UserSummary>();
+
+    private bool _isSearchingUsers;
+
+    private IEnumerable<SearchCatchAllSenderAddressesQueryResult.SenderAddressSummary> FilteredItems =>
+        string.IsNullOrEmpty(this._searchTerm)
+            ? this._items
+            : this._items.Where(a => a.SenderAddress.Contains(this._searchTerm, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,50 +103,135 @@ public partial class CatchAllSenders(
         }
     }
 
-    private async Task HandleSelectRow(Guid id)
+    private async Task OpenManageModal(Guid id)
     {
-        if (this._selectedItemId == id)
-        {
-            this._selectedItemId = null;
-            this._selectedDetail = null;
-            return;
-        }
-
-        this._selectedItemId = id;
-        this._selectedDetail = null;
-        this._isLoadingDetail = true;
+        this._managingItemId = id;
+        this._showManageModal = true;
+        this._managingDetail = null;
+        this._assignedUserEmails = new Dictionary<Guid, string>();
+        this._isLoadingManageDetail = true;
+        this._assignSearchTerm = string.Empty;
+        this._assignSearchResults = Array.Empty<SearchUsersQueryResult.UserSummary>();
         this.StateHasChanged();
 
         var result = await querier.Send(new GetCatchAllSenderAddressDetailQuery(id));
-        this._selectedDetail = result.Status == QueryResultStatus.Succeeded ? result.Data : null;
+        if (result.Status == QueryResultStatus.Succeeded)
+        {
+            this._managingDetail = result.Data;
+            await this.LoadAssignedUserEmails(result.Data.AssignedUserIds);
+        }
 
-        this._isLoadingDetail = false;
+        this._isLoadingManageDetail = false;
         this.StateHasChanged();
+    }
+
+    private async Task LoadAssignedUserEmails(IReadOnlyList<Guid> userIds)
+    {
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var result = await querier.Send(new SearchUsersQuery(PageSize: 100));
+        if (result.Status != QueryResultStatus.Succeeded)
+        {
+            return;
+        }
+
+        this._assignedUserEmails = result.Data.Items
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionary(u => u.Id, u => u.DisplayName != null ? $"{u.DisplayName} ({u.Email})" : u.Email);
+    }
+
+    private void CloseManageModal()
+    {
+        this._showManageModal = false;
+        this._managingItemId = null;
+        this._managingDetail = null;
+        this._assignSearchTerm = string.Empty;
+        this._assignSearchResults = Array.Empty<SearchUsersQueryResult.UserSummary>();
+    }
+
+    private async Task HandleUserSearch()
+    {
+        if (string.IsNullOrWhiteSpace(this._assignSearchTerm))
+        {
+            return;
+        }
+
+        this._isSearchingUsers = true;
+        this.StateHasChanged();
+
+        var result = await querier.Send(new SearchUsersQuery(SearchTerm: this._assignSearchTerm, PageSize: 5));
+        this._assignSearchResults = result.Status == QueryResultStatus.Succeeded
+            ? result.Data.Items
+            : Array.Empty<SearchUsersQueryResult.UserSummary>();
+
+        this._isSearchingUsers = false;
+        this.StateHasChanged();
+    }
+
+    private async Task HandleAssignUser(Guid userId)
+    {
+        if (this._managingItemId == null)
+        {
+            return;
+        }
+
+        var result = await commander.Send(new AssignUserToCatchAllSenderCommand(this._managingItemId.Value, userId));
+        if (result.Status == CommandResultStatus.Succeeded)
+        {
+            notificationService.ShowSuccess("User assigned.");
+            this._assignSearchResults = Array.Empty<SearchUsersQueryResult.UserSummary>();
+            this._assignSearchTerm = string.Empty;
+            await this.RefreshManageDetail();
+            await this.LoadAddresses();
+        }
+        else
+        {
+            notificationService.ShowError("Failed to assign user. Please try again.");
+        }
     }
 
     private async Task HandleUnassignUser(Guid userId)
     {
-        if (this._selectedItemId == null)
+        if (this._managingItemId == null)
         {
             return;
         }
 
-        var senderAddressId = this._selectedItemId.Value;
-        var result = await commander.Send(new UnassignUserFromCatchAllSenderCommand(senderAddressId, userId));
+        var result = await commander.Send(new UnassignUserFromCatchAllSenderCommand(this._managingItemId.Value, userId));
         if (result.Status == CommandResultStatus.Succeeded)
         {
             notificationService.ShowSuccess("User unassigned.");
-            this._isLoadingDetail = true;
-            this.StateHasChanged();
-            var detailResult = await querier.Send(new GetCatchAllSenderAddressDetailQuery(senderAddressId));
-            this._selectedDetail = detailResult.Status == QueryResultStatus.Succeeded ? detailResult.Data : null;
-            this._isLoadingDetail = false;
-            this.StateHasChanged();
+            await this.RefreshManageDetail();
+            await this.LoadAddresses();
         }
         else
         {
             notificationService.ShowError("Failed to unassign user. Please try again.");
         }
+    }
+
+    private async Task RefreshManageDetail()
+    {
+        if (this._managingItemId == null)
+        {
+            return;
+        }
+
+        this._isLoadingManageDetail = true;
+        this.StateHasChanged();
+
+        var detailResult = await querier.Send(new GetCatchAllSenderAddressDetailQuery(this._managingItemId.Value));
+        if (detailResult.Status == QueryResultStatus.Succeeded)
+        {
+            this._managingDetail = detailResult.Data;
+            await this.LoadAssignedUserEmails(detailResult.Data.AssignedUserIds);
+        }
+
+        this._isLoadingManageDetail = false;
+        this.StateHasChanged();
     }
 
     private void OpenAddModal()
@@ -145,17 +246,5 @@ public partial class CatchAllSenders(
         this._showAddModal = false;
         this._newSenderAddress = string.Empty;
         this._addError = null;
-    }
-
-    private string GetRowClasses(SearchCatchAllSenderAddressesQueryResult.SenderAddressSummary item)
-    {
-        if (item.IsRemoved)
-        {
-            return "opacity-50 cursor-default";
-        }
-
-        return this._selectedItemId == item.Id
-            ? "bg-amber-50 border-l-2 border-amber-400 cursor-pointer hover:bg-amber-50"
-            : "cursor-pointer hover:bg-amber-50";
     }
 }

@@ -1,13 +1,12 @@
-using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
+using BluQube.Authorization;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.Modules.EmailInbox.Application.Authorizers.Queries;
 
-internal class GetEmailContentQueryAuthorizer : AbstractRequestAuthorizer<GetEmailContentQuery>
+internal class GetEmailContentQueryAuthorizer : IBluQubeAuthorizer<GetEmailContentQuery>
 {
-    public override void BuildPolicy(GetEmailContentQuery request)
+    public Task<AuthorizationResult> Authorize(GetEmailContentQuery request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new AllowPublicApiAccessRequirement());
+        return Task.FromResult(AuthorizationResult.Succeed());
     }
 }

@@ -11,7 +11,7 @@ namespace Spamma.Modules.EmailInbox.Application.QueryProcessors;
 
 internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHttpContextAccessor accessor) : IQueryProcessor<SearchEmailsQuery, SearchEmailsQueryResult>
 {
-    public async Task<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
         var user = accessor.HttpContext.ToUserAuthInfo();
         var isDomainAdmin = (user.SystemRole & SystemRole.DomainManagement) == SystemRole.DomainManagement;

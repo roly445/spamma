@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using BluQube.Queries;
 using Marten;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +13,7 @@ namespace Spamma.Modules.UserManagement.Application.QueryProcessors.User;
 public class SearchUsersQueryProcessor(IDocumentSession session, IHttpContextAccessor accessor, IOptions<Settings> settings)
     : IQueryProcessor<SearchUsersQuery, SearchUsersQueryResult>
 {
-    public async Task<QueryResult<SearchUsersQueryResult>> Handle(SearchUsersQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<SearchUsersQueryResult>> Handle(SearchUsersQuery request, CancellationToken cancellationToken)
     {
         Guid? userId = null;
         var userAuthInfo = accessor.HttpContext.ToUserAuthInfo();

@@ -1,28 +1,28 @@
 using System.Diagnostics;
-using MediatR;
+using Mediator;
 using Microsoft.Extensions.Logging;
 
 namespace Spamma.Modules.Common.Application.Behaviors;
 
-public class CommandQueryTracingBehavior<TRequest, TResponse>(
-    ILogger<CommandQueryTracingBehavior<TRequest, TResponse>> logger)
-    : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : notnull
+public class CommandQueryTracingBehavior<TMessage, TResponse>(
+    ILogger<CommandQueryTracingBehavior<TMessage, TResponse>> logger)
+    : IPipelineBehavior<TMessage, TResponse>
+    where TMessage : notnull, IMessage
 {
     private static readonly ActivitySource _activitySource = new("Spamma.Server.Pipeline");
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async ValueTask<TResponse> Handle(TMessage message, MessageHandlerDelegate<TMessage, TResponse> next, CancellationToken cancellationToken)
     {
-        var handlerName = typeof(TRequest).Name;
+        var handlerName = typeof(TMessage).Name;
 
         using var activity = _activitySource.StartActivity(handlerName);
-        activity?.SetTag("handler.type", typeof(TRequest).FullName);
-        activity?.SetTag("handler.module", ExtractModuleName(typeof(TRequest).FullName));
+        activity?.SetTag("handler.type", typeof(TMessage).FullName);
+        activity?.SetTag("handler.module", ExtractModuleName(typeof(TMessage).FullName));
 
         logger.LogDebug("[{Handler}] Starting", handlerName);
 
         var stopwatch = Stopwatch.StartNew();
-        var response = await next();
+        var response = await next(message, cancellationToken);
         stopwatch.Stop();
 
         var status = GetStatus(response);

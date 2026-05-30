@@ -52,11 +52,11 @@ public partial class CatchAllInbox(IQueryRunner querier, IOptions<Settings> sett
 
     private string GetEmailItemClasses(GetCatchAllEmailsQueryResult.EmailSummary email)
     {
-        var baseClasses = "relative border-b border-gray-100 hover:bg-amber-50 cursor-pointer transition-colors duration-150";
+        var baseClasses = "relative border-b border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors duration-150";
 
         if (email == this._selectedEmail)
         {
-            baseClasses += " bg-amber-50 border-amber-200";
+            baseClasses += " bg-blue-50 border-blue-200";
         }
 
         return baseClasses;

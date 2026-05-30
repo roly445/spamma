@@ -1,4 +1,4 @@
-﻿using BluQube.Queries;
+using BluQube.Queries;
 using Marten;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
@@ -8,7 +8,7 @@ namespace Spamma.Modules.DomainManagement.Application.QueryProcessors;
 
 internal class GetDetailedSubdomainByIdQueryProcessor(IDocumentSession session) : IQueryProcessor<GetDetailedSubdomainByIdQuery, GetDetailedSubdomainByIdQueryResult>
 {
-    public async Task<QueryResult<GetDetailedSubdomainByIdQueryResult>> Handle(GetDetailedSubdomainByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<QueryResult<GetDetailedSubdomainByIdQueryResult>> Handle(GetDetailedSubdomainByIdQuery request, CancellationToken cancellationToken)
     {
         var result = await session.Query<SubdomainLookup>()
             .FirstOrDefaultAsync(d => d.Id == request.SubdomainId, token: cancellationToken);

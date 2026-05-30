@@ -1,25 +1,44 @@
-﻿using MediatR.Behaviors.Authorization;
-using Spamma.Modules.Common.Application.AuthorizationRequirements;
-using Spamma.Modules.DomainManagement.Application.AuthorizationRequirements;
+using BluQube.Authorization;
+using Marten;
+using Microsoft.AspNetCore.Http;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-internal class GetChaosAddressesQueryAuthorizer : AbstractRequestAuthorizer<GetChaosAddressesQuery>
+internal class GetChaosAddressesQueryAuthorizer(IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession) : IBluQubeAuthorizer<GetChaosAddressesQuery>
 {
-    public override void BuildPolicy(GetChaosAddressesQuery request)
+    public async Task<AuthorizationResult> Authorize(GetChaosAddressesQuery request, CancellationToken cancellationToken)
     {
-        this.UseRequirement(new MustBeAuthenticatedRequirement());
+        var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
+        if (!user.IsAuthenticated)
+        {
+            return AuthorizationResult.Fail();
+        }
+
         if (request.SubdomainId.HasValue)
         {
-            this.UseRequirement(new MustHaveAccessToSubdomainRequirement()
+            if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
+                user.ModeratedSubdomains.Contains(request.SubdomainId.Value) ||
+                user.ViewableSubdomains.Contains(request.SubdomainId.Value))
             {
-                SubdomainId = request.SubdomainId.Value,
-            });
+                return AuthorizationResult.Succeed();
+            }
+
+            var hasSubdomainAccess = await documentSession.Query<SubdomainLookup>()
+                .AnyAsync(x => x.Id == request.SubdomainId.Value && user.ModeratedDomains.Contains(x.DomainId), token: cancellationToken);
+
+            return hasSubdomainAccess ? AuthorizationResult.Succeed() : AuthorizationResult.Fail();
         }
-        else
+
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) || user.ModeratedDomains.Any() || user.ModeratedSubdomains.Any())
         {
-            this.UseRequirement(new MustBeModeratorToAtLeastOneSubdomainRequirement());
+            return AuthorizationResult.Succeed();
         }
+
+        return AuthorizationResult.Fail();
     }
 }
+
