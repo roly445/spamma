@@ -25,33 +25,70 @@ public class SmtpCertificateService(ILogger<SmtpCertificateService> logger)
             return Maybe<X509Certificate2>.Nothing;
         }
 
+        var certificates = certFiles
+            .Select(this.TryLoadCertificate)
+            .Where(c => c is not null)
+            .Cast<LoadedCertificate>()
+            .OrderByDescending(c => c.LastWriteTimeUtc)
+            .ToList();
+
+        if (certificates.Count == 0)
+        {
+            return Maybe<X509Certificate2>.Nothing;
+        }
+
+        var now = DateTime.UtcNow;
+        var selected = certificates.FirstOrDefault(c =>
+            c.Certificate.NotBefore.ToUniversalTime() <= now && c.Certificate.NotAfter.ToUniversalTime() > now);
+
+        if (selected is null)
+        {
+            selected = certificates[0];
+            logger.LogWarning(
+                "No currently valid SMTP certificate found in {Path}; using newest loadable certificate {CertificatePath} which expires at {ExpiresAt:u}",
+                this._certificatePath,
+                selected.Path,
+                selected.Certificate.NotAfter.ToUniversalTime());
+        }
+
+        foreach (var certificate in certificates.Where(c => c != selected))
+        {
+            certificate.Certificate.Dispose();
+        }
+
+        logger.LogInformation(
+            "Found valid SMTP certificate at {Path} ({LoadMode}); expires at {ExpiresAt:u}",
+            selected.Path,
+            selected.LoadMode,
+            selected.Certificate.NotAfter.ToUniversalTime());
+
+        return Maybe.From(selected.Certificate);
+    }
+
+    private LoadedCertificate? TryLoadCertificate(string certificatePath)
+    {
         try
         {
-            // Try loading the first certificate with password (generated certs)
-            // SYSLIB0057: X509Certificate2 constructors with string paths are obsolete in favor of
-            // CreateFromPemFile/CreateFromEncryptedPemFile, but we need to support .pfx (PKCS#12) format
-            // with optional password for backward compatibility with existing deployments.
 #pragma warning disable SYSLIB0057 // Type or member is obsolete
             try
             {
-                var certificate = new X509Certificate2(certFiles[0], CertificatePassword);
-                logger.LogInformation("Found valid SMTP certificate at {Path} (with password)", certFiles[0]);
-                return Maybe.From(certificate);
+                var certificate = new X509Certificate2(certificatePath, CertificatePassword);
+                return new LoadedCertificate(certificatePath, File.GetLastWriteTimeUtc(certificatePath), "with password", certificate);
             }
             catch (Exception passwordEx)
             {
-                // Fall back to loading without password (manually added certs)
-                logger.LogDebug(passwordEx, "Failed to load certificate with password, trying without password");
-                var certificate = new X509Certificate2(certFiles[0]);
-                logger.LogInformation("Found valid SMTP certificate at {Path} (no password)", certFiles[0]);
-                return Maybe.From(certificate);
+                logger.LogDebug(passwordEx, "Failed to load certificate at {Path} with password, trying without password", certificatePath);
+                var certificate = new X509Certificate2(certificatePath);
+                return new LoadedCertificate(certificatePath, File.GetLastWriteTimeUtc(certificatePath), "no password", certificate);
             }
 #pragma warning restore SYSLIB0057 // Type or member is obsolete
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Certificate exists at {Path} but failed to load with or without password", certFiles[0]);
-            return Maybe<X509Certificate2>.Nothing;
+            logger.LogWarning(ex, "Certificate exists at {Path} but failed to load with or without password", certificatePath);
+            return null;
         }
     }
+
+    private sealed record LoadedCertificate(string Path, DateTime LastWriteTimeUtc, string LoadMode, X509Certificate2 Certificate);
 }

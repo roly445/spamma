@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common.Infrastructure.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
@@ -13,6 +14,7 @@ public sealed class CertificateRenewalBackgroundService(
 {
     private const int RenewalThresholdDays = 30;
     private const int CertificateRetentionCount = 3;
+    private const string CertificatePassword = "letmein";
     private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(1);
     private static readonly TimeOnly RenewalTime = new TimeOnly(2, 0, 0);
 
@@ -30,6 +32,8 @@ public sealed class CertificateRenewalBackgroundService(
                 Directory.CreateDirectory(this._certificatesPath);
                 logger.LogInformation("Created certificate directory: {Path}", this._certificatesPath);
             }
+
+            await this.PerformCertificateRenewalAsync(stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -82,6 +86,20 @@ public sealed class CertificateRenewalBackgroundService(
     {
         var timestamp = DateTime.UtcNow.ToString("yyyy_MM_dd_HH_mm_ss", CultureInfo.InvariantCulture);
         return $"certificate_{timestamp}.pfx";
+    }
+
+    private static X509Certificate2 LoadCertificate(string certificatePath)
+    {
+#pragma warning disable SYSLIB0057 // Type or member is obsolete
+        try
+        {
+            return new X509Certificate2(certificatePath, CertificatePassword);
+        }
+        catch
+        {
+            return new X509Certificate2(certificatePath);
+        }
+#pragma warning restore SYSLIB0057 // Type or member is obsolete
     }
 
     private async Task PerformCertificateRenewalAsync(CancellationToken cancellationToken)
@@ -195,13 +213,18 @@ public sealed class CertificateRenewalBackgroundService(
     {
         try
         {
-            // Extract certificate validity based on filename or modification time
-            // For now, use file modification time as proxy for cert generation time
-            // In production, parse the actual PFX file to check expiration
-            var certAge = DateTime.UtcNow - certFile.LastWriteTimeUtc;
-            var shouldRenew = certAge.TotalDays > (365 - RenewalThresholdDays);
+            using var certificate = CertificateRenewalBackgroundService.LoadCertificate(certFile.FullName);
+            var expiresAt = certificate.NotAfter.ToUniversalTime();
+            var renewalThreshold = DateTime.UtcNow.AddDays(RenewalThresholdDays);
+            var shouldRenew = expiresAt <= renewalThreshold;
 
-            logger.LogDebug("Certificate age: {Days:F1} days, should renew: {ShouldRenew}", certAge.TotalDays, shouldRenew);
+            logger.LogInformation(
+                "Certificate {FileName} expires at {ExpiresAt:u}; renewal threshold is {RenewalThreshold:u}; should renew: {ShouldRenew}",
+                certFile.Name,
+                expiresAt,
+                renewalThreshold,
+                shouldRenew);
+
             return shouldRenew;
         }
         catch (Exception ex)

@@ -199,6 +199,48 @@ public class SmtpCertificateServiceTests
     }
 
     [Fact]
+    public void FindCertificate_MultipleCertificates_PrefersCurrentlyValidCertificate()
+    {
+        // Arrange
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            using var validRsa = RSA.Create(2048);
+            var validRequest = new CertificateRequest("cn=valid", validRsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var validCertificate = validRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(30));
+            var validPath = Path.Combine(tempDir, "certificate_valid.pfx");
+            File.WriteAllBytes(validPath, validCertificate.Export(X509ContentType.Pfx));
+            File.SetLastWriteTimeUtc(validPath, DateTime.UtcNow.AddDays(-10));
+
+            using var expiredRsa = RSA.Create(2048);
+            var expiredRequest = new CertificateRequest("cn=expired", expiredRsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            var expiredCertificate = expiredRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-60), DateTimeOffset.UtcNow.AddDays(-1));
+            var expiredPath = Path.Combine(tempDir, "certificate_expired.pfx");
+            File.WriteAllBytes(expiredPath, expiredCertificate.Export(X509ContentType.Pfx));
+            File.SetLastWriteTimeUtc(expiredPath, DateTime.UtcNow);
+
+            var loggerMock = new Mock<ILogger<SmtpCertificateService>>();
+            var service = new SmtpCertificateService(loggerMock.Object);
+
+            var fieldInfo = typeof(SmtpCertificateService).GetField("_certificatePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            fieldInfo?.SetValue(service, tempDir);
+
+            // Act
+            var result = service.FindCertificate();
+
+            // Verify
+            result.HasValue.Should().BeTrue();
+            result.Value.Subject.Should().Contain("valid");
+        }
+        finally
+        {
+            Directory.Delete(tempDir, true);
+        }
+    }
+
+    [Fact]
     public void FindCertificate_CertificateWithPassword_LoadsWithPassword()
     {
         // Arrange
