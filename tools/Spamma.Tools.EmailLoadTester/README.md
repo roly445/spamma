@@ -32,6 +32,6 @@ STARTTLS example for port 587:
 
     dotnet run --project .\tools\Spamma.Tools.EmailLoadTester\Spamma.Tools.EmailLoadTester.csproj -- --host mail.example.com --port 587 --tls starttls --from noreply@github.com --to anything@unregistered-catchall.test --batch 1 --batches 1 --subject "Catch-all over STARTTLS"
 
-Implicit TLS example with certificate validation disabled for testing:
+Implicit TLS example for port 465 with certificate validation disabled for testing:
 
-    dotnet run --project .\tools\Spamma.Tools.EmailLoadTester\Spamma.Tools.EmailLoadTester.csproj -- --host 192.168.1.5 --port 587 --tls ssl --allow-invalid-cert true --from noreply@github.com --to anything@unregistered-catchall.test --batch 1 --batches 1 --subject "Catch-all over TLS"
+    dotnet run --project .\tools\Spamma.Tools.EmailLoadTester\Spamma.Tools.EmailLoadTester.csproj -- --host mail.example.com --port 465 --tls ssl --allow-invalid-cert true --from noreply@github.com --to anything@unregistered-catchall.test --batch 1 --batches 1 --subject "Catch-all over implicit TLS"

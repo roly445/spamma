@@ -52,7 +52,7 @@ public static class Module
         // SMTP certificate service
         services.AddSingleton<SmtpCertificateService>();
 
-        // Configure SMTP server with optional TLS port
+        // Configure SMTP server with optional TLS endpoints
         services.AddSingleton(provider =>
         {
             var smtpSettings = provider.GetRequiredService<IOptions<EmailInboxSettings>>().Value;
@@ -66,13 +66,21 @@ public static class Module
                     builder.Port(smtpSettings.Port, false);
                 });
 
-            // Add port 587 (STARTTLS) with certificate if available
+            // Add standard TLS endpoints with certificate if available.
+            // Port 465 uses implicit TLS; port 587 advertises STARTTLS on a plain connection.
             if (certificate.HasValue)
             {
                 optionsBuilder.Endpoint(builder =>
                 {
                     builder
-                        .Port(587, true)
+                        .Port(465, true)
+                        .Certificate(certificate.Value);
+                });
+
+                optionsBuilder.Endpoint(builder =>
+                {
+                    builder
+                        .Port(587, false)
                         .Certificate(certificate.Value);
                 });
             }

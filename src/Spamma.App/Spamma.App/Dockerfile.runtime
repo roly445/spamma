@@ -3,6 +3,7 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 EXPOSE 25
+EXPOSE 465
 EXPOSE 587
 
 # TARGETPLATFORM will be like "linux/amd64" or "linux/arm64"

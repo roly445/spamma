@@ -4,6 +4,7 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 EXPOSE 25
+EXPOSE 465
 EXPOSE 587
 
 # Frontend is already built on the agent, copied into wwwroot
