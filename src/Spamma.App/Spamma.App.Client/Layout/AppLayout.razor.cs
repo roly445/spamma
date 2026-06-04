@@ -9,7 +9,10 @@ namespace Spamma.App.Client.Layout;
 /// Code-behind for the AppLayout component.
 /// </summary>
 public partial class AppLayout(
-    IJSRuntime jsRuntime, ISignalRService signalRService, AuthenticationStateProvider authenticationStateProvider) : IDisposable
+    IJSRuntime jsRuntime,
+    ISignalRService signalRService,
+    ISystemSettingsCache systemSettingsCache,
+    AuthenticationStateProvider authenticationStateProvider) : IDisposable
 {
     private bool showSettingsDropdown;
     private bool _disposed;
@@ -38,6 +41,8 @@ public partial class AppLayout(
 
         if (disposing)
         {
+            signalRService.OnPermissionsUpdated -= this.SignalRServiceOnOnPermissionsUpdated;
+            signalRService.OnSystemSettingsUpdated -= this.SignalRServiceOnSystemSettingsUpdated;
             signalRService.StopAsync().Wait();
         }
 
@@ -47,6 +52,7 @@ public partial class AppLayout(
     protected override async Task OnInitializedAsync()
     {
         signalRService.OnPermissionsUpdated += this.SignalRServiceOnOnPermissionsUpdated;
+        signalRService.OnSystemSettingsUpdated += this.SignalRServiceOnSystemSettingsUpdated;
         await signalRService.StartAsync();
         await base.OnInitializedAsync();
     }
@@ -98,6 +104,11 @@ public partial class AppLayout(
         }
 
         return Task.CompletedTask;
+    }
+
+    private Task SignalRServiceOnSystemSettingsUpdated(Spamma.Modules.Common.Client.Application.Queries.GetSystemSettingsQueryResult settings)
+    {
+        return systemSettingsCache.ApplyAsync(settings);
     }
 
     private void ToggleSettingsDropdown()

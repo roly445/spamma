@@ -8,15 +8,16 @@ public static class CommandRunnerExtensions
 {
     private static readonly ActivitySource ActivitySource = new("Spamma.App.Client.Commands");
 
-    public static async Task ExecuteAsync(
+    public static async Task ExecuteAsync<TCommand>(
         this ICommandRunner commandRunner,
-        ICommand command,
+        TCommand command,
         Func<Task> onSuccess,
         Func<Dictionary<string, List<string>>, Task> onValidationErrors,
         Func<BluQubeErrorData, Task> onError,
         Func<Task> onNotAuthenticated,
         Dictionary<string, string>? additionalTags = null,
         CancellationToken cancellationToken = default)
+        where TCommand : ICommand
     {
         using var activity = ActivitySource.StartActivity(command.GetType().Name);
         activity?.SetTag("command.type", command.GetType().Name);
@@ -62,14 +63,15 @@ public static class CommandRunnerExtensions
         }
     }
 
-    public static Task ExecuteAsync(
+    public static Task ExecuteAsync<TCommand>(
         this ICommandRunner commandRunner,
-        ICommand command,
+        TCommand command,
         Func<Task> onSuccess,
         Func<Dictionary<string, List<string>>, Task> onValidationErrors,
         Func<BluQubeErrorData, Task> onError,
         Dictionary<string, string>? additionalTags = null,
         CancellationToken cancellationToken = default)
+        where TCommand : ICommand
         => commandRunner.ExecuteAsync(
             command,
             onSuccess,

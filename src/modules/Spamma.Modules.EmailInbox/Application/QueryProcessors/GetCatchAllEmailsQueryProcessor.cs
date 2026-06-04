@@ -38,6 +38,17 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
                 x.CatchAllSenderAddressId != null && allowedIds.Contains(x.CatchAllSenderAddressId.Value));
         }
 
+        if (!string.IsNullOrWhiteSpace(request.SearchText))
+        {
+            var searchText = request.SearchText.Trim().ToLowerInvariant();
+
+            baseQuery = baseQuery.Where(x =>
+                x.Subject.ToLowerInvariant().Contains(searchText) ||
+                x.EmailAddresses.Any(a =>
+                    a.Address.ToLowerInvariant().Contains(searchText) ||
+                    a.Name.ToLowerInvariant().Contains(searchText)));
+        }
+
         var totalCount = await baseQuery.CountAsync(cancellationToken);
 
         var emails = await baseQuery
@@ -46,6 +57,20 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
             .Take(pageSize)
             .ToListAsync(token: cancellationToken);
 
+        var campaignIds = emails
+            .Select(e => e.CampaignId)
+            .OfType<Guid>()
+            .Distinct()
+            .ToList();
+
+        var campaignValues = campaignIds.Count == 0
+            ? new Dictionary<Guid, string>()
+            : (await documentSession.Query<CampaignSummary>()
+                .Where(c => campaignIds.Contains(c.CampaignId))
+                .Select(c => new { c.CampaignId, c.CampaignValue })
+                .ToListAsync(token: cancellationToken))
+            .ToDictionary(c => c.CampaignId, c => c.CampaignValue);
+
         var groups = emails
             .GroupBy(e => e.EmailAddresses.FirstOrDefault(a => a.EmailAddressType == EmailAddressType.From)?.Address ?? string.Empty)
             .Select(g => new GetCatchAllEmailsQueryResult.SenderGroup(
@@ -53,7 +78,18 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
                 g.Select(e =>
                 {
                     var toAddress = e.EmailAddresses.FirstOrDefault(a => a.EmailAddressType == EmailAddressType.To)?.Address ?? string.Empty;
-                    return new GetCatchAllEmailsQueryResult.EmailSummary(e.Id, e.Subject, toAddress, e.SentAt, e.IsFavorite);
+                    var campaignValue = e.CampaignId.HasValue && campaignValues.TryGetValue(e.CampaignId.Value, out var value)
+                        ? value
+                        : e.CampaignValue;
+
+                    return new GetCatchAllEmailsQueryResult.EmailSummary(
+                        e.Id,
+                        e.Subject,
+                        toAddress,
+                        e.SentAt,
+                        e.IsFavorite,
+                        e.CampaignId,
+                        campaignValue);
                 }).ToList()))
             .ToList();
 

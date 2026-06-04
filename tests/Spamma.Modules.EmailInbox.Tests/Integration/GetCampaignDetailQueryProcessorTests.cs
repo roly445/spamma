@@ -49,7 +49,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         this.Session.Store(campaign);
         await this.Session.SaveChangesAsync();
 
-        var query = new GetCampaignDetailQuery(SubdomainId: subdomainId, CampaignId: campaignId);
+        var query = new GetCampaignDetailQuery(CampaignId: campaignId);
 
         // Act
         var result = await this.Sender.Send(query);
@@ -72,9 +72,8 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
     public async Task Handle_WithNonExistentCampaignId_ReturnsFailed()
     {
         // Arrange
-        var subdomainId = Guid.NewGuid();
         var nonExistentCampaignId = Guid.NewGuid();
-        var query = new GetCampaignDetailQuery(SubdomainId: subdomainId, CampaignId: nonExistentCampaignId);
+        var query = new GetCampaignDetailQuery(CampaignId: nonExistentCampaignId);
 
         // Act
         var result = await this.Querier.Send(query);
@@ -85,11 +84,10 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
     }
 
     [Fact]
-    public async Task Handle_WithMismatchedSubdomainId_ReturnsFailed()
+    public async Task Handle_WithCampaignInAnySubdomain_ReturnsCampaignDetails()
     {
         // Arrange
         var actualSubdomainId = Guid.NewGuid();
-        var differentSubdomainId = Guid.NewGuid();
         var campaignId = Guid.NewGuid();
 
         var campaign = new CampaignSummary
@@ -106,18 +104,18 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         this.Session.Store(campaign);
         await this.Session.SaveChangesAsync();
 
-        var query = new GetCampaignDetailQuery(SubdomainId: differentSubdomainId, CampaignId: campaignId);
+        var query = new GetCampaignDetailQuery(CampaignId: campaignId);
 
         // Act
         var result = await this.Querier.Send(query);
 
         // Assert
-        var action = () => result.Data;
-        action.Should().Throw<InvalidOperationException>();
+        result.Data.Should().NotBeNull();
+        result.Data.CampaignId.Should().Be(campaignId);
     }
 
     [Fact]
-    public async Task Handle_WithEmptySubdomainId_ReturnsAllCampaignData()
+    public async Task Handle_WithCampaignIdOnly_ReturnsAllCampaignData()
     {
         // Arrange
         var subdomainId = Guid.NewGuid();
@@ -137,8 +135,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         this.Session.Store(campaign);
         await this.Session.SaveChangesAsync();
 
-        // Query with Guid.Empty for SubdomainId (no subdomain filter)
-        var query = new GetCampaignDetailQuery(SubdomainId: Guid.Empty, CampaignId: campaignId);
+        var query = new GetCampaignDetailQuery(CampaignId: campaignId);
 
         // Act
         var result = await this.Querier.Send(query);

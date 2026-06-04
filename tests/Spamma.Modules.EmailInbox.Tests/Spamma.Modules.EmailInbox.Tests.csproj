@@ -48,12 +48,6 @@
 
   <Import Project="..\..\shared\Spamma.Shared\Spamma.Shared.projitems" Label="Shared" />
 
-  <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
-    </ItemGroup>
-  </Target>
-
   <ItemGroup>
     <!-- Exclude corrupted test file; replaced by IntegrationNotifierHttpTests and IntegrationNotifierGrpcTests -->
     <Compile Remove="Infrastructure/Services/PushNotificationService/IntegrationNotifierTests.cs" />

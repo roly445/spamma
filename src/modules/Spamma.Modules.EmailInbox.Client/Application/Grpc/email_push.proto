@@ -19,6 +19,10 @@ message EmailNotification {
   string to = 3;
   string subject = 4;
   google.protobuf.Timestamp received_at = 5;
+  string subdomain_id = 6;
+  bool is_catch_all = 7;
+  string campaign_id = 8;
+  string campaign_value = 9;
 }
 
 message GetEmailContentRequest {

@@ -1,4 +1,3 @@
-@page "/campaigns/{CampaignId:guid}"
 @layout AppLayout
 
 @attribute [Authorize]
@@ -61,7 +60,7 @@
                         <h2 class="text-lg font-semibold text-gray-900">Sample Message</h2>
                     </div>
                     <div>
-                        <EmailViewer Email="_emailSummary" HideCampaignInfo="true" />
+                        <EmailViewer Email="_emailSummary" HideCampaignInfo="true" HideMessageActions="true" />
                     </div>
                 </div>
             }

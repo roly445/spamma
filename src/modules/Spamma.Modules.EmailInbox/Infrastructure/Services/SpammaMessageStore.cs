@@ -112,18 +112,8 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
                 CatchAllConstants.DomainId,
                 CatchAllConstants.SubdomainId,
                 catchAllMessageId,
-                cachedSender.SenderAddressId));
-
-            await pushNotificationManager.NotifyEmailAsync(
-                new PushNotificationManager.EmailDetails(
-                    catchAllMessageId,
-                    CatchAllConstants.SubdomainId,
-                    message.From?.ToString() ?? string.Empty,
-                    recipients.FirstOrDefault()?.Address ?? string.Empty,
-                    message.Subject ?? string.Empty,
-                    message.TextBody ?? message.HtmlBody ?? string.Empty,
-                    DateTimeOffset.Now),
-                cancellationToken);
+                cachedSender.SenderAddressId,
+                campaignHeader));
 
             return SmtpResponse.Ok;
         }
@@ -136,7 +126,12 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
         }
         else
         {
-            // Campaign handling
+            backgroundTaskQueue.QueueBackgroundWorkItem(new CampaignCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId));
+        }
+
+        if (!string.IsNullOrWhiteSpace(campaignHeader))
+        {
+            return SmtpResponse.Ok;
         }
 
         // Notify push integrations

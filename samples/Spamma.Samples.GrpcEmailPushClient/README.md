@@ -62,10 +62,16 @@ Press Ctrl+C to stop the client and disconnect from the stream.
 4. **Parses MIME**: Extracts the email body (HTML preferred, falls back to text) from the MIME message
 5. **Displays Results**: Shows the email metadata and body content in the console
 
+Notifications include routing metadata so integrations can distinguish normal inbox mail, catch-all mail, and campaign captures:
+
+- `SubdomainId` - the subdomain associated with the email; catch-all emails use the catch-all sentinel subdomain ID
+- `IsCatchAll` - `true` when the email was accepted through catch-all capture
+- `CampaignId` / `CampaignValue` - populated when the email is part of a campaign
+
 ## Output Example
 
 ```
-[Email] Id=3fa85d8c-12ab-4def-8901-234567890abc, To=user@example.com, From=sender@example.com, Subject="Test Email", ReceivedAt=2025-11-15 14:30:45
+[Email] Id=3fa85d8c-12ab-4def-8901-234567890abc, To=user@example.com, From=sender@example.com, Subject="Test Email", ReceivedAt=2025-11-15 14:30:45, SubdomainId=1f4e2f1a-8e7b-4c2f-9a51-2a9f2c7bde10
 --- Email Body (HTML) ---
 <html>
   <body>
@@ -73,6 +79,12 @@ Press Ctrl+C to stop the client and disconnect from the stream.
   </body>
 </html>
 --- End of Body ---
+```
+
+Catch-all campaign notification:
+
+```
+[Catch-All Email] Id=8f5f1d1e-2ec3-4c3d-8d8e-fb79b69dfd2a, To=anything@unregistered.test, From=sender@example.com, Subject="Campaign Catch-All", ReceivedAt=2026-06-04 10:15:30, SubdomainId=00000000-0000-0000-0000-000000000001, CampaignId=9a1f3f4a-6e49-4f71-a5fa-d14d61f96953, CampaignValue="spring-launch"
 ```
 
 With `--json` flag:
@@ -83,7 +95,11 @@ With `--json` flag:
   "to": "user@example.com",
   "from": "sender@example.com",
   "subject": "Test Email",
-  "receivedAt": "2025-11-15 14:30:45"
+  "receivedAt": "2025-11-15 14:30:45",
+  "subdomainId": "1f4e2f1a-8e7b-4c2f-9a51-2a9f2c7bde10",
+  "isCatchAll": false,
+  "campaignId": null,
+  "campaignValue": null
 }
 ```
 

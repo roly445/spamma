@@ -1,17 +1,19 @@
 using System.Diagnostics;
-using Mediator;
+using BluQube.Mediation;
 using Microsoft.Extensions.Logging;
 
 namespace Spamma.Modules.Common.Application.Behaviors;
 
 public class CommandQueryTracingBehavior<TMessage, TResponse>(
     ILogger<CommandQueryTracingBehavior<TMessage, TResponse>> logger)
-    : IPipelineBehavior<TMessage, TResponse>
-    where TMessage : notnull, IMessage
+    : IBluQubePipelineBehavior<TMessage, TResponse>
 {
     private static readonly ActivitySource _activitySource = new("Spamma.Server.Pipeline");
 
-    public async ValueTask<TResponse> Handle(TMessage message, MessageHandlerDelegate<TMessage, TResponse> next, CancellationToken cancellationToken)
+    public async ValueTask<TResponse> Handle(
+        TMessage request,
+        BluQubeRequestHandlerDelegate<TMessage, TResponse> next,
+        CancellationToken cancellationToken)
     {
         var handlerName = typeof(TMessage).Name;
 
@@ -22,7 +24,7 @@ public class CommandQueryTracingBehavior<TMessage, TResponse>(
         logger.LogDebug("[{Handler}] Starting", handlerName);
 
         var stopwatch = Stopwatch.StartNew();
-        var response = await next(message, cancellationToken);
+        var response = await next(request, cancellationToken);
         stopwatch.Stop();
 
         var status = GetStatus(response);

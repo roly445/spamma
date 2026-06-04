@@ -156,30 +156,8 @@ builder.Services.Configure<Spamma.Modules.EmailInbox.Infrastructure.Settings.Ema
 
 builder.Services.AddCommonBehaviors();
 
-// Register Mediator with Scoped lifetime so handlers (which inject IDocumentSession)
-// work correctly within request scope. Module registrations below add real server-side
-// handlers via reflection (last-wins on IRequestHandler<,>). Concrete type registrations
-// for Generic*QueryProcessor (from *.Client assemblies) are removed afterwards.
-builder.Services.AddMediator(options => options.ServiceLifetime = ServiceLifetime.Scoped);
-
 builder.Services.AddUserManagement()
     .AddDomainManagement().AddEmailInbox();
-
-// Remove Generic*QueryProcessor service descriptors (from *.Client assemblies) so
-// server DI validation doesn't fail on their unresolvable dependencies.
-var clientAssemblies = new System.Collections.Generic.HashSet<System.Reflection.Assembly>
-{
-    typeof(Spamma.Modules.UserManagement.Client.Module).Assembly,
-    typeof(Spamma.Modules.DomainManagement.Client.Module).Assembly,
-    typeof(Spamma.Modules.EmailInbox.Client.Module).Assembly,
-};
-var clientDescriptors = builder.Services
-    .Where(sd => sd.ImplementationType != null && clientAssemblies.Contains(sd.ImplementationType.Assembly))
-    .ToList();
-foreach (var sd in clientDescriptors)
-{
-    builder.Services.Remove(sd);
-}
 
 builder.Services.AddGrpc();
 

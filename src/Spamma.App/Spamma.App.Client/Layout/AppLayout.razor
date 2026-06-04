@@ -1,9 +1,6 @@
 @using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.Extensions.Options
-@using Spamma.App.Client.Infrastructure.Contracts
 @using Spamma.Modules.Common.Client.Infrastructure.Constants
 @inherits LayoutComponentBase
-@inject IOptions<Settings> AppSettings
 
 
     <NotificationContainer/>
@@ -18,18 +15,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                             </svg>
                         </div>
-                        <a href="/inbox" class="ml-3 text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors duration-200">
+                        <a href="/m/inbox" class="ml-3 text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors duration-200">
                             Spamma
                         </a>
-                        @if (AppSettings.Value.CatchAllModeEnabled)
-                        {
-                            <a href="/inbox/catch-all" class="ml-4 inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors duration-150">
-                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-                                </svg>
-                                Catch-All
-                            </a>
-                        }
                     </div>
                     <div class="flex items-center space-x-4">
                         <!-- Settings Dropdown -->
@@ -117,20 +105,6 @@
                                             </svg>
                                             Settings
                                         </a>
-                                        <div class="border-t border-gray-200"></div>
-                                        <div class="px-4 py-2 text-sm text-gray-500 border-b border-gray-200">
-                                            <span class="font-medium">Analytics</span>
-                                        </div>
-                                        <AuthorizeView Policy="@Lookups.AssignedToAnySubdomain">
-                                            <Authorized>
-                                                <a href="/campaigns" @onclick="() => CloseDropdown()" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
-                                                    <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                                    </svg>
-                                                    Email Campaigns
-                                                </a>
-                                            </Authorized>
-                                        </AuthorizeView>
                                     </div>
                                 </div>
                             }

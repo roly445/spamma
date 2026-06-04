@@ -14,13 +14,12 @@ var batches = int.TryParse(parser.Get("batches"), out var bs) ? Math.Max(1, bs) 
 var subject = parser.Get("subject") ?? "Spamma Load Test";
 var htmlBody = parser.Get("html") ?? "<p>This is the <strong>HTML</strong> part</p>";
 var textBody = parser.Get("text") ?? "This is the text part";
+var campaign = parser.Get("campaign");
 
-Console.WriteLine($"Host={host}:{port} From={from} To={to} BatchSize={batchSize} Batches={batches}");
+Console.WriteLine($"Host={host}:{port} From={from} To={to} BatchSize={batchSize} Batches={batches} Campaign={campaign ?? "(none)"}");
 
 for (var batchIndex = 0; batchIndex < batches; batchIndex++)
 {
-    var batchId = Guid.NewGuid();
-
     var tasks = new List<Task>();
     for (var i = 0; i < batchSize; i++)
     {
@@ -28,6 +27,11 @@ for (var batchIndex = 0; batchIndex < batches; batchIndex++)
         message.From.Add(MailboxAddress.Parse(from));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject + " " + (i + 1);
+
+        if (!string.IsNullOrWhiteSpace(campaign))
+        {
+            message.Headers.Add("x-spamma-camp", campaign);
+        }
 
         var builder = new BodyBuilder
         {
@@ -47,7 +51,7 @@ for (var batchIndex = 0; batchIndex < batches; batchIndex++)
         }
     }
 
-    Console.WriteLine($"Sending batch {batchIndex + 1}/{batches} with X-Spamma-Comp: {batchId}");
+    Console.WriteLine($"Sending batch {batchIndex + 1}/{batches} with x-spamma-camp: {campaign ?? "(none)"}");
     await Task.WhenAll(tasks);
     Console.WriteLine($"Batch {batchIndex + 1} complete.");
 }

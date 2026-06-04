@@ -4,7 +4,6 @@ using DnsClient;
 using FluentValidation;
 using JasperFx.Events.Projections;
 using Marten;
-using Mediator;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +24,7 @@ public static class Module
     {
         services.AddValidatorsFromAssembly(typeof(Module).Assembly);
 
+        services.AddBluQube(typeof(Module).Assembly);
         services.AddBluQubeAuthorization(typeof(Module).Assembly);
         services.AddScoped<IDomainRepository, DomainRepository>();
         services.AddScoped<ISubdomainRepository, SubdomainRepository>();
@@ -37,8 +37,6 @@ public static class Module
         services.AddScoped<CacheInvalidationEventHandler>();
 
         services.AddSingleton<IDomainParserService, DomainParserService>();
-
-        RegisterHandlers(services, typeof(Module).Assembly);
 
         return services;
     }
@@ -61,17 +59,5 @@ public static class Module
         options.Projections.Add<SubdomainLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<ChaosAddressLookupProjection>(ProjectionLifecycle.Inline);
         return options;
-    }
-
-    private static void RegisterHandlers(IServiceCollection services, System.Reflection.Assembly assembly)
-    {
-        var requestHandlerType = typeof(IRequestHandler<,>);
-        foreach (var type in assembly.GetTypes().Where(t => !t.IsAbstract && !t.IsInterface))
-        {
-            foreach (var iface in type.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == requestHandlerType))
-            {
-                services.Add(new ServiceDescriptor(iface, type, ServiceLifetime.Scoped));
-            }
-        }
     }
 }

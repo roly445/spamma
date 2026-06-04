@@ -88,6 +88,74 @@ public class SpammaMessageStoreTests
     }
 
     [Fact]
+    public async Task SaveAsync_ValidCampaignEmailWithActiveSubdomain_QueuesCampaignJobAndReturnsOk()
+    {
+        // Arrange
+        var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
+        var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
+        var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
+        var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
+        var pushNotificationManager = new PushNotificationManager();
+
+        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
+        var cachedSubdomain = new ISubdomainCache.CachedSubdomain(subdomainId, domainId);
+
+        subdomainCacheMock
+            .Setup(x => x.GetSubdomainAsync("example.com", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(cachedSubdomain));
+
+        chaosAddressCacheMock
+            .Setup(x => x.GetChaosAddressAsync(subdomainId, "recipient", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe<IChaosAddressCache.CachedChaosAddress>.Nothing);
+
+        CampaignCaptureJob? capturedJob = null;
+        backgroundTaskQueueMock
+            .Setup(x => x.QueueBackgroundWorkItem(It.IsAny<CampaignCaptureJob>()))
+            .Callback<IBaseEmailCaptureJob>(job => capturedJob = job as CampaignCaptureJob);
+
+        var serviceProvider = CreateServiceProvider(
+            subdomainCacheMock.Object,
+            chaosAddressCacheMock.Object,
+            backgroundTaskQueueMock.Object,
+            settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
+            pushNotificationManager);
+
+        var sessionContextMock = new Mock<ISessionContext>();
+        sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
+        sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
+
+        var store = new SpammaMessageStore(pushNotificationManager);
+
+        var mimeMessage = new MimeMessage
+        {
+            Subject = "Campaign Email",
+            From = { new MailboxAddress("sender", "sender@test.com") },
+            To = { new MailboxAddress("recipient", "recipient@example.com") },
+        };
+        mimeMessage.Headers.Add("x-spamma-camp", "spring-sale");
+
+        var buffer = CreateBuffer(mimeMessage);
+
+        // Act
+        var result = await store.SaveAsync(
+            sessionContextMock.Object,
+            Mock.Of<IMessageTransaction>(),
+            buffer,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be(SmtpResponse.Ok);
+        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<CampaignCaptureJob>()), Times.Once);
+        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Never);
+        capturedJob.Should().NotBeNull();
+        capturedJob!.DomainId.Should().Be(domainId);
+        capturedJob.SubdomainId.Should().Be(subdomainId);
+    }
+
+    [Fact]
     public async Task SaveAsync_NoMatchingSubdomain_CatchAllDisabled_ReturnsMailboxNameNotAllowed()
     {
         // Arrange
@@ -206,6 +274,76 @@ public class SpammaMessageStoreTests
         capturedJob.Should().NotBeNull();
         capturedJob!.DomainId.Should().Be(CatchAllConstants.DomainId);
         capturedJob.SubdomainId.Should().Be(CatchAllConstants.SubdomainId);
+    }
+
+    [Fact]
+    public async Task SaveAsync_NoMatchingSubdomain_CatchAllCampaignEmail_QueuesCatchAllJobWithCampaignValueAndReturnsOk()
+    {
+        // Arrange
+        var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
+        var chaosAddressCacheMock = new Mock<IChaosAddressCache>(MockBehavior.Strict);
+        var backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>(MockBehavior.Strict);
+        var settingsServiceMock = new Mock<IEmailInboxSettingsService>(MockBehavior.Strict);
+        var catchAllSenderAddressCacheMock = new Mock<ICatchAllSenderAddressCache>(MockBehavior.Strict);
+        var pushNotificationManager = new PushNotificationManager();
+
+        subdomainCacheMock
+            .Setup(x => x.GetSubdomainAsync("unknown.com", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe<ISubdomainCache.CachedSubdomain>.Nothing);
+
+        settingsServiceMock
+            .Setup(x => x.GetCatchAllModeEnabledAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var senderAddressId = Guid.NewGuid();
+        catchAllSenderAddressCacheMock
+            .Setup(x => x.GetSenderAddressAsync("sender@test.com", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ICatchAllSenderAddressCache.CachedSenderAddress(senderAddressId, "sender@test.com", []));
+
+        CatchAllEmailCaptureJob? capturedJob = null;
+        backgroundTaskQueueMock
+            .Setup(x => x.QueueBackgroundWorkItem(It.IsAny<CatchAllEmailCaptureJob>()))
+            .Callback<IBaseEmailCaptureJob>(job => capturedJob = job as CatchAllEmailCaptureJob);
+
+        var serviceProvider = CreateServiceProvider(
+            subdomainCacheMock.Object,
+            chaosAddressCacheMock.Object,
+            backgroundTaskQueueMock.Object,
+            settingsServiceMock.Object,
+            catchAllSenderAddressCacheMock.Object,
+            pushNotificationManager);
+
+        var sessionContextMock = new Mock<ISessionContext>();
+        sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
+        sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
+
+        var store = new SpammaMessageStore(pushNotificationManager);
+
+        var mimeMessage = new MimeMessage
+        {
+            Subject = "Catch-All Campaign Test",
+            From = { new MailboxAddress("sender", "sender@test.com") },
+            To = { new MailboxAddress("recipient", "recipient@unknown.com") },
+        };
+        mimeMessage.Headers.Add("x-spamma-camp", "catch-all-campaign");
+
+        var buffer = CreateBuffer(mimeMessage);
+
+        // Act
+        var result = await store.SaveAsync(
+            sessionContextMock.Object,
+            Mock.Of<IMessageTransaction>(),
+            buffer,
+            CancellationToken.None);
+
+        // Assert
+        result.Should().Be(SmtpResponse.Ok);
+        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<CatchAllEmailCaptureJob>()), Times.Once);
+        capturedJob.Should().NotBeNull();
+        capturedJob!.DomainId.Should().Be(CatchAllConstants.DomainId);
+        capturedJob.SubdomainId.Should().Be(CatchAllConstants.SubdomainId);
+        capturedJob.CatchAllSenderAddressId.Should().Be(senderAddressId);
+        capturedJob.CampaignValue.Should().Be("catch-all-campaign");
     }
 
     [Fact]

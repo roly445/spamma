@@ -6,6 +6,7 @@ using Spamma.App.Infrastructure.Endpoints.Setup;
 using Spamma.App.Infrastructure.Services;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 namespace Spamma.App.Infrastructure.Endpoints;
 
@@ -34,15 +35,19 @@ internal static class GeneralApiEndpoints
             .DisableAntiforgery(); // OTEL collector doesn't use CSRF tokens
     }
 
-    private static IResult GetDynamicSettings(IOptions<Settings> settings)
+    private static async Task<IResult> GetDynamicSettings(
+        IOptions<Settings> settings,
+        IEmailInboxSettingsService emailInboxSettingsService)
     {
+        var catchAllModeEnabled = await emailInboxSettingsService.GetCatchAllModeEnabledAsync();
+
         return Results.Json(new
         {
             Settings = new
             {
                 settings.Value.MailServerHostname,
                 settings.Value.MxPriority,
-                settings.Value.CatchAllModeEnabled,
+                CatchAllModeEnabled = catchAllModeEnabled,
             },
         });
     }

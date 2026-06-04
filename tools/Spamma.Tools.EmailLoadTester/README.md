@@ -17,6 +17,11 @@ Options:
   --subject  Email subject prefix
   --html     HTML body content
   --text     Text body content
+  --campaign Campaign value to send as the x-spamma-camp header
 
-Each batch sets the header X-Spamma-Comp: {guid} on every message in that batch.
+When `--campaign` is provided, every message includes the `x-spamma-camp` header with that value.
+
+Catch-all campaign example:
+
+    dotnet run --project .\tools\Spamma.Tools.EmailLoadTester\Spamma.Tools.EmailLoadTester.csproj -- --host 127.0.0.1 --port 2025 --from noreply@github.com --to anything@unregistered-catchall.test --batch 1 --batches 1 --subject "Campaign Catch-all GitHub sender test" --campaign my-campaign
 

@@ -9,4 +9,5 @@ public record CampaignEmailReceivedCommand(
     string Subject,
     DateTimeOffset WhenSent,
     Guid CampaignId,
-    IReadOnlyList<EmailAddress> EmailAddresses) : ICommand;
+    IReadOnlyList<EmailAddress> EmailAddresses,
+    Guid? CatchAllSenderAddressId = null) : ICommand;

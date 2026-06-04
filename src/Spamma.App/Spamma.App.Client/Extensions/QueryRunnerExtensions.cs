@@ -8,14 +8,15 @@ public static class QueryRunnerExtensions
 {
     private static readonly ActivitySource ActivitySource = new("Spamma.App.Client.Queries");
 
-    public static async Task ExecuteAsync<TResult>(
+    public static async Task ExecuteAsync<TQuery, TResult>(
         this IQueryRunner queryRunner,
-        IQuery<TResult> query,
+        TQuery query,
         Func<TResult, Task> onSuccess,
         Func<string, Task> onError,
         Func<Task> onNotAuthenticated,
         Dictionary<string, string>? additionalTags = null,
         CancellationToken cancellationToken = default)
+        where TQuery : IQuery<TResult>
         where TResult : IQueryResult
     {
         using var activity = ActivitySource.StartActivity(query.GetType().Name);
@@ -53,13 +54,14 @@ public static class QueryRunnerExtensions
         }
     }
 
-    public static Task ExecuteAsync<TResult>(
+    public static Task ExecuteAsync<TQuery, TResult>(
         this IQueryRunner queryRunner,
-        IQuery<TResult> query,
+        TQuery query,
         Func<TResult, Task> onSuccess,
         Func<string, Task> onError,
         Dictionary<string, string>? additionalTags = null,
         CancellationToken cancellationToken = default)
+        where TQuery : IQuery<TResult>
         where TResult : IQueryResult
         => queryRunner.ExecuteAsync(
             query,

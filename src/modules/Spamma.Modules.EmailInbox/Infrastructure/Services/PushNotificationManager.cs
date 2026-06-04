@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Grpc.Core;
+using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -46,6 +47,10 @@ public class PushNotificationManager
                 To = email.To,
                 Subject = email.Subject,
                 ReceivedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(email.ReceivedAt),
+                SubdomainId = email.SubdomainId.ToString(),
+                IsCatchAll = email.IsCatchAll,
+                CampaignId = email.CampaignId?.ToString() ?? string.Empty,
+                CampaignValue = email.CampaignValue ?? string.Empty,
             };
 
             notifications.Add(connection.Stream.WriteAsync(notification, cancellationToken));
@@ -54,10 +59,18 @@ public class PushNotificationManager
         // Notify SignalR web clients via IClientNotifierService
         if (this._clientNotifier != null)
         {
-            var method = this._clientNotifier.GetType().GetMethod("NotifyNewEmailForSubdomain");
+            var methodName = email.SubdomainId == CatchAllConstants.SubdomainId
+                ? "NotifyNewCatchAllEmail"
+                : "NotifyNewEmailForSubdomain";
+
+            var method = this._clientNotifier.GetType().GetMethod(methodName);
             if (method != null)
             {
-                var task = method.Invoke(this._clientNotifier, [email.SubdomainId]) as Task;
+                var parameters = email.SubdomainId == CatchAllConstants.SubdomainId
+                    ? []
+                    : new object[] { email.SubdomainId };
+
+                var task = method.Invoke(this._clientNotifier, parameters) as Task;
                 if (task != null)
                 {
                     notifications.Add(task);
@@ -75,5 +88,8 @@ public class PushNotificationManager
         string To,
         string Subject,
         string Body,
-        DateTimeOffset ReceivedAt);
+        DateTimeOffset ReceivedAt,
+        Guid? CampaignId = null,
+        string? CampaignValue = null,
+        bool IsCatchAll = false);
 }

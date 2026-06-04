@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
+using Spamma.Modules.Common.Client.Application.Queries;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 
 namespace Spamma.App.Client.Infrastructure.Services;
@@ -17,11 +18,15 @@ public sealed class SignalRService(
 
     public event Func<Task>? OnNewEmailReceived;
 
+    public event Func<Task>? OnCatchAllEmailReceived;
+
     public event Func<Task>? OnEmailDeleted;
 
     public event Func<Task>? OnEmailUpdated;
 
     public event Func<Task>? OnPermissionsUpdated;
+
+    public event Func<GetSystemSettingsQueryResult, Task>? OnSystemSettingsUpdated;
 
     public bool IsConnected =>
         this._hubConnection?.State == HubConnectionState.Connected;
@@ -48,6 +53,14 @@ public sealed class SignalRService(
             }
         });
 
+        this._hubConnection.On("CatchAllEmailReceived", async () =>
+        {
+            if (this.OnCatchAllEmailReceived is not null)
+            {
+                await this.OnCatchAllEmailReceived.Invoke();
+            }
+        });
+
         this._hubConnection.On("EmailDeleted", async () =>
         {
             if (this.OnEmailDeleted is not null)
@@ -69,6 +82,14 @@ public sealed class SignalRService(
             if (this.OnPermissionsUpdated is not null)
             {
                 await this.OnPermissionsUpdated.Invoke();
+            }
+        });
+
+        this._hubConnection.On<GetSystemSettingsQueryResult>("SystemSettingsUpdated", async settings =>
+        {
+            if (this.OnSystemSettingsUpdated is not null)
+            {
+                await this.OnSystemSettingsUpdated.Invoke(settings);
             }
         });
 

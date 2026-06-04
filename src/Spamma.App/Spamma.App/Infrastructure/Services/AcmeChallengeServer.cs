@@ -16,7 +16,7 @@ public sealed class AcmeChallengeServer(ILogger<AcmeChallengeServer> logger) : I
         }
 
         this._challenges.AddOrUpdate(token, keyAuthorization, (_, _) => keyAuthorization);
-        logger.LogInformation("Registered challenge token: {Token}", token);
+        logger.LogInformation("Registered HTTP-01 challenge token: {Token}", token);
         return Task.CompletedTask;
     }
 

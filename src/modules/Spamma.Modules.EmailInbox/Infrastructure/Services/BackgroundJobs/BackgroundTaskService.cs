@@ -12,8 +12,130 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
 public class BackgroundTaskService(
     IBackgroundTaskQueue taskQueue,
-    IServiceProvider serviceProvider) : BackgroundService
+    IServiceProvider serviceProvider,
+    PushNotificationManager pushNotificationManager) : BackgroundService
 {
+    internal static async Task ProcessWorkItemAsync(
+        IBaseEmailCaptureJob workItem,
+        ICommandRunner commander,
+        IMessageStoreProvider messageStoreProvider,
+        CancellationToken cancellationToken,
+        PushNotificationManager? pushNotificationManager = null)
+    {
+        var messageId = Guid.NewGuid();
+
+        try
+        {
+            workItem.MimeStream.Position = 0;
+
+            var message = await MimeMessage.LoadAsync(workItem.MimeStream, cancellationToken);
+            switch (workItem)
+            {
+                case CampaignCaptureJob:
+                {
+                    var campaignValue = message.Headers["x-spamma-camp"] ?? string.Empty;
+                    var campaignMessageId = messageId;
+                    var result = await commander.Send(
+                        new RecordCampaignCaptureCommand(
+                            workItem.DomainId,
+                            workItem.SubdomainId,
+                            campaignMessageId,
+                            campaignValue,
+                            message.Date), cancellationToken);
+
+                    if (result.Status == CommandResultStatus.Succeeded)
+                    {
+                        if (result.Data.IsFirstEmail)
+                        {
+                            await ExtractEmailAddressesAndSendCommand(campaignMessageId, message, commander,
+                                messageStoreProvider, workItem, result.Data.CampaignId,
+                                cancellationToken: cancellationToken);
+                        }
+
+                        if (pushNotificationManager is not null)
+                        {
+                            await pushNotificationManager.NotifyEmailAsync(
+                                new PushNotificationManager.EmailDetails(
+                                    campaignMessageId,
+                                    workItem.SubdomainId,
+                                    message.From?.ToString() ?? string.Empty,
+                                    message.To.Mailboxes.FirstOrDefault()?.Address ?? string.Empty,
+                                    message.Subject ?? string.Empty,
+                                    message.TextBody ?? message.HtmlBody ?? string.Empty,
+                                    DateTimeOffset.Now,
+                                    result.Data.CampaignId,
+                                    campaignValue),
+                                cancellationToken);
+                        }
+                    }
+
+                    break;
+                }
+
+                case ChaosEmailCaptureJob captureJob:
+                    await commander.Send(
+                        new RecordChaosAddressReceivedCommand(captureJob.ChaosAddressId, message.Date),
+                        cancellationToken);
+                    break;
+                case CatchAllEmailCaptureJob catchAllJob:
+                    Guid? campaignId = null;
+                    if (!string.IsNullOrWhiteSpace(catchAllJob.CampaignValue))
+                    {
+                        var campaignCaptureResult = await commander.Send(
+                            new RecordCampaignCaptureCommand(
+                                catchAllJob.DomainId,
+                                catchAllJob.SubdomainId,
+                                catchAllJob.MessageId,
+                                catchAllJob.CampaignValue,
+                                message.Date),
+                            cancellationToken);
+
+                        if (campaignCaptureResult.Status == CommandResultStatus.Succeeded)
+                        {
+                            campaignId = campaignCaptureResult.Data.CampaignId;
+                        }
+                    }
+
+                    var saved = await ExtractEmailAddressesAndSendCommand(catchAllJob.MessageId, message, commander,
+                        messageStoreProvider, workItem, campaignId,
+                        isCatchAll: true,
+                        catchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId,
+                        cancellationToken: cancellationToken);
+
+                    if (saved && pushNotificationManager is not null)
+                    {
+                        await pushNotificationManager.NotifyEmailAsync(
+                            new PushNotificationManager.EmailDetails(
+                                catchAllJob.MessageId,
+                                catchAllJob.SubdomainId,
+                                message.From?.ToString() ?? string.Empty,
+                                message.To.Mailboxes.FirstOrDefault()?.Address ?? string.Empty,
+                                message.Subject ?? string.Empty,
+                                message.TextBody ?? message.HtmlBody ?? string.Empty,
+                                DateTimeOffset.Now,
+                                campaignId,
+                                catchAllJob.CampaignValue,
+                                IsCatchAll: true),
+                            cancellationToken);
+                    }
+
+                    break;
+                case StandardEmailCaptureJob standardJob:
+                    await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
+                        messageStoreProvider, workItem, cancellationToken: cancellationToken);
+                    break;
+            }
+        }
+        catch (Exception)
+        {
+            // Log the exception if necessary
+        }
+        finally
+        {
+            await workItem.MimeStream.DisposeAsync();
+        }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var scope = serviceProvider.CreateScope();
@@ -23,65 +145,11 @@ public class BackgroundTaskService(
         while (!stoppingToken.IsCancellationRequested)
         {
             var workItem = await taskQueue.DequeueAsync(stoppingToken);
-            var messageId = Guid.NewGuid();
-
-            try
-            {
-                workItem.MimeStream.Position = 0;
-
-                var message = await MimeMessage.LoadAsync(workItem.MimeStream, stoppingToken);
-                switch (workItem)
-                {
-                    case CampaignCaptureJob:
-                    {
-                        var campaignValue = message.Headers["x-spamma-camp"] ?? string.Empty;
-                        var result = await commander.Send(
-                            new RecordCampaignCaptureCommand(
-                                workItem.DomainId,
-                                workItem.SubdomainId,
-                                messageId,
-                                campaignValue,
-                                message.Date), stoppingToken);
-
-                        if (result is { Status: CommandResultStatus.Succeeded, Data.IsFirstEmail: true })
-                        {
-                            await ExtractEmailAddressesAndSendCommand(messageId, message, commander,
-                                messageStoreProvider, workItem, result.Data.CampaignId,
-                                cancellationToken: stoppingToken);
-                        }
-
-                        break;
-                    }
-
-                    case ChaosEmailCaptureJob captureJob:
-                        await commander.Send(
-                            new RecordChaosAddressReceivedCommand(captureJob.ChaosAddressId, message.Date),
-                            stoppingToken);
-                        break;
-                    case CatchAllEmailCaptureJob catchAllJob:
-                        await ExtractEmailAddressesAndSendCommand(catchAllJob.MessageId, message, commander,
-                            messageStoreProvider, workItem, isCatchAll: true,
-                            catchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId,
-                            cancellationToken: stoppingToken);
-                        break;
-                    case StandardEmailCaptureJob standardJob:
-                        await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
-                            messageStoreProvider, workItem, cancellationToken: stoppingToken);
-                        break;
-                }
-            }
-            catch (Exception)
-            {
-                // Log the exception if necessary
-            }
-            finally
-            {
-                await workItem.MimeStream.DisposeAsync();
-            }
+            await ProcessWorkItemAsync(workItem, commander, messageStoreProvider, stoppingToken, pushNotificationManager);
         }
     }
 
-    private static async Task ExtractEmailAddressesAndSendCommand(
+    private static async Task<bool> ExtractEmailAddressesAndSendCommand(
         Guid messageId, MimeMessage message, ICommandRunner commander,
         IMessageStoreProvider messageStoreProvider,
         IBaseEmailCaptureJob workItem, Guid? campaignId = null, bool isCatchAll = false,
@@ -90,7 +158,7 @@ public class BackgroundTaskService(
         var storeResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
         if (!storeResult.IsSuccess)
         {
-            return;
+            return false;
         }
 
         var addresses = message.To.Mailboxes
@@ -128,12 +196,16 @@ public class BackgroundTaskService(
                     message.Subject ?? string.Empty,
                     message.Date,
                     campaignId.Value,
-                    addresses), cancellationToken);
+                    addresses,
+                    catchAllSenderAddressId), cancellationToken);
         }
 
         if (commandResult.Status != CommandResultStatus.Succeeded)
         {
             await messageStoreProvider.DeleteMessageContentAsync(messageId, cancellationToken);
+            return false;
         }
+
+        return true;
     }
 }

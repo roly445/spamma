@@ -20,10 +20,4 @@
     <ProjectReference Include="../../src/modules/Spamma.Modules.UserManagement/Spamma.Modules.UserManagement.csproj" />
   </ItemGroup>
 
-  <Target Name="SuppressSourceGenerators" BeforeTargets="CoreCompile">
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" Condition="'%(Filename)' == 'Mediator.SourceGenerator'" />
-    </ItemGroup>
-  </Target>
-
 </Project>

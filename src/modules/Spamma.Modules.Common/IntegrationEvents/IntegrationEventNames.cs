@@ -22,4 +22,5 @@ public static class IntegrationEventNames
     public const string ApiKeyAuthenticationAttempted = "user-management.api-key.api-key-authentication-attempted";
     public const string ApiKeyExpired = "user-management.api-key.api-key-expired";
     public const string ApiKeyRenewed = "user-management.api-key.api-key-renewed";
+    public const string SystemSettingsUpdated = "system.settings.updated";
 }

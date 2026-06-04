@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.App.Infrastructure.Hubs;
+using Spamma.Modules.Common.Client.Application.Queries;
 
 namespace Spamma.App.Infrastructure.Services;
 
@@ -21,6 +22,20 @@ public class ClientNotifierService(IHubContext<NotifierHub> hubContext, ILogger<
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send new email notification to subdomain {SubdomainId}", subdomainId);
+        }
+    }
+
+    public async Task NotifyNewCatchAllEmail()
+    {
+        try
+        {
+            await hubContext.Clients.All.SendAsync("CatchAllEmailReceived");
+
+            logger.LogDebug("Sent catch-all email notification");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send catch-all email notification");
         }
     }
 
@@ -67,6 +82,19 @@ public class ClientNotifierService(IHubContext<NotifierHub> hubContext, ILogger<
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send user updated notification to subdomain {UserId}", userId);
+        }
+    }
+
+    public async Task NotifySystemSettingsUpdated(GetSystemSettingsQueryResult settings)
+    {
+        try
+        {
+            await hubContext.Clients.All.SendAsync("SystemSettingsUpdated", settings);
+            logger.LogDebug("Sent system settings updated notification");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send system settings updated notification");
         }
     }
 }

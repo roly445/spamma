@@ -75,7 +75,7 @@ public partial class VerifyLogin(
             await this.SignInUser(httpContext!, tokenResult.Value.UserId);
 
             // Successful authentication - redirect to int.ended destination
-            navigation.NavigateTo("/inbox", forceLoad: true);
+            navigation.NavigateTo("/m/inbox", forceLoad: true);
         }
         else
         {

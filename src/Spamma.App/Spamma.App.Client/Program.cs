@@ -45,9 +45,8 @@ builder.Services.AddHttpClient(
     client => { client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); });
 builder.Services.AddTransient<CommandResultConverter>();
 
-builder.Services.AddMediator(options => { options.GenerateTypesAsInternal = true; });
-
-builder.Services.AddUserManagement()
+builder.Services.AddCommon()
+    .AddUserManagement()
     .AddDomainManagement()
     .AddEmailInbox();
 builder.Services.AddAuthorizationCore(options =>
@@ -85,9 +84,11 @@ builder.Services.AddSingleton<IErrorMessageMapperService, ErrorMessageMapperServ
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 builder.Services.AddScoped<ISignalRService, SignalRService>();
+builder.Services.AddScoped<ISystemSettingsCache, SystemSettingsCache>();
 
 var host = builder.Build();
 
+await host.Services.GetRequiredService<ISystemSettingsCache>().InitializeAsync();
 await host.RunAsync();
 return;
 

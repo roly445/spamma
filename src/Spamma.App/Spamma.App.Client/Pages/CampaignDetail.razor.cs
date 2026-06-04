@@ -19,6 +19,9 @@ public partial class CampaignDetail(IQueryRunner querier, NavigationManager navi
     [Parameter]
     public Guid CampaignId { get; set; }
 
+    [SupplyParameterFromQuery]
+    public Guid SubdomainId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (this.CampaignId == Guid.Empty)
@@ -35,9 +38,7 @@ public partial class CampaignDetail(IQueryRunner querier, NavigationManager navi
         this._isLoading = true;
         try
         {
-            // We don't know the SubdomainId yet, so we'll use Guid.Empty for now
-            // The query processor should handle this by looking up the campaign first
-            var query = new GetCampaignDetailQuery(Guid.Empty, this.CampaignId);
+            var query = new GetCampaignDetailQuery(this.CampaignId);
             var result = await querier.Send(query, CancellationToken.None);
 
             if (result.Status == QueryResultStatus.Succeeded)

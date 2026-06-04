@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 
@@ -30,7 +31,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         this.Session.Store(campaign);
         await this.Session.SaveChangesAsync();
 
-        var query = new GetCampaignDetailQuery(subdomainId, campaignId);
+        var query = new GetCampaignDetailQuery(campaignId);
 
         // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
@@ -52,7 +53,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
     {
         // Arrange
         var nonExistentCampaignId = Guid.NewGuid();
-        var query = new GetCampaignDetailQuery(Guid.NewGuid(), nonExistentCampaignId);
+        var query = new GetCampaignDetailQuery(nonExistentCampaignId);
 
         // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
@@ -64,11 +65,10 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
     }
 
     [Fact]
-    public async Task Handle_WithMismatchedSubdomain_ReturnsFailed()
+    public async Task Handle_WithCampaignInDifferentSubdomain_ReturnsCampaignDetail()
     {
         // Arrange
-        var correctSubdomainId = Guid.NewGuid();
-        var incorrectSubdomainId = Guid.NewGuid();
+        var subdomainId = Guid.NewGuid();
         var domainId = Guid.NewGuid();
         var campaignId = Guid.NewGuid();
 
@@ -76,7 +76,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         {
             CampaignId = campaignId,
             DomainId = domainId,
-            SubdomainId = correctSubdomainId,
+            SubdomainId = subdomainId,
             CampaignValue = "test-campaign",
             FirstReceivedAt = DateTime.UtcNow,
             LastReceivedAt = DateTime.UtcNow,
@@ -86,16 +86,14 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         this.Session.Store(campaign);
         await this.Session.SaveChangesAsync();
 
-        // Query with incorrect subdomain ID
-        var query = new GetCampaignDetailQuery(incorrectSubdomainId, campaignId);
+        var query = new GetCampaignDetailQuery(campaignId);
 
         // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
 
-        // Assert - QueryResult<T>.Data throws InvalidOperationException when Status is not Succeeded
         result.Should().NotBeNull();
-        var act = () => result.Data;
-        act.Should().Throw<InvalidOperationException>();
+        result.Data.Should().NotBeNull();
+        result.Data!.CampaignId.Should().Be(campaignId);
     }
 
     [Fact]
@@ -143,7 +141,7 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         this.Session.Store(campaign);
         await this.Session.SaveChangesAsync();
 
-        var query = new GetCampaignDetailQuery(subdomainId, campaignId);
+        var query = new GetCampaignDetailQuery(campaignId);
 
         // Act
         var result = await this.Sender.Send(query, CancellationToken.None);
@@ -160,5 +158,62 @@ public class GetCampaignDetailQueryProcessorTests : QueryProcessorIntegrationTes
         result.Data.Sample.To.Should().Be("recipient@example.com");
         result.Data.Sample.ReceivedAt.Should().Be(new DateTimeOffset(2025, 1, 5, 12, 0, 0, TimeSpan.Zero));
         result.Data.Sample.ContentPreview.Should().Be("Sample Email Subject");
+    }
+
+    [Fact]
+    public async Task Handle_WithCatchAllSampleMessage_IncludesSampleInResult()
+    {
+        // Arrange
+        var campaignId = Guid.NewGuid();
+        var sampleEmailId = Guid.NewGuid();
+        var senderAddressId = Guid.NewGuid();
+
+        var email = new EmailLookup
+        {
+            Id = sampleEmailId,
+            DomainId = CatchAllConstants.DomainId,
+            SubdomainId = CatchAllConstants.SubdomainId,
+            Subject = "Catch-All Campaign Sample",
+            SentAt = new DateTimeOffset(2025, 1, 5, 12, 0, 0, TimeSpan.Zero),
+            CatchAllSenderAddressId = senderAddressId,
+            EmailAddresses =
+            [
+                new("sender@example.com", "Sender Name", EmailAddressType.From),
+                new("recipient@unknown.com", "Recipient Name", EmailAddressType.To),
+            ],
+        };
+
+        this.Session.Store(email);
+        this.PersistEmailAddresses(email);
+
+        var campaign = new CampaignSummary
+        {
+            CampaignId = campaignId,
+            DomainId = CatchAllConstants.DomainId,
+            SubdomainId = CatchAllConstants.SubdomainId,
+            CampaignValue = "catch-all-campaign",
+            FirstReceivedAt = new DateTimeOffset(2025, 1, 1, 10, 0, 0, TimeSpan.Zero),
+            LastReceivedAt = new DateTimeOffset(2025, 1, 10, 15, 30, 0, TimeSpan.Zero),
+            TotalCaptured = 5,
+            SampleMessageId = sampleEmailId,
+        };
+
+        this.Session.Store(campaign);
+        await this.Session.SaveChangesAsync();
+
+        var query = new GetCampaignDetailQuery(campaignId);
+
+        // Act
+        var result = await this.Sender.Send(query, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCaptured.Should().Be(5);
+        result.Data.Sample.Should().NotBeNull();
+        result.Data.Sample!.MessageId.Should().Be(sampleEmailId);
+        result.Data.Sample.Subject.Should().Be("Catch-All Campaign Sample");
+        result.Data.Sample.From.Should().Be("sender@example.com");
+        result.Data.Sample.To.Should().Be("recipient@unknown.com");
     }
 }

@@ -57,6 +57,9 @@ public partial class EmailViewer(
     [Parameter]
     public bool HideCampaignInfo { get; set; }
 
+    [Parameter]
+    public bool HideMessageActions { get; set; }
+
     protected override async Task OnParametersSetAsync()
     {
         if (this.Email != null)

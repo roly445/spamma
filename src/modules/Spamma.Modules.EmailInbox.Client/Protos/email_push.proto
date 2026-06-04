@@ -45,4 +45,12 @@ message EmailNotification {
   string subject = 4;
   // When the email was received
   google.protobuf.Timestamp received_at = 5;
+  // Subdomain identifier associated with the email. Catch-all emails use the catch-all sentinel subdomain ID.
+  string subdomain_id = 6;
+  // True when the email was accepted via catch-all capture.
+  bool is_catch_all = 7;
+  // Campaign identifier when this notification is part of a campaign.
+  string campaign_id = 8;
+  // Campaign value/header when this notification is part of a campaign.
+  string campaign_value = 9;
 }

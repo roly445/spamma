@@ -19,11 +19,6 @@ internal class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQuer
             return QueryResult<GetCampaignDetailQueryResult>.Failed();
         }
 
-        if (request.SubdomainId != Guid.Empty && campaign.SubdomainId != request.SubdomainId)
-        {
-            return QueryResult<GetCampaignDetailQueryResult>.Failed();
-        }
-
         var sampleMessageId = campaign.SampleMessageId;
 
         GetCampaignDetailQueryResult.SampleMessage? sampleData = null;

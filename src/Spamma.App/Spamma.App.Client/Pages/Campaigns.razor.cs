@@ -16,6 +16,8 @@ namespace Spamma.App.Client.Pages;
 public partial class Campaigns(
     IQueryRunner querier, ICommandRunner commander, INotificationService notificationService)
 {
+    private static readonly Guid CatchAllSubdomainId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
     private GetCampaignsQueryResult? _campaigns;
     private List<SubdomainSummary>? _subdomains;
     private string _selectedSubdomainId = string.Empty;
@@ -42,13 +44,20 @@ public partial class Campaigns(
 
             if (result.Status == QueryResultStatus.Succeeded)
             {
-                this._subdomains = result.Data.Items
+                this._subdomains =
+                [
+                    new SubdomainSummary
+                    {
+                        Id = CatchAllSubdomainId,
+                        SubdomainName = "Catch-All",
+                    },
+                    .. result.Data.Items
                     .Select(s => new SubdomainSummary
                     {
                         Id = s.SubdomainId,
                         SubdomainName = s.SubdomainName,
-                    })
-                    .ToList();
+                    }),
+                ];
 
                 if (this._subdomains.Any())
                 {

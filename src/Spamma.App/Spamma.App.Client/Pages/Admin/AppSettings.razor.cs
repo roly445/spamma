@@ -1,35 +1,50 @@
 ﻿using BluQube.Commands;
-using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Extensions;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
-using Spamma.Modules.EmailInbox.Client.Application.Queries;
 
 namespace Spamma.App.Client.Pages.Admin;
 
 public partial class AppSettings(
     ICommandRunner commander,
-    IQueryRunner querier,
     INotificationService notificationService,
+    ISystemSettingsCache systemSettingsCache,
     HttpClient httpClient,
-    NavigationManager navigationManager) : ComponentBase
+    NavigationManager navigationManager) : ComponentBase, IDisposable
 {
     private bool _catchAllEnabled;
     private bool _isSaving;
     private bool _showMaintenanceConfirm;
     private bool _isEnteringMaintenance;
+    private bool _disposed;
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (this._disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            systemSettingsCache.SettingsChanged -= this.OnSystemSettingsChanged;
+        }
+
+        this._disposed = true;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await querier.ExecuteAsync(
-            new GetEmailInboxSettingsQuery(),
-            onSuccess: result =>
-            {
-                this._catchAllEnabled = result.CatchAllModeEnabled;
-                return Task.CompletedTask;
-            },
-            onError: _ => Task.CompletedTask);
+        await systemSettingsCache.InitializeAsync();
+        this._catchAllEnabled = systemSettingsCache.Current.CatchAllModeEnabled;
+        systemSettingsCache.SettingsChanged += this.OnSystemSettingsChanged;
     }
 
     private async Task ToggleCatchAll()
@@ -42,9 +57,10 @@ public partial class AppSettings(
             var newValue = !this._catchAllEnabled;
             await commander.ExecuteAsync(
                 new UpdateCatchAllModeCommand(newValue),
-                onSuccess: () =>
+                onSuccess: async () =>
                 {
                     this._catchAllEnabled = newValue;
+                    await systemSettingsCache.ApplyAsync(systemSettingsCache.Current with { CatchAllModeEnabled = newValue });
                     if (newValue)
                     {
                         notificationService.ShowSuccess("Catch-All Mode enabled");
@@ -53,8 +69,6 @@ public partial class AppSettings(
                     {
                         notificationService.ShowInfo("Catch-All Mode disabled");
                     }
-
-                    return Task.CompletedTask;
                 },
                 onValidationErrors: _ => Task.CompletedTask,
                 onError: _ =>
@@ -105,4 +119,13 @@ public partial class AppSettings(
 
     private string GetToggleKnobClasses() =>
         this._catchAllEnabled ? "translate-x-5" : "translate-x-0";
+
+    private async Task OnSystemSettingsChanged(Spamma.Modules.Common.Client.Application.Queries.GetSystemSettingsQueryResult settings)
+    {
+        await this.InvokeAsync(() =>
+        {
+            this._catchAllEnabled = settings.CatchAllModeEnabled;
+            this.StateHasChanged();
+        });
+    }
 }

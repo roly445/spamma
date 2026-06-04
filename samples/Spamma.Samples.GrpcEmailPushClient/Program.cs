@@ -212,12 +212,21 @@ public static class Program
                         From = notif.From,
                         Subject = notif.Subject,
                         ReceivedAt = receivedAt,
+                        SubdomainId = notif.SubdomainId,
+                        IsCatchAll = notif.IsCatchAll,
+                        CampaignId = string.IsNullOrWhiteSpace(notif.CampaignId) ? null : notif.CampaignId,
+                        CampaignValue = string.IsNullOrWhiteSpace(notif.CampaignValue) ? null : notif.CampaignValue,
                     };
                     Console.WriteLine(JsonSerializer.Serialize(jsonObj));
                 }
                 else
                 {
-                    Console.WriteLine($"[Email] Id={notif.Id}, To={notif.To}, From={notif.From}, Subject=\"{notif.Subject}\", ReceivedAt={receivedAt}");
+                    var messageType = notif.IsCatchAll ? "Catch-All Email" : "Email";
+                    var campaignText = string.IsNullOrWhiteSpace(notif.CampaignId)
+                        ? string.Empty
+                        : $", CampaignId={notif.CampaignId}, CampaignValue=\"{notif.CampaignValue}\"";
+
+                    Console.WriteLine($"[{messageType}] Id={notif.Id}, To={notif.To}, From={notif.From}, Subject=\"{notif.Subject}\", ReceivedAt={receivedAt}, SubdomainId={notif.SubdomainId}{campaignText}");
                 }
 
                 // Fetch full email content using GetEmailContent
@@ -253,6 +262,10 @@ public static class Program
                             From = notif.From,
                             Subject = notif.Subject,
                             ReceivedAt = receivedAt,
+                            SubdomainId = notif.SubdomainId,
+                            IsCatchAll = notif.IsCatchAll,
+                            CampaignId = string.IsNullOrWhiteSpace(notif.CampaignId) ? null : notif.CampaignId,
+                            CampaignValue = string.IsNullOrWhiteSpace(notif.CampaignValue) ? null : notif.CampaignValue,
                             HtmlBody = mimeMessage.HtmlBody,
                             TextBody = mimeMessage.TextBody,
                         };

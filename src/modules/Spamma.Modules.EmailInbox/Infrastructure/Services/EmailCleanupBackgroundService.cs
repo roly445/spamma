@@ -1,9 +1,10 @@
-﻿using BluQube.Commands;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
+using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.Common.IntegrationEvents.EmailInbox;
+using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
@@ -41,17 +42,18 @@ public class EmailCleanupBackgroundService(
     {
         using var scope = serviceProvider.CreateScope();
         var documentSession = scope.ServiceProvider.GetRequiredService<IDocumentSession>();
-        var commander = scope.ServiceProvider.GetRequiredService<ICommandRunner>();
+        var emailRepository = scope.ServiceProvider.GetRequiredService<IEmailRepository>();
+        var eventPublisher = scope.ServiceProvider.GetRequiredService<IIntegrationEventPublisher>();
 
-        var cutoffDate = timeProvider.GetUtcNow().DateTime.Subtract(EmailRetentionPeriod);
+        var cutoffDate = timeProvider.GetUtcNow().Subtract(EmailRetentionPeriod);
 
         logger.LogDebug("Starting email cleanup for emails older than {CutoffDate}", cutoffDate);
 
-        // Find emails that are older than 24 hours, not already deleted, and not marked as favorite
+        // Campaign emails have their own lifecycle and are intentionally skipped here.
         var oldEmails = await documentSession
             .Query<EmailLookup>()
-            .Where(e => e.SentAt < cutoffDate && e.DeletedAt == null && !e.IsFavorite)
-            .Take(100) // Process in batches to avoid overwhelming the system
+            .Where(e => e.SentAt < cutoffDate && e.DeletedAt == null && !e.IsFavorite && e.CampaignId == null)
+            .Take(100)
             .ToListAsync(cancellationToken);
 
         if (oldEmails.Count == 0)
@@ -71,24 +73,50 @@ public class EmailCleanupBackgroundService(
         {
             try
             {
-                var deleteCommand = new DeleteEmailCommand(email.Id);
-                var result = await commander.Send(deleteCommand, cancellationToken);
-
-                // Check if the command succeeded (pattern from other handlers)
-                if (result != null)
+                var emailMaybe = await emailRepository.GetByIdAsync(email.Id, cancellationToken);
+                if (emailMaybe.HasNoValue)
                 {
-                    deletedCount++;
-                    logger.LogDebug(
-                        "Successfully deleted email {EmailId} from {WhenSent}",
-                        email.Id, email.SentAt);
+                    failedCount++;
+                    logger.LogWarning("Failed to delete email {EmailId}: aggregate was not found", email.Id);
+                    continue;
                 }
-                else
+
+                var emailAggregate = emailMaybe.Value;
+                if (emailAggregate.IsFavorite || emailAggregate.IsPartOfCampaign)
                 {
                     failedCount++;
                     logger.LogWarning(
-                        "Failed to delete email {EmailId}: Command returned null result",
+                        "Skipping email {EmailId} during cleanup because it is favorite or part of a campaign",
                         email.Id);
+                    continue;
                 }
+
+                var result = emailAggregate.Delete(timeProvider.GetUtcNow().DateTime);
+                if (!result.IsSuccess)
+                {
+                    failedCount++;
+                    logger.LogWarning(
+                        "Failed to delete email {EmailId}: {ErrorCode} {ErrorMessage}",
+                        email.Id,
+                        result.Error?.Code,
+                        result.Error?.Message);
+                    continue;
+                }
+
+                var saveResult = await emailRepository.SaveAsync(emailAggregate, cancellationToken);
+                if (!saveResult.IsSuccess)
+                {
+                    failedCount++;
+                    logger.LogWarning("Failed to delete email {EmailId}: unable to save aggregate changes", email.Id);
+                    continue;
+                }
+
+                await eventPublisher.PublishAsync(new EmailDeletedIntegrationEvent(email.Id), cancellationToken);
+
+                deletedCount++;
+                logger.LogDebug(
+                    "Successfully deleted email {EmailId} from {WhenSent}",
+                    email.Id, email.SentAt);
             }
             catch (Exception ex)
             {

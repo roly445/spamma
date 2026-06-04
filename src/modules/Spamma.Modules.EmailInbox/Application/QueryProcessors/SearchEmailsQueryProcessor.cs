@@ -14,12 +14,11 @@ internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHtt
     public async ValueTask<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
         var user = accessor.HttpContext.ToUserAuthInfo();
-        var isDomainAdmin = (user.SystemRole & SystemRole.DomainManagement) == SystemRole.DomainManagement;
         var catchAllSubdomainId = EmailInboxSettingsDocument.CatchAllSubdomainId;
 
         var query = documentSession.Query<EmailLookup>()
-            .Where(x => (user.ViewableSubdomains.Contains(x.SubdomainId) ||
-                         (isDomainAdmin && x.SubdomainId == catchAllSubdomainId))
+            .Where(x => user.ViewableSubdomains.Contains(x.SubdomainId)
+                        && x.SubdomainId != catchAllSubdomainId
                         && x.DeletedAt == null);
 
         // Apply campaign email filter - hide campaign emails by default unless user wants to see them

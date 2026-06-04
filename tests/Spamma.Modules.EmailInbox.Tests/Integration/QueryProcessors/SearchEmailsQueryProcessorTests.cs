@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Tests.Builders;
 
@@ -328,6 +329,60 @@ public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
         result.Data.Should().NotBeNull();
         result.Data!.Items.Should().HaveCount(1);
         result.Data.Items[0].Subject.Should().Be("Active Email");
+    }
+
+    [Fact]
+    public async Task Handle_ExcludesCatchAllEmails()
+    {
+        // Arrange
+        var regularSubdomainId = Guid.NewGuid();
+        var regularDomainId = Guid.NewGuid();
+
+        this.HttpContextAccessor.AddSubdomainClaim(regularSubdomainId);
+        this.HttpContextAccessor.AddSubdomainClaim(CatchAllConstants.SubdomainId);
+
+        var regularEmail = EmailLookupTestFactory.Create(
+            id: Guid.NewGuid(),
+            subdomainId: regularSubdomainId,
+            domainId: regularDomainId,
+            subject: "Regular Inbox Email",
+            sentAt: DateTime.UtcNow,
+            isFavorite: false,
+            emailAddresses: new List<EmailAddress>
+            {
+                new("sender@example.com", "Sender", EmailAddressType.From),
+                new("recipient@example.com", "Recipient", EmailAddressType.To),
+            });
+
+        var catchAllEmail = new EmailLookup
+        {
+            Id = Guid.NewGuid(),
+            DomainId = CatchAllConstants.DomainId,
+            SubdomainId = CatchAllConstants.SubdomainId,
+            Subject = "Catch-All Inbox Email",
+            SentAt = DateTimeOffset.UtcNow.AddMinutes(-1),
+            CatchAllSenderAddressId = Guid.NewGuid(),
+            EmailAddresses =
+            [
+                new("sender@example.com", "Sender", EmailAddressType.From),
+                new("anything@unknown.example", "Recipient", EmailAddressType.To),
+            ],
+        };
+
+        this.Session.Store(regularEmail);
+        this.PersistEmailAddresses(regularEmail);
+        this.Session.Store(catchAllEmail);
+        this.PersistEmailAddresses(catchAllEmail);
+        await this.Session.SaveChangesAsync();
+
+        var query = new SearchEmailsQuery();
+
+        // Act
+        var result = await this.Sender.Send(query, CancellationToken.None);
+
+        // Assert
+        result.Data.Items.Should().ContainSingle();
+        result.Data.Items[0].Subject.Should().Be("Regular Inbox Email");
     }
 
     [Fact]

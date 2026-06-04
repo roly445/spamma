@@ -23,7 +23,7 @@
                                     <span>Campaign Email</span>
                                 }
                             </span>
-                            <a href="/campaigns/@Email!.CampaignId"
+                            <a href="/m/campaigns/@Email!.CampaignId"
                                class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
                                title="View campaign details">
                                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@
                             <span class="text-xs text-gray-500">(Read-only)</span>
                         </div>
                     }
-                    else if (Email?.CampaignId == null)
+                    else if (Email?.CampaignId == null && !HideMessageActions)
                     {
                         <!-- Favorite button - only visible for non-campaign emails -->
                         <button class="@GetFavoriteButtonClasses()"

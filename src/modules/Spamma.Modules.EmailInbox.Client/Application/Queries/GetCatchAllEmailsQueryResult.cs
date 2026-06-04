@@ -15,5 +15,7 @@ public record GetCatchAllEmailsQueryResult(
         string Subject,
         string PrimaryToAddress,
         DateTimeOffset ReceivedAt,
-        bool IsFavorite);
+        bool IsFavorite,
+        Guid? CampaignId = null,
+        string? CampaignValue = null);
 }
