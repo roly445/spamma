@@ -135,15 +135,8 @@ jobs:
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile
-          target: publish
-          load: true
-          tags: spamma:publish-${{ matrix.arch }}
-
-      - name: Extract publish artifacts from Docker
-        run: |
-          docker create --name temp-container spamma:publish-${{ matrix.arch }}
-          docker cp temp-container:/app/publish ./publish
-          docker rm temp-container
+          target: export
+          outputs: type=local,dest=publish
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4

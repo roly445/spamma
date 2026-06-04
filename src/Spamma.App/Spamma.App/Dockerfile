@@ -35,6 +35,9 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./Spamma.App.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+FROM scratch AS export
+COPY --from=publish /app/publish /
+
 FROM base AS final
 ARG BUILD_VERSION=0.1.0
 ARG BUILD_DATE=unknown
