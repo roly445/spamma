@@ -33,7 +33,7 @@ public partial class VerifyLogin(
 
     protected override void OnInitialized()
     {
-        if (string.IsNullOrEmpty(this.Token))
+        if (string.IsNullOrEmpty(this.Token) && string.IsNullOrEmpty(this.Model?.Token))
         {
             logger.LogWarning("Magic link verification attempted without token");
             this.errorMessage = "The authentication link is invalid or has expired.";
@@ -41,23 +41,25 @@ public partial class VerifyLogin(
         else
         {
             this.Model ??= new();
-            this.Model.Token = this.Token;
+            this.Model.Token = string.IsNullOrEmpty(this.Model.Token) ? this.Token! : this.Model.Token;
         }
     }
 
     private async Task HandleVerification()
     {
+        var submittedToken = this.Model?.Token;
+
         // Validate required parameters
-        if (string.IsNullOrEmpty(this.Token))
+        if (string.IsNullOrEmpty(submittedToken))
         {
             logger.LogWarning("Magic link verification attempted without token");
             this.errorMessage = "The authentication link is invalid or has expired.";
             return;
         }
 
-        logger.LogInformation("Processing magic link verification for token: {TokenPrefix}...", this.Token[..Math.Min(8, this.Token.Length)]);
+        logger.LogInformation("Processing magic link verification for token: {TokenPrefix}...", submittedToken[..Math.Min(8, submittedToken.Length)]);
 
-        var tokenResult = authTokenProvider.ProcessAuthenticationToken(this.Token);
+        var tokenResult = authTokenProvider.ProcessAuthenticationToken(submittedToken);
         if (tokenResult.IsFailure)
         {
             logger.LogWarning("Magic link token processing failed");
