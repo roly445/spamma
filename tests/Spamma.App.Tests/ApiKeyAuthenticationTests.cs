@@ -89,6 +89,35 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetEmailMimeContent_WithoutApiKey_ReturnsUnauthorized()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var emailId = Guid.NewGuid();
+
+        // Act
+        var response = await client.GetAsync($"api/email-inbox/emails/{emailId}/mime-content");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetEmailMimeContent_WithInvalidApiKey_ReturnsUnauthorized()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var emailId = Guid.NewGuid();
+
+        // Act
+        client.DefaultRequestHeaders.Add("X-API-Key", "invalid-api-key");
+        var response = await client.GetAsync($"api/email-inbox/emails/{emailId}/mime-content");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }
 
 public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>

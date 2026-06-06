@@ -109,14 +109,12 @@ public class CatchAllInboxTests : BunitContext
             .Setup(x => x.Send(It.IsAny<GetCatchAllEmailsQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(QueryResult<GetCatchAllEmailsQueryResult>.Succeeded(
                 new GetCatchAllEmailsQueryResult([new("sender@example.com", emails)], 1)));
-        querierMock
-            .Setup(x => x.Send(
-                It.Is<GetEmailMimeMessageByIdQuery>(query => query.EmailId == emailId),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(QueryResult<GetEmailMimeMessageByIdQueryResult>.Succeeded(
-                new GetEmailMimeMessageByIdQueryResult(CreateCompressedMimeMessage("Campaign Subject"))));
 
         Services.AddSingleton(querierMock.Object);
+        Services.AddSingleton(new HttpClient(new TestMimeContentHandler(emailId, CreateCompressedMimeMessage("Campaign Subject")))
+        {
+            BaseAddress = new Uri("http://localhost/"),
+        });
         Services.AddSingleton(new Mock<ICommandRunner>().Object);
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(true));
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
@@ -319,7 +317,7 @@ public class CatchAllInboxTests : BunitContext
             => this.OnCatchAllEmailReceived?.Invoke() ?? Task.CompletedTask;
     }
 
-    private static string CreateCompressedMimeMessage(string subject)
+    private static byte[] CreateCompressedMimeMessage(string subject)
     {
         var rawMessage = $"""
                          From: Sender <sender@example.com>
@@ -338,7 +336,20 @@ public class CatchAllInboxTests : BunitContext
             gzipStream.Write(Encoding.UTF8.GetBytes(rawMessage));
         }
 
-        return Convert.ToBase64String(compressedStream.ToArray());
+        return compressedStream.ToArray();
+    }
+
+    private sealed class TestMimeContentHandler(Guid emailId, byte[] content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.RequestUri!.ToString().Should().Be($"http://localhost/api/email-inbox/emails/{emailId}/mime-content");
+
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(content),
+            });
+        }
     }
 
     private sealed class TestNotificationService : INotificationService

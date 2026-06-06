@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using BluQube.Attributes;
 using BluQube.Authorization;
 using BluQube.Constants;
@@ -13,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SmtpServer;
 using SmtpServer.Storage;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.Projections;
@@ -120,6 +123,32 @@ public static class Module
                     : Results.Json(result);
             });
 
+        endpointRouteBuilder.MapGet(
+            "api/email-inbox/emails/{emailId:guid}/mime-content",
+            async (IDocumentSession documentSession, IMessageStoreProvider messageStoreProvider, HttpContext httpContext, Guid emailId, CancellationToken cancellationToken) =>
+            {
+                var user = httpContext.ToUserAuthInfo();
+                if (!user.IsAuthenticated)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var email = await documentSession.LoadAsync<EmailLookup>(emailId, cancellationToken);
+                if (email is null || !CanAccessEmail(user, email))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var message = await messageStoreProvider.LoadMessageContentAsync(emailId, cancellationToken);
+                if (message.HasNoValue)
+                {
+                    return Results.NotFound();
+                }
+
+                var content = await CompressMimeMessage(message.Value, cancellationToken);
+                return Results.File(content, "application/gzip");
+            });
+
         return endpointRouteBuilder;
     }
 
@@ -135,5 +164,28 @@ public static class Module
         options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
 
         return options;
+    }
+
+    private static bool CanAccessEmail(UserAuthInfo user, EmailLookup email)
+    {
+        return user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
+               user.ModeratedDomains.Contains(email.DomainId) ||
+               user.ModeratedSubdomains.Contains(email.SubdomainId) ||
+               user.ViewableSubdomains.Contains(email.SubdomainId);
+    }
+
+    private static async Task<byte[]> CompressMimeMessage(MimeKit.MimeMessage message, CancellationToken cancellationToken)
+    {
+        await using var messageStream = new MemoryStream();
+        await message.WriteToAsync(messageStream, cancellationToken);
+        messageStream.Seek(0, SeekOrigin.Begin);
+
+        await using var outputStream = new MemoryStream();
+        await using (var gzip = new GZipStream(outputStream, CompressionLevel.Optimal, leaveOpen: true))
+        {
+            await messageStream.CopyToAsync(gzip, cancellationToken);
+        }
+
+        return outputStream.ToArray();
     }
 }

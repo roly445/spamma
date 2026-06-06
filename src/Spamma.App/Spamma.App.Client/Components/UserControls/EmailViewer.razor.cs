@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using BluQube.Commands;
 using BluQube.Constants;
-using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MimeKit;
@@ -15,7 +14,7 @@ namespace Spamma.App.Client.Components.UserControls;
 /// Code-behind for the EmailViewer component.
 /// </summary>
 public partial class EmailViewer(
-    IQueryRunner querier, ICommandRunner commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
+    HttpClient httpClient, ICommandRunner commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
 {
     private MimeMessage? _mimeMessage;
     private List<EmailTab> _tabs = new();
@@ -64,11 +63,10 @@ public partial class EmailViewer(
     {
         if (this.Email != null)
         {
-            var result = await querier.Send(new GetEmailMimeMessageByIdQuery(this.Email.EmailId));
-            if (result.Status == QueryResultStatus.Succeeded)
+            var response = await httpClient.GetAsync($"api/email-inbox/emails/{this.Email.EmailId}/mime-content");
+            if (response.IsSuccessStatusCode)
             {
-                var base64Content = result.Data.FileContent;
-                var bytes = Convert.FromBase64String(base64Content);
+                var bytes = await response.Content.ReadAsByteArrayAsync();
                 using var compressedStream = new MemoryStream(bytes);
                 await using var decompressedStream = new System.IO.Compression.GZipStream(compressedStream, System.IO.Compression.CompressionMode.Decompress);
                 using var resultStream = new MemoryStream();
