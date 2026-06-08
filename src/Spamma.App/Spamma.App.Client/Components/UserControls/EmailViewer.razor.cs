@@ -14,13 +14,15 @@ namespace Spamma.App.Client.Components.UserControls;
 /// Code-behind for the EmailViewer component.
 /// </summary>
 public partial class EmailViewer(
-    HttpClient httpClient, ICommandRunner commander, IJSRuntime jsRuntime, INotificationService notificationService) : ComponentBase
+    HttpClient httpClient, ICommandRunner commander, IJSRuntime jsRuntime, INotificationService notificationService, IClientSessionContext clientSessionContext) : ComponentBase
 {
     private MimeMessage? _mimeMessage;
     private List<EmailTab> _tabs = new();
     private EmailTab? _activeTab;
     private List<MimePart> _attachments = new();
     private string _rawSource = string.Empty;
+    private string? _loadErrorMessage;
+    private bool _isLoading;
     private bool _showSaveDropdown;
     private bool _isDeleting;
     private bool _isTogglingFavorite;
@@ -63,9 +65,33 @@ public partial class EmailViewer(
     {
         if (this.Email != null)
         {
-            var response = await httpClient.GetAsync($"api/email-inbox/emails/{this.Email.EmailId}/mime-content");
-            if (response.IsSuccessStatusCode)
+            this.ResetLoadedMessageState();
+            this._isLoading = true;
+
+            await clientSessionContext.TrackBreadcrumbAsync(
+                "email-viewer.load.started",
+                new Dictionary<string, string?>
+                {
+                    ["email_id"] = this.Email.EmailId.ToString(),
+                    ["campaign_email"] = this.Email.CampaignId.HasValue.ToString(),
+                });
+
+            try
             {
+                var response = await httpClient.GetAsync($"api/email-inbox/emails/{this.Email.EmailId}/mime-content");
+                if (!response.IsSuccessStatusCode)
+                {
+                    await clientSessionContext.TrackBreadcrumbAsync(
+                        "email-viewer.load.failed",
+                        new Dictionary<string, string?>
+                        {
+                            ["email_id"] = this.Email.EmailId.ToString(),
+                            ["status_code"] = ((int)response.StatusCode).ToString(),
+                        });
+                    this.SetLoadError(BuildLoadErrorMessage(response.StatusCode));
+                    return;
+                }
+
                 var bytes = await response.Content.ReadAsByteArrayAsync();
                 using var compressedStream = new MemoryStream(bytes);
                 await using var decompressedStream = new System.IO.Compression.GZipStream(compressedStream, System.IO.Compression.CompressionMode.Decompress);
@@ -82,18 +108,49 @@ public partial class EmailViewer(
                 this._mimeMessage = await parser.ParseMessageAsync();
 
                 this.ProcessMimeMessage();
+                await clientSessionContext.TrackBreadcrumbAsync(
+                    "email-viewer.load.succeeded",
+                    new Dictionary<string, string?>
+                    {
+                        ["email_id"] = this.Email.EmailId.ToString(),
+                        ["tab_count"] = this._tabs.Count.ToString(),
+                        ["attachment_count"] = this._attachments.Count.ToString(),
+                    });
+            }
+            catch
+            {
+                await clientSessionContext.TrackBreadcrumbAsync(
+                    "email-viewer.load.failed",
+                    new Dictionary<string, string?>
+                    {
+                        ["email_id"] = this.Email.EmailId.ToString(),
+                        ["failure_kind"] = "exception",
+                    });
+                this.SetLoadError("Failed to load this email. The message content may be missing or unreadable.");
+            }
+            finally
+            {
+                this._isLoading = false;
             }
         }
         else
         {
-            this._mimeMessage = null;
-            this._tabs.Clear();
-            this._activeTab = null;
-            this._attachments.Clear();
-            this._rawSource = string.Empty;
+            this.ResetLoadedMessageState();
+            this._isLoading = false;
         }
 
         await base.OnParametersSetAsync();
+    }
+
+    private static string BuildLoadErrorMessage(System.Net.HttpStatusCode statusCode)
+    {
+        return statusCode switch
+        {
+            System.Net.HttpStatusCode.NotFound => "Failed to load this email. The stored message content could not be found.",
+            System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden =>
+                "Failed to load this email. You may not have permission to view its contents.",
+            _ => $"Failed to load this email. Server returned {(int)statusCode} ({statusCode}).",
+        };
     }
 
     private static string GetInitials(InternetAddress address)
@@ -204,6 +261,23 @@ public partial class EmailViewer(
 
         // If no <html> or <head> tag, prepend it to the content
         return baseTag + htmlContent;
+    }
+
+    private void ResetLoadedMessageState()
+    {
+        this._mimeMessage = null;
+        this._tabs.Clear();
+        this._activeTab = null;
+        this._attachments.Clear();
+        this._rawSource = string.Empty;
+        this._loadErrorMessage = null;
+    }
+
+    private void SetLoadError(string message)
+    {
+        this.ResetLoadedMessageState();
+        this._loadErrorMessage = message;
+        notificationService.ShowError(message);
     }
 
     private void SetViewportSize(int? width, string name)

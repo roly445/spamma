@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.SignalR.Client;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
+using Spamma.App.Client.Infrastructure.Observability;
 using Spamma.Modules.Common.Client.Application.Queries;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 
@@ -11,6 +12,7 @@ namespace Spamma.App.Client.Infrastructure.Services;
 public sealed class SignalRService(
     NavigationManager navigationManager,
     AuthenticationStateProvider authStateProvider,
+    IClientSessionContext clientSessionContext,
     ILogger<SignalRService> logger)
     : ISignalRService, IAsyncDisposable
 {
@@ -38,8 +40,12 @@ public sealed class SignalRService(
             return;
         }
 
+        var sessionId = await clientSessionContext.GetSessionIdAsync();
+        var hubUri = navigationManager.ToAbsoluteUri(
+            $"/{Lookups.NotificationHubName}?{SpammaTelemetryContext.SignalRSessionQueryParameterName}={Uri.EscapeDataString(sessionId)}");
+
         this._hubConnection = new HubConnectionBuilder()
-            .WithUrl(navigationManager.ToAbsoluteUri($"/{Lookups.NotificationHubName}"))
+            .WithUrl(hubUri)
             .WithAutomaticReconnect(
             [TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)])
             .Build();

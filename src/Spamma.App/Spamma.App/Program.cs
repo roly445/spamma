@@ -383,6 +383,7 @@ using (var seedScope = app.Services.CreateScope())
 }
 
 app.UseForwardedHeaders();
+app.UseMiddleware<SessionContextEnrichmentMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -26,6 +26,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(false));
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
 
         // Act
         var cut = Render<CatchAllInbox>();
@@ -50,6 +51,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(true));
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
 
         // Act
         var cut = Render<CatchAllInbox>();
@@ -82,6 +84,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(true));
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
 
         // Act
         var cut = Render<CatchAllInbox>();
@@ -119,6 +122,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(true));
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
         Services.AddSingleton<INotificationService>(new TestNotificationService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
 
         // Act
         var cut = Render<CatchAllInbox>();
@@ -146,6 +150,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(settingsCache);
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
         var cut = Render<CatchAllInbox>();
 
         // Act
@@ -181,6 +186,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(settingsCache);
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
         var cut = Render<CatchAllInbox>();
         await cut.InvokeAsync(() => Task.CompletedTask);
 
@@ -210,6 +216,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(true));
         Services.AddSingleton<ISignalRService>(signalRService);
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
         var cut = Render<CatchAllInbox>();
         await cut.InvokeAsync(() => Task.CompletedTask);
 
@@ -238,6 +245,7 @@ public class CatchAllInboxTests : BunitContext
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton<ISystemSettingsCache>(new TestSystemSettingsCache(true));
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
+        Services.AddSingleton<IClientSessionContext>(new TestClientSessionContext());
         var cut = Render<CatchAllInbox>();
         await cut.InvokeAsync(() => Task.CompletedTask);
 
@@ -315,6 +323,18 @@ public class CatchAllInboxTests : BunitContext
 
         public Task RaiseCatchAllEmailReceivedAsync()
             => this.OnCatchAllEmailReceived?.Invoke() ?? Task.CompletedTask;
+    }
+
+    private sealed class TestClientSessionContext : IClientSessionContext
+    {
+        public string CurrentRoute => "/m/catch-all";
+
+        public Task InitializeAsync() => Task.CompletedTask;
+
+        public Task<string> GetSessionIdAsync() => Task.FromResult("test-session");
+
+        public Task TrackBreadcrumbAsync(string name, Dictionary<string, string?>? data = null)
+            => Task.CompletedTask;
     }
 
     private static byte[] CreateCompressedMimeMessage(string subject)

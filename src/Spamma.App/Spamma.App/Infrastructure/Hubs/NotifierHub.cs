@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Spamma.App.Client.Infrastructure.Observability;
 using Spamma.App.Infrastructure.Services;
 
 namespace Spamma.App.Infrastructure.Hubs;
@@ -11,9 +12,15 @@ public class NotifierHub(UserStatusCache userStatusCache, ILogger<NotifierHub> l
     public override async Task OnConnectedAsync()
     {
         var userId = this.GetCurrentUserId();
+        var sessionId = this.GetSessionId();
         if (userId.HasValue)
         {
             await this.JoinUserSubdomainGroups(userId.Value);
+            logger.LogInformation(
+                "SignalR connected for user {UserId} with session {SessionId} on connection {ConnectionId}",
+                userId.Value,
+                sessionId,
+                this.Context.ConnectionId);
         }
 
         await base.OnConnectedAsync();
@@ -31,6 +38,10 @@ public class NotifierHub(UserStatusCache userStatusCache, ILogger<NotifierHub> l
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
+        logger.LogInformation(
+            "SignalR disconnected for session {SessionId} on connection {ConnectionId}",
+            this.GetSessionId(),
+            this.Context.ConnectionId);
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -77,5 +88,10 @@ public class NotifierHub(UserStatusCache userStatusCache, ILogger<NotifierHub> l
         }
 
         return null;
+    }
+
+    private string? GetSessionId()
+    {
+        return this.Context.GetHttpContext()?.Request.Query[SpammaTelemetryContext.SignalRSessionQueryParameterName].ToString();
     }
 }

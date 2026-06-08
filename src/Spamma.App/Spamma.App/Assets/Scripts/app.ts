@@ -3,6 +3,9 @@ import {WebAuthnUtils} from './webauthn-utils';
 
 console.log('App TypeScript loaded');
 
+const spammaSessionStorageKey = 'spamma.session.id';
+const spammaBreadcrumbStorageKey = 'spamma.breadcrumbs';
+
 // Example function to export to global scope for Blazor interop
 function initializeApp(): void {
     document.querySelectorAll('form[data-disable-form]')
@@ -49,4 +52,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!handler) return;
     document.removeEventListener('click', handler, true);
     delete (window as any).__outsideClickHandlers[id];
+};
+
+(window as any).SpammaSession = {
+    getOrCreateSessionId(preferredSessionId?: string) {
+        const existingSessionId = window.sessionStorage.getItem(spammaSessionStorageKey);
+        if (existingSessionId) {
+            return existingSessionId;
+        }
+
+        const newSessionId = preferredSessionId
+            || (window.crypto && 'randomUUID' in window.crypto ? window.crypto.randomUUID() : Math.random().toString(36).slice(2));
+
+        window.sessionStorage.setItem(spammaSessionStorageKey, newSessionId);
+        return newSessionId;
+    },
+
+    appendBreadcrumb(entry: unknown, maxItems = 50) {
+        const existingEntries = window.sessionStorage.getItem(spammaBreadcrumbStorageKey);
+        const breadcrumbs = existingEntries ? JSON.parse(existingEntries) : [];
+        breadcrumbs.push(entry);
+
+        if (breadcrumbs.length > maxItems) {
+            breadcrumbs.splice(0, breadcrumbs.length - maxItems);
+        }
+
+        window.sessionStorage.setItem(spammaBreadcrumbStorageKey, JSON.stringify(breadcrumbs));
+    }
 };

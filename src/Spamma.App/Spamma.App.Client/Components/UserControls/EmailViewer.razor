@@ -391,8 +391,20 @@
             <div class="text-center">
                 @if (Email != null && _mimeMessage == null)
                 {
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">Loading email...</h3>
+                    @if (_isLoading)
+                    {
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">Loading email...</h3>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(_loadErrorMessage))
+                    {
+                        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"></path>
+                        </svg>
+                        <h3 class="mt-2 text-sm font-medium text-gray-900">Unable to load email</h3>
+                        <p class="mt-1 text-sm text-gray-500">@_loadErrorMessage</p>
+                    }
                 }
                 else
                 {

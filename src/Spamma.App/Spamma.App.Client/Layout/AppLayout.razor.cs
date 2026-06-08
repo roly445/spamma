@@ -11,6 +11,7 @@ namespace Spamma.App.Client.Layout;
 public partial class AppLayout(
     IJSRuntime jsRuntime,
     ISignalRService signalRService,
+    IClientSessionContext clientSessionContext,
     ISystemSettingsCache systemSettingsCache,
     AuthenticationStateProvider authenticationStateProvider) : IDisposable
 {
@@ -53,7 +54,6 @@ public partial class AppLayout(
     {
         signalRService.OnPermissionsUpdated += this.SignalRServiceOnOnPermissionsUpdated;
         signalRService.OnSystemSettingsUpdated += this.SignalRServiceOnSystemSettingsUpdated;
-        await signalRService.StartAsync();
         await base.OnInitializedAsync();
     }
 
@@ -61,6 +61,8 @@ public partial class AppLayout(
     {
         if (firstRender)
         {
+            await clientSessionContext.InitializeAsync();
+            await signalRService.StartAsync();
             await jsRuntime.InvokeVoidAsync("addClickOutsideListener", DotNetObjectReference.Create(this));
             await jsRuntime.InvokeVoidAsync("window.hideSplash");
         }

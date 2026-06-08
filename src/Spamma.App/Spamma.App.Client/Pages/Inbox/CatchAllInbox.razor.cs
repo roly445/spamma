@@ -11,6 +11,7 @@ namespace Spamma.App.Client.Pages.Inbox;
 public partial class CatchAllInbox(
     IQueryRunner querier,
     ISystemSettingsCache systemSettingsCache,
+    IClientSessionContext clientSessionContext,
     ISignalRService signalRService) : ComponentBase, IDisposable
 {
     private IReadOnlyList<GetCatchAllEmailsQueryResult.SenderGroup> _groups = [];
@@ -52,6 +53,13 @@ public partial class CatchAllInbox(
         systemSettingsCache.SettingsChanged += this.OnSystemSettingsChanged;
         signalRService.OnCatchAllEmailReceived += this.OnCatchAllEmailReceived;
 
+        await clientSessionContext.TrackBreadcrumbAsync(
+            "catch-all.inbox.opened",
+            new Dictionary<string, string?>
+            {
+                ["enabled"] = this._catchAllEnabled.ToString(),
+            });
+
         if (this._catchAllEnabled)
         {
             await this.LoadEmails();
@@ -82,11 +90,30 @@ public partial class CatchAllInbox(
                 this._groups = result.Data.Groups;
                 this._totalCount = result.Data.TotalCount;
 
+                await clientSessionContext.TrackBreadcrumbAsync(
+                    "catch-all.load.succeeded",
+                    new Dictionary<string, string?>
+                    {
+                        ["search_active"] = string.IsNullOrWhiteSpace(searchText) ? bool.FalseString : bool.TrueString,
+                        ["group_count"] = this._groups.Count.ToString(),
+                        ["total_count"] = this._totalCount.ToString(),
+                    });
+
                 if (this._selectedEmail != null &&
                     this._groups.SelectMany(group => group.Emails).All(email => email.EmailId != this._selectedEmail.EmailId))
                 {
                     this._selectedEmail = null;
                 }
+            }
+            else
+            {
+                await clientSessionContext.TrackBreadcrumbAsync(
+                    "catch-all.load.failed",
+                    new Dictionary<string, string?>
+                    {
+                        ["status"] = result.Status.ToString(),
+                        ["search_active"] = string.IsNullOrWhiteSpace(searchText) ? bool.FalseString : bool.TrueString,
+                    });
             }
         }
         finally
@@ -121,6 +148,14 @@ public partial class CatchAllInbox(
         this._isSearching = true;
         this.StateHasChanged();
 
+        await clientSessionContext.TrackBreadcrumbAsync(
+            "catch-all.search.performed",
+            new Dictionary<string, string?>
+            {
+                ["search_length"] = this._searchText.Length.ToString(),
+                ["is_empty"] = string.IsNullOrWhiteSpace(this._searchText).ToString(),
+            });
+
         await this.LoadEmails();
     }
 
@@ -130,9 +165,16 @@ public partial class CatchAllInbox(
         await this.PerformSearch();
     }
 
-    private void HandleEmailSelected(GetCatchAllEmailsQueryResult.EmailSummary email)
+    private async Task HandleEmailSelected(GetCatchAllEmailsQueryResult.EmailSummary email)
     {
         this._selectedEmail = ToSearchEmailSummary(email);
+        await clientSessionContext.TrackBreadcrumbAsync(
+            "catch-all.email.selected",
+            new Dictionary<string, string?>
+            {
+                ["email_id"] = email.EmailId.ToString(),
+                ["campaign_email"] = email.CampaignId.HasValue.ToString(),
+            });
         this.StateHasChanged();
     }
 

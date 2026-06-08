@@ -8,6 +8,7 @@ using OpenTelemetry.Trace;
 using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Contracts;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
+using Spamma.App.Client.Infrastructure.Observability;
 using Spamma.App.Client.Infrastructure.Services;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
@@ -39,10 +40,17 @@ builder.Services.Configure<Settings>(builder.Configuration.GetSection("Settings"
 builder.Services.AddScoped<ICommandRunner, CommandRunner>();
 builder.Services.AddScoped<IQueryRunner, QueryRunner>();
 builder.Services.AddScoped<IDomainValidationService, DomainValidationService>();
+builder.Services.AddScoped<IClientSessionContext, ClientSessionContext>();
+builder.Services.AddTransient<SessionEnrichmentHandler>();
 
 builder.Services.AddHttpClient(
     "bluqube",
-    client => { client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); });
+    client => { client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); })
+    .AddHttpMessageHandler<SessionEnrichmentHandler>();
+builder.Services.AddHttpClient(
+        "spamma-default",
+        client => { client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); })
+    .AddHttpMessageHandler<SessionEnrichmentHandler>();
 builder.Services.AddTransient<CommandResultConverter>();
 
 builder.Services.AddCommon()
@@ -81,7 +89,7 @@ builder.Services.AddScoped<IAuthorizationHandler, CanModerationChaosAddressesHan
 builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddSingleton<IErrorMessageMapperService, ErrorMessageMapperService>();
 
-builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("spamma-default"));
 
 builder.Services.AddScoped<ISignalRService, SignalRService>();
 builder.Services.AddScoped<ISystemSettingsCache, SystemSettingsCache>();
