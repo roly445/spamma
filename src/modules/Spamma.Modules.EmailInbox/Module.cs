@@ -134,7 +134,7 @@ public static class Module
                 }
 
                 var email = await documentSession.LoadAsync<EmailLookup>(emailId, cancellationToken);
-                if (email is null || !CanAccessEmail(user, email))
+                if (email is null || !await Application.Authorizers.Queries.EmailAccessAuthorizer.CanAccessAsync(user, email, documentSession, cancellationToken))
                 {
                     return Results.Unauthorized();
                 }
@@ -164,14 +164,6 @@ public static class Module
         options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
 
         return options;
-    }
-
-    private static bool CanAccessEmail(UserAuthInfo user, EmailLookup email)
-    {
-        return user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
-               user.ModeratedDomains.Contains(email.DomainId) ||
-               user.ModeratedSubdomains.Contains(email.SubdomainId) ||
-               user.ViewableSubdomains.Contains(email.SubdomainId);
     }
 
     private static async Task<byte[]> CompressMimeMessage(MimeKit.MimeMessage message, CancellationToken cancellationToken)

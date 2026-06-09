@@ -24,10 +24,7 @@ internal class GetEmailByIdQueryAuthorizer(IHttpContextAccessor httpContextAcces
             return AuthorizationResult.Fail();
         }
 
-        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
-            user.ModeratedDomains.Contains(email.DomainId) ||
-            user.ModeratedSubdomains.Contains(email.SubdomainId) ||
-            user.ViewableSubdomains.Contains(email.SubdomainId))
+        if (await EmailAccessAuthorizer.CanAccessAsync(user, email, documentSession, cancellationToken))
         {
             return AuthorizationResult.Succeed();
         }
