@@ -12,7 +12,7 @@ public class SetupModeMiddleware(RequestDelegate next, ILogger<SetupModeMiddlewa
         var isSetupMode = setupAuth.IsSetupModeEnabled;
 
         // Allow static assets and essential endpoints regardless of setup mode
-        if (ShouldAllowPath(path))
+        if (path == "/email-inbox/get-email-mime-message-by-id" || ShouldAllowPath(path))
         {
             await next(context);
             return;
