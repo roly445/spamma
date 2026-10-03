@@ -7,6 +7,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Spamma.App;
+using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 using Xunit;
 
 namespace Spamma.App.Tests;
@@ -123,11 +125,37 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
     }
 }
 
-public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>
+public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>, IAsyncLifetime
 {
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
+        .WithDatabase("spamma_app_test")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
+
+    private readonly RedisContainer _redis = new RedisBuilder()
+        .WithImage("redis:7-alpine")
+        .Build();
+
+    public async Task InitializeAsync()
+    {
+        await _postgres.StartAsync();
+        await _redis.StartAsync();
+    }
+
+    async Task IAsyncLifetime.DisposeAsync()
+    {
+        Dispose();
+        await _redis.DisposeAsync();
+        await _postgres.DisposeAsync();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseContentRoot(Directory.GetCurrentDirectory());
+        builder.UseSetting("ConnectionStrings:DefaultConnection", _postgres.GetConnectionString());
+        builder.UseSetting("ConnectionStrings:Redis", _redis.GetConnectionString());
         builder.ConfigureTestServices(services =>
             services.AddDataProtection().PersistKeysToFileSystem(
                 new DirectoryInfo(Path.Combine(Path.GetTempPath(), "spamma-app-tests-keys"))));
