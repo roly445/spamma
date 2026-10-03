@@ -127,6 +127,12 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
 
 public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>, IAsyncLifetime
 {
+    private const string PostgresConnectionKey = "ConnectionStrings__DefaultConnection";
+    private const string RedisConnectionKey = "ConnectionStrings__Redis";
+
+    private string? _originalPostgresConnection;
+    private string? _originalRedisConnection;
+
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
         .WithDatabase("spamma_app_test")
@@ -142,11 +148,18 @@ public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infras
     {
         await _postgres.StartAsync();
         await _redis.StartAsync();
+
+        _originalPostgresConnection = Environment.GetEnvironmentVariable(PostgresConnectionKey);
+        _originalRedisConnection = Environment.GetEnvironmentVariable(RedisConnectionKey);
+        Environment.SetEnvironmentVariable(PostgresConnectionKey, _postgres.GetConnectionString());
+        Environment.SetEnvironmentVariable(RedisConnectionKey, _redis.GetConnectionString());
     }
 
     async Task IAsyncLifetime.DisposeAsync()
     {
         Dispose();
+        Environment.SetEnvironmentVariable(PostgresConnectionKey, _originalPostgresConnection);
+        Environment.SetEnvironmentVariable(RedisConnectionKey, _originalRedisConnection);
         await _redis.DisposeAsync();
         await _postgres.DisposeAsync();
     }
@@ -154,8 +167,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infras
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseContentRoot(Directory.GetCurrentDirectory());
-        builder.UseSetting("ConnectionStrings:DefaultConnection", _postgres.GetConnectionString());
-        builder.UseSetting("ConnectionStrings:Redis", _redis.GetConnectionString());
         builder.ConfigureTestServices(services =>
             services.AddDataProtection().PersistKeysToFileSystem(
                 new DirectoryInfo(Path.Combine(Path.GetTempPath(), "spamma-app-tests-keys"))));
