@@ -44,12 +44,13 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         builder.Services.AddMarten(options =>
         {
             options.Connection(this.PostgresContainer.GetConnectionString());
+            options.RestoreV8Defaults();
             options.DatabaseSchemaName = "public";
 
             // Configure module projections
             Spamma.Modules.DomainManagement.Module.ConfigureDomainManagement(options);
             Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(options);
-        });
+        }).UseIdentitySessions();
 
         // Register TimeProvider (required by background services)
         builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);

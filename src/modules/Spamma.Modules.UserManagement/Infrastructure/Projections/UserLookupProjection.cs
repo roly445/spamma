@@ -9,7 +9,7 @@ using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.Projections;
 
-public class UserLookupProjection : EventProjection
+public partial class UserLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public UserLookup Create(UserCreated @event)

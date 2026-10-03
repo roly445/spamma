@@ -8,7 +8,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Projections;
 
-public class CampaignSummaryProjection : EventProjection
+public partial class CampaignSummaryProjection : EventProjection
 {
     [UsedImplicitly]
     public CampaignSummary Create(CampaignCreated @event)

@@ -177,6 +177,7 @@ builder.Services.AddScoped<IAppConfigurationService, AppConfigurationService>();
 builder.Services.AddMarten(options =>
 {
     options.Connection(connectionString);
+    options.RestoreV8Defaults();
     options.AutoCreateSchemaObjects = AutoCreate.All;
 
     // Note: UseSystemTextJsonForSerialization is called in ConfigureUserManagement()
@@ -186,7 +187,7 @@ builder.Services.AddMarten(options =>
         .ConfigureEmailInbox();
 
     options.Logger(new ConsoleMartenLogger());
-}).ApplyAllDatabaseChangesOnStartup();
+}).UseIdentitySessions().ApplyAllDatabaseChangesOnStartup();
 
 builder.Services.AddCap(capOptions =>
 {
