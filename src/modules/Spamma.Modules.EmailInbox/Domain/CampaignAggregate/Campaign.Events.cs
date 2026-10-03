@@ -5,33 +5,16 @@ namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 /// </summary>
 public partial class Campaign
 {
-    public static Campaign Create(Events.CampaignCreated @event)
+    internal static Campaign Replay(Campaign? aggregate, object @event)
     {
-        var campaign = new Campaign();
-        campaign.Apply(@event);
-        return campaign;
-    }
+        if (aggregate is null && @event is not Events.CampaignCreated)
+        {
+            throw new ArgumentException("The first event must be CampaignCreated.", nameof(@event));
+        }
 
-    public void Apply(Events.CampaignCreated @event)
-    {
-        this.Id = @event.CampaignId;
-        this.DomainId = @event.DomainId;
-        this.SubdomainId = @event.SubdomainId;
-        this.CampaignValue = @event.CampaignValue;
-        this.CreatedAt = @event.CreatedAt;
-        this.SampleMessageId = @event.MessageId;
-        this.LastCapturedAt = @event.ReceivedAt;
-    }
-
-    public void Apply(Events.CampaignCaptured @event)
-    {
-        this.TotalCaptures++;
-        this.LastCapturedAt = @event.CapturedAt;
-    }
-
-    public void Apply(Events.CampaignDeleted @event)
-    {
-        this._deletedAt = @event.DeletedAt;
+        aggregate ??= new Campaign();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
     }
 
     protected override void ApplyEvent(object @event)
@@ -48,5 +31,27 @@ public partial class Campaign
                 this.Apply(campaignDeleted);
                 break;
         }
+    }
+
+    private void Apply(Events.CampaignCreated @event)
+    {
+        this.Id = @event.CampaignId;
+        this.DomainId = @event.DomainId;
+        this.SubdomainId = @event.SubdomainId;
+        this.CampaignValue = @event.CampaignValue;
+        this.CreatedAt = @event.CreatedAt;
+        this.SampleMessageId = @event.MessageId;
+        this.LastCapturedAt = @event.ReceivedAt;
+    }
+
+    private void Apply(Events.CampaignCaptured @event)
+    {
+        this.TotalCaptures++;
+        this.LastCapturedAt = @event.CapturedAt;
+    }
+
+    private void Apply(Events.CampaignDeleted @event)
+    {
+        this._deletedAt = @event.DeletedAt;
     }
 }

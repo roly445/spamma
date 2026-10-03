@@ -7,55 +7,16 @@ namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 /// </summary>
 public partial class Domain
 {
-    public static Domain Create(DomainCreated @event)
+    internal static Domain Replay(Domain? aggregate, object @event)
     {
-        var domain = new Domain();
-        domain.Apply(@event);
-        return domain;
-    }
+        if (aggregate is null && @event is not DomainCreated)
+        {
+            throw new ArgumentException("The first event must be DomainCreated.", nameof(@event));
+        }
 
-    public void Apply(ModerationUserRemoved @event)
-    {
-        this._moderationUsers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
-            .Remove(@event.RemovedAt);
-    }
-
-    public void Apply(ModerationUserAdded @event)
-    {
-        this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.AddedAt));
-    }
-
-    public void Apply(DomainCreated @event)
-    {
-        this.Id = @event.DomainId;
-        this.Name = @event.Name;
-        this.PrimaryContactEmail = @event.PrimaryContactEmail;
-        this.Description = @event.Description;
-        this.VerificationToken = @event.VerificationToken;
-        this.CreatedAt = @event.CreatedAt;
-    }
-
-    public void Apply(DomainVerified @event)
-    {
-        this.VerifiedAt = @event.VerifiedAt;
-    }
-
-    public void Apply(DetailsUpdated @event)
-    {
-        this.Description = @event.Description;
-        this.PrimaryContactEmail = @event.PrimaryContactEmail;
-    }
-
-    public void Apply(DomainSuspended @event)
-    {
-        this._suspensionAudits.Add(DomainSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
-        this.IsSuspended = true;
-    }
-
-    public void Apply(DomainUnsuspended @event)
-    {
-        this._suspensionAudits.Add(DomainSuspensionAudit.CreateUnsuspension(@event.UnsuspendedAt));
-        this.IsSuspended = false;
+        aggregate ??= new Domain();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
     }
 
     protected override void ApplyEvent(object @event)
@@ -86,5 +47,49 @@ public partial class Domain
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
+    }
+
+    private void Apply(ModerationUserRemoved @event)
+    {
+        this._moderationUsers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
+            .Remove(@event.RemovedAt);
+    }
+
+    private void Apply(ModerationUserAdded @event)
+    {
+        this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.AddedAt));
+    }
+
+    private void Apply(DomainCreated @event)
+    {
+        this.Id = @event.DomainId;
+        this.Name = @event.Name;
+        this.PrimaryContactEmail = @event.PrimaryContactEmail;
+        this.Description = @event.Description;
+        this.VerificationToken = @event.VerificationToken;
+        this.CreatedAt = @event.CreatedAt;
+    }
+
+    private void Apply(DomainVerified @event)
+    {
+        this.VerifiedAt = @event.VerifiedAt;
+    }
+
+    private void Apply(DetailsUpdated @event)
+    {
+        this.Description = @event.Description;
+        this.PrimaryContactEmail = @event.PrimaryContactEmail;
+    }
+
+    private void Apply(DomainSuspended @event)
+    {
+        this._suspensionAudits.Add(DomainSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
+        this.IsSuspended = true;
+    }
+
+    private void Apply(DomainUnsuspended @event)
+    {
+        this._suspensionAudits.Add(DomainSuspensionAudit.CreateUnsuspension(@event.UnsuspendedAt));
+        this.IsSuspended = false;
     }
 }

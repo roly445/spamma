@@ -7,27 +7,16 @@ namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 /// </summary>
 public partial class ApiKey
 {
-    public static ApiKey Create(ApiKeyCreated @event)
+    internal static ApiKey Replay(ApiKey? aggregate, object @event)
     {
-        var apiKey = new ApiKey();
-        apiKey.Apply(@event);
-        return apiKey;
-    }
+        if (aggregate is null && @event is not ApiKeyCreated)
+        {
+            throw new ArgumentException("The first event must be ApiKeyCreated.", nameof(@event));
+        }
 
-    public void Apply(ApiKeyCreated @event)
-    {
-        this.Id = @event.ApiKeyId;
-        this.UserId = @event.UserId;
-        this.Name = @event.Name;
-        this.KeyHashPrefix = @event.KeyHashPrefix;
-        this.KeyHash = @event.KeyHash;
-        this.CreatedAt = @event.CreatedAt;
-        this.ExpiresAt = @event.ExpiresAt;
-    }
-
-    public void Apply(ApiKeyRevoked @event)
-    {
-        this._revokedAt = @event.RevokedAt;
+        aggregate ??= new ApiKey();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
     }
 
     protected override void ApplyEvent(object @event)
@@ -41,5 +30,21 @@ public partial class ApiKey
                 this.Apply(revokedEvent);
                 break;
         }
+    }
+
+    private void Apply(ApiKeyCreated @event)
+    {
+        this.Id = @event.ApiKeyId;
+        this.UserId = @event.UserId;
+        this.Name = @event.Name;
+        this.KeyHashPrefix = @event.KeyHashPrefix;
+        this.KeyHash = @event.KeyHash;
+        this.CreatedAt = @event.CreatedAt;
+        this.ExpiresAt = @event.ExpiresAt;
+    }
+
+    private void Apply(ApiKeyRevoked @event)
+    {
+        this._revokedAt = @event.RevokedAt;
     }
 }

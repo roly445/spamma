@@ -27,4 +27,22 @@ public class AggregateConstructorTests
     {
         Assert.Null(aggregateType.GetConstructor(Type.EmptyTypes));
     }
+
+    [Theory]
+    [InlineData(typeof(User))]
+    [InlineData(typeof(Passkey))]
+    [InlineData(typeof(ApiKey))]
+    [InlineData(typeof(Domain))]
+    [InlineData(typeof(Subdomain))]
+    [InlineData(typeof(ChaosAddress))]
+    [InlineData(typeof(Campaign))]
+    [InlineData(typeof(Email))]
+    [InlineData(typeof(CatchAllSenderAddress))]
+    public void Aggregate_DoesNotExposeReplayMethods(Type aggregateType)
+    {
+        var methodNames = aggregateType.GetMethods().Select(method => method.Name).ToHashSet();
+
+        Assert.DoesNotContain("Apply", methodNames);
+        Assert.DoesNotContain("LoadFromHistory", methodNames);
+    }
 }

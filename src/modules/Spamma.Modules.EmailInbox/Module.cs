@@ -16,6 +16,7 @@ using SmtpServer;
 using SmtpServer.Storage;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.Common.Infrastructure;
 using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Infrastructure.Projections;
@@ -154,6 +155,9 @@ public static class Module
 
     public static StoreOptions ConfigureEmailInbox(this StoreOptions options)
     {
+        options.Projections.Add(new AggregateReplayProjection<Domain.EmailAggregate.Email>(Domain.EmailAggregate.Email.Replay), ProjectionLifecycle.Live);
+        options.Projections.Add(new AggregateReplayProjection<Domain.CampaignAggregate.Campaign>(Domain.CampaignAggregate.Campaign.Replay), ProjectionLifecycle.Live);
+        options.Projections.Add(new AggregateReplayProjection<Domain.CatchAllSenderAddressAggregate.CatchAllSenderAddress>(Domain.CatchAllSenderAddressAggregate.CatchAllSenderAddress.Replay), ProjectionLifecycle.Live);
         options.Projections.Add<EmailLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CatchAllSenderAddressLookupProjection>(ProjectionLifecycle.Inline);

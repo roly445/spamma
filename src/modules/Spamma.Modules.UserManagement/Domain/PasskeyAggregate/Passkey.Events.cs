@@ -7,35 +7,16 @@ namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 /// </summary>
 public partial class Passkey
 {
-    public static Passkey Create(PasskeyRegistered @event)
+    internal static Passkey Replay(Passkey? aggregate, object @event)
     {
-        var passkey = new Passkey();
-        passkey.Apply(@event);
-        return passkey;
-    }
+        if (aggregate is null && @event is not PasskeyRegistered)
+        {
+            throw new ArgumentException("The first event must be PasskeyRegistered.", nameof(@event));
+        }
 
-    public void Apply(PasskeyRegistered @event)
-    {
-        this.Id = @event.PasskeyId;
-        this.UserId = @event.UserId;
-        this.CredentialId = @event.CredentialId;
-        this.PublicKey = @event.PublicKey;
-        this.SignCount = @event.SignCount;
-        this.DisplayName = @event.DisplayName;
-        this.Algorithm = @event.Algorithm;
-        this.RegisteredAt = @event.RegisteredAt;
-    }
-
-    public void Apply(PasskeyAuthenticated @event)
-    {
-        this.SignCount = @event.NewSignCount;
-        this._lastUsedAt = @event.UsedAt;
-    }
-
-    public void Apply(PasskeyRevoked @event)
-    {
-        this._revokedAt = @event.RevokedAt;
-        this._revokedByUserId = @event.RevokedByUserId;
+        aggregate ??= new Passkey();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
     }
 
     protected override void ApplyEvent(object @event)
@@ -52,5 +33,29 @@ public partial class Passkey
                 this.Apply(revokedEvent);
                 break;
         }
+    }
+
+    private void Apply(PasskeyRegistered @event)
+    {
+        this.Id = @event.PasskeyId;
+        this.UserId = @event.UserId;
+        this.CredentialId = @event.CredentialId;
+        this.PublicKey = @event.PublicKey;
+        this.SignCount = @event.SignCount;
+        this.DisplayName = @event.DisplayName;
+        this.Algorithm = @event.Algorithm;
+        this.RegisteredAt = @event.RegisteredAt;
+    }
+
+    private void Apply(PasskeyAuthenticated @event)
+    {
+        this.SignCount = @event.NewSignCount;
+        this._lastUsedAt = @event.UsedAt;
+    }
+
+    private void Apply(PasskeyRevoked @event)
+    {
+        this._revokedAt = @event.RevokedAt;
+        this._revokedByUserId = @event.RevokedByUserId;
     }
 }

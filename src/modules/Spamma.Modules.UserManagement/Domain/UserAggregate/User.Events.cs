@@ -7,61 +7,16 @@ namespace Spamma.Modules.UserManagement.Domain.UserAggregate;
 /// </summary>
 public partial class User
 {
-    public static User Create(UserCreated @event)
+    internal static User Replay(User? aggregate, object @event)
     {
-        var user = new User();
-        user.Apply(@event);
-        return user;
-    }
+        if (aggregate is null && @event is not UserCreated)
+        {
+            throw new ArgumentException("The first event must be UserCreated.", nameof(@event));
+        }
 
-    public void Apply(UserCreated created)
-    {
-        this.Id = created.UserId;
-        this.Name = created.Name;
-        this.SecurityStamp = created.SecurityStamp;
-        this.EmailAddress = created.EmailAddress;
-        this.SystemRole = created.SystemRole;
-    }
-
-    public void Apply(AuthenticationStarted @event)
-    {
-        var authenticationAttempt = new AuthenticationAttempt(@event.AuthenticationAttemptId, @event.StartedAt);
-        this._authenticationAttempts.Add(authenticationAttempt);
-    }
-
-    public void Apply(AuthenticationCompleted @event)
-    {
-        var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
-        authenticationAttempt.Complete(@event.CompletedAt);
-        this.SecurityStamp = @event.SecurityStamp;
-    }
-
-    public void Apply(AuthenticationFailed @event)
-    {
-        var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
-        authenticationAttempt.Fail(@event.FailedAt);
-        this.SecurityStamp = @event.SecurityStamp;
-    }
-
-    public void Apply(AccountSuspended @event)
-    {
-        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
-        this.SecurityStamp = @event.SecurityStamp;
-        this.IsSuspended = true;
-    }
-
-    public void Apply(AccountUnsuspended @event)
-    {
-        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateUnsuspension(@event.SuspendedAt));
-        this.SecurityStamp = @event.SecurityStamp;
-        this.IsSuspended = false;
-    }
-
-    public void Apply(DetailsChanged @event)
-    {
-        this.EmailAddress = @event.EmailAddress;
-        this.Name = @event.Name;
-        this.SystemRole = @event.SystemRole;
+        aggregate ??= new User();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
     }
 
     protected override void ApplyEvent(object @event)
@@ -92,5 +47,55 @@ public partial class User
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
+    }
+
+    private void Apply(UserCreated created)
+    {
+        this.Id = created.UserId;
+        this.Name = created.Name;
+        this.SecurityStamp = created.SecurityStamp;
+        this.EmailAddress = created.EmailAddress;
+        this.SystemRole = created.SystemRole;
+    }
+
+    private void Apply(AuthenticationStarted @event)
+    {
+        var authenticationAttempt = new AuthenticationAttempt(@event.AuthenticationAttemptId, @event.StartedAt);
+        this._authenticationAttempts.Add(authenticationAttempt);
+    }
+
+    private void Apply(AuthenticationCompleted @event)
+    {
+        var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
+        authenticationAttempt.Complete(@event.CompletedAt);
+        this.SecurityStamp = @event.SecurityStamp;
+    }
+
+    private void Apply(AuthenticationFailed @event)
+    {
+        var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
+        authenticationAttempt.Fail(@event.FailedAt);
+        this.SecurityStamp = @event.SecurityStamp;
+    }
+
+    private void Apply(AccountSuspended @event)
+    {
+        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
+        this.SecurityStamp = @event.SecurityStamp;
+        this.IsSuspended = true;
+    }
+
+    private void Apply(AccountUnsuspended @event)
+    {
+        this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateUnsuspension(@event.SuspendedAt));
+        this.SecurityStamp = @event.SecurityStamp;
+        this.IsSuspended = false;
+    }
+
+    private void Apply(DetailsChanged @event)
+    {
+        this.EmailAddress = @event.EmailAddress;
+        this.Name = @event.Name;
+        this.SystemRole = @event.SystemRole;
     }
 }

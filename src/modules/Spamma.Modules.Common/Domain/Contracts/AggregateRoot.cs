@@ -10,14 +10,6 @@ public abstract class AggregateRoot
 
     public void MarkEventsAsCommitted() => this._uncommittedEvents.Clear();
 
-    public void LoadFromHistory(IEnumerable<object> events)
-    {
-        foreach (var @event in events)
-        {
-            this.ApplyEvent(@event);
-        }
-    }
-
     protected void RaiseEvent(object @event)
     {
         this._uncommittedEvents.Add(@event);

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.Common.Caching;
+using Spamma.Modules.Common.Infrastructure;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
@@ -55,6 +56,9 @@ public static class Module
 
     public static StoreOptions ConfigureDomainManagement(this StoreOptions options)
     {
+        options.Projections.Add(new AggregateReplayProjection<Domain.DomainAggregate.Domain>(Domain.DomainAggregate.Domain.Replay), ProjectionLifecycle.Live);
+        options.Projections.Add(new AggregateReplayProjection<Domain.SubdomainAggregate.Subdomain>(Domain.SubdomainAggregate.Subdomain.Replay), ProjectionLifecycle.Live);
+        options.Projections.Add(new AggregateReplayProjection<Domain.ChaosAddressAggregate.ChaosAddress>(Domain.ChaosAddressAggregate.ChaosAddress.Replay), ProjectionLifecycle.Live);
         options.Projections.Add<DomainLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<SubdomainLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<ChaosAddressLookupProjection>(ProjectionLifecycle.Inline);

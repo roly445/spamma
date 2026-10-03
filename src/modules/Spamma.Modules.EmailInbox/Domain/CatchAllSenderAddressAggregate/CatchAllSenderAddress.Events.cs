@@ -4,33 +4,16 @@ namespace Spamma.Modules.EmailInbox.Domain.CatchAllSenderAddressAggregate;
 
 public partial class CatchAllSenderAddress
 {
-    public static CatchAllSenderAddress Create(CatchAllSenderAddressAdded @event)
+    internal static CatchAllSenderAddress Replay(CatchAllSenderAddress? aggregate, object @event)
     {
-        var address = new CatchAllSenderAddress();
-        address.Apply(@event);
-        return address;
-    }
+        if (aggregate is null && @event is not CatchAllSenderAddressAdded)
+        {
+            throw new ArgumentException("The first event must be CatchAllSenderAddressAdded.", nameof(@event));
+        }
 
-    public void Apply(CatchAllSenderAddressAdded @event)
-    {
-        this.Id = @event.AddressId;
-        this._senderAddress = @event.SenderAddress;
-    }
-
-    public void Apply(CatchAllSenderAddressRemoved unused)
-    {
-        _ = unused;
-        this._isRemoved = true;
-    }
-
-    public void Apply(UserAssignedToCatchAllSender @event)
-    {
-        this._assignedUserIds.Add(@event.UserId);
-    }
-
-    public void Apply(UserUnassignedFromCatchAllSender @event)
-    {
-        this._assignedUserIds.Remove(@event.UserId);
+        aggregate ??= new CatchAllSenderAddress();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
     }
 
     protected override void ApplyEvent(object @event)
@@ -50,5 +33,27 @@ public partial class CatchAllSenderAddress
                 this.Apply(unassigned);
                 break;
         }
+    }
+
+    private void Apply(CatchAllSenderAddressAdded @event)
+    {
+        this.Id = @event.AddressId;
+        this._senderAddress = @event.SenderAddress;
+    }
+
+    private void Apply(CatchAllSenderAddressRemoved unused)
+    {
+        _ = unused;
+        this._isRemoved = true;
+    }
+
+    private void Apply(UserAssignedToCatchAllSender @event)
+    {
+        this._assignedUserIds.Add(@event.UserId);
+    }
+
+    private void Apply(UserUnassignedFromCatchAllSender @event)
+    {
+        this._assignedUserIds.Remove(@event.UserId);
     }
 }
