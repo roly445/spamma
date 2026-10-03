@@ -24,61 +24,61 @@ public partial class Subdomain
         switch (@event)
         {
             case SubdomainCreated subdomainCreated:
-                this.Apply(subdomainCreated);
+                this.ApplyRecorded(subdomainCreated);
                 break;
             case SubdomainUpdated detailsUpdated:
-                this.Apply(detailsUpdated);
+                this.ApplyRecorded(detailsUpdated);
                 break;
             case SubdomainSuspended subdomainSuspended:
-                this.Apply(subdomainSuspended);
+                this.ApplyRecorded(subdomainSuspended);
                 break;
             case SubdomainUnsuspended subdomainUnsuspended:
-                this.Apply(subdomainUnsuspended);
+                this.ApplyRecorded(subdomainUnsuspended);
                 break;
             case ModerationUserAdded moderationUserAdded:
-                this.Apply(moderationUserAdded);
+                this.ApplyRecorded(moderationUserAdded);
                 break;
             case ModerationUserRemoved moderationUserRemoved:
-                this.Apply(moderationUserRemoved);
+                this.ApplyRecorded(moderationUserRemoved);
                 break;
             case ViewerAdded viewerAdded:
-                this.Apply(viewerAdded);
+                this.ApplyRecorded(viewerAdded);
                 break;
             case ViewerRemoved viewerRemoved:
-                this.Apply(viewerRemoved);
+                this.ApplyRecorded(viewerRemoved);
                 break;
             case MxRecordChecked mxRecordChecked:
-                this.Apply(mxRecordChecked);
+                this.ApplyRecorded(mxRecordChecked);
                 break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
     }
 
-    private void Apply(MxRecordChecked @event)
+    private void ApplyRecorded(MxRecordChecked @event)
     {
         this._mxRecordChecks.Add(new MxRecordCheck(@event.LastCheckedAt, @event.MxStatus));
     }
 
-    private void Apply(ViewerRemoved @event)
+    private void ApplyRecorded(ViewerRemoved @event)
     {
         this._viewers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
             .Remove(@event.RemovedAt);
     }
 
-    private void Apply(ViewerAdded @event)
+    private void ApplyRecorded(ViewerAdded @event)
     {
         this._viewers.Add(Viewer.Create(@event.UserId, @event.AddedAt));
     }
 
-    private void Apply(SubdomainUnsuspended @event)
+    private void ApplyRecorded(SubdomainUnsuspended @event)
     {
         this._suspensionAudits.Add(SubdomainSuspensionAudit.CreateUnsuspension(
             @event.UnsuspendedAt));
         this.IsSuspended = false;
     }
 
-    private void Apply(SubdomainSuspended @event)
+    private void ApplyRecorded(SubdomainSuspended @event)
     {
         this._suspensionAudits.Add(SubdomainSuspensionAudit.CreateSuspension(
             @event.SuspendedAt,
@@ -86,12 +86,12 @@ public partial class Subdomain
         this.IsSuspended = true;
     }
 
-    private void Apply(SubdomainUpdated @event)
+    private void ApplyRecorded(SubdomainUpdated @event)
     {
         this.Description = @event.Description;
     }
 
-    private void Apply(SubdomainCreated @event)
+    private void ApplyRecorded(SubdomainCreated @event)
     {
         this.Id = @event.SubdomainId;
         this.DomainId = @event.DomainId;
@@ -100,13 +100,13 @@ public partial class Subdomain
         this.CreatedAt = @event.CreatedAt;
     }
 
-    private void Apply(ModerationUserRemoved @event)
+    private void ApplyRecorded(ModerationUserRemoved @event)
     {
         this._moderationUsers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)
             .Remove(@event.RemovedAt);
     }
 
-    private void Apply(ModerationUserAdded @event)
+    private void ApplyRecorded(ModerationUserAdded @event)
     {
         this._moderationUsers.Add(ModerationUser.Create(@event.UserId, @event.AddedAt));
     }

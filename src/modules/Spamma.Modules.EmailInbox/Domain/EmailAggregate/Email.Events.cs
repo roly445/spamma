@@ -24,36 +24,36 @@ public partial class Email
         switch (@event)
         {
             case EmailReceived emailReceived:
-                this.Apply(emailReceived);
+                this.ApplyRecorded(emailReceived);
                 break;
             case EmailDeleted emailDeleted:
-                this.Apply(emailDeleted);
+                this.ApplyRecorded(emailDeleted);
                 break;
             case EmailMarkedAsFavorite emailMarkedAsFavorite:
-                this.Apply(emailMarkedAsFavorite);
+                this.ApplyRecorded(emailMarkedAsFavorite);
                 break;
             case EmailUnmarkedAsFavorite emailUnmarkedAsFavorite:
-                this.Apply(emailUnmarkedAsFavorite);
+                this.ApplyRecorded(emailUnmarkedAsFavorite);
                 break;
             case CampaignCaptured campaignCaptured:
-                this.Apply(campaignCaptured);
+                this.ApplyRecorded(campaignCaptured);
                 break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
     }
 
-    private void Apply(CampaignCaptured @event)
+    private void ApplyRecorded(CampaignCaptured @event)
     {
        this._campaignId = @event.CampaignId;
     }
 
-    private void Apply(EmailDeleted @event)
+    private void ApplyRecorded(EmailDeleted @event)
     {
         this._deletedAt = @event.DeletedAt;
     }
 
-    private void Apply(EmailReceived @event)
+    private void ApplyRecorded(EmailReceived @event)
     {
         this.Id = @event.EmailId;
         this.DomainId = @event.DomainId;
@@ -63,13 +63,13 @@ public partial class Email
         this._emailAddresses.AddRange(@event.EmailAddresses.Select(ea => new EmailAddress(ea.Address, ea.Name, ea.EmailAddressType)));
     }
 
-    private void Apply(EmailMarkedAsFavorite unused)
+    private void ApplyRecorded(EmailMarkedAsFavorite unused)
     {
         _ = unused;
         this.IsFavorite = true;
     }
 
-    private void Apply(EmailUnmarkedAsFavorite unused)
+    private void ApplyRecorded(EmailUnmarkedAsFavorite unused)
     {
         _ = unused;
         this.IsFavorite = false;

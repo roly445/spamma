@@ -24,15 +24,15 @@ public partial class ApiKey
         switch (@event)
         {
             case ApiKeyCreated createdEvent:
-                this.Apply(createdEvent);
+                this.ApplyRecorded(createdEvent);
                 break;
             case ApiKeyRevoked revokedEvent:
-                this.Apply(revokedEvent);
+                this.ApplyRecorded(revokedEvent);
                 break;
         }
     }
 
-    private void Apply(ApiKeyCreated @event)
+    private void ApplyRecorded(ApiKeyCreated @event)
     {
         this.Id = @event.ApiKeyId;
         this.UserId = @event.UserId;
@@ -43,7 +43,7 @@ public partial class ApiKey
         this.ExpiresAt = @event.ExpiresAt;
     }
 
-    private void Apply(ApiKeyRevoked @event)
+    private void ApplyRecorded(ApiKeyRevoked @event)
     {
         this._revokedAt = @event.RevokedAt;
     }

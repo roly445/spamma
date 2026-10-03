@@ -24,32 +24,32 @@ public partial class User
         switch (@event)
         {
             case UserCreated createdEvent:
-                this.Apply(createdEvent);
+                this.ApplyRecorded(createdEvent);
                 break;
             case AuthenticationStarted startedEvent:
-                this.Apply(startedEvent);
+                this.ApplyRecorded(startedEvent);
                 break;
             case AuthenticationCompleted completedEvent:
-                this.Apply(completedEvent);
+                this.ApplyRecorded(completedEvent);
                 break;
             case AuthenticationFailed failedEvent:
-                this.Apply(failedEvent);
+                this.ApplyRecorded(failedEvent);
                 break;
             case AccountSuspended suspendedEvent:
-                this.Apply(suspendedEvent);
+                this.ApplyRecorded(suspendedEvent);
                 break;
             case AccountUnsuspended unSuspendedEvent:
-                this.Apply(unSuspendedEvent);
+                this.ApplyRecorded(unSuspendedEvent);
                 break;
             case DetailsChanged detailsChangedEvent:
-                this.Apply(detailsChangedEvent);
+                this.ApplyRecorded(detailsChangedEvent);
                 break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
     }
 
-    private void Apply(UserCreated created)
+    private void ApplyRecorded(UserCreated created)
     {
         this.Id = created.UserId;
         this.Name = created.Name;
@@ -58,41 +58,41 @@ public partial class User
         this.SystemRole = created.SystemRole;
     }
 
-    private void Apply(AuthenticationStarted @event)
+    private void ApplyRecorded(AuthenticationStarted @event)
     {
         var authenticationAttempt = new AuthenticationAttempt(@event.AuthenticationAttemptId, @event.StartedAt);
         this._authenticationAttempts.Add(authenticationAttempt);
     }
 
-    private void Apply(AuthenticationCompleted @event)
+    private void ApplyRecorded(AuthenticationCompleted @event)
     {
         var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
         authenticationAttempt.Complete(@event.CompletedAt);
         this.SecurityStamp = @event.SecurityStamp;
     }
 
-    private void Apply(AuthenticationFailed @event)
+    private void ApplyRecorded(AuthenticationFailed @event)
     {
         var authenticationAttempt = this._authenticationAttempts.Single(a => a.Id == @event.AuthenticationAttemptId);
         authenticationAttempt.Fail(@event.FailedAt);
         this.SecurityStamp = @event.SecurityStamp;
     }
 
-    private void Apply(AccountSuspended @event)
+    private void ApplyRecorded(AccountSuspended @event)
     {
         this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateSuspension(@event.SuspendedAt, @event.Reason, @event.Notes));
         this.SecurityStamp = @event.SecurityStamp;
         this.IsSuspended = true;
     }
 
-    private void Apply(AccountUnsuspended @event)
+    private void ApplyRecorded(AccountUnsuspended @event)
     {
         this._accountSuspensionAudits.Add(AccountSuspensionAudit.CreateUnsuspension(@event.SuspendedAt));
         this.SecurityStamp = @event.SecurityStamp;
         this.IsSuspended = false;
     }
 
-    private void Apply(DetailsChanged @event)
+    private void ApplyRecorded(DetailsChanged @event)
     {
         this.EmailAddress = @event.EmailAddress;
         this.Name = @event.Name;

@@ -22,18 +22,18 @@ public partial class Campaign
         switch (@event)
         {
             case Events.CampaignCreated campaignCreated:
-                this.Apply(campaignCreated);
+                this.ApplyRecorded(campaignCreated);
                 break;
             case Events.CampaignCaptured campaignCaptured:
-                this.Apply(campaignCaptured);
+                this.ApplyRecorded(campaignCaptured);
                 break;
             case Events.CampaignDeleted campaignDeleted:
-                this.Apply(campaignDeleted);
+                this.ApplyRecorded(campaignDeleted);
                 break;
         }
     }
 
-    private void Apply(Events.CampaignCreated @event)
+    private void ApplyRecorded(Events.CampaignCreated @event)
     {
         this.Id = @event.CampaignId;
         this.DomainId = @event.DomainId;
@@ -44,13 +44,13 @@ public partial class Campaign
         this.LastCapturedAt = @event.ReceivedAt;
     }
 
-    private void Apply(Events.CampaignCaptured @event)
+    private void ApplyRecorded(Events.CampaignCaptured @event)
     {
         this.TotalCaptures++;
         this.LastCapturedAt = @event.CapturedAt;
     }
 
-    private void Apply(Events.CampaignDeleted @event)
+    private void ApplyRecorded(Events.CampaignDeleted @event)
     {
         this._deletedAt = @event.DeletedAt;
     }

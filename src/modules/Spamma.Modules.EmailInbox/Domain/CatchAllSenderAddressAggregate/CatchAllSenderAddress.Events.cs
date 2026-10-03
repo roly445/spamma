@@ -21,38 +21,38 @@ public partial class CatchAllSenderAddress
         switch (@event)
         {
             case CatchAllSenderAddressAdded added:
-                this.Apply(added);
+                this.ApplyRecorded(added);
                 break;
             case CatchAllSenderAddressRemoved removed:
-                this.Apply(removed);
+                this.ApplyRecorded(removed);
                 break;
             case UserAssignedToCatchAllSender assigned:
-                this.Apply(assigned);
+                this.ApplyRecorded(assigned);
                 break;
             case UserUnassignedFromCatchAllSender unassigned:
-                this.Apply(unassigned);
+                this.ApplyRecorded(unassigned);
                 break;
         }
     }
 
-    private void Apply(CatchAllSenderAddressAdded @event)
+    private void ApplyRecorded(CatchAllSenderAddressAdded @event)
     {
         this.Id = @event.AddressId;
         this._senderAddress = @event.SenderAddress;
     }
 
-    private void Apply(CatchAllSenderAddressRemoved unused)
+    private void ApplyRecorded(CatchAllSenderAddressRemoved unused)
     {
         _ = unused;
         this._isRemoved = true;
     }
 
-    private void Apply(UserAssignedToCatchAllSender @event)
+    private void ApplyRecorded(UserAssignedToCatchAllSender @event)
     {
         this._assignedUserIds.Add(@event.UserId);
     }
 
-    private void Apply(UserUnassignedFromCatchAllSender @event)
+    private void ApplyRecorded(UserUnassignedFromCatchAllSender @event)
     {
         this._assignedUserIds.Remove(@event.UserId);
     }
