@@ -15,7 +15,7 @@ public sealed partial class User : AggregateRoot
     private readonly List<AuthenticationAttempt> _authenticationAttempts = new();
     private readonly List<AccountSuspensionAudit> _accountSuspensionAudits = new();
 
-    private User()
+    public User()
     {
     }
 

@@ -15,7 +15,7 @@ public sealed partial class Passkey : AggregateRoot
     private DateTime? _revokedAt;
     private Guid? _revokedByUserId;
 
-    private Passkey()
+    public Passkey()
     {
     }
 

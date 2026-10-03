@@ -13,7 +13,7 @@ public partial class Campaign : AggregateRoot
 {
     private DateTime? _deletedAt;
 
-    private Campaign()
+    public Campaign()
     {
     }
 

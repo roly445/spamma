@@ -7,6 +7,38 @@ namespace Spamma.Modules.EmailInbox.Domain.EmailAggregate;
 /// </summary>
 public partial class Email
 {
+    public void Apply(CampaignCaptured @event)
+    {
+       this._campaignId = @event.CampaignId;
+    }
+
+    public void Apply(EmailDeleted @event)
+    {
+        this._deletedAt = @event.DeletedAt;
+    }
+
+    public void Apply(EmailReceived @event)
+    {
+        this.Id = @event.EmailId;
+        this.DomainId = @event.DomainId;
+        this.SubdomainId = @event.SubdomainId;
+        this.Subject = @event.Subject;
+        this.WhenSent = @event.SentAt;
+        this._emailAddresses.AddRange(@event.EmailAddresses.Select(ea => new EmailAddress(ea.Address, ea.Name, ea.EmailAddressType)));
+    }
+
+    public void Apply(EmailMarkedAsFavorite unused)
+    {
+        _ = unused;
+        this.IsFavorite = true;
+    }
+
+    public void Apply(EmailUnmarkedAsFavorite unused)
+    {
+        _ = unused;
+        this.IsFavorite = false;
+    }
+
     protected override void ApplyEvent(object @event)
     {
         switch (@event)
@@ -29,37 +61,5 @@ public partial class Email
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
-    }
-
-    private void Apply(CampaignCaptured @event)
-    {
-       this._campaignId = @event.CampaignId;
-    }
-
-    private void Apply(EmailDeleted @event)
-    {
-        this._deletedAt = @event.DeletedAt;
-    }
-
-    private void Apply(EmailReceived @event)
-    {
-        this.Id = @event.EmailId;
-        this.DomainId = @event.DomainId;
-        this.SubdomainId = @event.SubdomainId;
-        this.Subject = @event.Subject;
-        this.WhenSent = @event.SentAt;
-        this._emailAddresses.AddRange(@event.EmailAddresses.Select(ea => new EmailAddress(ea.Address, ea.Name, ea.EmailAddressType)));
-    }
-
-    private void Apply(EmailMarkedAsFavorite unused)
-    {
-        _ = unused;
-        this.IsFavorite = true;
-    }
-
-    private void Apply(EmailUnmarkedAsFavorite unused)
-    {
-        _ = unused;
-        this.IsFavorite = false;
     }
 }

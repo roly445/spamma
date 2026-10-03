@@ -5,6 +5,28 @@ namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 /// </summary>
 public partial class Campaign
 {
+    public void Apply(Events.CampaignCreated @event)
+    {
+        this.Id = @event.CampaignId;
+        this.DomainId = @event.DomainId;
+        this.SubdomainId = @event.SubdomainId;
+        this.CampaignValue = @event.CampaignValue;
+        this.CreatedAt = @event.CreatedAt;
+        this.SampleMessageId = @event.MessageId;
+        this.LastCapturedAt = @event.ReceivedAt;
+    }
+
+    public void Apply(Events.CampaignCaptured @event)
+    {
+        this.TotalCaptures++;
+        this.LastCapturedAt = @event.CapturedAt;
+    }
+
+    public void Apply(Events.CampaignDeleted @event)
+    {
+        this._deletedAt = @event.DeletedAt;
+    }
+
     protected override void ApplyEvent(object @event)
     {
         switch (@event)
@@ -19,27 +41,5 @@ public partial class Campaign
                 this.Apply(campaignDeleted);
                 break;
         }
-    }
-
-    private void Apply(Events.CampaignCreated @event)
-    {
-        this.Id = @event.CampaignId;
-        this.DomainId = @event.DomainId;
-        this.SubdomainId = @event.SubdomainId;
-        this.CampaignValue = @event.CampaignValue;
-        this.CreatedAt = @event.CreatedAt;
-        this.SampleMessageId = @event.MessageId;
-        this.LastCapturedAt = @event.ReceivedAt;
-    }
-
-    private void Apply(Events.CampaignCaptured @event)
-    {
-        this.TotalCaptures++;
-        this.LastCapturedAt = @event.CapturedAt;
-    }
-
-    private void Apply(Events.CampaignDeleted @event)
-    {
-        this._deletedAt = @event.DeletedAt;
     }
 }

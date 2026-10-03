@@ -14,7 +14,7 @@ public partial class Domain : AggregateRoot
     private readonly List<ModerationUser> _moderationUsers = new();
     private readonly List<DomainSuspensionAudit> _suspensionAudits = new();
 
-    private Domain()
+    public Domain()
     {
     }
 
