@@ -64,7 +64,8 @@ public class BackgroundTaskService(
                                     message.TextBody ?? message.HtmlBody ?? string.Empty,
                                     DateTimeOffset.Now,
                                     result.Data.CampaignId,
-                                    campaignValue),
+                                    campaignValue,
+                                    DomainId: workItem.DomainId),
                                 cancellationToken);
                         }
                     }
@@ -115,7 +116,9 @@ public class BackgroundTaskService(
                                 DateTimeOffset.Now,
                                 campaignId,
                                 catchAllJob.CampaignValue,
-                                IsCatchAll: true),
+                                IsCatchAll: true,
+                                DomainId: catchAllJob.DomainId,
+                                CatchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId),
                             cancellationToken);
                     }
 

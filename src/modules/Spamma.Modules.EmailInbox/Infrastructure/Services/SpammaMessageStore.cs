@@ -143,7 +143,8 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
                 recipients.FirstOrDefault()?.Address ?? string.Empty,
                 message.Subject ?? string.Empty,
                 message.TextBody ?? message.HtmlBody ?? string.Empty,
-                DateTimeOffset.Now),
+                DateTimeOffset.Now,
+                DomainId: foundValidSubdomain.DomainId),
             cancellationToken);
 
         return SmtpResponse.Ok;

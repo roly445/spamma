@@ -42,6 +42,7 @@ public static class Module
         services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddScoped<ICatchAllSenderAddressRepository, CatchAllSenderAddressRepository>();
         services.AddSingleton<PushNotificationManager>();
+        services.AddScoped<IEmailNotificationAccessService, EmailNotificationAccessService>();
         services.AddScoped<EmailPushGrpcService>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 

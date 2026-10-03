@@ -1,10 +1,11 @@
 using System.Collections.Concurrent;
 using Grpc.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-public class PushNotificationManager
+public class PushNotificationManager(IServiceScopeFactory? scopeFactory = null)
 {
     private readonly ConcurrentDictionary<string, (IServerStreamWriter<global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailNotification> Stream, Guid UserId)> _activeConnections = new();
     private object? _clientNotifier;
@@ -37,23 +38,39 @@ public class PushNotificationManager
     {
         var notifications = new List<Task>();
 
-        // Notify all active gRPC client connections
-        foreach (var connection in this._activeConnections.Values)
+        // Resolve current access for each owner when the notification is delivered.
+        // API keys inherit their owner's current permissions.
+        if (!this._activeConnections.IsEmpty)
         {
-            var notification = new global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailNotification
+            if (scopeFactory is null)
             {
-                Id = email.Id.ToString(),
-                From = email.From,
-                To = email.To,
-                Subject = email.Subject,
-                ReceivedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(email.ReceivedAt),
-                SubdomainId = email.SubdomainId.ToString(),
-                IsCatchAll = email.IsCatchAll,
-                CampaignId = email.CampaignId?.ToString() ?? string.Empty,
-                CampaignValue = email.CampaignValue ?? string.Empty,
-            };
+                throw new InvalidOperationException("Email notification access checks are not configured.");
+            }
 
-            notifications.Add(connection.Stream.WriteAsync(notification, cancellationToken));
+            using var scope = scopeFactory.CreateScope();
+            var access = scope.ServiceProvider.GetRequiredService<IEmailNotificationAccessService>();
+            foreach (var connection in this._activeConnections.Values)
+            {
+                if (!await access.CanAccessNotificationAsync(connection.UserId, email, cancellationToken))
+                {
+                    continue;
+                }
+
+                var notification = new global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailNotification
+                {
+                    Id = email.Id.ToString(),
+                    From = email.From,
+                    To = email.To,
+                    Subject = email.Subject,
+                    ReceivedAt = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTimeOffset(email.ReceivedAt),
+                    SubdomainId = email.SubdomainId.ToString(),
+                    IsCatchAll = email.IsCatchAll,
+                    CampaignId = email.CampaignId?.ToString() ?? string.Empty,
+                    CampaignValue = email.CampaignValue ?? string.Empty,
+                };
+
+                notifications.Add(connection.Stream.WriteAsync(notification, cancellationToken));
+            }
         }
 
         // Notify SignalR web clients via IClientNotifierService
@@ -91,5 +108,7 @@ public class PushNotificationManager
         DateTimeOffset ReceivedAt,
         Guid? CampaignId = null,
         string? CampaignValue = null,
-        bool IsCatchAll = false);
+        bool IsCatchAll = false,
+        Guid DomainId = default,
+        Guid? CatchAllSenderAddressId = null);
 }
