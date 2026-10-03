@@ -1,7 +1,10 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Spamma.App;
 using Xunit;
@@ -125,5 +128,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infras
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseContentRoot(Directory.GetCurrentDirectory());
+        builder.ConfigureTestServices(services =>
+            services.AddDataProtection().PersistKeysToFileSystem(
+                new DirectoryInfo(Path.Combine(Path.GetTempPath(), "spamma-app-tests-keys"))));
     }
 }
