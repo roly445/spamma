@@ -89,13 +89,22 @@ jobs:
 
       - name: Run tests (including E2E) with coverage
         run: |
-          dotnet test \
-            --configuration Release \
-            --logger "trx;LogFileName=test-results-{assembly}.trx" \
-            --collect:"XPlat Code Coverage" \
-            --results-directory test-results \
-            --no-build \
-            --verbosity normal
+          for project in \
+            tests/Spamma.App.Tests/Spamma.App.Tests.csproj \
+            tests/Spamma.Modules.DomainManagement.Tests/Spamma.Modules.DomainManagement.Tests.csproj \
+            tests/Spamma.Modules.EmailInbox.Tests/Spamma.Modules.EmailInbox.Tests.csproj \
+            tests/Spamma.Modules.EmailInbox.Tests.E2E/Spamma.Modules.EmailInbox.Tests.E2E.csproj \
+            tests/Spamma.Modules.UserManagement.Tests/Spamma.Modules.UserManagement.Tests.csproj
+          do
+            name=$(basename "$project" .csproj)
+            dotnet test "$project" \
+              --configuration Release \
+              --logger "trx;LogFileName=${name}.trx" \
+              --collect:"XPlat Code Coverage" \
+              --results-directory test-results \
+              --no-build \
+              --verbosity normal
+          done
         env:
           TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
           TESTCONTAINERS_RYUK_DISABLED: true
