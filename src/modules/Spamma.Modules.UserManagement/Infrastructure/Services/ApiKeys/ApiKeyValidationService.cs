@@ -6,6 +6,17 @@ namespace Spamma.Modules.UserManagement.Infrastructure.Services.ApiKeys;
 
 internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDistributedCache cache) : IApiKeyValidationService
 {
+    public async Task<Guid?> GetApiKeyOwnerIdAsync(string apiKey, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return null;
+        }
+
+        var key = await apiKeyRepository.GetByPlainKeyAsync(apiKey, cancellationToken);
+        return key.HasValue && key.Value.IsActive && key.Value.UserId != Guid.Empty ? key.Value.UserId : null;
+    }
+
     public async Task<bool> ValidateApiKeyAsync(string apiKey, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(apiKey))

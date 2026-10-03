@@ -14,6 +14,30 @@ namespace Spamma.Modules.UserManagement.Tests.Infrastructure.Services.ApiKeys;
 public class ApiKeyValidationServiceTests
 {
     [Fact]
+    public async Task GetApiKeyOwnerIdAsync_ReturnsOwnerOnlyForActiveKey()
+    {
+        var services = new ServiceCollection();
+        services.AddDistributedMemoryCache();
+        using var serviceProvider = services.BuildServiceProvider();
+        var key = "sk-owner-test";
+        var ownerId = Guid.NewGuid();
+        var apiKey = ApiKey.Create(
+            Guid.NewGuid(), ownerId, "test", "prefix",
+            BCrypt.Net.BCrypt.HashPassword(key), DateTime.UtcNow).Value;
+        var repository = new Mock<IApiKeyRepository>();
+        repository.Setup(x => x.GetByPlainKeyAsync(key, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(apiKey));
+        var service = new ApiKeyValidationService(
+            repository.Object,
+            serviceProvider.GetRequiredService<IDistributedCache>());
+
+        Assert.Equal(ownerId, await service.GetApiKeyOwnerIdAsync(key));
+
+        apiKey.Revoke(DateTime.UtcNow);
+        Assert.Null(await service.GetApiKeyOwnerIdAsync(key));
+    }
+
+    [Fact]
     public async Task ValidateApiKeyAsync_FindsPlainKey_ReturnsTrue()
     {
         // Arrange - Use in-memory cache for integration testing

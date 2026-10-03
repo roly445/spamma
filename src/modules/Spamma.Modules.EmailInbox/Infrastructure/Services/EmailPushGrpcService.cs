@@ -8,6 +8,7 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 public sealed class EmailPushGrpcService(
     PushNotificationManager pushNotificationManager,
     IApiKeyValidationService apiKeyValidationService,
+    IEmailNotificationAccessService emailAccessService,
     ILogger<EmailPushGrpcService> logger)
     : global::Spamma.Modules.EmailInbox.Client.Application.Grpc.EmailPushService.EmailPushServiceBase
 {
@@ -24,8 +25,8 @@ public sealed class EmailPushGrpcService(
             throw new RpcException(new Status(StatusCode.Unauthenticated, "API key is required"));
         }
 
-        var isValid = await apiKeyValidationService.ValidateApiKeyAsync(apiKey, context.CancellationToken);
-        if (!isValid)
+        var ownerId = await apiKeyValidationService.GetApiKeyOwnerIdAsync(apiKey, context.CancellationToken);
+        if (!ownerId.HasValue)
         {
             logger.LogWarning("SubscribeToEmails: Invalid API key");
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid API key"));
@@ -40,7 +41,7 @@ public sealed class EmailPushGrpcService(
             await pushNotificationManager.RegisterConnectionAsync(
                 connectionId,
                 responseStream,
-                Guid.Empty, // User ID would be extracted from API key if needed for filtering
+                ownerId.Value,
                 context);
 
             // Keep the connection alive until cancellation
@@ -68,8 +69,8 @@ public sealed class EmailPushGrpcService(
             throw new RpcException(new Status(StatusCode.Unauthenticated, "API key is required"));
         }
 
-        var isValid = await apiKeyValidationService.ValidateApiKeyAsync(apiKey, context.CancellationToken);
-        if (!isValid)
+        var ownerId = await apiKeyValidationService.GetApiKeyOwnerIdAsync(apiKey, context.CancellationToken);
+        if (!ownerId.HasValue)
         {
             logger.LogWarning("GetEmailContent: Invalid API key");
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid API key"));
@@ -86,6 +87,11 @@ public sealed class EmailPushGrpcService(
         {
             logger.LogWarning("GetEmailContent: Invalid email ID format: {EmailId}", request.EmailId);
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid email ID format"));
+        }
+
+        if (!await emailAccessService.CanAccessEmailAsync(ownerId.Value, emailId, context.CancellationToken))
+        {
+            throw new RpcException(new Status(StatusCode.PermissionDenied, "Email access denied"));
         }
 
         logger.LogInformation("GetEmailContent requested for email: {EmailId}", emailId);
