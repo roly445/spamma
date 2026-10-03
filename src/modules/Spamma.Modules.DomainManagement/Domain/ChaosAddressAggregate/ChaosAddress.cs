@@ -15,7 +15,7 @@ public partial class ChaosAddress : AggregateRoot
     private readonly List<ChaosAddressSuspensionAudit> _suspensionAudits = new();
     private DateTimeOffset? _lastReceivedAt;
 
-    public ChaosAddress()
+    private ChaosAddress()
     {
     }
 

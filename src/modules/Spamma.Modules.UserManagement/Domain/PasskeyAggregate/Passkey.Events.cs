@@ -7,6 +7,13 @@ namespace Spamma.Modules.UserManagement.Domain.PasskeyAggregate;
 /// </summary>
 public partial class Passkey
 {
+    public static Passkey Create(PasskeyRegistered @event)
+    {
+        var passkey = new Passkey();
+        passkey.Apply(@event);
+        return passkey;
+    }
+
     public void Apply(PasskeyRegistered @event)
     {
         this.Id = @event.PasskeyId;

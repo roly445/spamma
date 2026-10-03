@@ -7,6 +7,13 @@ namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 /// </summary>
 public partial class ChaosAddress
 {
+    public static ChaosAddress Create(ChaosAddressCreated @event)
+    {
+        var address = new ChaosAddress();
+        address.Apply(@event);
+        return address;
+    }
+
     public static void Apply(ChaosAddressDeleted @event)
     {
         _ = @event;

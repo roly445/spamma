@@ -5,6 +5,13 @@ namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 /// </summary>
 public partial class Campaign
 {
+    public static Campaign Create(Events.CampaignCreated @event)
+    {
+        var campaign = new Campaign();
+        campaign.Apply(@event);
+        return campaign;
+    }
+
     public void Apply(Events.CampaignCreated @event)
     {
         this.Id = @event.CampaignId;

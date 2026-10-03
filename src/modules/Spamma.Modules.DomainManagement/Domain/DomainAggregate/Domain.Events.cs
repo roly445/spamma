@@ -7,6 +7,13 @@ namespace Spamma.Modules.DomainManagement.Domain.DomainAggregate;
 /// </summary>
 public partial class Domain
 {
+    public static Domain Create(DomainCreated @event)
+    {
+        var domain = new Domain();
+        domain.Apply(@event);
+        return domain;
+    }
+
     public void Apply(ModerationUserRemoved @event)
     {
         this._moderationUsers.First(x => x.UserId == @event.UserId && !x.RemovedAt.HasValue)

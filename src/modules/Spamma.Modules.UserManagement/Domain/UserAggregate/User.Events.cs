@@ -7,6 +7,13 @@ namespace Spamma.Modules.UserManagement.Domain.UserAggregate;
 /// </summary>
 public partial class User
 {
+    public static User Create(UserCreated @event)
+    {
+        var user = new User();
+        user.Apply(@event);
+        return user;
+    }
+
     public void Apply(UserCreated created)
     {
         this.Id = created.UserId;

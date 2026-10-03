@@ -16,7 +16,7 @@ public partial class Email : AggregateRoot
     private DateTime? _deletedAt;
     private Guid? _campaignId;
 
-    public Email()
+    private Email()
     {
     }
 

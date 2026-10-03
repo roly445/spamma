@@ -7,6 +7,13 @@ namespace Spamma.Modules.DomainManagement.Domain.SubdomainAggregate;
 /// </summary>
 public partial class Subdomain
 {
+    public static Subdomain Create(SubdomainCreated @event)
+    {
+        var subdomain = new Subdomain();
+        subdomain.Apply(@event);
+        return subdomain;
+    }
+
     public void Apply(MxRecordChecked @event)
     {
         this._mxRecordChecks.Add(new MxRecordCheck(@event.LastCheckedAt, @event.MxStatus));

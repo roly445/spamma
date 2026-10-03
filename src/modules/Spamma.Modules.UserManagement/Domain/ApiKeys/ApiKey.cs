@@ -13,7 +13,7 @@ public sealed partial class ApiKey : AggregateRoot
 {
     private DateTime? _revokedAt;
 
-    public ApiKey()
+    private ApiKey()
     {
     }
 

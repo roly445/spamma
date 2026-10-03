@@ -7,6 +7,13 @@ namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 /// </summary>
 public partial class ApiKey
 {
+    public static ApiKey Create(ApiKeyCreated @event)
+    {
+        var apiKey = new ApiKey();
+        apiKey.Apply(@event);
+        return apiKey;
+    }
+
     public void Apply(ApiKeyCreated @event)
     {
         this.Id = @event.ApiKeyId;
