@@ -11,7 +11,7 @@ using DomainModerationUserRemoved = Spamma.Modules.DomainManagement.Domain.Domai
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
-internal class DomainLookupProjection : EventProjection
+internal partial class DomainLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public DomainLookup Create(DomainCreated @event)

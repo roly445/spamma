@@ -1,4 +1,4 @@
-﻿using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
+using Spamma.Modules.UserManagement.Domain.ApiKeys.Events;
 
 namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 
@@ -7,20 +7,32 @@ namespace Spamma.Modules.UserManagement.Domain.ApiKeys;
 /// </summary>
 public partial class ApiKey
 {
+    internal static ApiKey Replay(ApiKey? aggregate, object @event)
+    {
+        if (aggregate is null && @event is not ApiKeyCreated)
+        {
+            throw new ArgumentException("The first event must be ApiKeyCreated.", nameof(@event));
+        }
+
+        aggregate ??= new ApiKey();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
+    }
+
     protected override void ApplyEvent(object @event)
     {
         switch (@event)
         {
             case ApiKeyCreated createdEvent:
-                this.Apply(createdEvent);
+                this.ApplyRecorded(createdEvent);
                 break;
             case ApiKeyRevoked revokedEvent:
-                this.Apply(revokedEvent);
+                this.ApplyRecorded(revokedEvent);
                 break;
         }
     }
 
-    private void Apply(ApiKeyCreated @event)
+    private void ApplyRecorded(ApiKeyCreated @event)
     {
         this.Id = @event.ApiKeyId;
         this.UserId = @event.UserId;
@@ -31,7 +43,7 @@ public partial class ApiKey
         this.ExpiresAt = @event.ExpiresAt;
     }
 
-    private void Apply(ApiKeyRevoked @event)
+    private void ApplyRecorded(ApiKeyRevoked @event)
     {
         this._revokedAt = @event.RevokedAt;
     }

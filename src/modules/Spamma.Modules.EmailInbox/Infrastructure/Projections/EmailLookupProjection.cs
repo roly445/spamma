@@ -8,7 +8,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Projections;
 
-public class EmailLookupProjection : EventProjection
+public partial class EmailLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public void Project(IEvent<EmailReceived> @event, IDocumentOperations ops)

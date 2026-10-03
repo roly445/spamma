@@ -8,7 +8,7 @@ using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.UserManagement.Infrastructure.Projections;
 
-public class PasskeyProjection : EventProjection
+public partial class PasskeyProjection : EventProjection
 {
     [UsedImplicitly]
     public PasskeyLookup Create(PasskeyRegistered @event, IEvent eventMeta)

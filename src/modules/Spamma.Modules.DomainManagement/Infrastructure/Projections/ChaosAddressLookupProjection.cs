@@ -8,7 +8,7 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
-internal class ChaosAddressLookupProjection : EventProjection
+internal partial class ChaosAddressLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public ChaosAddressLookup Create(ChaosAddressCreated @event)

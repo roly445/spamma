@@ -8,7 +8,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Projections;
 
-public class CatchAllSenderAddressLookupProjection : EventProjection
+public partial class CatchAllSenderAddressLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public CatchAllSenderAddressLookup Create(CatchAllSenderAddressAdded @event)

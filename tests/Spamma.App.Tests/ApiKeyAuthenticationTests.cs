@@ -1,9 +1,14 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Spamma.App;
+using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 using Xunit;
 
 namespace Spamma.App.Tests;
@@ -120,10 +125,50 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
     }
 }
 
-public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>
+public class TestWebApplicationFactory : WebApplicationFactory<Spamma.App.Infrastructure.Middleware.SetupModeMiddleware>, IAsyncLifetime
 {
+    private const string PostgresConnectionKey = "ConnectionStrings__DefaultConnection";
+    private const string RedisConnectionKey = "ConnectionStrings__Redis";
+
+    private string? _originalPostgresConnection;
+    private string? _originalRedisConnection;
+
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
+        .WithDatabase("spamma_app_test")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
+
+    private readonly RedisContainer _redis = new RedisBuilder()
+        .WithImage("redis:7-alpine")
+        .Build();
+
+    public async Task InitializeAsync()
+    {
+        await _postgres.StartAsync();
+        await _redis.StartAsync();
+
+        _originalPostgresConnection = Environment.GetEnvironmentVariable(PostgresConnectionKey);
+        _originalRedisConnection = Environment.GetEnvironmentVariable(RedisConnectionKey);
+        Environment.SetEnvironmentVariable(PostgresConnectionKey, _postgres.GetConnectionString());
+        Environment.SetEnvironmentVariable(RedisConnectionKey, _redis.GetConnectionString());
+    }
+
+    async Task IAsyncLifetime.DisposeAsync()
+    {
+        Dispose();
+        Environment.SetEnvironmentVariable(PostgresConnectionKey, _originalPostgresConnection);
+        Environment.SetEnvironmentVariable(RedisConnectionKey, _originalRedisConnection);
+        await _redis.DisposeAsync();
+        await _postgres.DisposeAsync();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseContentRoot(Directory.GetCurrentDirectory());
+        builder.ConfigureTestServices(services =>
+            services.AddDataProtection().PersistKeysToFileSystem(
+                new DirectoryInfo(Path.Combine(Path.GetTempPath(), "spamma-app-tests-keys"))));
     }
 }

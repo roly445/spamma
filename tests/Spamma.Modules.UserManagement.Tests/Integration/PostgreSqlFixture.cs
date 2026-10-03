@@ -33,6 +33,7 @@ public class PostgreSqlFixture : IAsyncLifetime
         services.AddMarten(opts =>
         {
             opts.Connection(this.ConnectionString);
+            opts.RestoreV8Defaults();
             opts.DatabaseSchemaName = "public";
 
             // Configure UserManagement projections and document identity mappings

@@ -16,6 +16,10 @@ public partial class Subdomain : AggregateRoot
     private readonly List<SubdomainSuspensionAudit> _suspensionAudits = new();
     private readonly List<MxRecordCheck> _mxRecordChecks = new();
 
+    private Subdomain()
+    {
+    }
+
     public override Guid Id { get; protected set; }
 
     internal DateTime CreatedAt { get; private set; }

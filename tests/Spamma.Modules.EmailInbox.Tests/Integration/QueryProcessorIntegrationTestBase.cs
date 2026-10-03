@@ -42,9 +42,10 @@ public class QueryProcessorIntegrationTestBase : IAsyncLifetime
         services.AddMarten(opts =>
         {
             opts.Connection(this._fixture.ConnectionString!);
+            opts.RestoreV8Defaults();
             opts.DatabaseSchemaName = "public";
             Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(opts);
-        });
+        }).UseIdentitySessions();
 
         services.AddEmailInbox();
 

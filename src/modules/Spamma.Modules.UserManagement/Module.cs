@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Spamma.Modules.Common.Infrastructure;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Application.Services;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
@@ -81,6 +82,9 @@ public static class Module
 
         options.UseSystemTextJsonForSerialization(jsonOptions);
 
+        options.Projections.Add(new AggregateReplayProjection<Domain.UserAggregate.User>(Domain.UserAggregate.User.Replay), ProjectionLifecycle.Live);
+        options.Projections.Add(new AggregateReplayProjection<Domain.PasskeyAggregate.Passkey>(Domain.PasskeyAggregate.Passkey.Replay), ProjectionLifecycle.Live);
+        options.Projections.Add(new AggregateReplayProjection<Domain.ApiKeys.ApiKey>(Domain.ApiKeys.ApiKey.Replay), ProjectionLifecycle.Live);
         options.Projections.Add<UserLookupProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<PasskeyProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<ApiKeyProjection>(ProjectionLifecycle.Inline);

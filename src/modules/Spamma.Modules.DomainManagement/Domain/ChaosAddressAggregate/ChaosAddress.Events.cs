@@ -7,36 +7,48 @@ namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 /// </summary>
 public partial class ChaosAddress
 {
+    internal static ChaosAddress Replay(ChaosAddress? aggregate, object @event)
+    {
+        if (aggregate is null && @event is not ChaosAddressCreated)
+        {
+            throw new ArgumentException("The first event must be ChaosAddressCreated.", nameof(@event));
+        }
+
+        aggregate ??= new ChaosAddress();
+        aggregate.ApplyEvent(@event);
+        return aggregate;
+    }
+
     protected override void ApplyEvent(object @event)
     {
         switch (@event)
         {
             case ChaosAddressCreated e:
-                this.Apply(e);
+                this.ApplyRecorded(e);
                 break;
             case ChaosAddressEnabled e:
-                this.Apply(e);
+                this.ApplyRecorded(e);
                 break;
             case ChaosAddressDisabled e:
-                this.Apply(e);
+                this.ApplyRecorded(e);
                 break;
             case ChaosAddressReceived e:
-                this.Apply(e);
+                this.ApplyRecorded(e);
                 break;
             case ChaosAddressDeleted e:
-                Apply(e);
+                ApplyRecorded(e);
                 break;
             default:
                 throw new ArgumentException($"Unknown event type: {@event.GetType().Name}");
         }
     }
 
-    private static void Apply(ChaosAddressDeleted @event)
+    private static void ApplyRecorded(ChaosAddressDeleted @event)
     {
         _ = @event;
     }
 
-    private void Apply(ChaosAddressCreated @event)
+    private void ApplyRecorded(ChaosAddressCreated @event)
     {
         _ = @event;
         this.Id = @event.Id;
@@ -49,19 +61,19 @@ public partial class ChaosAddress
         this._lastReceivedAt = null;
     }
 
-    private void Apply(ChaosAddressEnabled @event)
+    private void ApplyRecorded(ChaosAddressEnabled @event)
     {
         this._suspensionAudits.Add(ChaosAddressSuspensionAudit.CreateSuspension(@event.EnabledAt));
         this.Enabled = true;
     }
 
-    private void Apply(ChaosAddressDisabled @event)
+    private void ApplyRecorded(ChaosAddressDisabled @event)
     {
         this._suspensionAudits.Add(ChaosAddressSuspensionAudit.CreateUnsuspension(@event.DisabledAt));
         this.Enabled = false;
     }
 
-    private void Apply(ChaosAddressReceived @event)
+    private void ApplyRecorded(ChaosAddressReceived @event)
     {
         this.TotalReceived += 1;
         this._lastReceivedAt = @event.ReceivedAt;

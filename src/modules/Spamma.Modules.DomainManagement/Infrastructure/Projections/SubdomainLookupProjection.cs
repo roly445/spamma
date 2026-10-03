@@ -11,7 +11,7 @@ using SubdomainModerationUserRemoved = Spamma.Modules.DomainManagement.Domain.Su
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
-internal class SubdomainLookupProjection : EventProjection
+internal partial class SubdomainLookupProjection : EventProjection
 {
     [UsedImplicitly]
     public async Task<SubdomainLookup> Create(SubdomainCreated @event, IDocumentOperations ops)
