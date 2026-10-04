@@ -1,3 +1,4 @@
+using BluQube.Constants;
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
@@ -66,7 +67,7 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
     }
 
     [Fact]
-    public async Task Handle_WithDeletedEmail_StillReturnsEmail()
+    public async Task Handle_WithDeletedEmail_DeniesAccess()
     {
         // Arrange
         var emailId = Guid.NewGuid();
@@ -95,10 +96,8 @@ public class GetEmailByIdQueryProcessorTests : QueryProcessorIntegrationTestBase
         // Act
         var result = await this.Sender.Send(query);
 
-        // Assert - GetEmailByIdQuery doesn't filter deleted emails
-        result.Data.Should().NotBeNull();
-        result.Data.Id.Should().Be(emailId);
-        result.Data.Subject.Should().Be("Deleted Email");
+        // Assert
+        result.Status.Should().Be(QueryResultStatus.Unauthorized);
     }
 
     [Fact]

@@ -13,8 +13,18 @@ public sealed partial class AnonymousAccessSteps
     private IBrowser? browser;
     private IBrowserContext? context;
     private IPage? page;
+    private readonly List<IVideo> additionalVideos = [];
 
     private IPage Page => this.page ?? throw new InvalidOperationException("Browser scenario has not started.");
+
+    private static string GetScenarioArtifactName(ScenarioContext scenarioContext)
+    {
+        var values = scenarioContext.ScenarioInfo.Arguments.Values.Cast<object?>()
+            .Take(2)
+            .Select(value => value?.ToString());
+        var name = string.Join("-", new[] { scenarioContext.ScenarioInfo.Title }.Concat(values));
+        return Regex.Replace(name, "[^A-Za-z0-9]+", "-").Trim('-');
+    }
 
     [BeforeScenario]
     public async Task StartBrowserAsync()
@@ -38,6 +48,13 @@ public sealed partial class AnonymousAccessSteps
                 ? null
                 : new RecordVideoSize { Width = 1280, Height = 720 },
         });
+        this.context.Page += (_, openedPage) =>
+        {
+            if (this.page is not null && openedPage.Video is { } popupVideo)
+            {
+                this.additionalVideos.Add(popupVideo);
+            }
+        };
         await this.context.Tracing.StartAsync(new TracingStartOptions
         {
             Screenshots = true,
@@ -57,7 +74,7 @@ public sealed partial class AnonymousAccessSteps
                 var outputDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_RESULTS_DIR")
                     ?? Path.Combine(Directory.GetCurrentDirectory(), "browser-test-results");
                 Directory.CreateDirectory(outputDirectory);
-                var safeName = Regex.Replace(scenarioContext.ScenarioInfo.Title, "[^A-Za-z0-9]+", "-").Trim('-');
+                var safeName = GetScenarioArtifactName(scenarioContext);
                 await this.context.Tracing.StopAsync(new TracingStopOptions
                 {
                     Path = Path.Combine(outputDirectory, $"{safeName}.zip"),
@@ -81,9 +98,19 @@ public sealed partial class AnonymousAccessSteps
             if (video is not null && !string.IsNullOrWhiteSpace(videoDirectory))
             {
                 Directory.CreateDirectory(videoDirectory);
-                var safeName = Regex.Replace(scenarioContext.ScenarioInfo.Title, "[^A-Za-z0-9]+", "-").Trim('-');
+                var safeName = GetScenarioArtifactName(scenarioContext);
                 await video.SaveAsAsync(Path.Combine(videoDirectory, $"{safeName}.webm"));
                 await video.DeleteAsync();
+                for (var index = 0; index < this.additionalVideos.Count; index++)
+                {
+                    var popupVideo = this.additionalVideos[index];
+                    if (scenarioContext.ScenarioInfo.Title.Contains("PDF", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await popupVideo.SaveAsAsync(Path.Combine(videoDirectory, $"{safeName}-print-preview.webm"));
+                    }
+
+                    await popupVideo.DeleteAsync();
+                }
             }
         }
 

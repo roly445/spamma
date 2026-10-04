@@ -300,6 +300,9 @@ public sealed partial class AnonymousAccessSteps
     {
         await this.GivenIHaveEnteredTheSetupWizardAsync();
         await SeedRequiredConfigurationAsync(includeAdmin: true);
+        await SetConfigurationAsync("security.signingKey", "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+        await SetConfigurationAsync("smtp.host", "127.0.0.1");
+        await SetConfigurationAsync("smtp.port", "2527");
         await this.Page.GotoAsync("/setup/complete");
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Spamma Setup Complete" })).ToBeVisibleAsync();
     }

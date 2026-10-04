@@ -118,6 +118,7 @@ public partial class VerifyLogin(
             IsSuspended = userResult.Data.IsSuspended,
             ModeratedDomains = userResult.Data.ModeratedDomains.ToList(),
             ModeratedSubdomains = userResult.Data.ModeratedSubdomains.ToList(),
+            ViewableSubdomains = userResult.Data.ViewableSubdomains.ToList(),
             SystemRole = userResult.Data.SystemRole,
             EmailAddress = userResult.Data.EmailAddress,
             Name = userResult.Data.Name,

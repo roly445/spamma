@@ -13,6 +13,11 @@ internal static class EmailAccessAuthorizer
         IDocumentSession documentSession,
         CancellationToken cancellationToken)
     {
+        if (email.DeletedAt.HasValue)
+        {
+            return false;
+        }
+
         if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
             user.ModeratedDomains.Contains(email.DomainId) ||
             user.ModeratedSubdomains.Contains(email.SubdomainId) ||
