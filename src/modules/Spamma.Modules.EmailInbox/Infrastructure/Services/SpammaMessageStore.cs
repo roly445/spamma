@@ -11,22 +11,24 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-public class SpammaMessageStore(PushNotificationManager pushNotificationManager) : MessageStore
+public class SpammaMessageStore : MessageStore
 {
+    private const string TemporaryStorageFailureMessage = "Temporary storage failure";
+
     public override async Task<SmtpResponse> SaveAsync(
         ISessionContext context,
         IMessageTransaction transaction,
         ReadOnlySequence<byte> buffer,
         CancellationToken cancellationToken)
     {
-        var scope = context.ServiceProvider.CreateScope();
+        using var scope = context.ServiceProvider.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SpammaMessageStore>>();
         var subdomainCache = scope.ServiceProvider.GetRequiredService<ISubdomainCache>();
         var chaosAddressCache = scope.ServiceProvider.GetRequiredService<IChaosAddressCache>();
         var backgroundTaskQueue = scope.ServiceProvider.GetRequiredService<IBackgroundTaskQueue>();
         var catchAllSenderAddressCache = scope.ServiceProvider.GetRequiredService<ICatchAllSenderAddressCache>();
 
-        var memoryStream = new MemoryStream((int)buffer.Length);
+        using var memoryStream = new MemoryStream((int)buffer.Length);
         var position = buffer.GetPosition(0);
         while (buffer.TryGet(ref position, out var memory))
         {
@@ -68,11 +70,15 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
             if (chaosAddress.HasValue)
             {
                 var code = chaosAddress.Value.ConfiguredSmtpCode;
-                backgroundTaskQueue.QueueBackgroundWorkItem(new ChaosEmailCaptureJob(
+                if (!TryQueue(backgroundTaskQueue, new ChaosEmailCaptureJob(
                     memoryStream,
                     chaosAddress.Value.DomainId,
                     chaosAddress.Value.SubdomainId,
-                    chaosAddress.Value.ChaosAddressId));
+                    chaosAddress.Value.ChaosAddressId), logger))
+                {
+                    return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+                }
+
                 return new SmtpResponse((SmtpReplyCode)(int)code, code.ToString());
             }
 
@@ -107,13 +113,16 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
             }
 
             var catchAllMessageId = Guid.NewGuid();
-            backgroundTaskQueue.QueueBackgroundWorkItem(new CatchAllEmailCaptureJob(
+            if (!TryQueue(backgroundTaskQueue, new CatchAllEmailCaptureJob(
                 memoryStream,
                 CatchAllConstants.DomainId,
                 CatchAllConstants.SubdomainId,
                 catchAllMessageId,
                 cachedSender.SenderAddressId,
-                campaignHeader));
+                campaignHeader), logger))
+            {
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+            }
 
             return SmtpResponse.Ok;
         }
@@ -122,31 +131,34 @@ public class SpammaMessageStore(PushNotificationManager pushNotificationManager)
 
         if (string.IsNullOrWhiteSpace(campaignHeader))
         {
-            backgroundTaskQueue.QueueBackgroundWorkItem(new StandardEmailCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId, messageId));
+            if (!TryQueue(backgroundTaskQueue, new StandardEmailCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId, messageId), logger))
+            {
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+            }
         }
         else
         {
-            backgroundTaskQueue.QueueBackgroundWorkItem(new CampaignCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId));
+            if (!TryQueue(backgroundTaskQueue, new CampaignCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId, messageId), logger))
+            {
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+            }
         }
-
-        if (!string.IsNullOrWhiteSpace(campaignHeader))
-        {
-            return SmtpResponse.Ok;
-        }
-
-        // Notify push integrations
-        await pushNotificationManager.NotifyEmailAsync(
-            new PushNotificationManager.EmailDetails(
-                messageId,
-                foundValidSubdomain.SubdomainId,
-                message.From?.ToString() ?? string.Empty,
-                recipients.FirstOrDefault()?.Address ?? string.Empty,
-                message.Subject ?? string.Empty,
-                message.TextBody ?? message.HtmlBody ?? string.Empty,
-                DateTimeOffset.Now,
-                DomainId: foundValidSubdomain.DomainId),
-            cancellationToken);
 
         return SmtpResponse.Ok;
+    }
+
+    private static bool TryQueue(IBackgroundTaskQueue queue, IBaseEmailCaptureJob job, ILogger<SpammaMessageStore> logger)
+    {
+        try
+        {
+            queue.QueueBackgroundWorkItem(job);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "SMTP capture was not durably queued for domain {DomainId}, subdomain {SubdomainId}", job.DomainId, job.SubdomainId);
+            EmailCaptureMetrics.QueueFailures.Add(1);
+            return false;
+        }
     }
 }

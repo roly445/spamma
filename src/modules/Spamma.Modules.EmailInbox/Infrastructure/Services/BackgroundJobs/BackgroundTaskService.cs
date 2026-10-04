@@ -1,9 +1,11 @@
 ﻿using BluQube.Commands;
 using BluQube.Constants;
+using DotNetCore.CAP;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MimeKit;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
+using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Contracts;
@@ -11,24 +13,61 @@ using Spamma.Modules.EmailInbox.Client.Contracts;
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
 public class BackgroundTaskService(
-    IBackgroundTaskQueue taskQueue,
-    IServiceProvider serviceProvider,
-    PushNotificationManager pushNotificationManager) : BackgroundService
+    IServiceScopeFactory scopeFactory,
+    PushNotificationManager pushNotificationManager,
+    ILogger<BackgroundTaskService> logger) : ICapSubscribe
 {
+    [CapSubscribe(BackgroundTaskQueue.CaptureTopic)]
+    public async Task ProcessAsync(EmailCaptureEnvelope envelope, CancellationToken cancellationToken)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var commander = scope.ServiceProvider.GetRequiredService<ICommandRunner>();
+        var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
+        var emailRepository = scope.ServiceProvider.GetRequiredService<IEmailRepository>();
+
+        await ProcessWorkItemAsync(
+            envelope.ToJob(), commander, messageStoreProvider, cancellationToken,
+            pushNotificationManager, logger, emailRepository);
+    }
+
     internal static async Task ProcessWorkItemAsync(
         IBaseEmailCaptureJob workItem,
         ICommandRunner commander,
         IMessageStoreProvider messageStoreProvider,
         CancellationToken cancellationToken,
-        PushNotificationManager? pushNotificationManager = null)
+        PushNotificationManager? pushNotificationManager = null,
+        ILogger<BackgroundTaskService>? logger = null,
+        IEmailRepository? emailRepository = null)
     {
-        var messageId = Guid.NewGuid();
+        var messageId = workItem switch
+        {
+            StandardEmailCaptureJob standard => standard.MessageId,
+            CatchAllEmailCaptureJob catchAll => catchAll.MessageId,
+            CampaignCaptureJob campaign when campaign.MessageId != Guid.Empty => campaign.MessageId,
+            ChaosEmailCaptureJob chaos when chaos.MessageId != Guid.Empty => chaos.MessageId,
+            _ => Guid.NewGuid(),
+        };
 
         try
         {
             workItem.MimeStream.Position = 0;
 
             var message = await MimeMessage.LoadAsync(workItem.MimeStream, cancellationToken);
+            if (emailRepository is not null && workItem is StandardEmailCaptureJob or CatchAllEmailCaptureJob or CampaignCaptureJob)
+            {
+                var existingMessageId = workItem switch
+                {
+                    StandardEmailCaptureJob standard => standard.MessageId,
+                    CatchAllEmailCaptureJob catchAll => catchAll.MessageId,
+                    _ => messageId,
+                };
+                var existing = await emailRepository.GetByIdAsync(existingMessageId, cancellationToken);
+                if (existing.HasValue)
+                {
+                    return;
+                }
+            }
+
             switch (workItem)
             {
                 case CampaignCaptureJob:
@@ -47,14 +86,19 @@ public class BackgroundTaskService(
                     {
                         if (result.Data.IsFirstEmail)
                         {
-                            await ExtractEmailAddressesAndSendCommand(campaignMessageId, message, commander,
+                            var sampleSaved = await ExtractEmailAddressesAndSendCommand(campaignMessageId, message, commander,
                                 messageStoreProvider, workItem, result.Data.CampaignId,
                                 cancellationToken: cancellationToken);
+                            if (!sampleSaved)
+                            {
+                                throw new InvalidOperationException($"Could not persist campaign sample email {campaignMessageId}.");
+                            }
                         }
 
                         if (pushNotificationManager is not null)
                         {
-                            await pushNotificationManager.NotifyEmailAsync(
+                            await NotifySafelyAsync(
+                                pushNotificationManager,
                                 new PushNotificationManager.EmailDetails(
                                     campaignMessageId,
                                     workItem.SubdomainId,
@@ -66,17 +110,26 @@ public class BackgroundTaskService(
                                     result.Data.CampaignId,
                                     campaignValue,
                                     DomainId: workItem.DomainId),
-                                cancellationToken);
+                                logger, cancellationToken);
                         }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Could not record campaign capture {campaignMessageId}: {result.Status}.");
                     }
 
                     break;
                 }
 
                 case ChaosEmailCaptureJob captureJob:
-                    await commander.Send(
+                    var chaosResult = await commander.Send(
                         new RecordChaosAddressReceivedCommand(captureJob.ChaosAddressId, message.Date),
                         cancellationToken);
+                    if (chaosResult.Status != CommandResultStatus.Succeeded)
+                    {
+                        throw new InvalidOperationException($"Could not record chaos address capture {captureJob.ChaosAddressId}: {chaosResult.Status}.");
+                    }
+
                     break;
                 case CatchAllEmailCaptureJob catchAllJob:
                     Guid? campaignId = null;
@@ -95,6 +148,10 @@ public class BackgroundTaskService(
                         {
                             campaignId = campaignCaptureResult.Data.CampaignId;
                         }
+                        else
+                        {
+                            throw new InvalidOperationException($"Could not record catch-all campaign capture {catchAllJob.MessageId}: {campaignCaptureResult.Status}.");
+                        }
                     }
 
                     var saved = await ExtractEmailAddressesAndSendCommand(catchAllJob.MessageId, message, commander,
@@ -102,10 +159,15 @@ public class BackgroundTaskService(
                         isCatchAll: true,
                         catchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId,
                         cancellationToken: cancellationToken);
-
-                    if (saved && pushNotificationManager is not null)
+                    if (!saved)
                     {
-                        await pushNotificationManager.NotifyEmailAsync(
+                        throw new InvalidOperationException($"Could not persist catch-all email {catchAllJob.MessageId}.");
+                    }
+
+                    if (pushNotificationManager is not null)
+                    {
+                        await NotifySafelyAsync(
+                            pushNotificationManager,
                             new PushNotificationManager.EmailDetails(
                                 catchAllJob.MessageId,
                                 catchAllJob.SubdomainId,
@@ -119,19 +181,43 @@ public class BackgroundTaskService(
                                 IsCatchAll: true,
                                 DomainId: catchAllJob.DomainId,
                                 CatchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId),
-                            cancellationToken);
+                            logger, cancellationToken);
                     }
 
                     break;
                 case StandardEmailCaptureJob standardJob:
-                    await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
+                    var standardSaved = await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
                         messageStoreProvider, workItem, cancellationToken: cancellationToken);
+                    if (!standardSaved)
+                    {
+                        throw new InvalidOperationException($"Could not persist email {standardJob.MessageId}.");
+                    }
+
+                    if (pushNotificationManager is not null)
+                    {
+                        await NotifySafelyAsync(
+                            pushNotificationManager,
+                            new PushNotificationManager.EmailDetails(
+                                standardJob.MessageId,
+                                standardJob.SubdomainId,
+                                message.From?.ToString() ?? string.Empty,
+                                message.To.Mailboxes.FirstOrDefault()?.Address ?? string.Empty,
+                                message.Subject ?? string.Empty,
+                                message.TextBody ?? message.HtmlBody ?? string.Empty,
+                                DateTimeOffset.Now,
+                                DomainId: standardJob.DomainId),
+                            logger, cancellationToken);
+                    }
+
                     break;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log the exception if necessary
+            logger?.LogError(ex, "SMTP capture processing failed for {JobType}, domain {DomainId}, subdomain {SubdomainId}, message {MessageId}",
+                workItem.GetType().Name, workItem.DomainId, workItem.SubdomainId, messageId);
+            EmailCaptureMetrics.ProcessingFailures.Add(1);
+            throw new InvalidOperationException($"SMTP capture processing failed for {workItem.GetType().Name}, message {messageId}.", ex);
         }
         finally
         {
@@ -139,16 +225,19 @@ public class BackgroundTaskService(
         }
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    private static async Task NotifySafelyAsync(
+        PushNotificationManager manager,
+        PushNotificationManager.EmailDetails details,
+        ILogger<BackgroundTaskService>? logger,
+        CancellationToken cancellationToken)
     {
-        using var scope = serviceProvider.CreateScope();
-        var commander = scope.ServiceProvider.GetRequiredService<ICommandRunner>();
-        var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
-
-        while (!stoppingToken.IsCancellationRequested)
+        try
         {
-            var workItem = await taskQueue.DequeueAsync(stoppingToken);
-            await ProcessWorkItemAsync(workItem, commander, messageStoreProvider, stoppingToken, pushNotificationManager);
+            await manager.NotifyEmailAsync(details, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(ex, "Email {MessageId} was stored but its live notification failed", details.Id);
         }
     }
 
@@ -205,7 +294,6 @@ public class BackgroundTaskService(
 
         if (commandResult.Status != CommandResultStatus.Succeeded)
         {
-            await messageStoreProvider.DeleteMessageContentAsync(messageId, cancellationToken);
             return false;
         }
 

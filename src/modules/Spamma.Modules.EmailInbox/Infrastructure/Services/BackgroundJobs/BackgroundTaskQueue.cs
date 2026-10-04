@@ -1,28 +1,38 @@
-﻿using System.Collections.Concurrent;
+using DotNetCore.CAP;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
-public class BackgroundTaskQueue : IBackgroundTaskQueue
+public class BackgroundTaskQueue(ICapPublisher publisher) : IBackgroundTaskQueue
 {
-    private readonly ConcurrentQueue<IBaseEmailCaptureJob> _workItems = new();
-    private readonly SemaphoreSlim _signal = new(0);
+    public const string CaptureTopic = "spamma.smtp.capture";
 
     public void QueueBackgroundWorkItem(IBaseEmailCaptureJob workItem)
     {
-        if (workItem == null)
+        ArgumentNullException.ThrowIfNull(workItem);
+
+        using var stream = new MemoryStream();
+        workItem.MimeStream.Position = 0;
+        workItem.MimeStream.CopyTo(stream);
+        var content = stream.ToArray();
+
+        var envelope = workItem switch
         {
-            throw new ArgumentNullException(nameof(workItem));
-        }
+            StandardEmailCaptureJob standard => new EmailCaptureEnvelope(
+                standard.MessageId, EmailCaptureKind.Standard, content, standard.DomainId, standard.SubdomainId),
+            CampaignCaptureJob campaign => new EmailCaptureEnvelope(
+                campaign.MessageId == Guid.Empty ? Guid.NewGuid() : campaign.MessageId,
+                EmailCaptureKind.Campaign, content, campaign.DomainId, campaign.SubdomainId),
+            CatchAllEmailCaptureJob catchAll => new EmailCaptureEnvelope(
+                catchAll.MessageId, EmailCaptureKind.CatchAll, content, catchAll.DomainId, catchAll.SubdomainId,
+                CatchAllSenderAddressId: catchAll.CatchAllSenderAddressId, CampaignValue: catchAll.CampaignValue),
+            ChaosEmailCaptureJob chaos => new EmailCaptureEnvelope(
+                chaos.MessageId == Guid.Empty ? Guid.NewGuid() : chaos.MessageId,
+                EmailCaptureKind.Chaos, content, chaos.DomainId, chaos.SubdomainId,
+                ChaosAddressId: chaos.ChaosAddressId),
+            _ => throw new ArgumentException("Unknown email capture job.", nameof(workItem)),
+        };
 
-        this._workItems.Enqueue(workItem);
-        this._signal.Release();
-    }
-
-    public async Task<IBaseEmailCaptureJob> DequeueAsync(CancellationToken cancellationToken)
-    {
-        await this._signal.WaitAsync(cancellationToken);
-        this._workItems.TryDequeue(out var workItem);
-
-        return workItem!;
+        publisher.Publish(CaptureTopic, envelope);
+        workItem.MimeStream.Dispose();
     }
 }

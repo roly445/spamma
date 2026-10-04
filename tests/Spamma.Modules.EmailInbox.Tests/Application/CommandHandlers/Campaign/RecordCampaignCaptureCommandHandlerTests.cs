@@ -15,6 +15,28 @@ namespace Spamma.Modules.EmailInbox.Tests.Application.CommandHandlers.Campaign;
 public class RecordCampaignCaptureCommandHandlerTests
 {
     [Fact]
+    public async Task Handle_RetryOfFirstMessage_RemainsSampleWithoutExtraCapture()
+    {
+        var messageId = Guid.NewGuid();
+        var campaign = new CampaignBuilder().WithMessageId(messageId).Build();
+        var command = new RecordCampaignCaptureCommand(
+            campaign.DomainId, campaign.SubdomainId, messageId, campaign.CampaignValue, DateTimeOffset.UtcNow);
+        var repository = new Mock<ICampaignRepository>();
+        repository.Setup(x => x.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From<CampaignAggregate>(campaign));
+        repository.Setup(x => x.SaveAsync(It.IsAny<CampaignAggregate>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var handler = new RecordCampaignCaptureCommandHandler(
+            Array.Empty<IValidator<RecordCampaignCaptureCommand>>(),
+            Mock.Of<ILogger<RecordCampaignCaptureCommandHandler>>(), repository.Object, TimeProvider.System);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Data.IsFirstEmail.Should().BeTrue();
+        campaign.TotalCaptures.Should().Be(0);
+    }
+
+    [Fact]
     public async Task Handle_NewCampaign_Succeeds()
     {
         var cmd = new RecordCampaignCaptureCommand(

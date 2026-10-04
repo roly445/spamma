@@ -102,6 +102,7 @@ builder.Services.AddOpenTelemetry()
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
+            .AddMeter("Spamma.EmailCapture")
             .AddOtlpExporter(
                 (exporterOptions, readerOptions) =>
                 {
@@ -191,6 +192,8 @@ builder.Services.AddMarten(options =>
 
 builder.Services.AddCap(capOptions =>
 {
+    capOptions.FailedMessageExpiredAfter = 90 * 24 * 60 * 60;
+    capOptions.UseStorageLock = true;
     capOptions.UseRedis(builder.Configuration.GetConnectionString("Redis")!);
     capOptions.UsePostgreSql(connectionString);
     capOptions.UseDashboard();

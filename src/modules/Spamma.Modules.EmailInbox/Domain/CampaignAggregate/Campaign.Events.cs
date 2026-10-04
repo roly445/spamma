@@ -27,6 +27,9 @@ public partial class Campaign
             case Events.CampaignCaptured campaignCaptured:
                 this.ApplyRecorded(campaignCaptured);
                 break;
+            case Events.CampaignCapturedV2 campaignCapturedV2:
+                this.ApplyRecorded(campaignCapturedV2);
+                break;
             case Events.CampaignDeleted campaignDeleted:
                 this.ApplyRecorded(campaignDeleted);
                 break;
@@ -48,6 +51,13 @@ public partial class Campaign
     {
         this.TotalCaptures++;
         this.LastCapturedAt = @event.CapturedAt;
+    }
+
+    private void ApplyRecorded(Events.CampaignCapturedV2 @event)
+    {
+        this.TotalCaptures++;
+        this.LastCapturedAt = @event.CapturedAt;
+        this._capturedMessageIds.Add(@event.MessageId);
     }
 
     private void ApplyRecorded(Events.CampaignDeleted @event)

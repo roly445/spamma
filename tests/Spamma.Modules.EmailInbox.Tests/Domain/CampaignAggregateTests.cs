@@ -195,10 +195,41 @@ public class CampaignAggregateTests
 
         // Verify
         result.IsSuccess.Should().BeTrue();
-        campaign.ShouldHaveRaisedEvent<CampaignCaptured>(e =>
+        campaign.ShouldHaveRaisedEvent<CampaignCapturedV2>(e =>
         {
             e.CapturedAt.Should().Be(capturedAt);
+            e.MessageId.Should().Be(newMessageId);
         });
+    }
+
+    [Fact]
+    public void RecordCapture_ReplayedMessage_DoesNotIncrementCaptureCount()
+    {
+        var campaign = new Builders.CampaignBuilder().Build();
+        var messageId = Guid.NewGuid();
+
+        campaign.RecordCapture(messageId, DateTimeOffset.UtcNow);
+        campaign.RecordCapture(messageId, DateTimeOffset.UtcNow.AddMinutes(1));
+
+        campaign.TotalCaptures.Should().Be(1);
+        campaign.ShouldHaveRaisedEventCount(2);
+    }
+
+    [Fact]
+    public void Replay_LegacyAndVersionTwoCaptureEvents_PreservesCountsAndDeduplicatesNewMessages()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var messageId = Guid.NewGuid();
+        var campaign = Campaign.Replay(null, new CampaignCreated(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "campaign", Guid.NewGuid(), now.UtcDateTime, now));
+
+        campaign = Campaign.Replay(campaign, new CampaignCaptured(now.AddMinutes(1)));
+        campaign = Campaign.Replay(campaign, new CampaignCapturedV2(now.AddMinutes(2), messageId));
+        var duplicate = campaign.RecordCapture(messageId, now.AddMinutes(3));
+
+        duplicate.IsSuccess.Should().BeTrue();
+        campaign.TotalCaptures.Should().Be(2);
+        campaign.LastCapturedAt.Should().Be(now.AddMinutes(2));
     }
 
     [Fact]
@@ -275,6 +306,6 @@ public class CampaignAggregateTests
         campaign.RecordCapture(messageId3, DateTimeOffset.UtcNow.AddSeconds(1));
 
         // Verify
-        campaign.ShouldHaveRaisedEventCount(3); // CampaignCreated + 2x CampaignCaptured
+        campaign.ShouldHaveRaisedEventCount(3); // CampaignCreated + 2x CampaignCapturedV2
     }
 }
