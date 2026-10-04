@@ -1,4 +1,4 @@
-@pending
+@campaign
 Feature: Campaign browsing and management
   As a user with access to captured campaigns
   I need to inspect campaign messages without exposing other users' data
@@ -15,9 +15,11 @@ Feature: Campaign browsing and management
 
   Scenario: Campaigns can be filtered, sorted, and paged
     Given several campaigns are available across my assigned subdomains
-    When I filter by subdomain and select a sort order
-    Then the list contains only matching campaigns in the selected order
-    And I can move between result pages
+    When I filter by the second assigned subdomain
+    Then the list contains only that subdomain's campaign
+    When I select the first subdomain and sort by campaign name
+    Then campaigns appear in descending name order
+    And I can move to the next page of sorted results
 
   Scenario: A campaign can be deleted
     Given I am allowed to manage a captured campaign
@@ -28,3 +30,8 @@ Feature: Campaign browsing and management
     Given a campaign belongs to another user's subdomain
     When I use the campaign list or a direct campaign link
     Then I cannot view its details or sample message
+
+  Scenario: A campaign viewer cannot delete a campaign
+    Given I can view but not manage a captured campaign
+    When I open Campaigns
+    Then I can inspect the campaign without a Delete action

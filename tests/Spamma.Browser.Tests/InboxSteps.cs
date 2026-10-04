@@ -20,6 +20,7 @@ public sealed partial class AnonymousAccessSteps
         ?? throw new InvalidOperationException("The inbox fixture has not been created.");
 
     [AfterScenario("inbox")]
+    [AfterScenario("campaign")]
     public async Task DisposeInboxFixtureAsync()
     {
         if (this.inboxFixture is not null)
@@ -28,9 +29,10 @@ public sealed partial class AnonymousAccessSteps
         }
     }
 
-    private async Task PrepareInboxAsync(Func<InboxScenarioFixture, Task>? seed = null)
+    private async Task PrepareInboxAsync(Func<InboxScenarioFixture, Task>? seed = null,
+        bool restrictedCampaignUser = false, bool viewer = false)
     {
-        this.inboxFixture = await InboxScenarioFixture.CreateAsync();
+        this.inboxFixture = await InboxScenarioFixture.CreateAsync(restrictedCampaignUser, viewer);
         if (seed is not null)
         {
             await seed(this.inboxFixture);

@@ -26,7 +26,6 @@ internal class DeleteCampaignCommandAuthorizer(IHttpContextAccessor httpContextA
 
         if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
             user.ModeratedSubdomains.Contains(campaign.SubdomainId) ||
-            user.ViewableSubdomains.Contains(campaign.SubdomainId) ||
             user.ModeratedDomains.Contains(campaign.DomainId))
         {
             return AuthorizationResult.Succeed();

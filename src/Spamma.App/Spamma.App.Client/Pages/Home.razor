@@ -143,8 +143,10 @@
                                             </div>
                                             <span class="inline-flex h-6 min-w-6 items-center justify-center rounded bg-purple-100 px-2 text-xs font-medium text-purple-800">@campaign.TotalCaptured</span>
                                         </div>
-                                        <div class="px-4 pb-3 text-left">
-                                            <button @onclick="() => DeleteCampaign(campaign.CampaignId, campaign.CampaignValue)"
+                                        @if (CanManageCampaign(campaign))
+                                        {
+                                            <div class="px-4 pb-3 text-left">
+                                                <button @onclick="() => DeleteCampaign(campaign.CampaignId, campaign.CampaignValue)"
                                                     @onclick:stopPropagation="true"
                                                     disabled="@(_deletingCampaignValue != null && _deletingCampaignValue != campaign.CampaignValue)"
                                                     class="@GetDeleteCampaignClasses(campaign.CampaignValue)"
@@ -157,8 +159,9 @@
                                                 {
                                                     <span>Delete</span>
                                                 }
-                                            </button>
-                                        </div>
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
                                 }
                             }

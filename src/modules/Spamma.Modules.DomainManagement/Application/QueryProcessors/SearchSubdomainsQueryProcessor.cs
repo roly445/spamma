@@ -51,7 +51,8 @@ internal class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpCon
             {
                 whereConditions.Add(u =>
                     user.ModeratedDomains.Contains(u.DomainId) ||
-                    user.ModeratedSubdomains.Contains(u.Id));
+                    user.ModeratedSubdomains.Contains(u.Id) ||
+                    user.ViewableSubdomains.Contains(u.Id));
             }
         }
 
