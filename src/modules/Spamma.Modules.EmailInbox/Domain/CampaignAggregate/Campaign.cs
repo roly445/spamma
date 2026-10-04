@@ -115,7 +115,7 @@ public partial class Campaign : AggregateRoot
             return ResultWithError.Ok<BluQubeErrorData>();
         }
 
-        var @event = new CampaignCaptured(capturedAt, messageId);
+        var @event = new CampaignCapturedV2(capturedAt, messageId);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();
