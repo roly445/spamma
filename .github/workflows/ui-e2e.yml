@@ -41,7 +41,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: src/Spamma.App/Spamma.App
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build frontend
         working-directory: src/Spamma.App/Spamma.App
@@ -59,7 +59,7 @@ jobs:
 
       - name: Install Chromium
         working-directory: src/Spamma.App/Spamma.App
-        run: npx playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Run browser tests
         working-directory: src/Spamma.App/Spamma.App
