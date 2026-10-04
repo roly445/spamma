@@ -148,8 +148,13 @@ builder.Services.AddScoped<ICommandRunner, CommandRunner>();
 builder.Services.AddScoped<IQueryRunner, QueryRunner>();
 
 // Configure data protection for consistent cookie encryption across container restarts
-var dataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"] ?? "/app/certs/keys";
-Directory.CreateDirectory(dataProtectionKeysDirectory);
+var configuredDataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"];
+var dataProtectionKeysDirectory = configuredDataProtectionKeysDirectory ?? "/app/certs/keys";
+if (configuredDataProtectionKeysDirectory is not null)
+{
+    Directory.CreateDirectory(dataProtectionKeysDirectory);
+}
+
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysDirectory));
 
