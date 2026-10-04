@@ -1,14 +1,17 @@
+using System.Security.Claims;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Bunit;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Spamma.App.Client.Infrastructure.Constants;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.App.Client.Pages;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.Common.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
@@ -122,6 +125,16 @@ public class HomeCampaignsTests : BunitContext
         Mock<ICommandRunner>? commanderMock = null,
         INotificationService? notificationService = null)
     {
+        var authState = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.Name, "Campaign manager"),
+            new Claim(ClaimTypes.Email, "manager@example.test"),
+            new Claim(ClaimTypes.Role, SystemRole.DomainManagement.ToString()),
+        ], "TestAuth")));
+        var authProvider = new Mock<AuthenticationStateProvider>();
+        authProvider.Setup(x => x.GetAuthenticationStateAsync()).ReturnsAsync(authState);
+        Services.AddSingleton(authProvider.Object);
         Services.AddSingleton(querierMock.Object);
         Services.AddSingleton((commanderMock ?? new Mock<ICommandRunner>()).Object);
         Services.AddSingleton<ISignalRService>(new TestSignalRService());
