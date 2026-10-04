@@ -13,6 +13,8 @@ namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
 public class SpammaMessageStore : MessageStore
 {
+    private const string TemporaryStorageFailureMessage = "Temporary storage failure";
+
     public override async Task<SmtpResponse> SaveAsync(
         ISessionContext context,
         IMessageTransaction transaction,
@@ -74,7 +76,7 @@ public class SpammaMessageStore : MessageStore
                     chaosAddress.Value.SubdomainId,
                     chaosAddress.Value.ChaosAddressId), logger))
                 {
-                    return new SmtpResponse(SmtpReplyCode.Aborted, "Temporary storage failure");
+                    return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
                 }
 
                 return new SmtpResponse((SmtpReplyCode)(int)code, code.ToString());
@@ -119,7 +121,7 @@ public class SpammaMessageStore : MessageStore
                 cachedSender.SenderAddressId,
                 campaignHeader), logger))
             {
-                return new SmtpResponse(SmtpReplyCode.Aborted, "Temporary storage failure");
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
             }
 
             return SmtpResponse.Ok;
@@ -131,14 +133,14 @@ public class SpammaMessageStore : MessageStore
         {
             if (!TryQueue(backgroundTaskQueue, new StandardEmailCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId, messageId), logger))
             {
-                return new SmtpResponse(SmtpReplyCode.Aborted, "Temporary storage failure");
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
             }
         }
         else
         {
             if (!TryQueue(backgroundTaskQueue, new CampaignCaptureJob(memoryStream, foundValidSubdomain.DomainId, foundValidSubdomain.SubdomainId, messageId), logger))
             {
-                return new SmtpResponse(SmtpReplyCode.Aborted, "Temporary storage failure");
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
             }
         }
 
