@@ -313,6 +313,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     IsSuspended = user.Data.IsSuspended,
                     ModeratedDomains = user.Data.ModeratedDomains.ToList(),
                     ModeratedSubdomains = user.Data.ModeratedSubdomains.ToList(),
+                    ViewableSubdomains = user.Data.ViewableSubdomains.ToList(),
                     SystemRole = user.Data.SystemRole,
                     EmailAddress = user.Data.EmailAddress,
                     Name = user.Data.Name,

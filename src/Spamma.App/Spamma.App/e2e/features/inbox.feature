@@ -1,4 +1,4 @@
-@pending
+@inbox
 Feature: Personal inbox and message inspection
   As a signed-in user
   I need to find and inspect email in subdomains I can view
@@ -59,7 +59,6 @@ Feature: Personal inbox and message inspection
     Given I have opened a message in my inbox
     When I choose Save as PDF
     Then the browser opens the message for printing
-    And I can choose a PDF destination in the browser print dialog
 
   Scenario: An attachment can be downloaded
     Given I have opened a message with an attachment
@@ -77,8 +76,10 @@ Feature: Personal inbox and message inspection
     When I open my inbox
     Then I do not see that message in the list
     When I enable Show campaign emails
-    Then I can open the message and follow its campaign link
+    Then I can open the campaign message
     And I cannot favorite or delete that message
+    When I follow its campaign link
+    Then I see its campaign details
 
   Scenario: A user cannot inspect another user's message
     Given another user has a message outside my assignments

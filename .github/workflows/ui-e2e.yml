@@ -93,6 +93,7 @@ jobs:
           SPAMMA_E2E_RESET_SETUP_CONFIG: 'true'
           SPAMMA_E2E_BASE_URL: http://127.0.0.1:5188
           SPAMMA_BROWSER_RESULTS_DIR: ${{ github.workspace }}/browser-test-results
+          SPAMMA_BROWSER_VIDEO_DIR: ${{ github.workspace }}/browser-test-videos
           ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=5432;Database=spamma_ui_e2e;Username=spamma;Password=spamma
           ConnectionStrings__Redis: 127.0.0.1:6379
 
@@ -116,7 +117,7 @@ jobs:
             exit 1
           fi
 
-          dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "Category=smoke" --logger "trx;LogFileName=browser-tests.trx" --results-directory browser-test-results
+          dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "Category=smoke|Category=inbox" --logger "trx;LogFileName=browser-tests.trx" --results-directory browser-test-results
         env:
           ASPNETCORE_URLS: http://127.0.0.1:5188
           ASPNETCORE_ENVIRONMENT: Production
@@ -124,6 +125,8 @@ jobs:
           SmtpServer__Port: '2526'
           SPAMMA_E2E_BASE_URL: http://127.0.0.1:5188
           SPAMMA_BROWSER_RESULTS_DIR: ${{ github.workspace }}/browser-test-results
+          SPAMMA_BROWSER_VIDEO_DIR: ${{ github.workspace }}/browser-test-videos
+          SPAMMA_E2E_APP_CONTENT_ROOT: ${{ github.workspace }}/browser-app
           ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=5432;Database=spamma_ui_e2e;Username=spamma;Password=spamma
           ConnectionStrings__Redis: 127.0.0.1:6379
 
@@ -136,4 +139,13 @@ jobs:
             browser-test-results/
             spamma-app.log
             spamma-setup.log
+          retention-days: 14
+
+      - name: Upload browser scenario videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-scenario-videos
+          path: browser-test-videos/*.webm
+          if-no-files-found: warn
           retention-days: 14
