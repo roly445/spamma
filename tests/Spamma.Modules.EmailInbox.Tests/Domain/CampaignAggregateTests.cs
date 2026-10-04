@@ -202,6 +202,19 @@ public class CampaignAggregateTests
     }
 
     [Fact]
+    public void RecordCapture_ReplayedMessage_DoesNotIncrementCaptureCount()
+    {
+        var campaign = new Builders.CampaignBuilder().Build();
+        var messageId = Guid.NewGuid();
+
+        campaign.RecordCapture(messageId, DateTimeOffset.UtcNow);
+        campaign.RecordCapture(messageId, DateTimeOffset.UtcNow.AddMinutes(1));
+
+        campaign.TotalCaptures.Should().Be(1);
+        campaign.ShouldHaveRaisedEventCount(2);
+    }
+
+    [Fact]
     public void RecordCapture_WhenCampaignDeleted_ReturnsFailed()
     {
         // Arrange

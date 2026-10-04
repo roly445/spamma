@@ -47,8 +47,8 @@ public static class Module
         services.AddTransient<IMessageStore, SpammaMessageStore>();
 
         // Background job queues
-        services.AddHostedService<BackgroundTaskService>();
-        services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        services.AddScoped<BackgroundTaskService>();
+        services.AddScoped<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
         // Certificate generation services
         services.AddScoped<ICertesLetsEncryptService, CertesLetsEncryptService>();

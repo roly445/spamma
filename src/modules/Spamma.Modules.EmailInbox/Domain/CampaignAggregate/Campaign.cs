@@ -11,6 +11,7 @@ namespace Spamma.Modules.EmailInbox.Domain.CampaignAggregate;
 /// </summary>
 public partial class Campaign : AggregateRoot
 {
+    private readonly HashSet<Guid> _capturedMessageIds = [];
     private DateTime? _deletedAt;
 
     private Campaign()
@@ -109,7 +110,12 @@ public partial class Campaign : AggregateRoot
                 "MessageId cannot be empty."));
         }
 
-        var @event = new CampaignCaptured(capturedAt);
+        if (this.SampleMessageId == messageId || this._capturedMessageIds.Contains(messageId))
+        {
+            return ResultWithError.Ok<BluQubeErrorData>();
+        }
+
+        var @event = new CampaignCaptured(capturedAt, messageId);
         this.RaiseEvent(@event);
 
         return ResultWithError.Ok<BluQubeErrorData>();

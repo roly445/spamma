@@ -20,7 +20,7 @@ internal class RecordCampaignCaptureCommandHandler(
 
         var campaignMaybe = await campaignRepository.GetByIdAsync(campaignId, cancellationToken);
 
-        var isFirstEmail = campaignMaybe.HasNoValue;
+        var isFirstEmail = campaignMaybe.HasNoValue || campaignMaybe.Value.SampleMessageId == request.MessageId;
         Domain.CampaignAggregate.Campaign campaign;
         if (campaignMaybe.HasNoValue)
         {

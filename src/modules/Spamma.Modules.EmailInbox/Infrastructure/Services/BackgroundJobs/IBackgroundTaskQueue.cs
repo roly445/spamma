@@ -3,6 +3,4 @@
 public interface IBackgroundTaskQueue
 {
     void QueueBackgroundWorkItem(IBaseEmailCaptureJob workItem);
-
-    Task<IBaseEmailCaptureJob> DequeueAsync(CancellationToken cancellationToken);
 }

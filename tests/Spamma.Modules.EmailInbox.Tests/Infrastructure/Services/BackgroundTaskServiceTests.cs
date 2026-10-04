@@ -15,6 +15,51 @@ namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 public class BackgroundTaskServiceTests
 {
     [Fact]
+    public async Task ProcessWorkItemAsync_WhenMessageStorageFails_ThrowsForRetry()
+    {
+        var messageId = Guid.NewGuid();
+        var message = new MimeMessage
+        {
+            From = { new MailboxAddress("sender", "sender@test.com") },
+            To = { new MailboxAddress("recipient", "recipient@test.com") },
+        };
+        var provider = new Mock<IMessageStoreProvider>();
+        provider.Setup(x => x.StoreMessageContentAsync(messageId, It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail());
+        var job = new StandardEmailCaptureJob(CreateStream(message), Guid.NewGuid(), Guid.NewGuid(), messageId);
+
+        var action = () => BackgroundTaskService.ProcessWorkItemAsync(
+            job, Mock.Of<ICommandRunner>(), provider.Object, CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        provider.Verify(x => x.StoreMessageContentAsync(messageId, It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessWorkItemAsync_WhenCommandFails_KeepsStoredMimeForReplay()
+    {
+        var messageId = Guid.NewGuid();
+        var message = new MimeMessage
+        {
+            From = { new MailboxAddress("sender", "sender@test.com") },
+            To = { new MailboxAddress("recipient", "recipient@test.com") },
+        };
+        var provider = new Mock<IMessageStoreProvider>();
+        provider.Setup(x => x.StoreMessageContentAsync(messageId, It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        var commander = new Mock<ICommandRunner>();
+        commander.Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("worker failed"));
+        var job = new StandardEmailCaptureJob(CreateStream(message), Guid.NewGuid(), Guid.NewGuid(), messageId);
+
+        var action = () => BackgroundTaskService.ProcessWorkItemAsync(
+            job, commander.Object, provider.Object, CancellationToken.None);
+
+        await action.Should().ThrowAsync<InvalidOperationException>();
+        provider.Verify(x => x.DeleteMessageContentAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ProcessWorkItemAsync_CatchAllCampaignJob_RecordsCaptureAndStoresCatchAllEmailWithCampaignBinding()
     {
         // Arrange

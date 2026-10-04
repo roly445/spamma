@@ -48,6 +48,10 @@ public partial class Campaign
     {
         this.TotalCaptures++;
         this.LastCapturedAt = @event.CapturedAt;
+        if (@event.MessageId != Guid.Empty)
+        {
+            this._capturedMessageIds.Add(@event.MessageId);
+        }
     }
 
     private void ApplyRecorded(Events.CampaignDeleted @event)

@@ -22,6 +22,39 @@ namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 public class SpammaMessageStoreTests
 {
     [Fact]
+    public async Task SaveAsync_WhenDurableQueueFails_ReturnsTemporarySmtpFailure()
+    {
+        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
+        var subdomainCache = new Mock<ISubdomainCache>();
+        subdomainCache.Setup(x => x.GetSubdomainAsync("example.com", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(new ISubdomainCache.CachedSubdomain(subdomainId, domainId)));
+        var chaosAddressCache = new Mock<IChaosAddressCache>();
+        chaosAddressCache.Setup(x => x.GetChaosAddressAsync(subdomainId, "recipient", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe<IChaosAddressCache.CachedChaosAddress>.Nothing);
+        var queue = new Mock<IBackgroundTaskQueue>();
+        queue.Setup(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()))
+            .Throws(new IOException("PostgreSQL unavailable"));
+        var serviceProvider = CreateServiceProvider(
+            subdomainCache.Object, chaosAddressCache.Object, queue.Object,
+            Mock.Of<IEmailInboxSettingsService>(), Mock.Of<ICatchAllSenderAddressCache>(),
+            new PushNotificationManager());
+        var session = new Mock<ISessionContext>();
+        session.Setup(x => x.ServiceProvider).Returns(serviceProvider);
+        var message = new MimeMessage
+        {
+            From = { new MailboxAddress("sender", "sender@test.com") },
+            To = { new MailboxAddress("recipient", "recipient@example.com") },
+        };
+
+        var response = await new SpammaMessageStore().SaveAsync(
+            session.Object, Mock.Of<IMessageTransaction>(), CreateBuffer(message), CancellationToken.None);
+
+        response.ReplyCode.Should().Be(SmtpReplyCode.Aborted);
+        queue.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Once);
+    }
+
+    [Fact]
     public async Task SaveAsync_ValidEmailWithActiveSubdomain_QueuesStandardJobAndReturnsOk()
     {
         // Arrange
@@ -61,7 +94,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
@@ -127,7 +160,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
@@ -186,7 +219,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
@@ -250,7 +283,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
@@ -317,7 +350,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
@@ -392,7 +425,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
@@ -461,7 +494,7 @@ public class SpammaMessageStoreTests
         sessionContextMock.Setup(x => x.ServiceProvider).Returns(serviceProvider);
         sessionContextMock.Setup(x => x.EndpointDefinition).Returns(CreateEndpointDefinition(25));
 
-        var store = new SpammaMessageStore(pushNotificationManager);
+        var store = new SpammaMessageStore();
 
         var mimeMessage = new MimeMessage
         {
