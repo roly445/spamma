@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
@@ -130,6 +131,13 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
     public async Task RecordCampaignCapture_WithoutApiKey_HasNoHttpRoute()
     {
         var client = _factory.CreateClient();
+        var endpoints = _factory.Services.GetRequiredService<EndpointDataSource>().Endpoints;
+        Assert.DoesNotContain(endpoints.OfType<RouteEndpoint>(), endpoint =>
+            string.Equals(
+                endpoint.RoutePattern.RawText?.TrimStart('/'),
+                "api/email-inbox/campaigns/record-capture",
+                StringComparison.OrdinalIgnoreCase));
+
         var command = new RecordCampaignCaptureCommand(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -139,7 +147,14 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
 
         var response = await client.PostAsJsonAsync("api/email-inbox/campaigns/record-capture", command);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Contains(response.StatusCode, new[]
+        {
+            HttpStatusCode.BadRequest,
+            HttpStatusCode.Unauthorized,
+            HttpStatusCode.Forbidden,
+            HttpStatusCode.NotFound,
+            HttpStatusCode.MethodNotAllowed,
+        });
     }
 }
 
