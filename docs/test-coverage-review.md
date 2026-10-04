@@ -10,7 +10,7 @@
 | Vitest | Two TypeScript files with 11 tests for setup form scripts | Added to push and PR CI in this change |
 | Playwright | Five Chromium smoke tests against the running app for login, invalid-link recovery, setup lockout and anonymous inbox access | New browser workflow on PRs and main |
 
-The .NET workflows collect Cobertura XML through `XPlat Code Coverage`. They previously searched for `.coverage` files during conversion, so the collected XML was not available as a useful artifact. Both workflows now upload the XML. A trustworthy aggregate percentage should be taken from the first green run of the updated workflows; local PostgreSQL integration tests cannot run without Docker. The browser suite needs PostgreSQL and Redis, so its CI job starts both services.
+The .NET workflows collect Cobertura XML through `XPlat Code Coverage`. They previously searched for `.coverage` files during conversion, so the collected XML was not available as a useful artifact. Both workflows now upload the XML, and `Spamma.App.Tests` now includes the collector. The first PR run produced these per-suite line rates before the App collector was added: DomainManagement 951/8,104 (11.7%); EmailInbox 1,386/5,803 (23.9%); UserManagement 1,113/2,370 (47.0%); and the skipped SMTP E2E suite 189/8,067 (2.3%, largely fixture startup). Each report includes referenced assemblies, so these rates cannot be added into one repository percentage. Local PostgreSQL integration tests cannot run without Docker. The browser suite needs PostgreSQL and Redis, so its CI job starts both services.
 
 ## Highest-risk gaps
 
