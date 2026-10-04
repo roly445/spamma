@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.DataProtection;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using Spamma.App;
+using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Xunit;
@@ -122,6 +124,22 @@ public class ApiKeyAuthenticationTests : IClassFixture<TestWebApplicationFactory
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RecordCampaignCapture_WithoutApiKey_HasNoHttpRoute()
+    {
+        var client = _factory.CreateClient();
+        var command = new RecordCampaignCaptureCommand(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "campaign",
+            DateTimeOffset.UtcNow);
+
+        var response = await client.PostAsJsonAsync("api/email-inbox/campaigns/record-capture", command);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
 
