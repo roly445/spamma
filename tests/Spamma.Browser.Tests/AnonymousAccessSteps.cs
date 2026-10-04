@@ -68,10 +68,16 @@ public sealed partial class AnonymousAccessSteps
                 await this.context.Tracing.StopAsync();
             }
 
+            var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
+            if (this.page is not null && !string.IsNullOrWhiteSpace(videoDirectory))
+            {
+                // Give the recorder time to capture the final rendered page after fast redirects.
+                await this.page.WaitForTimeoutAsync(750);
+            }
+
             var video = this.page?.Video;
             await this.context.CloseAsync();
 
-            var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
             if (video is not null && !string.IsNullOrWhiteSpace(videoDirectory))
             {
                 Directory.CreateDirectory(videoDirectory);
