@@ -75,6 +75,7 @@ public partial class Hosting(IAppConfigurationService appConfigurationService, I
     {
         private string? _baseUrl;
 
+        [Required(ErrorMessage = "Base URL is required")]
         [Url(ErrorMessage = "Please enter a valid URL")]
         public string? BaseUrl
         {

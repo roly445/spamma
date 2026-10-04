@@ -22,7 +22,7 @@ public partial class Login(IInMemorySetupAuthService setupAuth, IHttpContextAcce
         this.showPasswordHint = httpContextAccessor.HttpContext.IsLocal();
     }
 
-    private void HandleLogin()
+    private async Task HandleLogin()
     {
         this.errorMessage = string.Empty;
 
@@ -44,6 +44,7 @@ public partial class Login(IInMemorySetupAuthService setupAuth, IHttpContextAcce
             {
                 // Set session authentication
                 httpContext!.Session.SetString("SetupAuthenticated", "true");
+                await httpContext.Session.CommitAsync();
 
                 logger.LogInformation("Setup authentication successful from IP: {IpAddress}", ipAddress);
 

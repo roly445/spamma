@@ -1,20 +1,29 @@
-@pending
+@setup
 Feature: Initial application setup
   As an operator
-  I need to configure Spamma before inviting users
+  I need to enter setup securely and see what remains to configure
 
-  Scenario: First visit starts the setup journey
-    Given Spamma has not been configured
-    When I open the application
+  Scenario: First visit starts the authenticated setup journey
+    Given Spamma is in setup mode
+    When I open the application for setup
+    Then I am asked for the setup password
+    When I enter the valid setup password
     Then I am shown the setup welcome page
     And I can proceed to security keys
 
   Scenario: Setup pages require setup authentication
-    Given Spamma is still in setup mode
-    And I do not have a setup session
-    When I open a setup step directly
+    Given Spamma is in setup mode
+    When I open a setup step without a session
     Then I am asked for the setup password
-    And an incorrect password does not grant access
+    When I enter an incorrect setup password
+    Then I remain outside the setup wizard
+
+  Scenario: Incomplete setup identifies missing hosting settings
+    Given I have entered the setup wizard
+    And security keys, outbound email and an administrator are configured
+    When I open the setup completion page
+    Then I see that hosting configuration is missing
+    And I cannot finalize setup
 
   Scenario: Security keys can be generated and saved
     Given I am on the security keys setup step
@@ -25,7 +34,7 @@ Feature: Initial application setup
   Scenario: Regenerating saved security keys requires confirmation
     Given security keys have already been saved
     When I ask to regenerate them
-    Then I must confirm the regeneration before the saved keys change
+    Then I must confirm regeneration before the saved key changes
 
   Scenario: Hosting configuration can be saved
     Given I am on the hosting setup step
@@ -50,31 +59,32 @@ Feature: Initial application setup
     When I choose to skip certificate generation
     Then I can proceed to administrator creation
 
-  Scenario: A Let's Encrypt certificate can be requested
+  Scenario: A certificate request reports an ACME failure
     Given I am on the certificate setup step
-    When I select Let's Encrypt and provide the required hostname and email address
-    Then I can request a certificate
-    And the result is reported to me
+    And the test ACME service will reject the request
+    When I select Let's Encrypt and request a certificate
+    Then the certificate failure is reported to me
+
+  Scenario: A certificate request reports ACME success
+    Given I am on the certificate setup step
+    And the test ACME service will accept the request
+    When I select Let's Encrypt and request a certificate
+    Then I proceed to administrator creation
 
   Scenario: The initial administrator can be created
-    Given the required setup steps have been saved
-    When I provide a valid administrator name and email address
-    Then the administrator account is created
+    Given the required setup settings have been saved
+    When I create the initial administrator
+    Then the administrator account is recorded
     And I can review setup completion
 
-  Scenario: Another administrator can be entered during setup
-    Given I am on the administrator setup step
-    When I choose to add another administrator
-    Then I can enter another administrator's account details
+  Scenario: An existing administrator can be skipped during setup
+    Given an administrator has already been created
+    When I open the administrator setup step
+    Then I can skip to setup completion
 
-  Scenario: Incomplete setup shows the missing steps
-    Given a required setup step is incomplete
-    When I open the setup completion page
-    Then I see which step is missing
-    And I can return to that step
-
+  @setup-finalize
   Scenario: Completed setup can be finalized
-    Given every required setup step is complete
+    Given every required setup setting is present
     When I finalize setup
     Then the application leaves setup mode
     And setup pages are no longer available to ordinary visitors
