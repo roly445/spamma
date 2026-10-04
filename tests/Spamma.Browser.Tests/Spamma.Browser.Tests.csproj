@@ -21,6 +21,6 @@
 
   <ItemGroup>
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/anonymous-access.feature" Link="Features/anonymous-access.feature" />
-    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/setup-entry.feature" Link="Features/setup-entry.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/setup.feature" Link="Features/setup.feature" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@ using Reqnroll;
 namespace Spamma.Browser.Tests;
 
 [Binding]
-public sealed class AnonymousAccessSteps
+public sealed partial class AnonymousAccessSteps
 {
     private IPlaywright? playwright;
     private IBrowser? browser;
@@ -18,6 +18,11 @@ public sealed class AnonymousAccessSteps
     [BeforeScenario]
     public async Task StartBrowserAsync()
     {
+        if (Environment.GetEnvironmentVariable("SPAMMA_E2E_RESET_SETUP_CONFIG") == "true")
+        {
+            await this.ResetSetupConfigurationAsync();
+        }
+
         this.playwright = await Playwright.CreateAsync();
         this.browser = await this.playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
