@@ -1828,3 +1828,6 @@ certs/
 # Environment-specific appsettings with secrets - never commit
 appsettings.Development.json
 appsettings.*.json
+
+# Browser test output
+browser-test-results/
