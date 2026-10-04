@@ -35,6 +35,10 @@ jobs:
         working-directory: src/Spamma.App/Spamma.App
         run: npm run build
 
+      - name: Run frontend unit tests
+        working-directory: src/Spamma.App/Spamma.App
+        run: npm test
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -60,9 +64,6 @@ jobs:
       - name: Build solution
         run: dotnet build --configuration Release --no-restore
 
-      - name: Install dotnet-coverage tool
-        run: dotnet tool install --global dotnet-coverage
-
       - name: Run tests (including E2E) with coverage
         run: |
           for project in \
@@ -86,12 +87,13 @@ jobs:
           TESTCONTAINERS_RYUK_DISABLED: true
           DOTNET_SYSTEM_TEXT_JSON_JSON_SERIALIZER_CACHE_SIZE: 64
 
-      - name: Convert coverage to OpenCover format
-        run: |
-          # Find and convert all coverage files
-          if [ -d "test-results" ]; then
-            find test-results -name "*.coverage" -exec dotnet coverage convert --input-format coverage --output-format opencover --output coverage.opencover.xml {} \;
-          fi
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-coverage
+          path: test-results/**/coverage.cobertura.xml
+          if-no-files-found: warn
 
       - name: Publish test results
         if: always()

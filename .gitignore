@@ -1828,3 +1828,7 @@ certs/
 # Environment-specific appsettings with secrets - never commit
 appsettings.Development.json
 appsettings.*.json
+
+# Browser test output
+src/Spamma.App/Spamma.App/playwright-report/
+src/Spamma.App/Spamma.App/test-results/
