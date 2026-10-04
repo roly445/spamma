@@ -7,6 +7,7 @@ using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
+using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 
@@ -57,6 +58,15 @@ internal class CompleteAuthenticationCommandHandler(
         {
             this._logger.LogError("Failed to persist completed authentication for {UserId}", request.UserId);
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.SavingChangesFailed));
+        }
+
+        if (!authResult.Value)
+        {
+            this._logger.LogWarning(
+                "Authentication rejected for {UserId}, attempt {AttemptId}",
+                request.UserId,
+                request.AuthenticationAttemptId);
+            return CommandResult.Failed(new BluQubeErrorData(UserManagementErrorCodes.InvalidAuthenticationAttempt));
         }
 
         this._logger.LogInformation(

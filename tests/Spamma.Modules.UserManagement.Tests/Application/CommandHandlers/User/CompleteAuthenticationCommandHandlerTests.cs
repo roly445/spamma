@@ -1,3 +1,4 @@
+using BluQube.Constants;
 using FluentAssertions;
 using FluentValidation;
 using MaybeMonad;
@@ -10,6 +11,7 @@ using Spamma.Modules.UserManagement.Application.CommandHandlers.User;
 using Spamma.Modules.UserManagement.Application.Repositories;
 using Spamma.Modules.UserManagement.Client.Application.Commands;
 using Spamma.Modules.UserManagement.Client.Application.Commands.User;
+using Spamma.Modules.UserManagement.Client.Contracts;
 using Spamma.Modules.UserManagement.Tests.Builders;
 using Spamma.Modules.UserManagement.Tests.Fixtures;
 using UserAggregate = Spamma.Modules.UserManagement.Domain.UserAggregate.User;
@@ -70,7 +72,7 @@ public class CompleteAuthenticationCommandHandlerTests
         var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
-        result.Should().NotBeNull();
+        result.Status.Should().Be(CommandResultStatus.Failed);
 
         this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
@@ -80,7 +82,7 @@ public class CompleteAuthenticationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenAuthenticationAttemptExpired_ReturnsError()
+    public async Task Handle_WhenAuthenticationAttemptDoesNotExist_ReturnsError()
     {
         // Arrange
         var user = new UserBuilder().Build();
@@ -90,7 +92,7 @@ public class CompleteAuthenticationCommandHandlerTests
         var command = new CompleteAuthenticationCommand(
             userId,
             user.SecurityStamp,
-            Guid.NewGuid()); // Wrong attempt ID or expired
+            Guid.NewGuid());
 
         var userMaybe = Maybe.From(user);
 
@@ -101,14 +103,53 @@ public class CompleteAuthenticationCommandHandlerTests
         // Act
         var result = await this._handler.Handle(command, CancellationToken.None);
 
-        // Verify - should fail due to invalid/expired attempt
-        result.Should().NotBeNull();
+        result.Status.Should().Be(CommandResultStatus.Failed);
 
         this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
             Times.Once);
 
         this._repositoryMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Handle_WhenAuthenticationAttemptExpired_RejectsAndPersistsFailure()
+    {
+        var user = new UserBuilder().Build();
+        var attemptId = user.StartAuthentication(this._fixedUtcNow.AddMinutes(-16)).Value.AuthenticationAttemptId;
+        var command = new CompleteAuthenticationCommand(user.Id, user.SecurityStamp, attemptId);
+
+        this._repositoryMock.Setup(x => x.GetByIdAsync(user.Id, CancellationToken.None))
+            .ReturnsAsync(Maybe.From(user));
+        this._repositoryMock.Setup(x => x.SaveAsync(user, CancellationToken.None))
+            .ReturnsAsync(Result.Ok());
+
+        var result = await this._handler.Handle(command, CancellationToken.None);
+
+        result.Status.Should().Be(CommandResultStatus.Failed);
+        user.AuthenticationAttempts.Single(x => x.Id == attemptId).HasFinalized.Should().BeTrue();
+        this._repositoryMock.Verify(x => x.SaveAsync(user, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSecurityStampChanged_RejectsAndPersistsFailure()
+    {
+        var user = new UserBuilder().Build();
+        var attemptId = user.StartAuthentication(this._fixedUtcNow).Value.AuthenticationAttemptId;
+        var previousSecurityStamp = user.SecurityStamp;
+        user.Suspend(AccountSuspensionReason.Administrative, "Test suspension", this._fixedUtcNow);
+        var command = new CompleteAuthenticationCommand(user.Id, previousSecurityStamp, attemptId);
+
+        this._repositoryMock.Setup(x => x.GetByIdAsync(user.Id, CancellationToken.None))
+            .ReturnsAsync(Maybe.From(user));
+        this._repositoryMock.Setup(x => x.SaveAsync(user, CancellationToken.None))
+            .ReturnsAsync(Result.Ok());
+
+        var result = await this._handler.Handle(command, CancellationToken.None);
+
+        result.Status.Should().Be(CommandResultStatus.Failed);
+        user.AuthenticationAttempts.Single(x => x.Id == attemptId).HasFinalized.Should().BeTrue();
+        this._repositoryMock.Verify(x => x.SaveAsync(user, CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -139,7 +180,7 @@ public class CompleteAuthenticationCommandHandlerTests
         var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
-        result.Should().NotBeNull();
+        result.Status.Should().Be(CommandResultStatus.Succeeded);
 
         this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
@@ -178,7 +219,7 @@ public class CompleteAuthenticationCommandHandlerTests
         var result = await this._handler.Handle(command, CancellationToken.None);
 
         // Verify
-        result.Should().NotBeNull();
+        result.Status.Should().Be(CommandResultStatus.Failed);
 
         this._repositoryMock.Verify(
             x => x.GetByIdAsync(userId, CancellationToken.None),
@@ -190,9 +231,8 @@ public class CompleteAuthenticationCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WithMultipleAttempts_HandlesIdempotently()
+    public async Task Handle_WhenAuthenticationAttemptAlreadyCompleted_RejectsReuse()
     {
-        // Arrange - Verify same command can be retried if needed
         var user = new UserBuilder().Build();
         var authResult = user.StartAuthentication(this._fixedUtcNow);
         var authAttempt = authResult.Value;
@@ -213,30 +253,13 @@ public class CompleteAuthenticationCommandHandlerTests
             .Setup(x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None))
             .ReturnsAsync(Result.Ok());
 
-        // Act - Call handler multiple times with same command
         var result1 = await this._handler.Handle(command, CancellationToken.None);
-        result1.Should().NotBeNull();
+        var result2 = await this._handler.Handle(command, CancellationToken.None);
 
-        // For second call, create new user state since user reference changed
-        var user2 = new UserBuilder().Build();
-        var authResult2 = user2.StartAuthentication(this._fixedUtcNow);
-        var authAttempt2 = authResult2.Value;
-        var command2 = new CompleteAuthenticationCommand(
-            user2.Id,
-            user2.SecurityStamp,
-            authAttempt2.AuthenticationAttemptId);
-
-        var userMaybe2 = Maybe.From(user2);
-        this._repositoryMock
-            .Setup(x => x.GetByIdAsync(user2.Id, CancellationToken.None))
-            .ReturnsAsync(userMaybe2);
-
-        var result2 = await this._handler.Handle(command2, CancellationToken.None);
-        result2.Should().NotBeNull();
-
-        // Verify repository was called twice (once per command)
+        result1.Status.Should().Be(CommandResultStatus.Succeeded);
+        result2.Status.Should().Be(CommandResultStatus.Failed);
         this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<UserAggregate>(), CancellationToken.None),
-            Times.Exactly(2));
+            Times.Once);
     }
 }
