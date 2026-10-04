@@ -4,7 +4,7 @@ These files describe the intended user-visible behaviour of Spamma. They are a r
 
 | Journey | Routes or entry point | Feature | Status |
 | --- | --- | --- | --- |
-| Anonymous entry and access | `/`, `/login`, `/logging-in`, `/setup-login`, `/m/inbox` | [anonymous-access.feature](anonymous-access.feature) | Executable: five Playwright scenarios in CI |
+| Anonymous entry and access | `/`, `/login`, `/logging-in`, `/setup-login`, `/m/inbox` | [anonymous-access.feature](anonymous-access.feature) | Executable: six Playwright scenarios in CI |
 | First-run setup | `/setup/*`, `/setup-login` | [setup.feature](setup.feature) | Executable .NET Playwright scenarios; ACME responses are mocked in the browser |
 | Sign-in, passkey login, logout | `/login`, `/logging-in`, `/logout` | [authentication.feature](pending/authentication.feature) | Pending |
 | Inbox and message viewer | `/m/inbox` | [inbox.feature](pending/inbox.feature) | Pending |
