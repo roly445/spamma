@@ -13,6 +13,11 @@ Feature: Anonymous access and login entry points
     When I request a magic link for an unregistered address
     Then I see a generic check-your-email confirmation
 
+  Scenario: An invalid email address cannot request a magic link
+    Given I am on the login page
+    When I try to request a magic link with an invalid email address
+    Then I stay on the login form without a confirmation
+
   Scenario: A login link without a token offers a route back to login
     Given I follow a login link without a token
     Then I am told the link is invalid or expired

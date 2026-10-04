@@ -16,7 +16,7 @@
                 Welcome to Spamma
             </h2>
             <p class="mt-2 text-sm text-gray-600">
-                Enter your email address and we'll send you a magic link to sign in
+                Enter your email address to request a magic link to sign in
             </p>
         </div>
 
@@ -31,7 +31,7 @@
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm text-green-700">Magic link sent! Check your email for the login link.</p>
+                        <p class="text-sm text-green-700">If an account exists for this address, a magic link will be sent.</p>
                     </div>
                 </div>
             </div>
@@ -129,7 +129,7 @@
                         <div>
                             <h3 class="text-lg font-medium text-gray-900">Check your email</h3>
                             <p class="mt-2 text-sm text-gray-600">
-                                We've sent a magic link to <span class="font-semibold text-gray-900">@Model.EmailAddress</span>
+                                If an account exists for <span class="font-semibold text-gray-900">@Model.EmailAddress</span>, we'll send a magic link.
                             </p>
                             <p class="mt-1 text-sm text-gray-500">
                                 Click the link in the email to sign in to your account.
@@ -145,7 +145,7 @@
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm text-blue-700">
-                                        <strong>Tip:</strong> The link will expire in 15 minutes. If you don't see the email, check your spam folder.
+                                        <strong>Tip:</strong> Any link we send expires in 15 minutes. If you don't see an email, check your spam folder.
                                     </p>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@
                                         <span>Sending...</span>
                                     </div>
                                     <div class="disabled-hide">
-                                        <span>Resend magic link</span>
+                                        <span>Request another link</span>
                                     </div>
                                 </button>
 

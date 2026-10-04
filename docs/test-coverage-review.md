@@ -8,7 +8,7 @@
 | Spamma.App.Tests | API, component (bUnit), authentication and application configuration tests | PR; added to push CI in this change |
 | SMTP E2E project | Six SMTP reception scenarios exist but all are skipped | Project runs in PR CI; scenarios remain skipped |
 | Vitest | Two TypeScript files with 11 tests for setup form scripts | Added to push and PR CI in this change |
-| Playwright | Five Chromium scenarios against the running app for login, missing-token recovery, setup lockout and anonymous inbox access | New browser workflow on PRs and main |
+| Playwright | Six Chromium anonymous-access scenarios against the running app for login, invalid email input, missing-token recovery, setup lockout and anonymous inbox access, plus the first-run setup scenarios | Browser workflow on PRs and main |
 
 The browser scenarios are written in [`anonymous-access.feature`](../src/Spamma.App/Spamma.App/e2e/features/anonymous-access.feature). Reqnroll generates .NET tests from that file, and the C# bindings use Playwright for .NET to control Chromium. These are proposed acceptance expectations inferred from current application behaviour, not proof that the behaviour is what users want. In particular, review the generic response for an unregistered address and the setup and inbox access rules. The missing-token scenario does not claim to exercise an invalid signed token. The authenticated login and inbox journey remains a separate gap below.
 

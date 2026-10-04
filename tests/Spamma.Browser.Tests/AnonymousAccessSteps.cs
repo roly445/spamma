@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using Npgsql;
 using Reqnroll;
+using Xunit;
 
 namespace Spamma.Browser.Tests;
 
@@ -128,6 +129,13 @@ public sealed partial class AnonymousAccessSteps
         await this.Page.GetByRole(AriaRole.Button, new() { Name = "Send Magic Link" }).ClickAsync();
     }
 
+    [When("I try to request a magic link with an invalid email address")]
+    public async Task WhenITryToRequestAMagicLinkWithAnInvalidEmailAddressAsync()
+    {
+        await this.Page.GetByLabel("Email address").FillAsync("not-an-email");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Send Magic Link" }).ClickAsync();
+    }
+
     [When("I choose to return to login")]
     public async Task WhenIChooseToReturnToLoginAsync()
     {
@@ -157,7 +165,16 @@ public sealed partial class AnonymousAccessSteps
     public async Task ThenISeeAGenericCheckYourEmailConfirmationAsync()
     {
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Check your email" })).ToBeVisibleAsync();
-        await Assertions.Expect(this.Page.GetByText("unknown-ui-smoke@example.test")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText("If an account exists for unknown-ui-smoke@example.test, we'll send a magic link.")).ToBeVisibleAsync();
+    }
+
+    [Then("I stay on the login form without a confirmation")]
+    public async Task ThenIStayOnTheLoginFormWithoutAConfirmationAsync()
+    {
+        await Assertions.Expect(this.Page).ToHaveURLAsync(new Regex(@"/login(?:\?.*)?$"));
+        await Assertions.Expect(this.Page.GetByLabel("Email address")).ToHaveValueAsync("not-an-email");
+        Assert.False(await this.Page.GetByLabel("Email address").EvaluateAsync<bool>("element => element.checkValidity()"));
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Check your email" })).ToHaveCountAsync(0);
     }
 
     [Then("I am told the link is invalid or expired")]
