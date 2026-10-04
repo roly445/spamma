@@ -1,10 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
+import { defineBddConfig } from 'playwright-bdd';
 
 const baseURL = process.env.SPAMMA_E2E_BASE_URL ?? 'http://127.0.0.1:5188';
+const testDir = defineBddConfig({
+  features: 'e2e/features/*.feature',
+  steps: 'e2e/steps/*.ts',
+});
 
 export default defineConfig({
-  testDir: './e2e',
-  testMatch: '**/*.pw.ts',
+  testDir,
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
