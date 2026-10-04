@@ -28,9 +28,14 @@ public sealed partial class AnonymousAccessSteps
         {
             ExecutablePath = Environment.GetEnvironmentVariable("SPAMMA_E2E_CHROMIUM_PATH"),
         });
+        var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
         this.context = await this.browser.NewContextAsync(new BrowserNewContextOptions
         {
             BaseURL = Environment.GetEnvironmentVariable("SPAMMA_E2E_BASE_URL") ?? "http://127.0.0.1:5188",
+            RecordVideoDir = videoDirectory,
+            RecordVideoSize = string.IsNullOrWhiteSpace(videoDirectory)
+                ? null
+                : new RecordVideoSize { Width = 1280, Height = 720 },
         });
         await this.context.Tracing.StartAsync(new TracingStartOptions
         {
@@ -62,7 +67,17 @@ public sealed partial class AnonymousAccessSteps
                 await this.context.Tracing.StopAsync();
             }
 
+            var video = this.page?.Video;
             await this.context.CloseAsync();
+
+            var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
+            if (video is not null && !string.IsNullOrWhiteSpace(videoDirectory))
+            {
+                Directory.CreateDirectory(videoDirectory);
+                var safeName = Regex.Replace(scenarioContext.ScenarioInfo.Title, "[^A-Za-z0-9]+", "-").Trim('-');
+                await video.SaveAsAsync(Path.Combine(videoDirectory, $"{safeName}.webm"));
+                await video.DeleteAsync();
+            }
         }
 
         if (this.browser is not null)
