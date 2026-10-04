@@ -51,8 +51,8 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Build app
-        run: dotnet build src/Spamma.App/Spamma.App/Spamma.App.csproj --configuration Release
+      - name: Publish app
+        run: dotnet publish src/Spamma.App/Spamma.App/Spamma.App.csproj --configuration Release --output browser-app
 
       - name: Prepare data protection key directory
         run: sudo mkdir -p /app/certs/keys && sudo chown -R "$(id -u):$(id -g)" /app/certs
@@ -66,7 +66,7 @@ jobs:
       - name: Run first-run setup browser tests
         shell: bash
         run: |
-          dotnet run --project src/Spamma.App/Spamma.App/Spamma.App.csproj --configuration Release --no-build --no-launch-profile > spamma-setup.log 2>&1 &
+          (cd browser-app && exec dotnet Spamma.App.dll) > spamma-setup.log 2>&1 &
           app_pid=$!
           trap 'kill "$app_pid" 2>/dev/null || true; wait "$app_pid" 2>/dev/null || true' EXIT
 
@@ -97,7 +97,7 @@ jobs:
       - name: Run browser tests
         shell: bash
         run: |
-          dotnet run --project src/Spamma.App/Spamma.App/Spamma.App.csproj --configuration Release --no-build --no-launch-profile > spamma-app.log 2>&1 &
+          (cd browser-app && exec dotnet Spamma.App.dll) > spamma-app.log 2>&1 &
           app_pid=$!
           trap 'kill "$app_pid" 2>/dev/null || true; wait "$app_pid" 2>/dev/null || true' EXIT
 
