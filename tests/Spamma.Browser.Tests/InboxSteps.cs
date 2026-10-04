@@ -169,14 +169,19 @@ public sealed partial class AnonymousAccessSteps
     public Task WhenISearchWithoutMatchesAsync() => this.SearchAsync("no-matches-" + Guid.NewGuid().ToString("N"));
 
     [Then("I see the no-emails-found state")]
-    public Task ThenISeeNoSearchResultsAsync() =>
-        Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "No emails found" })).ToBeVisibleAsync();
+    public async Task ThenISeeNoSearchResultsAsync()
+    {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "No emails found" })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToHaveCountAsync(0);
+    }
 
     [Then("I can change my search")]
     public async Task ThenICanChangeMySearchAsync()
     {
-        await this.SearchAsync("Inbox fixture");
-        await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
+        var revisedTerm = "still-no-matches-" + Guid.NewGuid().ToString("N");
+        await this.SearchAsync(revisedTerm);
+        await Assertions.Expect(this.Page.GetByPlaceholder("Search emails...")).ToHaveValueAsync(revisedTerm);
+        await this.ThenISeeNoSearchResultsAsync();
     }
 
     [When("I move to the next page")]
