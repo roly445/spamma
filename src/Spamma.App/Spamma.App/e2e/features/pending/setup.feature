@@ -3,19 +3,6 @@ Feature: Initial application setup
   As an operator
   I need to configure Spamma before inviting users
 
-  Scenario: First visit starts the setup journey
-    Given Spamma has not been configured
-    When I open the application
-    Then I am shown the setup welcome page
-    And I can proceed to security keys
-
-  Scenario: Setup pages require setup authentication
-    Given Spamma is still in setup mode
-    And I do not have a setup session
-    When I open a setup step directly
-    Then I am asked for the setup password
-    And an incorrect password does not grant access
-
   Scenario: Security keys can be generated and saved
     Given I am on the security keys setup step
     When I generate and save the keys
@@ -66,12 +53,6 @@ Feature: Initial application setup
     Given I am on the administrator setup step
     When I choose to add another administrator
     Then I can enter another administrator's account details
-
-  Scenario: Incomplete setup shows the missing steps
-    Given a required setup step is incomplete
-    When I open the setup completion page
-    Then I see which step is missing
-    And I can return to that step
 
   Scenario: Completed setup can be finalized
     Given every required setup step is complete

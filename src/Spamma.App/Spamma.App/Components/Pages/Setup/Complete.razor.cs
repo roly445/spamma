@@ -48,6 +48,14 @@ public partial class Complete(
             var keySettings = await appConfigurationService.GetKeySettingsAsync();
             this.setupStatus.HasSecurityKeys = !string.IsNullOrEmpty(keySettings.SigningKey);
 
+            // Hosting supplies the public links and mail routing hostname used after setup.
+            var applicationSettings = await appConfigurationService.GetApplicationSettingsAsync();
+            this.setupStatus.HasHostingConfiguration =
+                Uri.TryCreate(applicationSettings.BaseUrl, UriKind.Absolute, out var baseUrl) &&
+                (baseUrl.Scheme == Uri.UriSchemeHttp || baseUrl.Scheme == Uri.UriSchemeHttps) &&
+                !string.IsNullOrWhiteSpace(applicationSettings.MailServerHostname) &&
+                applicationSettings.MxPriority is >= 1 and <= 65535;
+
             // Check email configuration
             var emailSettings = await appConfigurationService.GetEmailSettingsAsync();
             this.setupStatus.HasEmailConfiguration = !string.IsNullOrEmpty(emailSettings.SmtpHost) && !string.IsNullOrEmpty(emailSettings.FromEmail);
@@ -61,6 +69,7 @@ public partial class Complete(
 
             // Determine overall completion status - certificates are NOT required
             this.isSetupComplete = this.setupStatus.HasSecurityKeys &&
+                             this.setupStatus.HasHostingConfiguration &&
                              this.setupStatus.HasEmailConfiguration &&
                              this.setupStatus.HasAdminUser;
 
@@ -100,6 +109,16 @@ public partial class Complete(
             });
         }
 
+        if (!this.setupStatus.HasHostingConfiguration)
+        {
+            this.missingSteps.Add(new MissingStep
+            {
+                Title = "Hosting Configuration Missing",
+                Description = "Configure the application URL and mail server hostname.",
+                ActionUrl = "/setup/hosting",
+            });
+        }
+
         if (!this.setupStatus.HasAdminUser)
         {
             this.missingSteps.Add(new MissingStep
@@ -115,6 +134,12 @@ public partial class Complete(
     {
         try
         {
+            await this.ValidateSetupCompletion();
+            if (!this.isSetupComplete)
+            {
+                return;
+            }
+
             logger.LogInformation("Reloading application configuration");
 
             // Reload configuration root if available
@@ -143,6 +168,8 @@ public partial class Complete(
     private sealed class SetupStatusInfo
     {
         public bool HasSecurityKeys { get; set; }
+
+        public bool HasHostingConfiguration { get; set; }
 
         public bool HasEmailConfiguration { get; set; }
 
