@@ -20,8 +20,8 @@ internal class SearchDomainsQueryProcessor(IDocumentSession session, IHttpContex
         if (!string.IsNullOrEmpty(request.SearchTerm))
         {
             whereConditions.Add(d =>
-                d.PrimaryContact != null && (d.DomainName.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                             d.PrimaryContact.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)));
+                d.DomainName.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (d.PrimaryContact != null && d.PrimaryContact.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)));
         }
 
         if (request.Status.HasValue)
@@ -54,7 +54,7 @@ internal class SearchDomainsQueryProcessor(IDocumentSession session, IHttpContex
 
         if (request.IsVerified.HasValue)
         {
-            whereConditions.Add(u => u.IsVerified);
+            whereConditions.Add(u => u.IsVerified == request.IsVerified.Value);
         }
 
         // Apply all where conditions

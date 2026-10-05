@@ -47,6 +47,11 @@ public partial class Domain : AggregateRoot
 
     internal ResultWithError<BluQubeErrorData> ChangeDetails(string? primaryContactEmail, string? description)
     {
+        if (this.IsSuspended)
+        {
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.DomainSuspended, "Suspended domains cannot be edited."));
+        }
+
         var @event = new DetailsUpdated(primaryContactEmail, description);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
@@ -54,6 +59,11 @@ public partial class Domain : AggregateRoot
 
     internal ResultWithError<BluQubeErrorData> MarkAsVerified(DateTime verifiedAt)
     {
+        if (this.IsSuspended)
+        {
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.DomainSuspended, "Suspended domains cannot be verified."));
+        }
+
         if (this.VerifiedAt.HasValue)
         {
             return ResultWithError.Fail(new BluQubeErrorData(
@@ -94,6 +104,16 @@ public partial class Domain : AggregateRoot
 
     internal ResultWithError<BluQubeErrorData> AddModerationUser(Guid userId, DateTime addedAt)
     {
+        if (this.IsSuspended)
+        {
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.DomainSuspended, "Suspended domains cannot gain moderators."));
+        }
+
+        if (!this.VerifiedAt.HasValue)
+        {
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.DomainUnverified, "Unverified domains cannot gain moderators."));
+        }
+
         if (this._moderationUsers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
             return ResultWithError.Fail(new BluQubeErrorData(
@@ -107,6 +127,11 @@ public partial class Domain : AggregateRoot
 
     internal ResultWithError<BluQubeErrorData> RemoveModerationUser(Guid userId, DateTime removedAt)
     {
+        if (this.IsSuspended)
+        {
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.DomainSuspended, "Suspended domains cannot change moderators."));
+        }
+
         if (!this._moderationUsers.Any(x => x.UserId == userId && x.RemovedAt == null))
         {
             return ResultWithError.Fail(new BluQubeErrorData(

@@ -29,6 +29,7 @@ public partial class EditDomain(ICommandRunner commander, INotificationService n
             Description = this._dataModel.Description ?? string.Empty,
         };
         this.isVisible = true;
+        this.StateHasChanged();
     }
 
     private void Close()

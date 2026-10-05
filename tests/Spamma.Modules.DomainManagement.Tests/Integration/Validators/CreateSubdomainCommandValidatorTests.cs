@@ -16,6 +16,30 @@ public class CreateSubdomainCommandValidatorTests : IClassFixture<PostgreSqlFixt
         this._fixture = fixture;
     }
 
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public async Task ValidateAsync_UnverifiedOrSuspendedDomain_IsInvalid(bool verified, bool suspended)
+    {
+        var domainId = Guid.NewGuid();
+        this._fixture.Session!.Store(new DomainLookup
+        {
+            Id = domainId,
+            DomainName = "example.com",
+            CreatedAt = DateTime.UtcNow,
+            IsVerified = verified,
+            IsSuspended = suspended,
+        });
+        await this._fixture.Session.SaveChangesAsync();
+
+        var validator = new CreateSubdomainCommandValidator(this._fixture.Session, CreateMockDomainParserService(isValid: true));
+        var command = new CreateSubdomainCommand(Guid.NewGuid(), domainId, "mail", null);
+
+        var result = await validator.TestValidateAsync(command);
+
+        result.ShouldHaveValidationErrorFor(x => x);
+    }
+
     [Fact]
     public async Task ValidateAsync_ValidCommand_IsValid()
     {

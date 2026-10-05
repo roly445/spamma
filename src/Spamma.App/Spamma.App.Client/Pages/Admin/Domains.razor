@@ -198,10 +198,10 @@
                                         <div class="flex items-center justify-end space-x-2">
                                             <button @onclick="() => NavigateToDomainDetails(domain.DomainId)" class="text-blue-600 hover:text-blue-900">View</button>
 
-                                            <button @onclick="() => OpenEditDomain(domain)" class="text-indigo-600 hover:text-indigo-900">Edit</button>
+                                            <button @onclick="() => OpenEditDomain(domain)" disabled="@(domain.Status == DomainStatus.Suspended)" class="text-indigo-600 hover:text-indigo-900 disabled:opacity-50">Edit</button>
                                             @if (!domain.IsVerified)
                                             {
-                                                <button @onclick="() => OpenVerifyDomain(domain)" class="text-green-600 hover:text-green-900">Verify</button>
+                                                <button @onclick="() => OpenVerifyDomain(domain)" disabled="@(domain.Status == DomainStatus.Suspended)" class="text-green-600 hover:text-green-900 disabled:opacity-50">Verify</button>
                                             }
                                             @if (domain.Status != DomainStatus.Suspended)
                                             {

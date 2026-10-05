@@ -22,12 +22,14 @@ public partial class UnsuspendDomain(ICommandRunner commander, INotificationServ
     {
         this._dataModel = dataModel;
         this.isVisible = true;
+        this.StateHasChanged();
     }
 
     public void Close()
     {
         this.isVisible = false;
         this._dataModel = null;
+        this.StateHasChanged();
     }
 
     private async Task HandleUnsuspendDomain()

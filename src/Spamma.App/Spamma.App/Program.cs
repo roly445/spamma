@@ -5,6 +5,7 @@ using System.Text;
 using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
+using DnsClient;
 using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Authentication;
@@ -166,6 +167,12 @@ builder.Services.AddCommonBehaviors();
 
 builder.Services.AddUserManagement()
     .AddDomainManagement().AddEmailInbox();
+
+// Browser scenarios use a local DNS responder so ownership checks remain deterministic.
+if (int.TryParse(builder.Configuration["SPAMMA_E2E_DNS_PORT"], out var e2eDnsPort))
+{
+    builder.Services.AddScoped<ILookupClient>(_ => new LookupClient(IPAddress.Loopback, e2eDnsPort));
+}
 
 builder.Services.AddGrpc();
 
