@@ -7,6 +7,31 @@ namespace Spamma.Modules.DomainManagement.Tests.Domain;
 public class DomainAggregateTests
 {
     [Fact]
+    public void UnverifiedDomain_CannotGainModerator()
+    {
+        var id = Guid.NewGuid();
+        var domain = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain.Replay(
+            null,
+            new DomainCreated(id, "example.com", null, null, "test-token", DateTime.UtcNow));
+
+        domain.AddModerationUser(Guid.NewGuid(), DateTime.UtcNow).IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
+    public void SuspendedDomain_CannotChangeDetailsOrModerators()
+    {
+        var id = Guid.NewGuid();
+        var domain = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain.Replay(
+            null,
+            new DomainCreated(id, "example.com", null, null, "test-token", DateTime.UtcNow));
+        domain.MarkAsVerified(DateTime.UtcNow).IsSuccess.Should().BeTrue();
+        domain.Suspend(DomainSuspensionReason.Administrative, "Review", DateTime.UtcNow).IsSuccess.Should().BeTrue();
+
+        domain.ChangeDetails("changed@example.com", "changed").IsFailure.Should().BeTrue();
+        domain.AddModerationUser(Guid.NewGuid(), DateTime.UtcNow).IsFailure.Should().BeTrue();
+    }
+
+    [Fact]
     public void DomainCreatedEvent_WithValidData_IsConstructedCorrectly()
     {
         // Arrange

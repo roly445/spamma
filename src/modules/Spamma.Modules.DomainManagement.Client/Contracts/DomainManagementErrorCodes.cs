@@ -9,6 +9,8 @@ public static class DomainManagementErrorCodes
     public const string AlreadyDisabled = "domain_management.already_disabled";
     public const string AlreadyVerified = "domain_already_verified";
     public const string VerificationFailed = "domain_verification_failed";
+    public const string DomainUnverified = "domain_management.domain_unverified";
+    public const string DomainSuspended = "domain_management.domain_suspended";
     public const string UserNotModerator = "domain_management.user_not_moderator";
     public const string UserNotViewer = "domain_management.user_not_viewer";
     public const string UserAlreadyViewer = "domain_management.user_already_viewer";

@@ -36,6 +36,8 @@ public static class Module
         services.AddScoped<IChaosAddressCache, ChaosAddressCache>();
 
         services.AddScoped<CacheInvalidationEventHandler>();
+        services.AddScoped<DomainModeratorListEventHandler>();
+        services.AddScoped<SubdomainModeratorListEventHandler>();
 
         services.AddSingleton<IDomainParserService, DomainParserService>();
 

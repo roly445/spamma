@@ -43,6 +43,7 @@ public partial class AddUser(ICommandRunner commander, INotificationService noti
     {
          this.assignUserModel = new AssignUserModel();
          this.showAssignUserModal = true;
+         this.StateHasChanged();
     }
 
     private void Close()

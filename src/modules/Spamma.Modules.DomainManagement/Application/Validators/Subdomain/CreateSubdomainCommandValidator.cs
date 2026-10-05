@@ -52,7 +52,7 @@ public class CreateSubdomainCommandValidator : AbstractValidator<CreateSubdomain
         }
 
         var domain = await this._documentSession.Query<DomainLookup>().FirstOrDefaultAsync(x => x.Id == command.DomainId, cancellationToken);
-        if (domain == null || string.IsNullOrWhiteSpace(domain.DomainName))
+        if (domain == null || string.IsNullOrWhiteSpace(domain.DomainName) || !domain.IsVerified || domain.IsSuspended)
         {
             return false;
         }

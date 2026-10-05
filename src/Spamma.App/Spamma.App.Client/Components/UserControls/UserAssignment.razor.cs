@@ -37,6 +37,9 @@ public partial class UserAssignment(ICommandRunner commander, IQueryRunner queri
     [Parameter]
     public string Name { get; set; } = string.Empty;
 
+    [Parameter]
+    public bool CanManage { get; set; } = true;
+
     private string TypeName => this.EntityUsage == Usage.DomainModeration ? "domain" : "subdomain";
 
     public Task Reload()
@@ -130,8 +133,8 @@ public partial class UserAssignment(ICommandRunner commander, IQueryRunner queri
         if (result.Status == CommandResultStatus.Succeeded)
         {
             notificationService.ShowSuccess($"User '{this.userToRemove.FullName}' removed from {this.TypeName} '{this.Name}' successfully!");
+            this.assignedUsers.RemoveAll(user => user.Id == this.userToRemove.Id);
             this.CloseRemoveAssignmentModal();
-            await this.Reload();
         }
         else
         {

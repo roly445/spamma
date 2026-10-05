@@ -49,6 +49,7 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
+            .WithVerification(this._fixedUtcNow.AddMinutes(-1))
             .WithModerator(userId, this._fixedUtcNow.AddSeconds(-10))
             .Build();
 
@@ -127,6 +128,7 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
+            .WithVerification(this._fixedUtcNow.AddMinutes(-1))
             .WithModerator(userId, this._fixedUtcNow.AddSeconds(-10))
             .Build();
 
@@ -166,6 +168,7 @@ public class RemoveModeratorFromDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
+            .WithVerification(this._fixedUtcNow.AddMinutes(-1))
             .WithModerator(userId1, this._fixedUtcNow.AddSeconds(-20))
             .WithModerator(userId2, this._fixedUtcNow.AddSeconds(-10))
             .Build();

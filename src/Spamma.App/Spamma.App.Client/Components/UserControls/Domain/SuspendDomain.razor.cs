@@ -26,6 +26,7 @@ public partial class SuspendDomain(ICommandRunner commander, INotificationServic
         this._dataModel = dataModel;
         this.model = new Model();
         this.isVisible = true;
+        this.StateHasChanged();
     }
 
     private void Close()
