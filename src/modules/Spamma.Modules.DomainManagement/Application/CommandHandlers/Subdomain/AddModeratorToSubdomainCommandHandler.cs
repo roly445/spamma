@@ -1,14 +1,14 @@
 ﻿using BluQube.Commands;
 using BluQube.Constants;
-using BluQube.Queries;
 using FluentValidation;
+using Marten;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common.Client.Infrastructure.Constants;
 using Spamma.Modules.Common.Domain.Contracts;
 using Spamma.Modules.Common.IntegrationEvents.DomainManagement;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
-using Spamma.Modules.UserManagement.Client.Application.Queries;
+using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.CommandHandlers.Subdomain;
 
@@ -17,7 +17,7 @@ internal class AddModeratorToSubdomainCommandHandler(
     IEnumerable<IValidator<AddModeratorToSubdomainCommand>> validators,
     ILogger<AddModeratorToSubdomainCommandHandler> logger,
     IIntegrationEventPublisher eventPublisher,
-    IQueryRunner querier)
+    IDocumentSession session)
     : CommandHandler<AddModeratorToSubdomainCommand>(validators, logger)
 {
     protected override async Task<CommandResult> HandleInternal(AddModeratorToSubdomainCommand request, CancellationToken cancellationToken)
@@ -28,8 +28,8 @@ internal class AddModeratorToSubdomainCommandHandler(
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"Subdomain with ID {request.SubdomainId} not found"));
         }
 
-        var userResult = await querier.Send(new GetUserByIdQuery(request.UserId), cancellationToken);
-        if (userResult.Status != QueryResultStatus.Succeeded)
+        var user = await session.LoadAsync<UserLookup>(request.UserId, cancellationToken);
+        if (user is null)
         {
             return CommandResult.Failed(new BluQubeErrorData(CommonErrorCodes.NotFound, $"User with ID {request.UserId} not found"));
         }
@@ -51,8 +51,8 @@ internal class AddModeratorToSubdomainCommandHandler(
             new UserAddedAsSubdomainModeratorIntegrationEvent(
                 request.UserId,
                 request.SubdomainId,
-                userResult.Data.Name,
-                userResult.Data.EmailAddress),
+                user.Name,
+                user.EmailAddress),
             cancellationToken);
         return CommandResult.Succeeded();
     }

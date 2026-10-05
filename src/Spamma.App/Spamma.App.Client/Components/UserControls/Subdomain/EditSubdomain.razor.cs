@@ -29,6 +29,7 @@ public partial class EditSubdomain(ICommandRunner commander, INotificationServic
         };
 
         this.isVisible = true;
+        this.StateHasChanged();
     }
 
     private void Close()

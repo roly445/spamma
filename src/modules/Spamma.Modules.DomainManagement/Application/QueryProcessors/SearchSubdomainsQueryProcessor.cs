@@ -17,6 +17,20 @@ internal class SearchSubdomainsQueryProcessor(IDocumentSession session, IHttpCon
         var baseQuery = session.Query<SubdomainLookup>();
         var whereConditions = new List<Expression<Func<SubdomainLookup, bool>>>();
 
+        if (request.Status == SubdomainStatus.Suspended)
+        {
+            whereConditions.Add(x => x.IsSuspended);
+        }
+        else if (request.Status == SubdomainStatus.Active)
+        {
+            whereConditions.Add(x => !x.IsSuspended);
+        }
+        else if (request.Status == SubdomainStatus.Inactive)
+        {
+            // Inactive is not a persisted subdomain state yet.
+            whereConditions.Add(x => x.Id == Guid.Empty);
+        }
+
         if (request.ParentDomainId.HasValue && request.ParentDomainId != Guid.Empty)
         {
             whereConditions.Add(x => x.DomainId == request.ParentDomainId.Value);

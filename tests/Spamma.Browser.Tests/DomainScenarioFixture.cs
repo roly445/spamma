@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Marten;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
@@ -84,6 +85,27 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
         return (id, email);
     }
 
+    public async Task<Guid> SeedSubdomainAsync(Guid domainId, string name, string? description = null,
+        bool suspended = false, DateTime? createdAt = null)
+    {
+        var id = Guid.NewGuid();
+        var events = new List<object>
+        {
+            new SubdomainCreated(id, domainId, name, createdAt ?? DateTime.UtcNow, description),
+        };
+        if (suspended)
+        {
+            events.Add(new SubdomainSuspended(
+                Spamma.Modules.DomainManagement.Client.Contracts.SubdomainSuspensionReason.AdminRequest,
+                "Fixture suspension", DateTime.UtcNow));
+        }
+
+        await using var session = this.store.LightweightSession();
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(id, events.ToArray());
+        await session.SaveChangesAsync();
+        return id;
+    }
+
     public async Task AssignCurrentUserAsync(Guid domainId)
     {
         await using var session = this.store.LightweightSession();
@@ -92,6 +114,18 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
         {
             Id = user.Id, Name = user.Name, EmailAddress = user.EmailAddress, CreatedAt = user.CreatedAt,
             SystemRole = user.SystemRole, ModeratedDomains = [domainId],
+        });
+        await session.SaveChangesAsync();
+    }
+
+    public async Task AssignCurrentUserToSubdomainAsync(Guid subdomainId)
+    {
+        await using var session = this.store.LightweightSession();
+        var user = await session.Query<UserLookup>().FirstAsync(x => x.EmailAddress == this.EmailAddress);
+        session.Store(new UserLookup
+        {
+            Id = user.Id, Name = user.Name, EmailAddress = user.EmailAddress, CreatedAt = user.CreatedAt,
+            SystemRole = user.SystemRole, ModeratedSubdomains = [subdomainId],
         });
         await session.SaveChangesAsync();
     }
@@ -106,6 +140,8 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
     }
 
     public void PublishTxt(string name, string token) => this.dnsCapture.Publish(name, token);
+
+    public void PublishMx(string name, string exchange) => this.dnsCapture.PublishMx(name, exchange);
 
     public async ValueTask DisposeAsync()
     {
