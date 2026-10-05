@@ -1,4 +1,4 @@
-﻿using BluQube.Queries;
+using BluQube.Queries;
 using FluentAssertions;
 using FluentValidation;
 using MaybeMonad;
@@ -54,6 +54,7 @@ public class AddModeratorToDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
+            .WithVerification(this._fixedUtcNow.AddMinutes(-1))
             .Build();
 
         var command = new AddModeratorToDomainCommand(domainId, userId);
@@ -136,6 +137,7 @@ public class AddModeratorToDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
+            .WithVerification(this._fixedUtcNow.AddMinutes(-1))
             .Build();
 
         var command = new AddModeratorToDomainCommand(domainId, userId);
@@ -179,6 +181,7 @@ public class AddModeratorToDomainCommandHandlerTests
         var domain = new DomainBuilder()
             .WithId(domainId)
             .WithName("example.com")
+            .WithVerification(this._fixedUtcNow.AddMinutes(-1))
             .Build();
 
         var command1 = new AddModeratorToDomainCommand(domainId, userId1);
