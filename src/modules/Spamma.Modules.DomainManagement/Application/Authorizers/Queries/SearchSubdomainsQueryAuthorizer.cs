@@ -21,7 +21,8 @@ internal class SearchSubdomainsQueryAuthorizer(IInternalQueryStore internalQuery
             return Task.FromResult(AuthorizationResult.Fail());
         }
 
-        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) || user.ModeratedDomains.Any() || user.ModeratedSubdomains.Any())
+        if (user.SystemRole.HasFlag(SystemRole.DomainManagement) || user.ModeratedDomains.Any() ||
+            user.ModeratedSubdomains.Any() || user.ViewableSubdomains.Any())
         {
             return Task.FromResult(AuthorizationResult.Succeed());
         }

@@ -2,9 +2,12 @@ using BluQube.Commands;
 using BluQube.Constants;
 using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
+using Spamma.App.Client.Infrastructure.Auth;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
+using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
@@ -19,7 +22,8 @@ public partial class Home(
     ICommandRunner commander,
     ISignalRService signalRService,
     INotificationService notificationService,
-    NavigationManager navigationManager) : IDisposable
+    NavigationManager navigationManager,
+    AuthenticationStateProvider authenticationStateProvider) : IDisposable
 {
     private const int DefaultPageSize = 25;
     private static readonly Guid CatchAllSubdomainId = Guid.Parse("00000000-0000-0000-0000-000000000001");
@@ -47,6 +51,7 @@ public partial class Home(
     private GetCampaignDetailQueryResult? _campaignDetail;
     private SearchEmailsQueryResult.EmailSummary? _campaignEmailSummary;
     private bool _campaignsInitialized;
+    private UserAuthInfo _userAuthInfo = UserAuthInfo.Unauthenticated();
     private bool _disposed;
 
     private enum InboxTab
@@ -87,6 +92,7 @@ public partial class Home(
 
     protected override async Task OnInitializedAsync()
     {
+        this._userAuthInfo = (await authenticationStateProvider.GetAuthenticationStateAsync()).ToUserAuthInfo();
         navigationManager.LocationChanged += this.OnLocationChanged;
 
         if (this.GetActiveTab() == InboxTab.Campaigns)
@@ -670,6 +676,11 @@ public partial class Home(
             ? baseClasses
             : $"{baseClasses} opacity-50 pointer-events-none";
     }
+
+    private bool CanManageCampaign(GetCampaignsQueryResult.CampaignSummary campaign) =>
+        this._userAuthInfo.SystemRole.HasFlag(SystemRole.DomainManagement) ||
+        this._userAuthInfo.ModeratedSubdomains.Contains(campaign.SubdomainId) ||
+        this._userAuthInfo.ModeratedDomains.Contains(campaign.DomainId);
 
     private async Task OnNewEmailReceived()
     {

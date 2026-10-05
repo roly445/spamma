@@ -23,10 +23,12 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/anonymous-access.feature" Link="Features/anonymous-access.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/setup.feature" Link="Features/setup.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/inbox.feature" Link="Features/inbox.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/campaigns.feature" Link="Features/campaigns.feature" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/modules/Spamma.Modules.UserManagement/Spamma.Modules.UserManagement.csproj" />
+    <ProjectReference Include="../../src/modules/Spamma.Modules.DomainManagement/Spamma.Modules.DomainManagement.csproj" />
     <ProjectReference Include="../../src/modules/Spamma.Modules.EmailInbox/Spamma.Modules.EmailInbox.csproj" />
   </ItemGroup>
 </Project>

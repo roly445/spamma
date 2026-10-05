@@ -5,9 +5,12 @@ using System.Text.RegularExpressions;
 using Marten;
 using Marten.Linq;
 using MimeKit;
+using Spamma.Modules.Common.Client;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
 using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Browser.Tests;
@@ -20,20 +23,25 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
     private readonly List<Guid> messageIds = [];
 
     private InboxScenarioFixture(IDocumentStore store, SmtpCapture smtpCapture, string messageDirectory,
-        Guid subdomainId, string emailAddress)
+        IReadOnlyList<Guid> subdomainIds, Guid domainId, string emailAddress)
     {
         this.store = store;
         this.smtpCapture = smtpCapture;
         this.messageDirectory = messageDirectory;
-        this.SubdomainId = subdomainId;
+        this.SubdomainIds = subdomainIds;
+        this.DomainId = domainId;
         this.EmailAddress = emailAddress;
     }
 
-    public Guid SubdomainId { get; }
+    public Guid SubdomainId => this.SubdomainIds[0];
+
+    public IReadOnlyList<Guid> SubdomainIds { get; }
+
+    public Guid DomainId { get; }
 
     public string EmailAddress { get; }
 
-    public static async Task<InboxScenarioFixture> CreateAsync()
+    public static async Task<InboxScenarioFixture> CreateAsync(bool restrictedCampaignUser = false, bool viewer = false)
     {
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
             ?? throw new InvalidOperationException("Inbox browser tests require a disposable PostgreSQL database.");
@@ -45,12 +53,55 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
             options.Connection(connectionString);
             Spamma.Modules.UserManagement.Module.ConfigureUserManagement(options);
             Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(options);
+            Spamma.Modules.DomainManagement.Module.ConfigureDomainManagement(options);
         });
 
-        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
+        var subdomainIds = restrictedCampaignUser ? new[] { Guid.NewGuid(), Guid.NewGuid() } : [Guid.NewGuid()];
         string emailAddress;
-        await using (var session = store.LightweightSession())
+        if (restrictedCampaignUser)
         {
+            var userId = Guid.NewGuid();
+            emailAddress = $"campaign-{userId:N}@example.test";
+            await using (var session = store.LightweightSession())
+            {
+                session.Events.StartStream<Spamma.Modules.UserManagement.Domain.UserAggregate.User>(userId,
+                    new UserCreated(userId, "Campaign fixture user", emailAddress, Guid.NewGuid(), DateTime.UnixEpoch, 0));
+                await session.SaveChangesAsync();
+            }
+
+            await using (var session = store.LightweightSession())
+            {
+                session.Store(new UserLookup
+                {
+                    Id = userId,
+                    Name = "Campaign fixture user",
+                    EmailAddress = emailAddress,
+                    CreatedAt = DateTime.UnixEpoch,
+                    SystemRole = 0,
+                    ModeratedSubdomains = viewer ? [] : subdomainIds,
+                    ViewableSubdomains = viewer ? subdomainIds : [],
+                });
+                for (var index = 0; index < subdomainIds.Length; index++)
+                {
+                    var name = $"campaign-{(char)('a' + index)}-{subdomainIds[index].ToString("N")[..8]}";
+                    session.Store(new SubdomainLookup
+                    {
+                        Id = subdomainIds[index],
+                        DomainId = domainId,
+                        SubdomainName = name,
+                        FullName = $"{name}.example.test",
+                        ParentName = "example.test",
+                        CreatedAt = DateTime.UtcNow,
+                    });
+                }
+
+                await session.SaveChangesAsync();
+            }
+        }
+        else
+        {
+            await using var session = store.LightweightSession();
             var user = await session.Query<UserLookup>()
                 .OrderByDescending(x => x.CreatedAt)
                 .FirstOrDefaultAsync()
@@ -70,7 +121,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
                 SystemRole = user.SystemRole,
                 ModeratedDomains = user.ModeratedDomains,
                 ModeratedSubdomains = user.ModeratedSubdomains,
-                ViewableSubdomains = [subdomainId],
+                ViewableSubdomains = [subdomainIds[0]],
             });
             await session.SaveChangesAsync();
         }
@@ -79,12 +130,12 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         smtpCapture.Start();
         var messageDirectory = Path.Combine(contentRoot, "messages");
         Directory.CreateDirectory(messageDirectory);
-        return new InboxScenarioFixture(store, smtpCapture, messageDirectory, subdomainId, emailAddress);
+        return new InboxScenarioFixture(store, smtpCapture, messageDirectory, subdomainIds, domainId, emailAddress);
     }
 
     public async Task<Guid> SeedMessageAsync(string subject, string sender = "sender@example.test",
         Guid? subdomainId = null, Guid? campaignId = null, bool includeAttachment = false,
-        DateTimeOffset? receivedAt = null)
+        DateTimeOffset? receivedAt = null, string? campaignValue = null)
     {
         var id = Guid.NewGuid();
         var actualSubdomainId = subdomainId ?? this.SubdomainId;
@@ -110,7 +161,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         await message.WriteToAsync(Path.Combine(this.messageDirectory, $"{id}.eml"));
 
         await using var session = this.store.LightweightSession();
-        var domainId = Guid.NewGuid();
+        var domainId = this.DomainId;
         var receivedEvent = new EmailReceived(id, domainId, actualSubdomainId, subject, received,
         [
             new EmailReceived.EmailAddress(sender, "Fixture Sender", EmailAddressType.From),
@@ -132,7 +183,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
                 CampaignId = campaignId.Value,
                 DomainId = domainId,
                 SubdomainId = actualSubdomainId,
-                CampaignValue = "Fixture campaign",
+                CampaignValue = campaignValue ?? "Fixture campaign",
                 SampleMessageId = id,
                 FirstReceivedAt = received,
                 LastReceivedAt = received,
@@ -143,6 +194,83 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         await session.SaveChangesAsync();
         this.messageIds.Add(id);
         return id;
+    }
+
+    public async Task<Guid> SeedCampaignAsync(string campaignValue, Guid? subdomainId = null,
+        DateTimeOffset? receivedAt = null)
+    {
+        var campaignId = Guid.NewGuid();
+        var actualSubdomainId = subdomainId ?? this.SubdomainId;
+        var received = receivedAt ?? DateTimeOffset.UtcNow;
+        var sampleId = await this.SeedMessageAsync($"Sample for {campaignValue}", subdomainId: actualSubdomainId,
+            campaignId: campaignId, receivedAt: received, campaignValue: campaignValue);
+
+        await using var session = this.store.LightweightSession();
+        session.Events.StartStream<Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Campaign>(campaignId,
+            new Spamma.Modules.EmailInbox.Domain.CampaignAggregate.Events.CampaignCreated(
+                campaignId, this.DomainId, actualSubdomainId, campaignValue, sampleId,
+                received.UtcDateTime, received));
+        await session.SaveChangesAsync();
+        return campaignId;
+    }
+
+    public async Task<Guid> SeedOtherUsersCampaignAsync(string campaignValue)
+    {
+        var otherSubdomainId = Guid.NewGuid();
+        await using (var session = this.store.LightweightSession())
+        {
+            session.Store(new UserLookup
+            {
+                Id = Guid.NewGuid(),
+                Name = "Other campaign user",
+                EmailAddress = $"other-campaign-{Guid.NewGuid():N}@example.test",
+                CreatedAt = DateTime.UnixEpoch,
+                ViewableSubdomains = [otherSubdomainId],
+            });
+            await session.SaveChangesAsync();
+        }
+
+        return await this.SeedCampaignAsync(campaignValue, otherSubdomainId);
+    }
+
+    public async Task<Guid> SeedCampaignSummaryAsync(string campaignValue, Guid subdomainId,
+        DateTimeOffset receivedAt, int totalCaptured)
+    {
+        var campaignId = Guid.NewGuid();
+        await using var session = this.store.LightweightSession();
+        session.Store(new CampaignSummary
+        {
+            CampaignId = campaignId,
+            DomainId = this.DomainId,
+            SubdomainId = subdomainId,
+            CampaignValue = campaignValue,
+            FirstReceivedAt = receivedAt.AddHours(-1),
+            LastReceivedAt = receivedAt,
+            TotalCaptured = totalCaptured,
+        });
+        await session.SaveChangesAsync();
+        return campaignId;
+    }
+
+    public async Task SeedCampaignSummariesAsync(int count, Guid subdomainId)
+    {
+        await using var session = this.store.LightweightSession();
+        for (var index = 1; index <= count; index++)
+        {
+            var received = DateTimeOffset.UtcNow.AddMinutes(-index);
+            session.Store(new CampaignSummary
+            {
+                CampaignId = Guid.NewGuid(),
+                DomainId = this.DomainId,
+                SubdomainId = subdomainId,
+                CampaignValue = $"Campaign {index:D2}",
+                FirstReceivedAt = received.AddHours(-1),
+                LastReceivedAt = received,
+                TotalCaptured = index,
+            });
+        }
+
+        await session.SaveChangesAsync();
     }
 
     public async Task<Guid> SeedOtherUsersMessageAsync(string subject)
