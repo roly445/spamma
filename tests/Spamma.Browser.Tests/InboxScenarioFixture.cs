@@ -375,6 +375,9 @@ internal sealed class SmtpCapture(int port) : IAsyncDisposable
     private readonly TaskCompletionSource<MimeMessage> message = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly CancellationTokenSource cancellation = new();
     private Task? acceptTask;
+    private int messageCount;
+
+    public int MessageCount => Volatile.Read(ref this.messageCount);
 
     public void Start()
     {
@@ -428,7 +431,9 @@ internal sealed class SmtpCapture(int port) : IAsyncDisposable
                     if (line == ".")
                     {
                         using var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(data.ToString()));
-                        this.message.TrySetResult(await MimeMessage.LoadAsync(messageStream));
+                        var capturedMessage = await MimeMessage.LoadAsync(messageStream);
+                        Interlocked.Increment(ref this.messageCount);
+                        this.message.TrySetResult(capturedMessage);
                         await writer.WriteLineAsync("250 Queued");
                         inData = false;
                     }
