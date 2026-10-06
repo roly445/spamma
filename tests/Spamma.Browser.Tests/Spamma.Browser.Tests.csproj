@@ -25,6 +25,7 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/inbox.feature" Link="Features/inbox.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/campaigns.feature" Link="Features/campaigns.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/domains.feature" Link="Features/domains.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/subdomains.feature" Link="Features/subdomains.feature" />
   </ItemGroup>
 
   <ItemGroup>

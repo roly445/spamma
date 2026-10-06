@@ -1,6 +1,6 @@
-﻿using BluQube.Queries;
 using FluentAssertions;
 using FluentValidation;
+using Marten;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -11,7 +11,7 @@ using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
-using Spamma.Modules.UserManagement.Client.Application.Queries;
+using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Subdomain;
 
@@ -19,7 +19,7 @@ public class AddViewerToSubdomainCommandHandlerTests
 {
     private readonly Mock<ISubdomainRepository> _repositoryMock;
     private readonly Mock<IIntegrationEventPublisher> _eventPublisherMock;
-    private readonly Mock<IQueryRunner> _querierMock;
+    private readonly Mock<IDocumentSession> _sessionMock;
     private readonly Mock<ILogger<AddViewerToSubdomainCommandHandler>> _loggerMock;
     private readonly AddViewerToSubdomainCommandHandler _handler;
     private readonly TimeProvider _timeProvider;
@@ -29,7 +29,7 @@ public class AddViewerToSubdomainCommandHandlerTests
     {
         this._repositoryMock = new Mock<ISubdomainRepository>(MockBehavior.Strict);
         this._eventPublisherMock = new Mock<IIntegrationEventPublisher>(MockBehavior.Strict);
-        this._querierMock = new Mock<IQueryRunner>(MockBehavior.Strict);
+        this._sessionMock = new Mock<IDocumentSession>(MockBehavior.Strict);
         this._loggerMock = new Mock<ILogger<AddViewerToSubdomainCommandHandler>>();
         this._timeProvider = new StubTimeProvider(this._fixedUtcNow);
 
@@ -41,7 +41,7 @@ public class AddViewerToSubdomainCommandHandlerTests
             validators,
             this._loggerMock.Object,
             this._eventPublisherMock.Object,
-            this._querierMock.Object);
+            this._sessionMock.Object);
     }
 
     [Fact]
@@ -60,10 +60,9 @@ public class AddViewerToSubdomainCommandHandlerTests
 
         var command = new AddViewerToSubdomainCommand(subdomainId, userId);
 
-        this._querierMock
-            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
-            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
-                new GetUserByIdQueryResult(userId, "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
+        this._sessionMock
+            .Setup(x => x.LoadAsync<UserLookup>(userId, CancellationToken.None))
+            .ReturnsAsync(new UserLookup { Id = userId, EmailAddress = "test@example.com", Name = "Test User" });
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(subdomainId, CancellationToken.None))
@@ -146,10 +145,12 @@ public class AddViewerToSubdomainCommandHandlerTests
         var command1 = new AddViewerToSubdomainCommand(subdomainId, userId1);
         var command2 = new AddViewerToSubdomainCommand(subdomainId, userId2);
 
-        this._querierMock
-            .Setup(x => x.Send(It.IsAny<GetUserByIdQuery>(), CancellationToken.None))
-            .ReturnsAsync(QueryResult<GetUserByIdQueryResult>.Succeeded(
-                new GetUserByIdQueryResult(Guid.NewGuid(), "test@example.com", "Test User", false, (Spamma.Modules.Common.Client.SystemRole)0, [], [], [])));
+        this._sessionMock
+            .Setup(x => x.LoadAsync<UserLookup>(It.IsAny<Guid>(), CancellationToken.None))
+            .ReturnsAsync((Guid id, CancellationToken _) => new UserLookup
+            {
+                Id = id, EmailAddress = "test@example.com", Name = "Test User",
+            });
 
         this._repositoryMock
             .Setup(x => x.GetByIdAsync(subdomainId, CancellationToken.None))

@@ -33,6 +33,7 @@ public partial class AddSubdomain(ICommandRunner commander, INotificationService
         }
 
         this.isVisible = true;
+        this.StateHasChanged();
     }
 
     private void Close()
