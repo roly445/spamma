@@ -72,11 +72,12 @@ public class ApiKeyValidationServiceTests
         Assert.True(result);
         repoMock.Verify(r => r.GetByPlainKeyAsync(apiKeyValue, default), Times.Once);
 
-        // Verify caching - second call should use cache and not query repository
-        repoMock.Reset();
-        var cachedResult = await service.ValidateApiKeyAsync(apiKeyValue);
-        Assert.True(cachedResult);
-        repoMock.Verify(r => r.GetByPlainKeyAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        // Re-check an active key so a later revocation cannot use a cached success.
+        Assert.True(await service.ValidateApiKeyAsync(apiKeyValue));
+        repoMock.Verify(r => r.GetByPlainKeyAsync(apiKeyValue, default), Times.Exactly(2));
+
+        apiKeyAggregate.Revoke(DateTime.UtcNow);
+        Assert.False(await service.ValidateApiKeyAsync(apiKeyValue));
     }
 
     [Fact]
