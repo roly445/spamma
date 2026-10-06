@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Marten;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events;
 using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
 using Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Events;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
@@ -136,6 +137,23 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
         return id;
     }
 
+    public async Task<Guid> SeedChaosAddressAsync(Guid domainId, Guid subdomainId, string localPart,
+        bool enabled = false)
+    {
+        var id = Guid.NewGuid();
+        var events = new List<object>
+        {
+            new ChaosAddressCreated(id, domainId, subdomainId, localPart,
+                SmtpResponseCode.MailboxUnavailablePermanent, DateTime.UtcNow),
+        };
+        if (enabled) events.Add(new ChaosAddressEnabled(DateTime.UtcNow));
+
+        await using var session = this.store.LightweightSession();
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(id, events.ToArray());
+        await session.SaveChangesAsync();
+        return id;
+    }
+
     public async Task AssignCurrentUserAsync(Guid domainId)
     {
         await using var session = this.store.LightweightSession();
@@ -156,6 +174,18 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
         {
             Id = user.Id, Name = user.Name, EmailAddress = user.EmailAddress, CreatedAt = user.CreatedAt,
             SystemRole = user.SystemRole, ModeratedSubdomains = [subdomainId],
+        });
+        await session.SaveChangesAsync();
+    }
+
+    public async Task AssignCurrentUserToViewSubdomainAsync(Guid subdomainId)
+    {
+        await using var session = this.store.LightweightSession();
+        var user = await session.Query<UserLookup>().FirstAsync(x => x.EmailAddress == this.EmailAddress);
+        session.Store(new UserLookup
+        {
+            Id = user.Id, Name = user.Name, EmailAddress = user.EmailAddress, CreatedAt = user.CreatedAt,
+            SystemRole = user.SystemRole, ViewableSubdomains = [subdomainId],
         });
         await session.SaveChangesAsync();
     }

@@ -167,6 +167,54 @@ public class CreateChaosAddressCommandValidatorTests : IClassFixture<PostgreSqlF
     }
 
     [Fact]
+    public async Task ValidateAsync_LocalPartWithWhitespace_HasValidationError()
+    {
+        var subdomainId = Guid.NewGuid();
+        this._fixture.Session!.Store(new SubdomainLookup
+        {
+            Id = subdomainId,
+            DomainId = Guid.NewGuid(),
+            SubdomainName = "mail",
+            FullName = "mail.example.com",
+            CreatedAt = DateTime.UtcNow,
+        });
+        await this._fixture.Session.SaveChangesAsync();
+
+        var validator = new CreateChaosAddressCommandValidator(this._fixture.Session);
+        var command = new CreateChaosAddressCommand(Guid.NewGuid(), Guid.NewGuid(), subdomainId,
+            "invalid local part", SmtpResponseCode.MailboxUnavailable);
+
+        var result = await validator.TestValidateAsync(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.LocalPart)
+            .WithErrorMessage("Local Part cannot contain whitespace.");
+    }
+
+    [Fact]
+    public async Task ValidateAsync_SubdomainFromDifferentDomain_HasValidationError()
+    {
+        var subdomainId = Guid.NewGuid();
+        this._fixture.Session!.Store(new SubdomainLookup
+        {
+            Id = subdomainId,
+            DomainId = Guid.NewGuid(),
+            SubdomainName = "mail",
+            FullName = "mail.example.com",
+            CreatedAt = DateTime.UtcNow,
+        });
+        await this._fixture.Session.SaveChangesAsync();
+
+        var validator = new CreateChaosAddressCommandValidator(this._fixture.Session);
+        var command = new CreateChaosAddressCommand(Guid.NewGuid(), Guid.NewGuid(), subdomainId,
+            "chaos", SmtpResponseCode.MailboxUnavailable);
+
+        var result = await validator.TestValidateAsync(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DomainId)
+            .WithErrorMessage("Subdomain must belong to the selected domain.");
+    }
+
+    [Fact]
     public async Task ValidateAsync_SubdomainNotFound_HasValidationError()
     {
         // Arrange - No subdomain stored in database

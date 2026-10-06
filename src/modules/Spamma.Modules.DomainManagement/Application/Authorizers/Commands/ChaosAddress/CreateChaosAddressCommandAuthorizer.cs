@@ -19,8 +19,7 @@ internal class CreateChaosAddressCommandAuthorizer(IHttpContextAccessor httpCont
         }
 
         if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
-            user.ModeratedSubdomains.Contains(request.SubdomainId) ||
-            user.ViewableSubdomains.Contains(request.SubdomainId))
+            user.ModeratedSubdomains.Contains(request.SubdomainId))
         {
             return AuthorizationResult.Succeed();
         }

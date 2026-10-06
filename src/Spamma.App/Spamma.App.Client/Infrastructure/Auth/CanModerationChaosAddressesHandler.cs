@@ -29,11 +29,6 @@ public class CanModerationChaosAddressesHandler : AuthorizationHandler<CanModera
             context.Succeed(requirement);
         }
 
-        if (userInfo.ViewableSubdomains.Any())
-        {
-            context.Succeed(requirement);
-        }
-
         return Task.CompletedTask;
     }
 }

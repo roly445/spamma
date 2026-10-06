@@ -351,9 +351,14 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(
         "AssignedToAnyDomain",
         policy => policy.Requirements.Add(new AssignedToAnyDomainRequirement()));
+
+    options.AddPolicy(
+        Lookups.CanModerateChaosAddresses,
+        policy => policy.Requirements.Add(new CanModerationChaosAddressesRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, BitwiseRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CanModerationChaosAddressesHandler>();
 
 // Add Redis distributed cache for sessions
 builder.Services.AddStackExchangeRedisCache(options =>

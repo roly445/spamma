@@ -23,7 +23,7 @@ public static class Module
 {
     public static IServiceCollection AddDomainManagement(this IServiceCollection services)
     {
-        services.AddValidatorsFromAssembly(typeof(Module).Assembly);
+        services.AddValidatorsFromAssembly(typeof(Module).Assembly, includeInternalTypes: true);
 
         services.AddBluQube(typeof(Module).Assembly);
         services.AddBluQubeAuthorization(typeof(Module).Assembly);

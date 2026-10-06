@@ -28,6 +28,7 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/subdomains.feature" Link="Features/subdomains.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/users.feature" Link="Features/users.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/catch-all.feature" Link="Features/catch-all.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/chaos-addresses.feature" Link="Features/chaos-addresses.feature" />
   </ItemGroup>
 
   <ItemGroup>
