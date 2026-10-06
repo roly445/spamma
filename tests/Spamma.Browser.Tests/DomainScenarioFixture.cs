@@ -17,15 +17,18 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
     private readonly SmtpCapture smtpCapture;
     private readonly DnsTxtCapture dnsCapture;
 
-    private DomainScenarioFixture(IDocumentStore store, SmtpCapture smtpCapture, DnsTxtCapture dnsCapture, string emailAddress)
+    private DomainScenarioFixture(IDocumentStore store, SmtpCapture smtpCapture, DnsTxtCapture dnsCapture, Guid userId, string emailAddress)
     {
         this.store = store;
         this.smtpCapture = smtpCapture;
         this.dnsCapture = dnsCapture;
+        this.UserId = userId;
         this.EmailAddress = emailAddress;
     }
 
     public string EmailAddress { get; }
+
+    public Guid UserId { get; }
 
     public static async Task<DomainScenarioFixture> CreateAsync(bool administrator = true)
     {
@@ -56,7 +59,32 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
 
         var smtpCapture = new SmtpCapture(2527);
         smtpCapture.Start();
-        return new DomainScenarioFixture(store, smtpCapture, new DnsTxtCapture(), emailAddress);
+        return new DomainScenarioFixture(store, smtpCapture, new DnsTxtCapture(), id, emailAddress);
+    }
+
+    public async Task SeedApiKeyAsync(Guid userId, string name, DateTimeOffset? expiresAt = null, bool revoked = false)
+    {
+        await using var session = this.store.LightweightSession();
+        session.Store(new ApiKeyLookup
+        {
+            Id = Guid.NewGuid(), UserId = userId, Name = name,
+            KeyHashPrefix = Guid.NewGuid().ToString("N"), KeyHash = Guid.NewGuid().ToString("N"),
+            CreatedAt = DateTimeOffset.UtcNow.AddDays(-1), ExpiresAt = expiresAt,
+            RevokedAt = revoked ? DateTimeOffset.UtcNow : null,
+        });
+        await session.SaveChangesAsync();
+    }
+
+    public async Task<ApiKeyLookup?> GetApiKeyAsync(string name)
+    {
+        await using var session = this.store.QuerySession();
+        return await session.Query<ApiKeyLookup>().FirstOrDefaultAsync(x => x.UserId == this.UserId && x.Name == name);
+    }
+
+    public async Task<PasskeyLookup?> GetPasskeyAsync(string name)
+    {
+        await using var session = this.store.QuerySession();
+        return await session.Query<PasskeyLookup>().FirstOrDefaultAsync(x => x.UserId == this.UserId && x.DisplayName == name);
     }
 
     public async Task<(Guid Id, string Name, string Token)> SeedDomainAsync(string name, bool verified = false,

@@ -24,12 +24,13 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             return false;
         }
 
-        // Check cache first - note: API key is used as part of cache key; ensure cache is secure in production
+        // A successful validation must always consult the aggregate so revocation and expiry take effect immediately.
+        // Only failed lookups are cached.
         var cacheKey = $"api_key_validation:{apiKey}";
         var cachedResult = await cache.GetStringAsync(cacheKey, cancellationToken);
-        if (cachedResult != null)
+        if (cachedResult == "false")
         {
-            return bool.Parse(cachedResult);
+            return false;
         }
 
         // Use repository helper to find matching aggregate via prefix hash lookup
@@ -54,12 +55,6 @@ internal class ApiKeyValidationService(IApiKeyRepository apiKeyRepository, IDist
             }, cancellationToken);
             return false;
         }
-
-        // Positive result: cache for 30 minutes by default
-        await cache.SetStringAsync(cacheKey, "true", new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
-        }, cancellationToken);
 
         return true;
     }

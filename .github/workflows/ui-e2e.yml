@@ -117,13 +117,13 @@ jobs:
             exit 1
           fi
 
-          dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "Category=smoke|Category=inbox|Category=campaign|Category=domain|Category=subdomain|Category=user|Category=catch-all|Category=chaos" --logger "trx;LogFileName=browser-tests.trx" --results-directory browser-test-results
+          dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "Category=smoke|Category=inbox|Category=campaign|Category=domain|Category=subdomain|Category=user|Category=catch-all|Category=chaos|Category=credential" --logger "trx;LogFileName=browser-tests.trx" --results-directory browser-test-results
         env:
           ASPNETCORE_URLS: http://127.0.0.1:5188
           ASPNETCORE_ENVIRONMENT: Production
           Setup__Completed: '2026-01-01T00:00:00Z'
           SmtpServer__Port: '2526'
-          SPAMMA_E2E_BASE_URL: http://127.0.0.1:5188
+          SPAMMA_E2E_BASE_URL: http://localhost:5188
           SPAMMA_BROWSER_RESULTS_DIR: ${{ github.workspace }}/browser-test-results
           SPAMMA_BROWSER_VIDEO_DIR: ${{ github.workspace }}/browser-test-videos
           SPAMMA_E2E_APP_CONTENT_ROOT: ${{ github.workspace }}/browser-app
