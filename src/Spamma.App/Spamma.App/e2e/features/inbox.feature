@@ -87,3 +87,12 @@ Feature: Personal inbox and message inspection
     Then it does not appear in my inbox
     When I request its content by message ID
     Then the request is denied without disclosing the message
+
+  Scenario: Two signed-in users see only their assigned domains and messages
+    Given two users have separate domains, messages, and a captured campaign
+    When the first user signs in using a magic link
+    Then the first user can inspect their message and campaign
+    And the second user's domain and message are hidden
+    When the second user signs in using a magic link
+    Then the second user can inspect their own message
+    And the first user's domain and message are hidden
