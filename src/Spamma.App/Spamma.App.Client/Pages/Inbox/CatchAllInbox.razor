@@ -1,3 +1,5 @@
+@using Microsoft.AspNetCore.Components.Authorization
+
 <div class="flex-1 flex overflow-hidden bg-gray-50" data-testid="catch-all-inbox">
     @if (!_catchAllEnabled)
     {
@@ -8,10 +10,17 @@
                 </svg>
             </div>
             <h2 class="text-xl font-semibold text-gray-900 mb-2">Catch-All Mode is disabled</h2>
-            <p class="text-gray-500 mb-6 max-w-md">Enable Catch-All Mode in Settings to capture emails sent to any address on this server, regardless of domain registration.</p>
-            <a href="/admin/settings" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
-                Go to Settings
-            </a>
+            <p class="text-gray-500 mb-6 max-w-md">Catch-all mode must be enabled before emails sent to unregistered addresses can be captured.</p>
+            <AuthorizeView Policy="DomainAdministration">
+                <Authorized>
+                    <a href="/admin/settings" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        Go to Settings
+                    </a>
+                </Authorized>
+                <NotAuthorized>
+                    <p class="text-gray-500">Ask an administrator to enable catch-all mode.</p>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     }
     else

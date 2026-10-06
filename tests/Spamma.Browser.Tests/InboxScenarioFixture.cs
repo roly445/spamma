@@ -8,6 +8,7 @@ using MimeKit;
 using Spamma.Modules.Common.Client;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Domain.CatchAllSenderAddressAggregate.Events;
 using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.UserManagement.Domain.UserAggregate.Events;
@@ -21,6 +22,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
     private readonly SmtpCapture smtpCapture;
     private readonly string messageDirectory;
     private readonly List<Guid> messageIds = [];
+    private bool originalCatchAllMode;
 
     private InboxScenarioFixture(IDocumentStore store, SmtpCapture smtpCapture, string messageDirectory,
         IReadOnlyList<Guid> subdomainIds, Guid domainId, string emailAddress)
@@ -41,7 +43,10 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
 
     public string EmailAddress { get; }
 
-    public static async Task<InboxScenarioFixture> CreateAsync(bool restrictedCampaignUser = false, bool viewer = false)
+    public Guid UserId { get; private set; }
+
+    public static async Task<InboxScenarioFixture> CreateAsync(bool restrictedCampaignUser = false, bool viewer = false,
+        SystemRole isolatedRole = 0)
     {
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
             ?? throw new InvalidOperationException("Inbox browser tests require a disposable PostgreSQL database.");
@@ -66,7 +71,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
             await using (var session = store.LightweightSession())
             {
                 session.Events.StartStream<Spamma.Modules.UserManagement.Domain.UserAggregate.User>(userId,
-                    new UserCreated(userId, "Campaign fixture user", emailAddress, Guid.NewGuid(), DateTime.UnixEpoch, 0));
+                    new UserCreated(userId, "Campaign fixture user", emailAddress, Guid.NewGuid(), DateTime.UnixEpoch, isolatedRole));
                 await session.SaveChangesAsync();
             }
 
@@ -78,7 +83,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
                     Name = "Campaign fixture user",
                     EmailAddress = emailAddress,
                     CreatedAt = DateTime.UnixEpoch,
-                    SystemRole = 0,
+                    SystemRole = isolatedRole,
                     ModeratedSubdomains = viewer ? [] : subdomainIds,
                     ViewableSubdomains = viewer ? subdomainIds : [],
                 });
@@ -130,15 +135,55 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         smtpCapture.Start();
         var messageDirectory = Path.Combine(contentRoot, "messages");
         Directory.CreateDirectory(messageDirectory);
-        return new InboxScenarioFixture(store, smtpCapture, messageDirectory, subdomainIds, domainId, emailAddress);
+        var fixture = new InboxScenarioFixture(store, smtpCapture, messageDirectory, subdomainIds, domainId, emailAddress);
+        await using (var session = store.QuerySession())
+        {
+            fixture.originalCatchAllMode = (await session.LoadAsync<EmailInboxSettingsDocument>(EmailInboxSettingsDocument.SettingsId))?.CatchAllModeEnabled ?? false;
+            fixture.UserId = await session.Query<UserLookup>().Where(x => x.EmailAddress == emailAddress).Select(x => x.Id).FirstAsync();
+        }
+        return fixture;
+    }
+
+    public async Task SetCatchAllModeAsync(bool enabled)
+    {
+        await using var session = this.store.LightweightSession();
+        session.Store(new EmailInboxSettingsDocument { CatchAllModeEnabled = enabled });
+        await session.SaveChangesAsync();
+    }
+
+    public async Task<(Guid Id, string Email)> SeedUserAsync()
+    {
+        var id = Guid.NewGuid();
+        var email = $"catch-all-user-{id:N}@example.test";
+        await using var session = this.store.LightweightSession();
+        session.Events.StartStream<Spamma.Modules.UserManagement.Domain.UserAggregate.User>(id,
+            new UserCreated(id, "Catch-all assigned user", email, Guid.NewGuid(), DateTime.UtcNow, 0));
+        session.Store(new UserLookup { Id = id, Name = "Catch-all assigned user", EmailAddress = email,
+            CreatedAt = DateTime.UtcNow, SystemRole = 0 });
+        await session.SaveChangesAsync();
+        return (id, email);
+    }
+
+    public async Task<Guid> SeedCatchAllSenderAsync(string address, bool assignedToCurrentUser = false)
+    {
+        var id = Guid.NewGuid();
+        var events = new List<object> { new CatchAllSenderAddressAdded(id, address, DateTimeOffset.UtcNow) };
+        if (assignedToCurrentUser) events.Add(new UserAssignedToCatchAllSender(this.UserId));
+        await using var session = this.store.LightweightSession();
+        session.Events.StartStream<Spamma.Modules.EmailInbox.Domain.CatchAllSenderAddressAggregate.CatchAllSenderAddress>(id, events.ToArray());
+        session.Store(new CatchAllSenderAddressLookup { Id = id, SenderAddress = address, AddedAt = DateTimeOffset.UtcNow,
+            AssignedUserIds = assignedToCurrentUser ? [this.UserId] : [] });
+        await session.SaveChangesAsync();
+        return id;
     }
 
     public async Task<Guid> SeedMessageAsync(string subject, string sender = "sender@example.test",
         Guid? subdomainId = null, Guid? campaignId = null, bool includeAttachment = false,
-        DateTimeOffset? receivedAt = null, string? campaignValue = null)
+        DateTimeOffset? receivedAt = null, string? campaignValue = null, Guid? catchAllSenderAddressId = null)
     {
         var id = Guid.NewGuid();
-        var actualSubdomainId = subdomainId ?? this.SubdomainId;
+        var actualSubdomainId = catchAllSenderAddressId.HasValue
+            ? EmailInboxSettingsDocument.CatchAllSubdomainId : subdomainId ?? this.SubdomainId;
         var received = receivedAt ?? DateTimeOffset.UtcNow;
         var message = new MimeMessage
         {
@@ -161,12 +206,13 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         await message.WriteToAsync(Path.Combine(this.messageDirectory, $"{id}.eml"));
 
         await using var session = this.store.LightweightSession();
-        var domainId = this.DomainId;
+        var domainId = catchAllSenderAddressId.HasValue
+            ? EmailInboxSettingsDocument.CatchAllDomainId : this.DomainId;
         var receivedEvent = new EmailReceived(id, domainId, actualSubdomainId, subject, received,
         [
             new EmailReceived.EmailAddress(sender, "Fixture Sender", EmailAddressType.From),
             new EmailReceived.EmailAddress("recipient@example.test", "Fixture Recipient", EmailAddressType.To),
-        ]);
+        ], catchAllSenderAddressId);
         if (campaignId.HasValue)
         {
             session.Events.StartStream<Spamma.Modules.EmailInbox.Domain.EmailAggregate.Email>(
@@ -309,6 +355,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await this.smtpCapture.DisposeAsync();
+        await this.SetCatchAllModeAsync(this.originalCatchAllMode);
         foreach (var id in this.messageIds)
         {
             var path = Path.Combine(this.messageDirectory, $"{id}.eml");
