@@ -1,4 +1,4 @@
-@pending
+@authentication
 Feature: Account authentication
   As an account holder
   I need to sign in and end my session safely
@@ -54,8 +54,8 @@ Feature: Account authentication
     And I can use another login method
 
   Scenario: A suspended account cannot sign in with a registered passkey
-    Given my account has been suspended
-    And it has an active passkey
+    Given my account has an active passkey
+    And my account has since been suspended
     When I choose passkey login and complete the browser challenge
     Then I remain signed out
     And I cannot open my inbox
