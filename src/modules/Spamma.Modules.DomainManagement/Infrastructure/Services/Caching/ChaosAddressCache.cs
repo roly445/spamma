@@ -59,7 +59,7 @@ public class ChaosAddressCache(
         internalQueryStore.StoreQueryRef(query);
         var result = await querier.Send(query, cancellationToken);
 
-        if (result.Status != QueryResultStatus.Succeeded)
+        if (result.Status != QueryResultStatus.Succeeded || !result.Data.Enabled)
         {
             return Maybe<IChaosAddressCache.CachedChaosAddress>.Nothing;
         }
