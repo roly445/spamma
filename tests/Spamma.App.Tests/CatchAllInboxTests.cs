@@ -18,6 +18,11 @@ namespace Spamma.App.Tests;
 
 public class CatchAllInboxTests : BunitContext
 {
+    public CatchAllInboxTests()
+    {
+        AddAuthorization();
+    }
+
     [Fact]
     public void Render_WhenCatchAllDisabled_ShowsDisabledMessage()
     {
