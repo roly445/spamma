@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using Marten;
 using Marten.Linq;
 using MimeKit;
@@ -18,6 +19,9 @@ namespace Spamma.Browser.Tests;
 
 internal sealed class InboxScenarioFixture : IAsyncDisposable
 {
+    public sealed record SecondUserBoundary(string EmailAddress, string FirstDomainName,
+        string SecondDomainName, Guid FirstSubdomainId, Guid SecondSubdomainId, Guid SecondDomainId);
+
     private readonly IDocumentStore store;
     private readonly SmtpCapture smtpCapture;
     private readonly string messageDirectory;
@@ -151,6 +155,91 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         await session.SaveChangesAsync();
     }
 
+    public async Task<SecondUserBoundary> SeedSecondUserBoundaryAsync()
+    {
+        var firstSubdomainId = Guid.NewGuid();
+        var secondSubdomainId = Guid.NewGuid();
+        var secondDomainId = Guid.NewGuid();
+        var secondUserId = Guid.NewGuid();
+        var firstDomainName = $"first-{this.DomainId.ToString("N")[..8]}.example.test";
+        var secondDomainName = $"second-{secondDomainId.ToString("N")[..8]}.example.test";
+        var secondEmail = $"inbox-second-{secondUserId:N}@example.test";
+
+        await using (var eventSession = this.store.LightweightSession())
+        {
+            eventSession.Events.StartStream<Spamma.Modules.UserManagement.Domain.UserAggregate.User>(secondUserId,
+                new UserCreated(secondUserId, "Second inbox fixture user", secondEmail,
+                    Guid.NewGuid(), DateTime.UtcNow, 0));
+            await eventSession.SaveChangesAsync();
+        }
+
+        var projected = false;
+        for (var attempt = 0; attempt < 50; attempt++)
+        {
+            await using var query = this.store.QuerySession();
+            if (await query.LoadAsync<UserLookup>(secondUserId) is not null)
+            {
+                projected = true;
+                break;
+            }
+
+            await Task.Delay(100);
+        }
+
+        if (!projected) throw new InvalidOperationException("The second inbox user projection did not start.");
+
+        await using var session = this.store.LightweightSession();
+        var firstUser = await session.LoadAsync<UserLookup>(this.UserId)
+            ?? throw new InvalidOperationException("The first inbox user was not projected.");
+        session.Store(new UserLookup
+        {
+            Id = firstUser.Id,
+            Name = firstUser.Name,
+            EmailAddress = firstUser.EmailAddress,
+            CreatedAt = firstUser.CreatedAt,
+            SystemRole = firstUser.SystemRole,
+            ModeratedDomains = [this.DomainId],
+            ViewableSubdomains = [firstSubdomainId],
+        });
+        session.Store(new UserLookup
+        {
+            Id = secondUserId,
+            Name = "Second inbox fixture user",
+            EmailAddress = secondEmail,
+            CreatedAt = DateTime.UtcNow,
+            ModeratedDomains = [secondDomainId],
+            ViewableSubdomains = [secondSubdomainId],
+        });
+        session.Store(new DomainLookup
+        {
+            Id = this.DomainId, DomainName = firstDomainName,
+            VerificationToken = Guid.NewGuid().ToString("N"),
+            IsVerified = true, CreatedAt = DateTime.UtcNow,
+        });
+        session.Store(new DomainLookup
+        {
+            Id = secondDomainId, DomainName = secondDomainName,
+            VerificationToken = Guid.NewGuid().ToString("N"),
+            IsVerified = true, CreatedAt = DateTime.UtcNow,
+        });
+        session.Store(new SubdomainLookup
+        {
+            Id = firstSubdomainId, DomainId = this.DomainId,
+            SubdomainName = "inbox-first", FullName = $"inbox-first.{firstDomainName}",
+            ParentName = firstDomainName, CreatedAt = DateTime.UtcNow,
+        });
+        session.Store(new SubdomainLookup
+        {
+            Id = secondSubdomainId, DomainId = secondDomainId,
+            SubdomainName = "inbox-second", FullName = $"inbox-second.{secondDomainName}",
+            ParentName = secondDomainName, CreatedAt = DateTime.UtcNow,
+        });
+        await session.SaveChangesAsync();
+
+        return new SecondUserBoundary(secondEmail, firstDomainName, secondDomainName,
+            firstSubdomainId, secondSubdomainId, secondDomainId);
+    }
+
     public async Task<(Guid Id, string Email)> SeedUserAsync()
     {
         var id = Guid.NewGuid();
@@ -179,7 +268,8 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
 
     public async Task<Guid> SeedMessageAsync(string subject, string sender = "sender@example.test",
         Guid? subdomainId = null, Guid? campaignId = null, bool includeAttachment = false,
-        DateTimeOffset? receivedAt = null, string? campaignValue = null, Guid? catchAllSenderAddressId = null)
+        DateTimeOffset? receivedAt = null, string? campaignValue = null, Guid? catchAllSenderAddressId = null,
+        Guid? domainIdOverride = null)
     {
         var id = Guid.NewGuid();
         var actualSubdomainId = catchAllSenderAddressId.HasValue
@@ -207,7 +297,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
 
         await using var session = this.store.LightweightSession();
         var domainId = catchAllSenderAddressId.HasValue
-            ? EmailInboxSettingsDocument.CatchAllDomainId : this.DomainId;
+            ? EmailInboxSettingsDocument.CatchAllDomainId : domainIdOverride ?? this.DomainId;
         var receivedEvent = new EmailReceived(id, domainId, actualSubdomainId, subject, received,
         [
             new EmailReceived.EmailAddress(sender, "Fixture Sender", EmailAddressType.From),
@@ -372,7 +462,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
 internal sealed class SmtpCapture(int port) : IAsyncDisposable
 {
     private readonly TcpListener listener = new(IPAddress.Loopback, port);
-    private readonly TaskCompletionSource<MimeMessage> message = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly Channel<MimeMessage> messages = Channel.CreateUnbounded<MimeMessage>();
     private readonly CancellationTokenSource cancellation = new();
     private Task? acceptTask;
     private int messageCount;
@@ -386,7 +476,7 @@ internal sealed class SmtpCapture(int port) : IAsyncDisposable
     }
 
     public async Task<MimeMessage> WaitForMessageAsync(TimeSpan timeout) =>
-        await this.message.Task.WaitAsync(timeout);
+        await this.messages.Reader.ReadAsync().AsTask().WaitAsync(timeout);
 
     public async ValueTask DisposeAsync()
     {
@@ -433,7 +523,7 @@ internal sealed class SmtpCapture(int port) : IAsyncDisposable
                         using var messageStream = new MemoryStream(Encoding.UTF8.GetBytes(data.ToString()));
                         var capturedMessage = await MimeMessage.LoadAsync(messageStream);
                         Interlocked.Increment(ref this.messageCount);
-                        this.message.TrySetResult(capturedMessage);
+                        this.messages.Writer.TryWrite(capturedMessage);
                         await writer.WriteLineAsync("250 Queued");
                         inData = false;
                     }
