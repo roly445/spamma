@@ -72,7 +72,7 @@ builder.Services.AddAuthorizationCore(options =>
         policy => policy.Requirements.Add(new AssignedToAnyDomainRequirement()));
     options.AddPolicy(
         Lookups.AssignedToAnySubdomain,
-        policy => policy.Requirements.Add(new AssignedToAnyDomainRequirement()));
+        policy => policy.Requirements.Add(new AssignedToAnySubdomainRequirement()));
     options.AddPolicy(
         Lookups.CanModerateChaosAddresses,
         policy => policy.Requirements.Add(new CanModerationChaosAddressesRequirement()));

@@ -30,6 +30,7 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/catch-all.feature" Link="Features/catch-all.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/chaos-addresses.feature" Link="Features/chaos-addresses.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/account-security.feature" Link="Features/account-security.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/settings.feature" Link="Features/settings.feature" />
   </ItemGroup>
 
   <ItemGroup>

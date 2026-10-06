@@ -9,10 +9,11 @@ internal static class AdminApiEndpoints
     internal static void MapAdminApiEndpoints(this WebApplication app)
     {
         app.MapPost("api/admin/maintenance", EnableMaintenanceMode)
-            .RequireAuthorization()
+            .RequireAuthorization("DomainAdministration")
             .WithName("EnableMaintenanceMode")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized);
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> EnableMaintenanceMode(
