@@ -18,7 +18,10 @@ internal class SearchUsersQueryAuthorizer(IHttpContextAccessor httpContextAccess
 
         var canSearch = user.SystemRole.HasFlag(SystemRole.UserManagement) ||
                         user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
-                        user.ModeratedDomains.Any() || user.ModeratedSubdomains.Any();
+                        (request.ExcludeSuspended &&
+                         !string.IsNullOrWhiteSpace(request.SearchTerm) &&
+                         request.Page == 1 && request.PageSize is > 0 and <= 5 &&
+                         (user.ModeratedDomains.Any() || user.ModeratedSubdomains.Any()));
         return Task.FromResult(canSearch ? AuthorizationResult.Succeed() : AuthorizationResult.Fail());
     }
 }

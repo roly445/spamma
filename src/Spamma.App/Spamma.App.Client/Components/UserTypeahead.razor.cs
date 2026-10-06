@@ -1,7 +1,6 @@
 ﻿using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.Modules.UserManagement.Client.Application.Queries;
-using Spamma.Modules.UserManagement.Client.Contracts;
 
 namespace Spamma.App.Client.Components;
 
@@ -94,8 +93,8 @@ public partial class UserTypeahead(IQueryRunner querier) : IDisposable
 
             var query = new SearchUsersQuery(
                 SearchTerm: this.SearchTerm,
-                Status: UserStatus.Active,
-                PageSize: 5);
+                PageSize: 5,
+                ExcludeSuspended: true);
 
             var result = await querier.Send(query);
             this.suggestions = result.Data.Items.ToList();

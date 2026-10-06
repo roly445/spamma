@@ -73,16 +73,46 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
         return (id, name, token);
     }
 
-    public async Task<(Guid Id, string Email)> SeedUserAsync(string name)
+    public async Task<(Guid Id, string Email)> SeedUserAsync(string name, SystemRole role = 0,
+        DateTime? lastLoginAt = null, bool suspended = false, DateTime? createdAt = null)
     {
         var id = Guid.NewGuid();
         var email = $"domain-moderator-{id:N}@example.test";
+        var creationTime = createdAt ?? DateTime.UtcNow;
         await using var session = this.store.LightweightSession();
-        session.Events.StartStream<Spamma.Modules.UserManagement.Domain.UserAggregate.User>(id,
-            new UserCreated(id, name, email, Guid.NewGuid(), DateTime.UtcNow, 0));
-        session.Store(new UserLookup { Id = id, Name = name, EmailAddress = email, CreatedAt = DateTime.UtcNow, SystemRole = 0 });
+        var events = new List<object> { new UserCreated(id, name, email, Guid.NewGuid(), creationTime, role) };
+        if (lastLoginAt.HasValue)
+        {
+            var attemptId = Guid.NewGuid();
+            events.Add(new AuthenticationStarted(attemptId, lastLoginAt.Value.AddMinutes(-1)));
+            events.Add(new AuthenticationCompleted(attemptId, lastLoginAt.Value, Guid.NewGuid()));
+        }
+        if (suspended)
+            events.Add(new AccountSuspended(Spamma.Modules.UserManagement.Client.Contracts.AccountSuspensionReason.Administrative,
+                "Fixture suspension", DateTime.UtcNow, Guid.NewGuid()));
+        session.Events.StartStream<Spamma.Modules.UserManagement.Domain.UserAggregate.User>(id, events.ToArray());
+        session.Store(new UserLookup { Id = id, Name = name, EmailAddress = email, CreatedAt = creationTime,
+            SystemRole = role, LastLoginAt = lastLoginAt, IsSuspended = suspended });
         await session.SaveChangesAsync();
         return (id, email);
+    }
+
+    public async Task<UserLookup?> GetUserAsync(Guid id)
+    {
+        await using var session = this.store.QuerySession();
+        return await session.LoadAsync<UserLookup>(id);
+    }
+
+    public async Task SeedPasskeyAsync(Guid userId, string displayName, bool revoked = false)
+    {
+        await using var session = this.store.LightweightSession();
+        session.Store(new PasskeyLookup
+        {
+            Id = Guid.NewGuid(), UserId = userId, CredentialId = Guid.NewGuid().ToByteArray(),
+            DisplayName = displayName, Algorithm = "ES256", RegisteredAt = DateTime.UtcNow.AddDays(-1),
+            IsRevoked = revoked, RevokedAt = revoked ? DateTime.UtcNow : null,
+        });
+        await session.SaveChangesAsync();
     }
 
     public async Task<Guid> SeedSubdomainAsync(Guid domainId, string name, string? description = null,
