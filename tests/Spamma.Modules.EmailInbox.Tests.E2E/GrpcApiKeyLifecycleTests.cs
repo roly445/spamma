@@ -17,6 +17,7 @@ using Testcontainers.PostgreSql;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E;
 
+[Collection("SmtpE2E")]
 public sealed class GrpcApiKeyLifecycleTests : IAsyncLifetime
 {
     private readonly Guid ownerId = Guid.NewGuid();
