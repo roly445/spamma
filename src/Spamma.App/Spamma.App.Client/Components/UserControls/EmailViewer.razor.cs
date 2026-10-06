@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -294,10 +295,18 @@ public partial class EmailViewer(
             return;
         }
 
-        using var response = await httpClient.GetAsync($"api/email-inbox/emails/{this.Email.EmailId}/spam-report");
-        if (response.IsSuccessStatusCode)
+        try
         {
-            this._spamReport = await response.Content.ReadFromJsonAsync<SpamReportStatus>();
+            using var response = await httpClient.GetAsync($"api/email-inbox/emails/{this.Email.EmailId}/spam-report");
+            if (response.IsSuccessStatusCode)
+            {
+                this._spamReport = await response.Content.ReadFromJsonAsync<SpamReportStatus>();
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            // The message remains readable if its optional feedback status cannot be loaded.
+            this._spamReport = null;
         }
     }
 
