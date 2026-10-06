@@ -234,7 +234,7 @@ public sealed partial class AnonymousAccessSteps
     public async Task ThenUsersUnavailableAsync()
     {
         await Assertions.Expect(this.Page).ToHaveURLAsync(new Regex(@"/access-denied\?ReturnUrl="));
-        await Assertions.Expect(this.Page.GetByText("You do not have permission to view this page.")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Access denied" })).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "User Management" })).ToHaveCountAsync(0);
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Add User" })).ToHaveCountAsync(0);
         await Assertions.Expect(this.Page.Locator("tbody tr")).ToHaveCountAsync(0);

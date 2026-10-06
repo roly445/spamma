@@ -32,6 +32,7 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/chaos-addresses.feature" Link="Features/chaos-addresses.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/account-security.feature" Link="Features/account-security.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/settings.feature" Link="Features/settings.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/access-denied.feature" Link="Features/access-denied.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/smtp-reception.feature" Link="Features/smtp-reception.feature" />
   </ItemGroup>
 

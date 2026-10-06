@@ -162,7 +162,9 @@ public sealed partial class AnonymousAccessSteps
     {
         Assert.Equal(this.requestedAdminPage, page);
         await Assertions.Expect(this.Page).ToHaveURLAsync(new Regex(@"/access-denied\?ReturnUrl="));
-        await Assertions.Expect(this.Page.GetByText("You do not have permission to view this page.")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Access denied" })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText("Your account does not have permission to view this page.")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Link, new() { Name = "Return to inbox" })).ToHaveAttributeAsync("href", "/m/inbox");
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Enter Maintenance Mode" })).ToHaveCountAsync(0);
     }
 
