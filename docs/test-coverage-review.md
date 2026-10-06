@@ -21,13 +21,12 @@ The .NET workflows collect Cobertura XML through `XPlat Code Coverage`. They pre
 | Priority | Gap | Recommended next test | Effort / owner |
 | --- | --- | --- | --- |
 | 1 | No authenticated browser journey through magic-link login, inbox, email inspection and campaign tabs | Seed two scoped users and captured messages in an isolated browser fixture, then assert visible data and cross-user isolation through the real UI | Medium / App + UserManagement + EmailInbox |
-| 2 | Durable SMTP acceptance is covered by mocked publish/storage failures and payload serialization, without a process-restart integration test | Publish through CAP to PostgreSQL, restart the host, and assert the subscriber processes the retained MIME payload once | Medium / EmailInbox |
 | 2 | The new browser suite covers anonymous flows but not domain management or administrative permissions | Extend the seeded browser fixture with a domain/subdomain and two users, then test allowed and denied navigation and actions | Medium / App + DomainManagement |
 | 3 | The HTML/TypeScript UI has only two Vitest files | Add focused tests for form and viewer scripts when behavior changes; use Playwright for interactions that require the browser and server | Low / App |
 
 ## SMTP reception tests
 
-All six cases in `SmtpEmailReceptionTests` run through the real SMTP server and CAP publisher/subscriber with isolated PostgreSQL and Redis containers. The fixture seeds a verified domain, starts SMTP on a free local port, and polls the persisted projections with a 40-second bound. The cases cover accepted and rejected mail, enabled and disabled chaos addresses, campaign metadata, and concurrent delivery. Run them locally with Docker available using `dotnet test tests/Spamma.Modules.EmailInbox.Tests.E2E/Spamma.Modules.EmailInbox.Tests.E2E.csproj -c Release`. Restart and retry durability remains tracked in issue #21.
+All six cases in `SmtpEmailReceptionTests` run through the real SMTP server and CAP publisher/subscriber with isolated PostgreSQL and Redis containers. The fixture seeds a verified domain, starts SMTP on a free local port, and polls the persisted projections with a 40-second bound. The cases cover accepted and rejected mail, enabled and disabled chaos addresses, campaign metadata, and concurrent delivery. Three `SmtpDurabilityTests` cases verify CAP persistence before SMTP acknowledgment, recovery by a second host, retry without double counting a campaign, and inspectable failure details after retry exhaustion. Run all nine locally with Docker available using `dotnet test tests/Spamma.Modules.EmailInbox.Tests.E2E/Spamma.Modules.EmailInbox.Tests.E2E.csproj -c Release`.
 
 ## Running the new browser suite
 

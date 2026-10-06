@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using Marten;
 using Microsoft.Extensions.Configuration;
@@ -38,7 +38,10 @@ public class SmtpEndToEndFixture : IAsyncLifetime
 
     public Guid ChaosAddressId { get; private set; }
 
-    public async Task InitializeAsync()
+    public Task InitializeAsync() => this.InitializeAsync(enableSubscriber: true);
+
+    public async Task InitializeAsync(bool enableSubscriber, int? retryCount = null,
+        Action<IServiceCollection>? configureServices = null)
     {
         // Both stores are disposable and are used by the real SMTP/CAP path.
         this.PostgresContainer = new PostgreSqlBuilder()
@@ -65,67 +68,29 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         this._contentRoot = Path.Combine(Path.GetTempPath(), $"spamma-smtp-e2e-{Guid.NewGuid():N}");
         Directory.CreateDirectory(this._contentRoot);
 
-        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
-        {
-            ContentRootPath = this._contentRoot,
-        });
-
-        // Configure logging
-        builder.Logging.ClearProviders();
-        builder.Logging.AddConsole();
-        builder.Logging.SetMinimumLevel(LogLevel.Warning);
-
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
-        {
-            ["SmtpServer:Port"] = this.SmtpServerPort.ToString(),
-        });
-        builder.Services.Configure<EmailInboxSettings>(builder.Configuration.GetSection("SmtpServer"));
-
-        // Configure Marten with PostgreSQL container
-        builder.Services.AddMarten(options =>
-        {
-            options.Connection(this.PostgresContainer.GetConnectionString());
-            options.RestoreV8Defaults();
-            options.DatabaseSchemaName = "public";
-
-            // Configure module projections
-            Spamma.Modules.DomainManagement.Module.ConfigureDomainManagement(options);
-            Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(options);
-        }).UseIdentitySessions();
-
-        builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddHttpContextAccessor();
-        builder.Services.AddSingleton<IInternalQueryStore, InternalQueryStore>();
-        builder.Services.AddSingleton<IDirectoryWrapper, DirectoryWrapper>();
-        builder.Services.AddSingleton<IFileWrapper, FileWrapper>();
-        builder.Services.AddScoped<IIntegrationEventPublisher, IntegrationEventPublisher>();
-        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
-            ConnectionMultiplexer.Connect(this.RedisContainer.GetConnectionString()));
-
-        builder.Services.AddCap(options =>
-        {
-            options.UseStorageLock = true;
-            options.UseRedis(this.RedisContainer.GetConnectionString());
-            options.UsePostgreSql(this.PostgresContainer.GetConnectionString());
-        }).AddSubscriberAssembly(typeof(Spamma.Modules.EmailInbox.Module).Assembly);
-
-        // Register BluQube CQRS infrastructure
-        builder.Services.AddScoped<BluQube.Commands.ICommandRunner, BluQube.Commands.CommandRunner>();
-        builder.Services.AddScoped<BluQube.Queries.IQueryRunner, BluQube.Queries.QueryRunner>();
-
-        // Register real modules
-        builder.Services
-            .AddCommonBehaviors()
-            .AddDomainManagement()
-            .AddEmailInbox();
-
-        this._host = builder.Build();
+        this._host = this.BuildHost(enableSubscriber, retryCount, configureServices);
 
         var store = this._host.Services.GetRequiredService<IDocumentStore>();
         await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
 
         await this.SeedTestDataAsync();
 
+        await this._host.StartAsync();
+        await this.WaitForSmtpServerAsync();
+    }
+
+    public async Task RestartAsync(bool enableSubscriber = true, int? retryCount = null,
+        Action<IServiceCollection>? configureServices = null, Action? afterStop = null)
+    {
+        if (this._host == null)
+        {
+            throw new InvalidOperationException("The SMTP fixture has not started.");
+        }
+
+        await this._host.StopAsync();
+        this._host.Dispose();
+        afterStop?.Invoke();
+        this._host = this.BuildHost(enableSubscriber, retryCount, configureServices);
         await this._host.StartAsync();
         await this.WaitForSmtpServerAsync();
     }
@@ -151,9 +116,12 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         }
     }
 
-    public async Task<EmailLookup> WaitForEmailAsync(string subject)
+    public Task<EmailLookup> WaitForEmailAsync(string subject) =>
+        this.WaitForEmailAsync(subject, TimeSpan.FromSeconds(40));
+
+    public async Task<EmailLookup> WaitForEmailAsync(string subject, TimeSpan wait)
     {
-        var timeout = DateTime.UtcNow.AddSeconds(40);
+        var timeout = DateTime.UtcNow.Add(wait);
         while (DateTime.UtcNow < timeout)
         {
             await using var session = this.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
@@ -166,7 +134,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             await Task.Delay(200);
         }
 
-        throw new TimeoutException($"SMTP message '{subject}' was not persisted within 40 seconds.");
+        throw new TimeoutException($"SMTP message '{subject}' was not persisted before the test timeout.");
     }
 
     public async Task<CampaignSummary> WaitForCampaignAsync(string campaignValue)
@@ -224,6 +192,80 @@ public class SmtpEndToEndFixture : IAsyncLifetime
                 delayMs *= 2;
             }
         }
+    }
+
+    private IHost BuildHost(bool enableSubscriber, int? retryCount,
+        Action<IServiceCollection>? configureServices)
+    {
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            ContentRootPath = this._contentRoot,
+        });
+
+        // Configure logging
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+        builder.Logging.SetMinimumLevel(LogLevel.Warning);
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["SmtpServer:Port"] = this.SmtpServerPort.ToString(),
+        });
+        builder.Services.Configure<EmailInboxSettings>(builder.Configuration.GetSection("SmtpServer"));
+
+        // Configure Marten with PostgreSQL container
+        builder.Services.AddMarten(options =>
+        {
+            options.Connection(this.PostgresContainer.GetConnectionString());
+            options.RestoreV8Defaults();
+            options.DatabaseSchemaName = "public";
+
+            // Configure module projections
+            Spamma.Modules.DomainManagement.Module.ConfigureDomainManagement(options);
+            Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(options);
+        }).UseIdentitySessions();
+
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddSingleton<IInternalQueryStore, InternalQueryStore>();
+        builder.Services.AddSingleton<IDirectoryWrapper, DirectoryWrapper>();
+        builder.Services.AddSingleton<IFileWrapper, FileWrapper>();
+        builder.Services.AddScoped<IIntegrationEventPublisher, IntegrationEventPublisher>();
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(this.RedisContainer.GetConnectionString()));
+
+        var cap = builder.Services.AddCap(options =>
+        {
+            options.UseStorageLock = true;
+            options.UseRedis(this.RedisContainer.GetConnectionString());
+            options.UsePostgreSql(this.PostgresContainer.GetConnectionString());
+            if (retryCount.HasValue)
+            {
+                options.FailedRetryCount = retryCount.Value;
+                options.FailedRetryInterval = 1;
+
+                // CAP otherwise waits four minutes before polling failed receipts.
+                options.FallbackWindowLookbackSeconds = 1;
+            }
+        });
+        cap.AddSubscriberAssembly(typeof(Spamma.Modules.EmailInbox.Module).Assembly);
+        if (!enableSubscriber)
+        {
+            cap.AddSubscribeFilter<DeferSmtpCaptureFilter>();
+        }
+
+        // Register BluQube CQRS infrastructure
+        builder.Services.AddScoped<BluQube.Commands.ICommandRunner, BluQube.Commands.CommandRunner>();
+        builder.Services.AddScoped<BluQube.Queries.IQueryRunner, BluQube.Queries.QueryRunner>();
+
+        // Register real modules
+        builder.Services
+            .AddCommonBehaviors()
+            .AddDomainManagement()
+            .AddEmailInbox();
+
+        configureServices?.Invoke(builder.Services);
+        return builder.Build();
     }
 
     private async Task WaitForSmtpServerAsync()

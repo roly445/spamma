@@ -217,7 +217,8 @@ public class BackgroundTaskService(
             logger?.LogError(ex, "SMTP capture processing failed for {JobType}, domain {DomainId}, subdomain {SubdomainId}, message {MessageId}",
                 workItem.GetType().Name, workItem.DomainId, workItem.SubdomainId, messageId);
             EmailCaptureMetrics.ProcessingFailures.Add(1);
-            throw new InvalidOperationException($"SMTP capture processing failed for {workItem.GetType().Name}, message {messageId}.", ex);
+            throw new InvalidOperationException(
+                $"SMTP capture processing failed for {workItem.GetType().Name}, message {messageId}: {ex.Message}", ex);
         }
         finally
         {
