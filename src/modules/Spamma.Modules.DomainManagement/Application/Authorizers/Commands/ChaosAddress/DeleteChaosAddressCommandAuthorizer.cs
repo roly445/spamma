@@ -25,8 +25,7 @@ internal class DeleteChaosAddressCommandAuthorizer(IHttpContextAccessor httpCont
         }
 
         if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
-            user.ModeratedSubdomains.Contains(chaosAddress.SubdomainId) ||
-            user.ViewableSubdomains.Contains(chaosAddress.SubdomainId))
+            user.ModeratedSubdomains.Contains(chaosAddress.SubdomainId))
         {
             return AuthorizationResult.Succeed();
         }

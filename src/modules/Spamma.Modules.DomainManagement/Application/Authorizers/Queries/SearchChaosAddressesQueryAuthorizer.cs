@@ -21,8 +21,7 @@ internal class SearchChaosAddressesQueryAuthorizer(IHttpContextAccessor httpCont
         if (request.SubdomainId.HasValue)
         {
             if (user.SystemRole.HasFlag(SystemRole.DomainManagement) ||
-                user.ModeratedSubdomains.Contains(request.SubdomainId.Value) ||
-                user.ViewableSubdomains.Contains(request.SubdomainId.Value))
+                user.ModeratedSubdomains.Contains(request.SubdomainId.Value))
             {
                 return AuthorizationResult.Succeed();
             }

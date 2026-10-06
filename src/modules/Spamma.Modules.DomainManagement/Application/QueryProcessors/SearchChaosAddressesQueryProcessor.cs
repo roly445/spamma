@@ -54,7 +54,7 @@ internal class SearchChaosAddressesQueryProcessor(IDocumentSession session, IHtt
         {
             whereConditions.Add(u =>
                 user.ModeratedDomains.Contains(u.DomainId) ||
-                user.ModeratedSubdomains.Contains(u.Id));
+                user.ModeratedSubdomains.Contains(u.SubdomainId));
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))

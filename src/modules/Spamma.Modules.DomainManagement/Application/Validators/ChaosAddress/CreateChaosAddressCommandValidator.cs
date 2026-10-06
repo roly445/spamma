@@ -25,6 +25,14 @@ internal class CreateChaosAddressCommandValidator : AbstractValidator<CreateChao
             .WithErrorCode(CommonValidationCodes.Required)
             .WithMessage("Domain ID is required.");
 
+        this.RuleFor(x => x.DomainId)
+            .MustAsync(async (command, domainId, cancellationToken) =>
+                await this.documentSession.Query<SubdomainLookup>()
+                    .AnyAsync(x => x.Id == command.SubdomainId && x.DomainId == domainId, token: cancellationToken))
+            .WithErrorCode(CommonValidationCodes.InvalidFormat)
+            .WithMessage("Subdomain must belong to the selected domain.")
+            .When(x => x.DomainId != Guid.Empty && x.SubdomainId != Guid.Empty);
+
         this.RuleFor(x => x.SubdomainId)
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)
@@ -34,6 +42,9 @@ internal class CreateChaosAddressCommandValidator : AbstractValidator<CreateChao
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)
             .WithMessage("Local Part is required.")
+            .Must(localPart => !localPart.Any(char.IsWhiteSpace))
+            .WithErrorCode(CommonValidationCodes.InvalidFormat)
+            .WithMessage("Local Part cannot contain whitespace.")
             .MustAsync(this.IsValidEmailAddressAsync)
             .WithErrorCode(CommonValidationCodes.InvalidFormat)
             .WithMessage("Local Part results in an invalid email address.");

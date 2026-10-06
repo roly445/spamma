@@ -3,8 +3,10 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
+using Spamma.Modules.DomainManagement.Application.Authorizers.Commands.ChaosAddress;
 using Spamma.Modules.DomainManagement.Application.Authorizers.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
+using Spamma.Modules.DomainManagement.Client.Application.Commands.ChaosAddress;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Subdomain;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
@@ -19,6 +21,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
     private Guid _subdomain2Id;
     private Guid _otherDomainId;
     private Guid _otherSubdomainId;
+    private Guid _chaosAddressId;
 
     public QueryAuthorizationIntegrationTests(PostgreSqlFixture fixture)
     {
@@ -32,6 +35,7 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         this._subdomain2Id = Guid.NewGuid();
         this._otherDomainId = Guid.NewGuid();
         this._otherSubdomainId = Guid.NewGuid();
+        this._chaosAddressId = Guid.NewGuid();
 
         this._fixture.Session!.Store(new SubdomainLookup
         {
@@ -64,6 +68,16 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
             IsSuspended = false,
             FullName = "app.otherdomain.com",
             ParentName = "otherdomain.com",
+        });
+
+        this._fixture.Session.Store(new ChaosAddressLookup
+        {
+            Id = this._chaosAddressId,
+            DomainId = this._domainId,
+            SubdomainId = this._subdomain1Id,
+            LocalPart = "chaos",
+            ConfiguredSmtpCode = SmtpResponseCode.MailboxUnavailablePermanent,
+            CreatedAt = DateTime.UtcNow,
         });
 
         await this._fixture.Session.SaveChangesAsync();
@@ -116,6 +130,42 @@ public class QueryAuthorizationIntegrationTests : IClassFixture<PostgreSqlFixtur
         var result = await authorizer.Authorize(query, CancellationToken.None);
 
         result.IsAuthorized.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ChaosAddressCommands_WhenUserOnlyViewsSubdomain_AreDenied()
+    {
+        var accessor = CreateHttpContextAccessor(CreateAuthenticatedUser(viewableSubdomains: [this._subdomain1Id]));
+        var session = this._fixture.Session!;
+        var create = new CreateChaosAddressCommand(Guid.NewGuid(), this._domainId, this._subdomain1Id,
+            "new-chaos", SmtpResponseCode.MailboxUnavailablePermanent);
+
+        (await new CreateChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(create, CancellationToken.None)).IsAuthorized.Should().BeFalse();
+        (await new EnableChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(new EnableChaosAddressCommand(this._chaosAddressId), CancellationToken.None)).IsAuthorized.Should().BeFalse();
+        (await new DisableChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(new DisableChaosAddressCommand(this._chaosAddressId), CancellationToken.None)).IsAuthorized.Should().BeFalse();
+        (await new DeleteChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(new DeleteChaosAddressCommand(this._chaosAddressId), CancellationToken.None)).IsAuthorized.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ChaosAddressCommands_WhenUserModeratesSubdomain_AreAllowed()
+    {
+        var accessor = CreateHttpContextAccessor(CreateAuthenticatedUser(moderatedSubdomains: [this._subdomain1Id]));
+        var session = this._fixture.Session!;
+        var create = new CreateChaosAddressCommand(Guid.NewGuid(), this._domainId, this._subdomain1Id,
+            "new-chaos", SmtpResponseCode.MailboxUnavailablePermanent);
+
+        (await new CreateChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(create, CancellationToken.None)).IsAuthorized.Should().BeTrue();
+        (await new EnableChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(new EnableChaosAddressCommand(this._chaosAddressId), CancellationToken.None)).IsAuthorized.Should().BeTrue();
+        (await new DisableChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(new DisableChaosAddressCommand(this._chaosAddressId), CancellationToken.None)).IsAuthorized.Should().BeTrue();
+        (await new DeleteChaosAddressCommandAuthorizer(accessor, session)
+            .Authorize(new DeleteChaosAddressCommand(this._chaosAddressId), CancellationToken.None)).IsAuthorized.Should().BeTrue();
     }
 
     [Fact]
