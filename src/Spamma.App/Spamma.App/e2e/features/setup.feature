@@ -75,6 +75,7 @@ Feature: Initial application setup
     Given the required setup settings have been saved
     When I create the initial administrator
     Then the administrator account is recorded
+    And a welcome email is sent to the administrator
     And I can review setup completion
 
   Scenario: An existing administrator can be skipped during setup

@@ -364,6 +364,7 @@ builder.Services.AddScoped<IAuthorizationHandler, CanModerationChaosAddressesHan
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = builder.Configuration["Session:CachePrefix"];
 });
 
 // Add session support
@@ -384,7 +385,10 @@ builder.Services.AddSingleton<IInternalQueryStore, InternalQueryStore>();
 // Register ACME certificate services
 builder.Services.AddSingleton<AcmeChallengeServer>();
 builder.Services.AddSingleton<IAcmeChallengeResponder>(sp => sp.GetRequiredService<AcmeChallengeServer>());
-builder.Services.AddHostedService<CertificateRenewalBackgroundService>();
+if (!builder.Configuration.GetValue<bool>("CertificateRenewal:Disabled"))
+{
+    builder.Services.AddHostedService<CertificateRenewalBackgroundService>();
+}
 
 builder.Services.AddHttpClient(); // Required for CachedHttpRuleProvider
 builder.Services.AddSingleton<ICacheProvider, LocalFileSystemCacheProvider>();

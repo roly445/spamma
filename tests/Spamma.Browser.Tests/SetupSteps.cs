@@ -1,7 +1,10 @@
 using System.Text.RegularExpressions;
+using Marten;
 using Microsoft.Playwright;
 using Npgsql;
 using Reqnroll;
+using Spamma.Modules.UserManagement.Infrastructure.ReadModels;
+using StackExchange.Redis;
 using Xunit;
 
 namespace Spamma.Browser.Tests;
@@ -9,7 +12,10 @@ namespace Spamma.Browser.Tests;
 public sealed partial class AnonymousAccessSteps
 {
     private const string TestMailHostname = "mail.example.test";
+    private const int SetupSmtpPort = 2527;
     private bool certificateRequestSeen;
+    private SetupSmtpCapture? setupSmtpCapture;
+    private string? setupAdminEmail;
 
     private static string SetupConnectionString => Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
         ?? throw new InvalidOperationException("The setup test database connection must be configured.");
@@ -20,6 +26,24 @@ public sealed partial class AnonymousAccessSteps
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand("DELETE FROM app_configuration", connection);
         await command.ExecuteNonQueryAsync();
+        await ResetSetupSessionCacheAsync();
+    }
+
+    private static async Task ResetSetupSessionCacheAsync()
+    {
+        var redisConnection = Environment.GetEnvironmentVariable("ConnectionStrings__Redis")
+            ?? throw new InvalidOperationException("The setup test Redis connection must be configured.");
+        var prefix = Environment.GetEnvironmentVariable("SPAMMA_E2E_REDIS_SESSION_PREFIX")
+            ?? throw new InvalidOperationException("The setup test Redis session prefix must be configured.");
+
+        using var redis = await ConnectionMultiplexer.ConnectAsync(redisConnection);
+        var database = redis.GetDatabase();
+        var server = redis.GetServer(redis.GetEndPoints()[0]);
+        var keys = server.Keys(database.Database, $"{prefix}*").ToArray();
+        if (keys.Length > 0)
+        {
+            await database.KeyDeleteAsync(keys);
+        }
     }
 
     private static async Task SetConfigurationAsync(string key, string value)
@@ -173,6 +197,8 @@ public sealed partial class AnonymousAccessSteps
         Assert.Equal("smtp.example.test", await GetConfigurationAsync("smtp.host"));
         Assert.Equal("2525", await GetConfigurationAsync("smtp.port"));
         Assert.Equal("sender@example.test", await GetConfigurationAsync("from.email"));
+        Assert.Equal("Spamma Tests", await GetConfigurationAsync("from.name"));
+        Assert.Equal("false", await GetConfigurationAsync("smtp.useTls"));
     }
 
     [Then("I can proceed to certificate configuration")]
@@ -255,14 +281,19 @@ public sealed partial class AnonymousAccessSteps
     {
         await this.GivenIHaveEnteredTheSetupWizardAsync();
         await SeedRequiredConfigurationAsync(includeAdmin: false);
+        await SetConfigurationAsync("smtp.host", "127.0.0.1");
+        await SetConfigurationAsync("smtp.port", SetupSmtpPort.ToString());
+        await SetConfigurationAsync("from.name", "Spamma Setup");
         await this.Page.GotoAsync("/setup/admin");
     }
 
     [When("I create the initial administrator")]
     public async Task WhenICreateTheInitialAdministratorAsync()
     {
+        this.setupSmtpCapture = await SetupSmtpCapture.StartAsync(SetupSmtpPort);
+        this.setupAdminEmail = $"setup-{Guid.NewGuid():N}@example.test";
         await this.Page.Locator("#admin-name").FillAsync("Setup Administrator");
-        await this.Page.Locator("#admin-email").FillAsync($"setup-{Guid.NewGuid():N}@example.test");
+        await this.Page.Locator("#admin-email").FillAsync(this.setupAdminEmail);
         await this.Page.Locator("#admin-form-section button[type=submit]").ClickAsync();
     }
 
@@ -271,6 +302,26 @@ public sealed partial class AnonymousAccessSteps
     {
         await Assertions.Expect(this.Page.GetByText("Admin user created successfully!", new() { Exact = true })).ToBeVisibleAsync();
         Assert.True(Guid.TryParse(await GetConfigurationAsync("primaryuser.id"), out var id) && id != Guid.Empty);
+        using var store = DocumentStore.For(options =>
+        {
+            options.Connection(SetupConnectionString);
+            Spamma.Modules.UserManagement.Module.ConfigureUserManagement(options);
+        });
+        await using var session = store.QuerySession();
+        var user = await session.LoadAsync<UserLookup>(id);
+        Assert.Equal(this.setupAdminEmail, user?.EmailAddress);
+        Assert.Equal("Setup Administrator", user?.Name);
+    }
+
+    [Then("a welcome email is sent to the administrator")]
+    public async Task ThenWelcomeEmailIsSentToTheAdministratorAsync()
+    {
+        var capture = this.setupSmtpCapture ?? throw new InvalidOperationException("Setup SMTP capture is not running.");
+        var email = await capture.WaitForMessageAsync();
+        Assert.Equal("Register", email.Subject);
+        Assert.Equal(this.setupAdminEmail, Assert.Single(email.To.Mailboxes).Address);
+        Assert.Equal("setup@example.test", Assert.Single(email.From.Mailboxes).Address);
+        Assert.Contains("You have been added to the Spamma platform", email.HtmlBody);
     }
 
     [Then("I can review setup completion")]
