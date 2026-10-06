@@ -67,7 +67,9 @@ public class EmailSender(
 
         var sender = new SmtpSender(() =>
         {
+#pragma warning disable S5332 // TLS follows the operator's saved SMTP setting; local test SMTP intentionally has no TLS.
             var client = new SmtpClient(smtpHost, smtpPort) { EnableSsl = useTls };
+#pragma warning restore S5332
             if (!string.IsNullOrWhiteSpace(username))
             {
                 client.Credentials = new NetworkCredential(username, password ?? string.Empty);
