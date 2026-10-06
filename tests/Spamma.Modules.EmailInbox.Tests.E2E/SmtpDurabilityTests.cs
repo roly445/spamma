@@ -1,12 +1,14 @@
 using System.Text.Json;
 using Dapper;
 using FluentAssertions;
+using Marten;
 using MaybeMonad;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using MimeKit;
 using Npgsql;
 using ResultMonad;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Tests.E2E.Fixtures;
 using Spamma.Modules.EmailInbox.Tests.E2E.Helpers;
@@ -17,12 +19,13 @@ namespace Spamma.Modules.EmailInbox.Tests.E2E;
 public class SmtpDurabilityTests
 {
     [Fact]
-    public async Task AcceptedMessage_SurvivesHostRestartBeforeSubscription()
+    public async Task AcceptedMessage_SurvivesHostRestartBeforeCaptureHandlerRuns()
     {
         var fixture = new SmtpEndToEndFixture();
         try
         {
-            await fixture.InitializeAsync(enableSubscriber: false);
+            DeferSmtpCaptureFilter.DeferCapture();
+            await fixture.InitializeAsync(enableSubscriber: false, retryCount: 50);
             var subject = $"Restart capture {Guid.NewGuid():N}";
             var body = $"Original MIME body {Guid.NewGuid():N}";
             var client = new SmtpClientHelper("localhost", fixture.SmtpServerPort);
@@ -35,12 +38,28 @@ public class SmtpDurabilityTests
             {
                 var publishedCount = await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM cap.published");
                 publishedCount.Should().Be(1, "SMTP acknowledgment must follow durable CAP persistence");
-                var receivedCount = await connection.ExecuteScalarAsync<int>("SELECT count(*) FROM cap.received");
-                receivedCount.Should().Be(0, "the first host has no subscriber");
             }
 
-            await fixture.RestartAsync();
-            var email = await fixture.WaitForEmailAsync(subject);
+            var deferred = await WaitForFailedReceiptAsync(fixture.PostgresContainer.GetConnectionString());
+            deferred.Error.Should().Contain("SMTP capture deferred until host restart");
+            await using (var session = fixture.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession())
+            {
+                var captured = await session.Query<EmailLookup>().AnyAsync(email => email.Subject == subject);
+                captured.Should().BeFalse("the first host must stop before its capture handler runs");
+            }
+
+            await fixture.RestartAsync(retryCount: 50, afterStop: DeferSmtpCaptureFilter.AllowCapture);
+            EmailLookup email;
+            try
+            {
+                email = await fixture.WaitForEmailAsync(subject, TimeSpan.FromSeconds(40));
+            }
+            catch (TimeoutException exception)
+            {
+                var state = await DescribeCapStateAsync(fixture.PostgresContainer.GetConnectionString());
+                throw new InvalidOperationException($"CAP did not recover after restart. {state}", exception);
+            }
+
             using var scope = fixture.ServiceProvider.CreateScope();
             var mime = await scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>()
                 .LoadMessageContentAsync(email.Id);
@@ -49,6 +68,7 @@ public class SmtpDurabilityTests
         }
         finally
         {
+            DeferSmtpCaptureFilter.AllowCapture();
             await fixture.DisposeAsync();
         }
     }
@@ -146,6 +166,33 @@ public class SmtpDurabilityTests
         }
 
         throw new TimeoutException($"CAP did not retain an inspectable failure. Last receipt: {latest}");
+    }
+
+    private static async Task<string> DescribeCapStateAsync(string connectionString)
+    {
+        await using var connection = new NpgsqlConnection(connectionString);
+        var published = await connection.QuerySingleOrDefaultAsync<string>(
+            "SELECT row_to_json(item)::text FROM cap.published item LIMIT 1");
+        var received = await connection.QuerySingleOrDefaultAsync<string>(
+            "SELECT row_to_json(item)::text FROM cap.received item LIMIT 1");
+        return $"Published={Describe(published)} Received={Describe(received)}";
+
+        static string Describe(string? raw)
+        {
+            if (raw == null)
+            {
+                return "missing";
+            }
+
+            using var document = JsonDocument.Parse(raw);
+            var root = document.RootElement;
+            var content = root.GetProperty("Content").GetString();
+            using var message = JsonDocument.Parse(content!);
+            var headers = message.RootElement.GetProperty("Headers");
+            var error = headers.TryGetProperty("cap-exception", out var exception)
+                ? exception.GetString() : null;
+            return $"{root.GetProperty("StatusName").GetString()} retries={root.GetProperty("Retries").GetInt32()} error={error}";
+        }
     }
 
     private static void ConfigureFailingMessageStore(IServiceCollection services, MessageStoreFailure failure)

@@ -80,7 +80,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
     }
 
     public async Task RestartAsync(bool enableSubscriber = true, int? retryCount = null,
-        Action<IServiceCollection>? configureServices = null)
+        Action<IServiceCollection>? configureServices = null, Action? afterStop = null)
     {
         if (this._host == null)
         {
@@ -89,6 +89,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
 
         await this._host.StopAsync();
         this._host.Dispose();
+        afterStop?.Invoke();
         this._host = this.BuildHost(enableSubscriber, retryCount, configureServices);
         await this._host.StartAsync();
         await this.WaitForSmtpServerAsync();
@@ -115,9 +116,12 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         }
     }
 
-    public async Task<EmailLookup> WaitForEmailAsync(string subject)
+    public Task<EmailLookup> WaitForEmailAsync(string subject) =>
+        this.WaitForEmailAsync(subject, TimeSpan.FromSeconds(40));
+
+    public async Task<EmailLookup> WaitForEmailAsync(string subject, TimeSpan wait)
     {
-        var timeout = DateTime.UtcNow.AddSeconds(40);
+        var timeout = DateTime.UtcNow.Add(wait);
         while (DateTime.UtcNow < timeout)
         {
             await using var session = this.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
@@ -130,7 +134,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             await Task.Delay(200);
         }
 
-        throw new TimeoutException($"SMTP message '{subject}' was not persisted within 40 seconds.");
+        throw new TimeoutException($"SMTP message '{subject}' was not persisted before the test timeout.");
     }
 
     public async Task<CampaignSummary> WaitForCampaignAsync(string campaignValue)
@@ -239,11 +243,14 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             {
                 options.FailedRetryCount = retryCount.Value;
                 options.FailedRetryInterval = 1;
+                // CAP otherwise waits four minutes before polling failed receipts.
+                options.FallbackWindowLookbackSeconds = 1;
             }
         });
-        if (enableSubscriber)
+        cap.AddSubscriberAssembly(typeof(Spamma.Modules.EmailInbox.Module).Assembly);
+        if (!enableSubscriber)
         {
-            cap.AddSubscriberAssembly(typeof(Spamma.Modules.EmailInbox.Module).Assembly);
+            cap.AddSubscribeFilter<DeferSmtpCaptureFilter>();
         }
 
         // Register BluQube CQRS infrastructure
