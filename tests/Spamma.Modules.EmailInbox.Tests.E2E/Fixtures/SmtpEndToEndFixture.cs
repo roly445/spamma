@@ -243,6 +243,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             {
                 options.FailedRetryCount = retryCount.Value;
                 options.FailedRetryInterval = 1;
+
                 // CAP otherwise waits four minutes before polling failed receipts.
                 options.FallbackWindowLookbackSeconds = 1;
             }
