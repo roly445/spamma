@@ -1,6 +1,6 @@
 @page "/admin/catch-all-senders"
 @layout AppLayout
-@attribute [Authorize]
+@attribute [Authorize(Policy = "DomainAdministration")]
 
 <PageTitle>Catch-All Sender Addresses - Spamma</PageTitle>
 

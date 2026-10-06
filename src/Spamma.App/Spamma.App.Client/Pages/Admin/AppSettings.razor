@@ -1,6 +1,6 @@
 @page "/admin/settings"
 @layout AppLayout
-@attribute [Authorize]
+@attribute [Authorize(Policy = "DomainAdministration")]
 
 <PageTitle>Settings - Spamma</PageTitle>
 
