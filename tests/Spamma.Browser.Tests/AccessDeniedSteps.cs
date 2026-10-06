@@ -42,10 +42,11 @@ public sealed partial class AnonymousAccessSteps
     {
         await this.Page.GotoAsync("/m/campaigns");
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Campaigns" })).ToBeVisibleAsync();
+        var previousPage = this.Page.Url;
         var returnUrl = Uri.EscapeDataString("https://outside.example/restricted");
-        await this.Page.EvaluateAsync("url => window.location.assign(url)",
-            $"/access-denied?ReturnUrl={returnUrl}");
-        await this.Page.WaitForURLAsync(new Regex(@"/access-denied\?ReturnUrl="));
+        await this.Page.GotoAsync($"/access-denied?ReturnUrl={returnUrl}",
+            new PageGotoOptions { Referer = previousPage });
+        await Assertions.Expect(this.Page).ToHaveURLAsync(new Regex(@"/access-denied\?ReturnUrl="));
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Access denied" })).ToBeVisibleAsync();
     }
 
