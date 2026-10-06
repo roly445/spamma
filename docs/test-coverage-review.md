@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | DomainManagement, EmailInbox, UserManagement | Unit and PostgreSQL-backed integration tests for domain rules, handlers, authorization, repositories and projections | Push and PR |
 | Spamma.App.Tests | API, component (bUnit), authentication and application configuration tests | PR; added to push CI in this change |
-| SMTP E2E project | Six SMTP reception scenarios run through a disposable SMTP host, CAP subscriber, PostgreSQL and Redis | Project runs in PR CI with no skipped reception scenarios |
+| EmailInbox E2E project | Six SMTP reception, three durability, and two authenticated gRPC scenarios use disposable PostgreSQL; SMTP scenarios also use Redis | Project runs in PR CI with no skipped scenarios |
 | Vitest | Two TypeScript files with 11 tests for setup form scripts | Added to push and PR CI in this change |
 | Playwright | Six Chromium anonymous-access scenarios against the running app for login, invalid email input, missing-token recovery, setup lockout and anonymous inbox access, plus the first-run setup scenarios | Browser workflow on PRs and main |
 
@@ -24,9 +24,9 @@ The .NET workflows collect Cobertura XML through `XPlat Code Coverage`. They pre
 | 2 | The new browser suite covers anonymous flows but not domain management or administrative permissions | Extend the seeded browser fixture with a domain/subdomain and two users, then test allowed and denied navigation and actions | Medium / App + DomainManagement |
 | 3 | The HTML/TypeScript UI has only two Vitest files | Add focused tests for form and viewer scripts when behavior changes; use Playwright for interactions that require the browser and server | Low / App |
 
-## SMTP reception tests
+## SMTP and gRPC service tests
 
-All six cases in `SmtpEmailReceptionTests` run through the real SMTP server and CAP publisher/subscriber with isolated PostgreSQL and Redis containers. The fixture seeds a verified domain, starts SMTP on a free local port, and polls the persisted projections with a 40-second bound. The cases cover accepted and rejected mail, enabled and disabled chaos addresses, campaign metadata, and concurrent delivery. Three `SmtpDurabilityTests` cases verify CAP persistence before SMTP acknowledgment, recovery by a second host, retry without double counting a campaign, and inspectable failure details after retry exhaustion. Run all nine locally with Docker available using `dotnet test tests/Spamma.Modules.EmailInbox.Tests.E2E/Spamma.Modules.EmailInbox.Tests.E2E.csproj -c Release`.
+All six cases in `SmtpEmailReceptionTests` run through the real SMTP server and CAP publisher/subscriber with isolated PostgreSQL and Redis containers. The fixture seeds a verified domain, starts SMTP on a free local port, and polls the persisted projections with a 40-second bound. The cases cover accepted and rejected mail, enabled and disabled chaos addresses, campaign metadata, and concurrent delivery. Three `SmtpDurabilityTests` cases verify CAP persistence before SMTP acknowledgment, recovery by a second host, retry without double counting a campaign, and inspectable failure details after retry exhaustion. Two `GrpcApiKeyLifecycleTests` cases call `GetEmailContent` through an HTTP/2 test server with a real PostgreSQL-backed API-key repository; they prove that a key works before revocation or expiry and returns `Unauthenticated` afterward. Run all eleven locally with Docker available using `dotnet test tests/Spamma.Modules.EmailInbox.Tests.E2E/Spamma.Modules.EmailInbox.Tests.E2E.csproj -c Release`.
 
 ## Running the new browser suite
 

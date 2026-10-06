@@ -26,6 +26,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -51,6 +53,7 @@
     <ProjectReference Include="..\..\src\modules\Spamma.Modules.EmailInbox.Client\Spamma.Modules.EmailInbox.Client.csproj" />
     <ProjectReference Include="..\..\src\modules\Spamma.Modules.DomainManagement\Spamma.Modules.DomainManagement.csproj" />
     <ProjectReference Include="..\..\src\modules\Spamma.Modules.DomainManagement.Client\Spamma.Modules.DomainManagement.Client.csproj" />
+    <ProjectReference Include="..\..\src\modules\Spamma.Modules.UserManagement\Spamma.Modules.UserManagement.csproj" />
   </ItemGroup>
 
 </Project>
