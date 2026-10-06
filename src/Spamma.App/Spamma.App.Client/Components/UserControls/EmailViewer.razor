@@ -84,8 +84,11 @@
                     }
                     @if (!HideMessageActions)
                     {
-                        <button id="report-spam" class="rounded border border-amber-500 px-3 py-1.5 text-sm text-amber-800 disabled:opacity-50"
+                        <button id="report-spam" class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-default disabled:opacity-60"
                                 @onclick="ReportSpamAsync" disabled="@(_isReportingSpam || _spamReport is not null)">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18m0-17h13l-2 4 2 4H3" />
+                            </svg>
                             @(_spamReport is null ? "Report spam" : "Reported as spam")
                         </button>
                     }
@@ -94,27 +97,35 @@
 
             @if (_spamReport is not null)
             {
-                <div id="spam-report-status" class="mb-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm">
-                    <p class="font-medium">Spam report recorded (@(_spamReport.Trigger == 1 ? "chaos address" : "manual"))</p>
-                    <button @onclick="LoadSpamReportAsync" class="text-blue-700 underline">Refresh delivery status</button>
-                    <p>ARF email: @DeliveryText(_spamReport.Email) (@_spamReport.Email.Attempts attempts)</p>
-                    @if (_spamReport.Email.LastError is not null)
-                    {
-                        <p class="text-red-700">@_spamReport.Email.LastError</p>
-                    }
-                    @if (_spamReport.Email.Status == 3)
-                    {
-                        <button @onclick='() => RetrySpamFeedbackAsync("email")' disabled="@_isReportingSpam" class="text-blue-700 underline">Retry ARF email</button>
-                    }
-                    <p>Signed webhook: @DeliveryText(_spamReport.Webhook) (@_spamReport.Webhook.Attempts attempts)</p>
-                    @if (_spamReport.Webhook.LastError is not null)
-                    {
-                        <p class="text-red-700">@_spamReport.Webhook.LastError</p>
-                    }
-                    @if (_spamReport.Webhook.Status == 3)
-                    {
-                        <button @onclick='() => RetrySpamFeedbackAsync("webhook")' disabled="@_isReportingSpam" class="text-blue-700 underline">Retry webhook</button>
-                    }
+                <div id="spam-report-status" class="mb-4 rounded-lg border border-gray-200 bg-gray-50 text-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
+                        <h2 class="font-medium text-gray-900">Spam report recorded (@(_spamReport.Trigger == 1 ? "chaos address" : "manual"))</h2>
+                        <button @onclick="LoadSpamReportAsync" class="text-sm font-medium text-blue-600 hover:text-blue-800">Refresh delivery status</button>
+                    </div>
+                    <div class="grid gap-4 px-4 py-3 sm:grid-cols-2">
+                        <div>
+                            <p class="font-medium text-gray-900">ARF email: @DeliveryText(_spamReport.Email) <span class="font-normal text-gray-500">(@_spamReport.Email.Attempts attempts)</span></p>
+                            @if (_spamReport.Email.LastError is not null)
+                            {
+                                <p class="mt-1 break-words text-xs text-red-700">@_spamReport.Email.LastError</p>
+                            }
+                            @if (_spamReport.Email.Status == 3)
+                            {
+                                <button @onclick='() => RetrySpamFeedbackAsync("email")' disabled="@_isReportingSpam" class="mt-2 text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50">Retry ARF email</button>
+                            }
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Signed webhook: @DeliveryText(_spamReport.Webhook) <span class="font-normal text-gray-500">(@_spamReport.Webhook.Attempts attempts)</span></p>
+                            @if (_spamReport.Webhook.LastError is not null)
+                            {
+                                <p class="mt-1 break-words text-xs text-red-700">@_spamReport.Webhook.LastError</p>
+                            }
+                            @if (_spamReport.Webhook.Status == 3)
+                            {
+                                <button @onclick='() => RetrySpamFeedbackAsync("webhook")' disabled="@_isReportingSpam" class="mt-2 text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50">Retry webhook</button>
+                            }
+                        </div>
+                    </div>
                 </div>
             }
 
