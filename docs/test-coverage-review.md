@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | DomainManagement, EmailInbox, UserManagement | Unit and PostgreSQL-backed integration tests for domain rules, handlers, authorization, repositories and projections | Push and PR |
 | Spamma.App.Tests | API, component (bUnit), authentication and application configuration tests | PR; added to push CI in this change |
-| SMTP E2E project | Six SMTP reception scenarios exist but all are skipped | Project runs in PR CI; scenarios remain skipped |
+| SMTP E2E project | Six SMTP reception scenarios run through a disposable SMTP host, CAP subscriber, PostgreSQL and Redis | Project runs in PR CI with no skipped reception scenarios |
 | Vitest | Two TypeScript files with 11 tests for setup form scripts | Added to push and PR CI in this change |
 | Playwright | Six Chromium anonymous-access scenarios against the running app for login, invalid email input, missing-token recovery, setup lockout and anonymous inbox access, plus the first-run setup scenarios | Browser workflow on PRs and main |
 
@@ -21,14 +21,13 @@ The .NET workflows collect Cobertura XML through `XPlat Code Coverage`. They pre
 | Priority | Gap | Recommended next test | Effort / owner |
 | --- | --- | --- | --- |
 | 1 | No authenticated browser journey through magic-link login, inbox, email inspection and campaign tabs | Seed two scoped users and captured messages in an isolated browser fixture, then assert visible data and cross-user isolation through the real UI | Medium / App + UserManagement + EmailInbox |
-| 1 | Six skipped SMTP E2E scenarios leave SMTP-to-storage and campaign processing untested end to end | Repair the fixture with Redis and CAP registration, wait on persisted projections instead of fixed delays, then enable acceptance, rejection and campaign cases first | Medium / EmailInbox |
 | 2 | Durable SMTP acceptance is covered by mocked publish/storage failures and payload serialization, without a process-restart integration test | Publish through CAP to PostgreSQL, restart the host, and assert the subscriber processes the retained MIME payload once | Medium / EmailInbox |
 | 2 | The new browser suite covers anonymous flows but not domain management or administrative permissions | Extend the seeded browser fixture with a domain/subdomain and two users, then test allowed and denied navigation and actions | Medium / App + DomainManagement |
 | 3 | The HTML/TypeScript UI has only two Vitest files | Add focused tests for form and viewer scripts when behavior changes; use Playwright for interactions that require the browser and server | Low / App |
 
-## Skipped SMTP tests
+## SMTP reception tests
 
-All six cases in `SmtpEmailReceptionTests` have the same skip reason: projections are not running correctly, with a reference to `E2E_TEST_STATUS.md`, which is absent. The fixture currently starts PostgreSQL and the modules, but does not configure the Redis/CAP infrastructure that now owns SMTP capture. It also uses fixed `Task.Delay` calls to await processing. The owner should add a Redis test container and CAP configuration, verify projection startup, replace sleeps with bounded condition polling, and remove skips one scenario at a time. The remaining cases cover unknown domains, chaos addresses, campaign headers and concurrent delivery.
+All six cases in `SmtpEmailReceptionTests` run through the real SMTP server and CAP publisher/subscriber with isolated PostgreSQL and Redis containers. The fixture seeds a verified domain, starts SMTP on a free local port, and polls the persisted projections with a 40-second bound. The cases cover accepted and rejected mail, enabled and disabled chaos addresses, campaign metadata, and concurrent delivery. Run them locally with Docker available using `dotnet test tests/Spamma.Modules.EmailInbox.Tests.E2E/Spamma.Modules.EmailInbox.Tests.E2E.csproj -c Release`. Restart and retry durability remains tracked in issue #21.
 
 ## Running the new browser suite
 

@@ -1,27 +1,46 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using Marten;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Spamma.Modules.DomainManagement.Client;
+using Spamma.Modules.Common;
+using Spamma.Modules.Common.Application.Contracts;
+using Spamma.Modules.Common.Domain.Contracts;
+using Spamma.Modules.DomainManagement;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox;
+using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Infrastructure.Settings;
+using StackExchange.Redis;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 
 namespace Spamma.Modules.EmailInbox.Tests.E2E.Fixtures;
 
 public class SmtpEndToEndFixture : IAsyncLifetime
 {
     private IHost? _host;
+    private string? _contentRoot;
 
     public IServiceProvider ServiceProvider => this._host?.Services ?? throw new InvalidOperationException("Fixture not initialized");
 
-    public int SmtpServerPort { get; private set; } = 1025; // Standard SMTP test port
+    public int SmtpServerPort { get; private set; }
 
     public PostgreSqlContainer PostgresContainer { get; private set; } = null!;
 
+    public RedisContainer RedisContainer { get; private set; } = null!;
+
+    public Guid DomainId { get; private set; }
+
+    public Guid SubdomainId { get; private set; }
+
+    public Guid ChaosAddressId { get; private set; }
+
     public async Task InitializeAsync()
     {
-        // 1. Start PostgreSQL container
+        // Both stores are disposable and are used by the real SMTP/CAP path.
         this.PostgresContainer = new PostgreSqlBuilder()
             .WithImage("postgres:16-alpine")
             .WithDatabase("spamma_e2e_test")
@@ -29,16 +48,38 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             .WithPassword("postgres")
             .WithCleanUp(true)
             .Build();
+        this.RedisContainer = new RedisBuilder()
+            .WithImage("redis:7-alpine")
+            .WithCleanUp(true)
+            .Build();
 
         await StartContainerWithRetryAsync(this.PostgresContainer);
+        await this.RedisContainer.StartAsync();
 
-        // 2. Build real service host with all modules
-        var builder = Host.CreateApplicationBuilder();
+        using (var listener = new TcpListener(IPAddress.Loopback, 0))
+        {
+            listener.Start();
+            this.SmtpServerPort = ((IPEndPoint)listener.LocalEndpoint).Port;
+        }
+
+        this._contentRoot = Path.Combine(Path.GetTempPath(), $"spamma-smtp-e2e-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(this._contentRoot);
+
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            ContentRootPath = this._contentRoot,
+        });
 
         // Configure logging
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["SmtpServer:Port"] = this.SmtpServerPort.ToString(),
+        });
+        builder.Services.Configure<EmailInboxSettings>(builder.Configuration.GetSection("SmtpServer"));
 
         // Configure Marten with PostgreSQL container
         builder.Services.AddMarten(options =>
@@ -52,8 +93,21 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             Spamma.Modules.EmailInbox.Module.ConfigureEmailInbox(options);
         }).UseIdentitySessions();
 
-        // Register TimeProvider (required by background services)
-        builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddSingleton<IInternalQueryStore, InternalQueryStore>();
+        builder.Services.AddSingleton<IDirectoryWrapper, DirectoryWrapper>();
+        builder.Services.AddSingleton<IFileWrapper, FileWrapper>();
+        builder.Services.AddScoped<IIntegrationEventPublisher, IntegrationEventPublisher>();
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(this.RedisContainer.GetConnectionString()));
+
+        builder.Services.AddCap(options =>
+        {
+            options.UseStorageLock = true;
+            options.UseRedis(this.RedisContainer.GetConnectionString());
+            options.UsePostgreSql(this.PostgresContainer.GetConnectionString());
+        }).AddSubscriberAssembly(typeof(Spamma.Modules.EmailInbox.Module).Assembly);
 
         // Register BluQube CQRS infrastructure
         builder.Services.AddScoped<BluQube.Commands.ICommandRunner, BluQube.Commands.CommandRunner>();
@@ -61,24 +115,19 @@ public class SmtpEndToEndFixture : IAsyncLifetime
 
         // Register real modules
         builder.Services
+            .AddCommonBehaviors()
             .AddDomainManagement()
             .AddEmailInbox();
 
         this._host = builder.Build();
 
-        // 3. Apply Marten schema migrations
         var store = this._host.Services.GetRequiredService<IDocumentStore>();
-        await store.Advanced.Clean.CompletelyRemoveAllAsync();
         await store.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
 
-        // 4. Start hosted services (including SMTP server)
-        await this._host.StartAsync();
-
-        // Wait for SMTP server to be ready
-        await this.WaitForSmtpServerAsync();
-
-        // 5. Seed test data
         await this.SeedTestDataAsync();
+
+        await this._host.StartAsync();
+        await this.WaitForSmtpServerAsync();
     }
 
     public async Task DisposeAsync()
@@ -89,7 +138,72 @@ public class SmtpEndToEndFixture : IAsyncLifetime
             this._host.Dispose();
         }
 
+        if (this.RedisContainer != null)
+        {
+            await this.RedisContainer.DisposeAsync();
+        }
+
         await this.PostgresContainer.DisposeAsync();
+
+        if (this._contentRoot != null && Directory.Exists(this._contentRoot))
+        {
+            Directory.Delete(this._contentRoot, recursive: true);
+        }
+    }
+
+    public async Task<EmailLookup> WaitForEmailAsync(string subject)
+    {
+        var timeout = DateTime.UtcNow.AddSeconds(40);
+        while (DateTime.UtcNow < timeout)
+        {
+            await using var session = this.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+            var email = await session.Query<EmailLookup>().FirstOrDefaultAsync(x => x.Subject == subject);
+            if (email != null)
+            {
+                return email;
+            }
+
+            await Task.Delay(200);
+        }
+
+        throw new TimeoutException($"SMTP message '{subject}' was not persisted within 40 seconds.");
+    }
+
+    public async Task<CampaignSummary> WaitForCampaignAsync(string campaignValue)
+    {
+        var timeout = DateTime.UtcNow.AddSeconds(40);
+        while (DateTime.UtcNow < timeout)
+        {
+            await using var session = this.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+            var campaign = await session.Query<CampaignSummary>()
+                .FirstOrDefaultAsync(x => x.CampaignValue == campaignValue);
+            if (campaign != null)
+            {
+                return campaign;
+            }
+
+            await Task.Delay(200);
+        }
+
+        throw new TimeoutException($"SMTP campaign '{campaignValue}' was not projected within 40 seconds.");
+    }
+
+    public async Task<ChaosAddressLookup> WaitForChaosCaptureAsync()
+    {
+        var timeout = DateTime.UtcNow.AddSeconds(40);
+        while (DateTime.UtcNow < timeout)
+        {
+            await using var session = this.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+            var chaosAddress = await session.LoadAsync<ChaosAddressLookup>(this.ChaosAddressId);
+            if (chaosAddress is { TotalReceived: > 0 })
+            {
+                return chaosAddress;
+            }
+
+            await Task.Delay(200);
+        }
+
+        throw new TimeoutException("Chaos address receipt was not projected within 40 seconds.");
     }
 
     private static async Task StartContainerWithRetryAsync(PostgreSqlContainer container, int maxAttempts = 3)
@@ -150,8 +264,8 @@ public class SmtpEndToEndFixture : IAsyncLifetime
         await using var session = documentStore.LightweightSession();
 
         // Create test domain and subdomain IDs
-        var domainId = Guid.NewGuid();
-        var subdomainId = Guid.NewGuid();
+        var domainId = this.DomainId = Guid.NewGuid();
+        var subdomainId = this.SubdomainId = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
         // Create test domain stream with typed event
@@ -163,7 +277,11 @@ public class SmtpEndToEndFixture : IAsyncLifetime
                 null,
                 "Test domain for E2E tests",
                 Guid.NewGuid().ToString("N"),
-                now));
+                now),
+            new Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events.DomainVerified(now));
+
+        // SubdomainLookupProjection loads its parent while projecting SubdomainCreated.
+        await session.SaveChangesAsync();
 
         // Create test subdomain stream with typed event
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.SubdomainAggregate.Subdomain>(
@@ -176,7 +294,7 @@ public class SmtpEndToEndFixture : IAsyncLifetime
                 "Test subdomain for E2E tests"));
 
         // Create enabled chaos address
-        var chaosAddressEnabledId = Guid.NewGuid();
+        var chaosAddressEnabledId = this.ChaosAddressId = Guid.NewGuid();
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
             chaosAddressEnabledId,
             new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
@@ -185,7 +303,8 @@ public class SmtpEndToEndFixture : IAsyncLifetime
                 subdomainId,
                 "chaos",
                 Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable,
-                now));
+                now),
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressEnabled(now));
 
         // Create disabled chaos address
         var chaosAddressDisabledId = Guid.NewGuid();
@@ -202,9 +321,17 @@ public class SmtpEndToEndFixture : IAsyncLifetime
 
         await session.SaveChangesAsync();
 
-        // Trigger projection daemon to process events and update lookup tables
-        var daemon = await documentStore.BuildProjectionDaemonAsync();
-        await daemon.StartAllAsync();
-        await daemon.WaitForNonStaleData(TimeSpan.FromSeconds(5));
+        await using var query = documentStore.QuerySession();
+        var domain = await query.LoadAsync<DomainLookup>(domainId);
+        if (domain is not { IsVerified: true })
+        {
+            throw new InvalidOperationException("The SMTP test domain was not projected as verified.");
+        }
+
+        var subdomain = await query.LoadAsync<SubdomainLookup>(subdomainId);
+        if (subdomain?.FullName != "spamma.example.com")
+        {
+            throw new InvalidOperationException($"The SMTP test subdomain was projected as '{subdomain?.FullName}'.");
+        }
     }
 }
