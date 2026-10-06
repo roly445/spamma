@@ -446,7 +446,6 @@ if (domainParser != null && domainParserService != null)
 }
 
 app.MapStaticAssets();
-app.MapGet("/access-denied", () => Results.Content("You do not have permission to view this page.", "text/plain"));
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Spamma.App.Client._Imports).Assembly);
