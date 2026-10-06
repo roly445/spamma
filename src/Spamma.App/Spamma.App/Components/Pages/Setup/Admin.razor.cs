@@ -54,7 +54,7 @@ public partial class Admin(
 
         var userId = Guid.NewGuid();
         logger.LogInformation("Creating admin user with email: {Email}", this.Model.AdminEmail);
-        var cmd = new CreateUserCommand(userId, this.Model.AdminName, this.Model.AdminEmail, false, 0);
+        var cmd = new CreateUserCommand(userId, this.Model.AdminName, this.Model.AdminEmail, true, 0);
         internalQueryStore.StoreQueryRef(cmd);
         await commander.Send(cmd);
 

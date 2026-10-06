@@ -1,13 +1,21 @@
 ﻿using System.Collections.Immutable;
+using System.Net;
+using System.Net.Mail;
 using System.Reflection;
 using FluentEmail.Core;
+using FluentEmail.Smtp;
 using Microsoft.Extensions.Logging;
 using ResultMonad;
+using Spamma.App.Infrastructure.Contracts.Services;
 using Spamma.Modules.Common;
 
 namespace Spamma.App.Infrastructure;
 
-public class EmailSender(IFluentEmail fluentEmail, ILogger<EmailSender> logger) : IEmailSender
+public class EmailSender(
+    IFluentEmail fluentEmail,
+    IAppConfigurationService appConfigurationService,
+    IConfiguration configuration,
+    ILogger<EmailSender> logger) : IEmailSender
 {
     private static readonly IReadOnlyDictionary<EmailTemplateSection, string> EmailTemplateSections = new Dictionary<EmailTemplateSection, string>
     {
@@ -32,7 +40,19 @@ public class EmailSender(IFluentEmail fluentEmail, ILogger<EmailSender> logger) 
     public async Task<Result> SendEmailAsync(string name, string emailAddress, string subject,
         List<Tuple<EmailTemplateSection, ImmutableArray<string>>> body, CancellationToken cancellationToken = default)
     {
+        var savedSettings = await appConfigurationService.GetEmailSettingsAsync();
+        var hasSavedSettings = !string.IsNullOrWhiteSpace(savedSettings.SmtpHost);
+        var smtpHost = hasSavedSettings ? savedSettings.SmtpHost : configuration["Settings:EmailSmtpHost"] ?? "localhost";
+        var fallbackPort = int.TryParse(configuration["Settings:EmailSmtpPort"], out var port) ? port : 587;
+        var smtpPort = hasSavedSettings ? savedSettings.SmtpPort : fallbackPort;
+        var fromEmail = hasSavedSettings ? savedSettings.FromEmail : configuration["Settings:FromEmailAddress"] ?? "noreply@example.com";
+        var fromName = hasSavedSettings ? savedSettings.FromName : configuration["Settings:FromName"] ?? "Spamma";
+        var username = hasSavedSettings ? savedSettings.Username : configuration["Settings:EmailSmtpUsername"];
+        var password = hasSavedSettings ? savedSettings.Password : configuration["Settings:EmailSmtpPassword"];
+        var useTls = hasSavedSettings ? savedSettings.UseTls : bool.TryParse(configuration["Settings:EmailSmtpUseTls"], out var tls) && tls;
+
         var email = fluentEmail.To(emailAddress, name)
+            .SetFrom(fromEmail, fromName)
             .Subject(subject)
             .UsingTemplateFromEmbedded(
                 "Spamma.App.Infrastructure.Template.html",
@@ -45,7 +65,17 @@ public class EmailSender(IFluentEmail fluentEmail, ILogger<EmailSender> logger) 
 
         logger.LogInformation("Sending email to {EmailAddress} with subject {Subject}", emailAddress, subject);
 
-        var sendResponse = await email.SendAsync(cancellationToken);
+        var sender = new SmtpSender(() =>
+        {
+            var client = new SmtpClient(smtpHost, smtpPort) { EnableSsl = useTls };
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                client.Credentials = new NetworkCredential(username, password ?? string.Empty);
+            }
+
+            return client;
+        });
+        var sendResponse = await sender.SendAsync(email, cancellationToken);
 
         if (sendResponse.Successful)
         {

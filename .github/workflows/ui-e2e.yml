@@ -88,9 +88,12 @@ jobs:
         env:
           ASPNETCORE_URLS: http://127.0.0.1:5188
           ASPNETCORE_ENVIRONMENT: Production
+          CertificateRenewal__Disabled: 'true'
           SmtpServer__Port: '2526'
           SPAMMA_SETUP_PASSWORD: 'ci-only-setup-password'
           SPAMMA_E2E_RESET_SETUP_CONFIG: 'true'
+          SPAMMA_E2E_REDIS_SESSION_PREFIX: 'spamma-setup-tests:'
+          Session__CachePrefix: 'spamma-setup-tests:'
           SPAMMA_E2E_BASE_URL: http://127.0.0.1:5188
           SPAMMA_BROWSER_RESULTS_DIR: ${{ github.workspace }}/browser-test-results
           SPAMMA_BROWSER_VIDEO_DIR: ${{ github.workspace }}/browser-test-videos
@@ -122,6 +125,7 @@ jobs:
         env:
           ASPNETCORE_URLS: http://127.0.0.1:5188
           ASPNETCORE_ENVIRONMENT: Production
+          CertificateRenewal__Disabled: 'true'
           Setup__Completed: '2026-01-01T00:00:00Z'
           SmtpServer__Port: '2526'
           SPAMMA_E2E_BASE_URL: http://localhost:5188

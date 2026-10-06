@@ -67,6 +67,11 @@ public sealed partial class AnonymousAccessSteps
     [AfterScenario]
     public async Task StopBrowserAsync(ScenarioContext scenarioContext)
     {
+        if (this.setupSmtpCapture is not null)
+        {
+            await this.setupSmtpCapture.DisposeAsync();
+        }
+
         if (this.context is not null)
         {
             if (scenarioContext.TestError is not null)
