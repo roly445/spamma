@@ -31,6 +31,16 @@ public class SearchUsersQueryAuthorizerTests
     }
 
     [Fact]
+    public async Task Authorize_WhenUserManagesDomains_Succeeds()
+    {
+        var authorizer = new SearchUsersQueryAuthorizer(AuthorizerTestContext.CreateAuthenticated(SystemRole.DomainManagement));
+
+        var result = await authorizer.Authorize(new SearchUsersQuery(PageSize: 100), CancellationToken.None);
+
+        result.IsAuthorized.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Authorize_WhenUserModeratesASubdomain_Succeeds()
     {
         var context = AuthorizerTestContext.CreateAuthenticated();
@@ -38,8 +48,21 @@ public class SearchUsersQueryAuthorizerTests
             new Claim(Lookups.ModeratedSubdomainClaim, Guid.NewGuid().ToString()));
         var authorizer = new SearchUsersQueryAuthorizer(context);
 
-        var result = await authorizer.Authorize(new SearchUsersQuery(SearchTerm: "candidate"), CancellationToken.None);
+        var result = await authorizer.Authorize(new SearchUsersQuery(SearchTerm: "candidate", PageSize: 5, ExcludeSuspended: true), CancellationToken.None);
 
         result.IsAuthorized.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Authorize_WhenModeratorRequestsFullUserList_Fails()
+    {
+        var context = AuthorizerTestContext.CreateAuthenticated();
+        ((ClaimsIdentity)context.HttpContext!.User.Identity!).AddClaim(
+            new Claim(Lookups.ModeratedSubdomainClaim, Guid.NewGuid().ToString()));
+        var authorizer = new SearchUsersQueryAuthorizer(context);
+
+        var result = await authorizer.Authorize(new SearchUsersQuery(), CancellationToken.None);
+
+        result.IsAuthorized.Should().BeFalse();
     }
 }

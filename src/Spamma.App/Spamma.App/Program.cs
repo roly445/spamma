@@ -10,6 +10,7 @@ using JasperFx;
 using Marten;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -275,6 +276,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         // This removes Redis dependency for every HTTP request
         options.LoginPath = "/login";
         options.LogoutPath = "/logout";
+        options.AccessDeniedPath = "/access-denied";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
         options.Cookie.Name = "SpammaAuth";
@@ -350,6 +352,8 @@ builder.Services.AddAuthorization(options =>
         "AssignedToAnyDomain",
         policy => policy.Requirements.Add(new AssignedToAnyDomainRequirement()));
 });
+builder.Services.AddScoped<IAuthorizationHandler, BitwiseRoleHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, AssignedToAnyDomainHandler>();
 
 // Add Redis distributed cache for sessions
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -437,6 +441,7 @@ if (domainParser != null && domainParserService != null)
 }
 
 app.MapStaticAssets();
+app.MapGet("/access-denied", () => Results.Content("You do not have permission to view this page.", "text/plain"));
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(Spamma.App.Client._Imports).Assembly);

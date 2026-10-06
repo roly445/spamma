@@ -23,6 +23,7 @@ public partial class Users
         {
             DisplayName = user.DisplayName ?? string.Empty,
             Email = user.Email,
+            Roles = user.SystemRole,
         };
         this.showEditPanel = true;
     }

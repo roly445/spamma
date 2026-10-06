@@ -15,4 +15,5 @@ public record SearchUsersQuery(
     string SortBy = "CreatedAt",
     bool SortDescending = true,
     int Page = 1,
-    int PageSize = 10) : IQuery<SearchUsersQueryResult>;
+    int PageSize = 10,
+    bool ExcludeSuspended = false) : IQuery<SearchUsersQueryResult>;

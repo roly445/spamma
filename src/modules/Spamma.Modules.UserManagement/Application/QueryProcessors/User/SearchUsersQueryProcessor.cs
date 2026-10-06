@@ -27,6 +27,11 @@ public class SearchUsersQueryProcessor(IDocumentSession session, IHttpContextAcc
 
         var whereConditions = new List<Expression<Func<UserLookup, bool>>>();
 
+        if (request.ExcludeSuspended)
+        {
+            whereConditions.Add(u => !u.IsSuspended);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             whereConditions.Add(u => u.Name.Contains(request.SearchTerm) || u.EmailAddress.Contains(request.SearchTerm));
@@ -42,13 +47,13 @@ public class SearchUsersQueryProcessor(IDocumentSession session, IHttpContextAcc
             switch (request.Status.Value)
             {
                 case UserStatus.Active:
-                    whereConditions.Add(u => !u.IsSuspended);
+                    whereConditions.Add(u => !u.IsSuspended && u.LastLoginAt != null);
                     break;
                 case UserStatus.Suspended:
                     whereConditions.Add(u => u.IsSuspended);
                     break;
                 case UserStatus.Inactive:
-                    whereConditions.Add(u => u.LastLoginAt == null || u.LastLoginAt < DateTime.UtcNow.AddMonths(-1));
+                    whereConditions.Add(u => !u.IsSuspended && u.LastLoginAt == null);
                     break;
             }
         }
