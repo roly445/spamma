@@ -1,12 +1,14 @@
 ﻿using System.Text.Json;
 using BluQube.Constants;
 using BluQube.Queries;
+using Marten;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Caching;
 using Spamma.Modules.DomainManagement.Client.Application.Queries;
 using Spamma.Modules.DomainManagement.Client.Contracts;
+using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 using StackExchange.Redis;
 
 namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
@@ -14,7 +16,8 @@ namespace Spamma.Modules.DomainManagement.Infrastructure.Services.Caching;
 public class SubdomainCache(
     IConnectionMultiplexer redisMultiplexer,
     IQueryRunner querier,
-    ILogger<SubdomainCache> logger, IInternalQueryStore internalQueryStore) : ISubdomainCache
+    ILogger<SubdomainCache> logger, IInternalQueryStore internalQueryStore,
+    IDocumentSession documentSession) : ISubdomainCache
 {
     private const string CacheKeyPrefix = "subdomain:";
 
@@ -41,7 +44,7 @@ public class SubdomainCache(
                 try
                 {
                     var cachedSubdomain = JsonSerializer.Deserialize<ISubdomainCache.CachedSubdomain>(cachedValue.ToString());
-                    if (cachedSubdomain != null)
+                    if (cachedSubdomain != null && await this.ParentDomainAcceptsMailAsync(cachedSubdomain.DomainId, cancellationToken))
                     {
                         return Maybe.From(cachedSubdomain);
                     }
@@ -75,6 +78,11 @@ public class SubdomainCache(
 
         var subdomain = result.Data.Items[0];
         if (subdomain.Status == SubdomainStatus.Suspended)
+        {
+            return Maybe<ISubdomainCache.CachedSubdomain>.Nothing;
+        }
+
+        if (!await this.ParentDomainAcceptsMailAsync(subdomain.ParentDomainId, cancellationToken))
         {
             return Maybe<ISubdomainCache.CachedSubdomain>.Nothing;
         }
@@ -163,4 +171,10 @@ public class SubdomainCache(
     }
 
     private static string CreateCacheKey(string domain) => $"{CacheKeyPrefix}{domain.ToLowerInvariant()}";
+
+    private async Task<bool> ParentDomainAcceptsMailAsync(Guid domainId, CancellationToken cancellationToken)
+    {
+        var parent = await documentSession.LoadAsync<DomainLookup>(domainId, cancellationToken);
+        return parent is { IsVerified: true, IsSuspended: false };
+    }
 }

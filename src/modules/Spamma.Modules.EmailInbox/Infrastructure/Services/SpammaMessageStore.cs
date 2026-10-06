@@ -52,20 +52,40 @@ public class SpammaMessageStore : MessageStore
         {
             var domain = recipient.Domain.ToLowerInvariant();
             var localPart = recipient.Address.Split('@')[0].ToLowerInvariant();
-            var subdomain = await subdomainCache.GetSubdomainAsync(domain, forceRefresh: false, cancellationToken: cancellationToken);
+            ISubdomainCache.CachedSubdomain? resolvedSubdomain;
+            try
+            {
+                var lookup = await subdomainCache.GetSubdomainAsync(domain, forceRefresh: false, cancellationToken: cancellationToken);
+                resolvedSubdomain = lookup.HasValue ? lookup.Value : null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "SMTP subdomain lookup failed for {Domain}", domain);
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+            }
 
-            if (!subdomain.HasValue)
+            if (resolvedSubdomain is null)
             {
                 continue;
             }
 
-            foundValidSubdomain = subdomain.Value;
+            foundValidSubdomain = resolvedSubdomain;
 
-            var chaosAddress = await chaosAddressCache.GetChaosAddressAsync(
-                subdomain.Value.SubdomainId,
-                localPart,
-                forceRefresh: false,
-                cancellationToken: cancellationToken);
+            MaybeMonad.Maybe<IChaosAddressCache.CachedChaosAddress> chaosAddress;
+            try
+            {
+                chaosAddress = await chaosAddressCache.GetChaosAddressAsync(
+                    resolvedSubdomain.SubdomainId,
+                    localPart,
+                    forceRefresh: false,
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "SMTP chaos lookup failed for subdomain {SubdomainId}, address {LocalPart}",
+                    resolvedSubdomain.SubdomainId, localPart);
+                return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+            }
 
             if (chaosAddress.HasValue)
             {

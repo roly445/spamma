@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Microsoft.Playwright" Version="1.63.0" />
+    <PackageReference Include="MailKit" Version="4.16.0" />
     <PackageReference Include="Npgsql" Version="9.0.4" />
     <PackageReference Include="Reqnroll.xUnit" Version="3.3.4" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -31,6 +32,7 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/chaos-addresses.feature" Link="Features/chaos-addresses.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/account-security.feature" Link="Features/account-security.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/settings.feature" Link="Features/settings.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/smtp-reception.feature" Link="Features/smtp-reception.feature" />
   </ItemGroup>
 
   <ItemGroup>

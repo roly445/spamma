@@ -8,10 +8,17 @@ using Spamma.Modules.DomainManagement.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.DomainManagement.Application.Authorizers.Queries;
 
-internal class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession) : IBluQubeAuthorizer<GetChaosAddressBySubdomainAndLocalPartQuery>
+internal class GetChaosAddressBySubdomainAndLocalPartQueryAuthorizer(
+    IHttpContextAccessor httpContextAccessor, IDocumentSession documentSession,
+    IInternalQueryStore? internalQueryStore = null) : IBluQubeAuthorizer<GetChaosAddressBySubdomainAndLocalPartQuery>
 {
     public async Task<AuthorizationResult> Authorize(GetChaosAddressBySubdomainAndLocalPartQuery request, CancellationToken cancellationToken)
     {
+        if (internalQueryStore?.IsQueryStored(request) == true)
+        {
+            return AuthorizationResult.Succeed();
+        }
+
         var user = httpContextAccessor.HttpContext.ToUserAuthInfo();
         if (!user.IsAuthenticated)
         {
