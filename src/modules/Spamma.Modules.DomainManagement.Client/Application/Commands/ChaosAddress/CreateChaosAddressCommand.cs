@@ -10,4 +10,5 @@ public record CreateChaosAddressCommand(
     Guid DomainId,
     Guid SubdomainId,
     string LocalPart,
-    SmtpResponseCode ConfiguredSmtpCode) : ICommand;
+    SmtpResponseCode ConfiguredSmtpCode,
+    bool ReportsSpam = false) : ICommand;

@@ -38,6 +38,11 @@ internal class CreateChaosAddressCommandValidator : AbstractValidator<CreateChao
             .WithErrorCode(CommonValidationCodes.Required)
             .WithMessage("Subdomain ID is required.");
 
+        this.RuleFor(x => x.ConfiguredSmtpCode)
+            .Must(code => Enum.IsDefined(code) && (int)code >= 400)
+            .When(x => !x.ReportsSpam)
+            .WithMessage("An SMTP error code is required for an error chaos address.");
+
         this.RuleFor(x => x.LocalPart)
             .NotEmpty()
             .WithErrorCode(CommonValidationCodes.Required)

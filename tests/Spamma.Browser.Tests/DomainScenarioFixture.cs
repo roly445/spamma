@@ -166,7 +166,7 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
     }
 
     public async Task<Guid> SeedChaosAddressAsync(Guid domainId, Guid subdomainId, string localPart,
-        bool enabled = false)
+        bool enabled = false, bool reportsSpam = false)
     {
         var id = Guid.NewGuid();
         var events = new List<object>
@@ -174,6 +174,7 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
             new ChaosAddressCreated(id, domainId, subdomainId, localPart,
                 SmtpResponseCode.MailboxUnavailablePermanent, DateTime.UtcNow),
         };
+        if (reportsSpam) events.Add(new ChaosSpamReportingSelected(DateTime.UtcNow));
         if (enabled) events.Add(new ChaosAddressEnabled(DateTime.UtcNow));
 
         await using var session = this.store.LightweightSession();
@@ -226,6 +227,9 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
         if (!match.Success) throw new InvalidOperationException("The captured authentication email has no login URL.");
         return new Uri(WebUtility.HtmlDecode(match.Value)).PathAndQuery;
     }
+
+    public Task<MimeKit.MimeMessage> WaitForFeedbackMessageAsync() =>
+        this.smtpCapture.WaitForMessageAsync(TimeSpan.FromSeconds(45));
 
     public void PublishTxt(string name, string token) => this.dnsCapture.Publish(name, token);
 

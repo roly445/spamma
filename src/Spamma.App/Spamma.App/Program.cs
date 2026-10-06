@@ -258,6 +258,7 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<IClientNotifierService, ClientNotifierService>();
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddScoped<Spamma.Modules.EmailInbox.Infrastructure.SpamFeedback.IArfSmtpSettingsProvider, ArfSmtpSettingsProvider>();
 builder.Services.AddTransient<IAuthTokenProvider, AuthTokenProvider>();
 
 builder.Services.AddSingleton<IDirectoryWrapper, DirectoryWrapper>();

@@ -68,7 +68,8 @@ public class ChaosAddressCache(
             result.Data.ChaosAddressId,
             result.Data.DomainId,
             result.Data.SubdomainId,
-            result.Data.ConfiguredSmtpCode);
+            result.Data.ConfiguredSmtpCode,
+            result.Data.ReportsSpam);
 
         try
         {

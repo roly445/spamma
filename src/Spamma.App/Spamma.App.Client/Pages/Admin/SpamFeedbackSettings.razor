@@ -1,0 +1,54 @@
+@page "/admin/subdomains/{SubdomainId:guid}/spam-feedback"
+@using Spamma.App.Client.Layout
+@layout AppLayout
+@attribute [Authorize]
+<PageTitle>Spam Feedback - Spamma</PageTitle>
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-2xl font-semibold text-gray-900">Spam feedback</h1>
+    <p class="mt-2 text-sm text-gray-600">Configure feedback for this subdomain. ARF sends an email to test a complaint handler. The signed webhook sends a test event without affecting mail-provider reputation.</p>
+
+    @if (error is not null)
+    {
+        <div role="alert" class="mt-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800">@error</div>
+    }
+
+    @if (loading)
+    {
+        <p class="mt-6">Loading feedback settings...</p>
+    }
+    else if (canConfigure)
+    {
+        <form @onsubmit="SaveAsync" @onsubmit:preventDefault class="mt-6 space-y-5 rounded-lg border bg-white p-6">
+            <div>
+                <label for="arf-recipient" class="block text-sm font-medium text-gray-700">ARF email destination</label>
+                <input id="arf-recipient" type="email" @bind="arfRecipient" class="mt-1 w-full rounded border p-2" placeholder="abuse@example.com" />
+                <p class="mt-1 text-xs text-gray-500">Must be on the verified parent domain. Leave blank to disable ARF email.</p>
+            </div>
+            <div>
+                <label for="webhook-url" class="block text-sm font-medium text-gray-700">Signed webhook URL</label>
+                <input id="webhook-url" type="url" @bind="webhookUrl" class="mt-1 w-full rounded border p-2" placeholder="https://feedback.example.com/spam" />
+                <p class="mt-1 text-xs text-gray-500">Must be a public HTTPS endpoint on the verified parent domain. Leave blank to disable the webhook.</p>
+            </div>
+            <button type="submit" disabled="@saving" class="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">@(saving ? "Saving..." : "Save feedback settings")</button>
+        </form>
+
+        @if (newWebhookSecret is not null)
+        {
+            <div role="status" class="mt-5 rounded border border-amber-300 bg-amber-50 p-4">
+                <p class="font-medium">Copy the webhook signing secret now. It will not be shown again.</p>
+                <code id="webhook-secret" class="mt-2 block break-all">@newWebhookSecret</code>
+                <p class="mt-2 text-sm">Verify X-Spamma-Signature as HMAC-SHA256 over the X-Spamma-Timestamp, a period, and the exact request body.</p>
+            </div>
+        }
+        else if (hasWebhookSecret)
+        {
+            <p class="mt-4 text-sm text-gray-600">A webhook signing secret is configured. Changing the URL rotates it.</p>
+        }
+
+        @if (saved)
+        {
+            <p role="status" class="mt-4 text-sm text-green-700">Feedback settings saved.</p>
+        }
+    }
+</div>

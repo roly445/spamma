@@ -36,6 +36,13 @@ internal partial class ChaosAddressLookupProjection : EventProjection
     }
 
     [UsedImplicitly]
+    public void Project(IEvent<ChaosSpamReportingSelected> @event, IDocumentOperations ops)
+    {
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Set(x => x.ReportsSpam, true);
+    }
+
+    [UsedImplicitly]
     public void Project(IEvent<ChaosAddressDisabled> @event, IDocumentOperations ops)
     {
         ops.Patch<ChaosAddressLookup>(@event.StreamId)

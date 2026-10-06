@@ -82,8 +82,41 @@
                             }
                         </button>
                     }
+                    @if (!HideMessageActions)
+                    {
+                        <button id="report-spam" class="rounded border border-amber-500 px-3 py-1.5 text-sm text-amber-800 disabled:opacity-50"
+                                @onclick="ReportSpamAsync" disabled="@(_isReportingSpam || _spamReport is not null)">
+                            @(_spamReport is null ? "Report spam" : "Reported as spam")
+                        </button>
+                    }
                 </div>
             </div>
+
+            @if (_spamReport is not null)
+            {
+                <div id="spam-report-status" class="mb-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm">
+                    <p class="font-medium">Spam report recorded (@(_spamReport.Trigger == 1 ? "chaos address" : "manual"))</p>
+                    <button @onclick="LoadSpamReportAsync" class="text-blue-700 underline">Refresh delivery status</button>
+                    <p>ARF email: @DeliveryText(_spamReport.Email) (@_spamReport.Email.Attempts attempts)</p>
+                    @if (_spamReport.Email.LastError is not null)
+                    {
+                        <p class="text-red-700">@_spamReport.Email.LastError</p>
+                    }
+                    @if (_spamReport.Email.Status == 3)
+                    {
+                        <button @onclick='() => RetrySpamFeedbackAsync("email")' disabled="@_isReportingSpam" class="text-blue-700 underline">Retry ARF email</button>
+                    }
+                    <p>Signed webhook: @DeliveryText(_spamReport.Webhook) (@_spamReport.Webhook.Attempts attempts)</p>
+                    @if (_spamReport.Webhook.LastError is not null)
+                    {
+                        <p class="text-red-700">@_spamReport.Webhook.LastError</p>
+                    }
+                    @if (_spamReport.Webhook.Status == 3)
+                    {
+                        <button @onclick='() => RetrySpamFeedbackAsync("webhook")' disabled="@_isReportingSpam" class="text-blue-700 underline">Retry webhook</button>
+                    }
+                </div>
+            }
 
             <!-- Email Addresses Section -->
             <div class="space-y-3">

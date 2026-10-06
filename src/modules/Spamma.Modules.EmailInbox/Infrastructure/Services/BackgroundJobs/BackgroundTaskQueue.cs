@@ -29,6 +29,10 @@ public class BackgroundTaskQueue(ICapPublisher publisher) : IBackgroundTaskQueue
                 chaos.MessageId == Guid.Empty ? Guid.NewGuid() : chaos.MessageId,
                 EmailCaptureKind.Chaos, content, chaos.DomainId, chaos.SubdomainId,
                 ChaosAddressId: chaos.ChaosAddressId),
+            SpamReportCaptureJob spamReport => new EmailCaptureEnvelope(
+                spamReport.MessageId, EmailCaptureKind.SpamReport, content,
+                spamReport.DomainId, spamReport.SubdomainId,
+                ChaosAddressId: spamReport.ChaosAddressId),
             _ => throw new ArgumentException("Unknown email capture job.", nameof(workItem)),
         };
 

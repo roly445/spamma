@@ -6,6 +6,7 @@ public enum EmailCaptureKind
     Campaign,
     CatchAll,
     Chaos,
+    SpamReport,
 }
 
 public record EmailCaptureEnvelope(
@@ -27,6 +28,7 @@ public record EmailCaptureEnvelope(
             EmailCaptureKind.Campaign => new CampaignCaptureJob(stream, this.DomainId, this.SubdomainId, this.MessageId),
             EmailCaptureKind.CatchAll => new CatchAllEmailCaptureJob(stream, this.DomainId, this.SubdomainId, this.MessageId, this.CatchAllSenderAddressId, this.CampaignValue),
             EmailCaptureKind.Chaos when this.ChaosAddressId.HasValue => new ChaosEmailCaptureJob(stream, this.DomainId, this.SubdomainId, this.ChaosAddressId.Value, this.MessageId),
+            EmailCaptureKind.SpamReport when this.ChaosAddressId.HasValue => new SpamReportCaptureJob(stream, this.DomainId, this.SubdomainId, this.ChaosAddressId.Value, this.MessageId),
             _ => throw new InvalidOperationException($"Invalid email capture job {this.MessageId} ({this.Kind})."),
         };
     }

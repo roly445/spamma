@@ -24,9 +24,9 @@ public sealed partial class AnonymousAccessSteps
     }
 
     private async Task PrepareSmtpAsync(bool suspendDomain = false, bool suspendSubdomain = false,
-        bool chaos = false)
+        bool chaos = false, bool reportSpam = false)
     {
-        this.smtpFixture = await SmtpScenarioFixture.CreateAsync(suspendDomain, suspendSubdomain, chaos);
+        this.smtpFixture = await SmtpScenarioFixture.CreateAsync(suspendDomain, suspendSubdomain, chaos, reportSpam);
         await this.Page.GotoAsync("/login");
         await this.Page.GetByLabel("Email address").FillAsync(this.SmtpFixture.DomainFixture.EmailAddress);
         await this.Page.GetByRole(AriaRole.Button, new() { Name = "Send Magic Link" }).ClickAsync();

@@ -27,6 +27,7 @@
       <PackageReference Include="Marten" Version="9.13.0" />
       <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.6" />
       <PackageReference Include="MimeKit" Version="4.16.0" />
+      <PackageReference Include="MailKit" Version="4.16.0" />
       <PackageReference Include="ResultMonad" Version="1.0.1" />
       <PackageReference Include="SmtpServer" Version="11.0.0" />
       <PackageReference Include="SonarAnalyzer.CSharp" Version="10.15.0.120848">

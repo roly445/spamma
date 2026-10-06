@@ -11,4 +11,5 @@ public record ChaosAddressSummary(
     bool Enabled,
     int TotalReceived,
     DateTimeOffset? LastReceivedAt,
-    DateTime CreatedAt);
+    DateTime CreatedAt,
+    bool ReportsSpam = false);

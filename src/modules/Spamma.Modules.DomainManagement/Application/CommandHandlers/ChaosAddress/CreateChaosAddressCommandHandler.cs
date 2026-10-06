@@ -16,7 +16,7 @@ internal class CreateChaosAddressCommandHandler(
     {
         var when = timeProvider.GetUtcNow().UtcDateTime;
 
-        var createResult = DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress.Create(request.ChaosAddressId, request.DomainId, request.SubdomainId, request.LocalPart, request.ConfiguredSmtpCode, when);
+        var createResult = DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress.Create(request.ChaosAddressId, request.DomainId, request.SubdomainId, request.LocalPart, request.ConfiguredSmtpCode, when, request.ReportsSpam);
         if (createResult.IsFailure)
         {
             return CommandResult.Failed(createResult.Error);

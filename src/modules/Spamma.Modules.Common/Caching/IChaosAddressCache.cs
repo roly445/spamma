@@ -25,5 +25,6 @@ public interface IChaosAddressCache
         Guid ChaosAddressId,
         Guid DomainId,
         Guid SubdomainId,
-        SmtpResponseCode ConfiguredSmtpCode);
+        SmtpResponseCode ConfiguredSmtpCode,
+        bool ReportsSpam = false);
 }

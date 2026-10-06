@@ -26,6 +26,9 @@ public partial class ChaosAddress
             case ChaosAddressCreated e:
                 this.ApplyRecorded(e);
                 break;
+            case ChaosSpamReportingSelected:
+                this.ReportsSpam = true;
+                break;
             case ChaosAddressEnabled e:
                 this.ApplyRecorded(e);
                 break;
@@ -56,6 +59,7 @@ public partial class ChaosAddress
         this.SubdomainId = @event.SubdomainId;
         this.LocalPart = @event.LocalPart;
         this.ConfiguredSmtpCode = @event.ConfiguredSmtpCode;
+        this.ReportsSpam = false;
         this.Enabled = false;
         this.TotalReceived = 0;
         this._lastReceivedAt = null;

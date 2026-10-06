@@ -14,6 +14,8 @@ public class ChaosAddressLookup
 
     public SmtpResponseCode ConfiguredSmtpCode { get; init; }
 
+    public bool ReportsSpam { get; init; }
+
     public bool Enabled { get; init; }
 
     public int TotalReceived { get; init; }

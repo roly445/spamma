@@ -149,7 +149,7 @@
                                             @(chaos.Enabled ? "Enabled" : "Disabled")
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 font-mono text-xs">@chaos.ConfiguredSmtpCode</td>
+                                    <td class="py-3 px-3 font-mono text-xs">@(chaos.ReportsSpam ? "Report spam (250)" : chaos.ConfiguredSmtpCode.ToString())</td>
                                     <td class="py-3 px-3">@chaos.TotalReceived</td>
                                     <td class="py-3 px-3">
                                         @if (chaos.LastReceivedAt.HasValue)
@@ -259,7 +259,17 @@
                             <p class="mt-1 text-xs text-gray-500">Enter the local part (prefix) of the email address</p>
                         </div>
 
+                        <div>
+                            <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <input type="checkbox" @bind="model.ReportsSpam" />
+                                Report spam after accepting the message
+                            </label>
+                            <p class="mt-1 text-xs text-gray-500">The message is captured and feedback is sent through the subdomain's configured channels.</p>
+                        </div>
+
                         <!-- SMTP Code Dropdown -->
+                        @if (!model.ReportsSpam)
+                        {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 SMTP Error Code <span class="text-red-500">*</span>
@@ -277,6 +287,7 @@
                             }
                             <p class="mt-1 text-xs text-gray-500">The SMTP error code returned when this address receives mail</p>
                         </div>
+                        }
 
                         <!-- Description (Optional) -->
                         <div>

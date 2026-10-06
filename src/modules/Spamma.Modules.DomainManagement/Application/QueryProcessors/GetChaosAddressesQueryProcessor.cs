@@ -43,7 +43,8 @@ internal class GetChaosAddressesQueryProcessor(IDocumentSession session, IHttpCo
             x.Enabled,
             x.TotalReceived,
             x.LastReceivedAt,
-            x.CreatedAt)).ToList();
+            x.CreatedAt,
+            x.ReportsSpam)).ToList();
 
         var result = new GetChaosAddressesQueryResult(summaries, totalCount, request.PageNumber, request.PageSize);
         return QueryResult<GetChaosAddressesQueryResult>.Succeeded(result);
