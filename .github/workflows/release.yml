@@ -92,18 +92,9 @@ jobs:
           check_name: Test Results
 
   publish:
-    name: Build & Test & Publish artifacts for multiple RIDs
+    name: Build and publish AMD64 artifacts
     needs: test
-    runs-on: ${{ matrix.runs-on }}
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            rid: linux-x64
-            runs-on: ubuntu-latest
-          - arch: arm64
-            rid: linux-arm64
-            runs-on: [self-hosted, linux, arm64]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -130,22 +121,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build application in Docker (${{ matrix.arch }})
+      - name: Build application in Docker (AMD64)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile
+          platforms: linux/amd64
           target: export
           outputs: type=local,dest=publish
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: publish-${{ matrix.arch }}
+          name: publish-amd64
           path: publish
 
   docker:
-    name: Build and push multi-arch image
+    name: Build and push AMD64 image
     needs: [test, publish]
     runs-on: ubuntu-latest
     steps:
@@ -157,14 +149,10 @@ jobs:
         with:
           path: artifacts
 
-      - name: Organize artifacts for multi-arch build
+      - name: Organize AMD64 artifact
         run: |
-          mkdir -p publish/linux/amd64 publish/linux/arm64
+          mkdir -p publish/linux/amd64
           cp -r artifacts/publish-amd64/* publish/linux/amd64/
-          cp -r artifacts/publish-arm64/* publish/linux/arm64/
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -185,11 +173,11 @@ jobs:
           fi
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
-      - name: Build and push multi-arch image
+      - name: Build and push AMD64 image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: src/Spamma.App/Spamma.App/Dockerfile.runtime
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

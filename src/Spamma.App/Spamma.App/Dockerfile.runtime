@@ -6,10 +6,8 @@ EXPOSE 25
 EXPOSE 465
 EXPOSE 587
 
-# TARGETPLATFORM will be like "linux/amd64" or "linux/arm64"
-ARG TARGETPLATFORM
-# Copy the pre-published output created on the runner: publish/linux/amd64 or publish/linux/arm64
-COPY publish/${TARGETPLATFORM} ./
+# Copy the AMD64 output published on the GitHub-hosted runner.
+COPY publish/linux/amd64 ./
 
 # Create directories expected by the app
 RUN mkdir -p /app/messages /app/certs
