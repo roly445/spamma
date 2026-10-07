@@ -209,7 +209,7 @@ public sealed partial class AnonymousAccessSteps
     public async Task ThenDeleteConsequencesAsync()
     {
         var dialog = this.Page.GetByRole(AriaRole.Dialog, new() { Name = "Delete Chaos Address" });
-        await Assertions.Expect(dialog.GetByText("Its received count will no longer be shown")).ToBeVisibleAsync();
+        await Assertions.Expect(dialog.GetByText("Its SMTP attempt count will no longer be shown")).ToBeVisibleAsync();
         await Assertions.Expect(dialog.GetByText("Cannot be undone here")).ToBeVisibleAsync();
     }
 
