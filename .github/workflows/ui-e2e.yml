@@ -103,7 +103,7 @@ jobs:
 
       - name: Configure BrowserStack
         if: github.event_name == 'workflow_dispatch'
-        uses: browserstack/github-actions/setup-env@master
+        uses: browserstack/github-actions/setup-env@1fad39ae4755588f7fc6854da6c3efba2bf5d08f
         with:
           username: ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -112,7 +112,7 @@ jobs:
       - name: Start BrowserStack Local
         id: browserstack_local
         if: github.event_name == 'workflow_dispatch'
-        uses: browserstack/github-actions/setup-local@master
+        uses: browserstack/github-actions/setup-local@1fad39ae4755588f7fc6854da6c3efba2bf5d08f
         with:
           local-testing: start
           local-identifier: random
@@ -163,7 +163,7 @@ jobs:
 
       - name: Stop BrowserStack Local
         if: always() && steps.browserstack_local.outcome == 'success'
-        uses: browserstack/github-actions/setup-local@master
+        uses: browserstack/github-actions/setup-local@1fad39ae4755588f7fc6854da6c3efba2bf5d08f
         with:
           local-testing: stop
 
