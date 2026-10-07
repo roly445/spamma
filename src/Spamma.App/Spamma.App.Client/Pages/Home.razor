@@ -138,6 +138,8 @@
                                             <div class="min-w-0">
                                                 <p class="text-sm font-medium text-gray-900 truncate">@campaign.CampaignValue</p>
                                                 <p class="mt-1 text-xs text-gray-500">@campaign.TotalCaptured captured</p>
+                                                <p class="mt-1 text-xs text-gray-500">@campaign.TemporaryFailureMessages temporary failures · @campaign.PermanentFailureMessages permanent rejections</p>
+                                                <p class="mt-1 text-xs text-gray-500">@campaign.FailureDeliveryAttempts failed SMTP attempts</p>
                                                 <p class="mt-1 text-xs text-gray-500">Last: @campaign.LastReceivedAt.ToString("g")</p>
                                                 <p class="mt-1 text-xs text-gray-500">First: @campaign.FirstReceivedAt.ToString("g")</p>
                                             </div>
@@ -247,6 +249,18 @@
                                 <div class="rounded-md border border-gray-200 p-4">
                                     <p class="text-sm text-gray-500">Total captured</p>
                                     <p class="mt-1 text-2xl font-bold text-gray-900">@_campaignDetail.TotalCaptured</p>
+                                </div>
+                                <div class="rounded-md border border-gray-200 p-4">
+                                    <p class="text-sm text-gray-500">Temporary SMTP failures</p>
+                                    <p class="mt-1 text-2xl font-bold text-gray-900">@_campaignDetail.TemporaryFailureMessages</p>
+                                </div>
+                                <div class="rounded-md border border-gray-200 p-4">
+                                    <p class="text-sm text-gray-500">Permanent SMTP rejections</p>
+                                    <p class="mt-1 text-2xl font-bold text-gray-900">@_campaignDetail.PermanentFailureMessages</p>
+                                </div>
+                                <div class="rounded-md border border-gray-200 p-4">
+                                    <p class="text-sm text-gray-500">Failed SMTP attempts</p>
+                                    <p class="mt-1 text-2xl font-bold text-gray-900">@_campaignDetail.FailureDeliveryAttempts</p>
                                 </div>
                                 <div class="rounded-md border border-gray-200 p-4">
                                     <p class="text-sm text-gray-500">First received</p>

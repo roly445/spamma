@@ -108,7 +108,7 @@ public class BackgroundTaskService(
                         }
 
                         var received = await commander.Send(
-                            new RecordChaosAddressReceivedCommand(spamJob.ChaosAddressId, message.Date),
+                            new RecordChaosAddressReceivedCommand(spamJob.ChaosAddressId, message.Date, spamJob.MessageId),
                             cancellationToken);
                         if (received.Status != CommandResultStatus.Succeeded)
                         {
@@ -177,8 +177,26 @@ public class BackgroundTaskService(
                 }
 
                 case ChaosEmailCaptureJob captureJob:
+                    var failedCampaignValue = message.Headers["x-spamma-camp"];
+                    if (!string.IsNullOrWhiteSpace(failedCampaignValue) &&
+                        captureJob.SmtpCode is >= 400 and <= 599 &&
+                        !string.IsNullOrWhiteSpace(captureJob.Recipient))
+                    {
+                        var failureId = CampaignFailureIdentity.FromMessage(
+                            captureJob.MimeStream, captureJob.ChaosAddressId, captureJob.Recipient, captureJob.SmtpCode);
+                        var failureResult = await commander.Send(
+                            new RecordCampaignDeliveryFailureCommand(
+                                captureJob.DomainId, captureJob.SubdomainId, failedCampaignValue,
+                                failureId, messageId, captureJob.SmtpCode, DateTimeOffset.UtcNow),
+                            cancellationToken);
+                        if (failureResult.Status != CommandResultStatus.Succeeded)
+                        {
+                            throw new InvalidOperationException($"Could not record campaign failure {messageId}: {failureResult.Status}.");
+                        }
+                    }
+
                     var chaosResult = await commander.Send(
-                        new RecordChaosAddressReceivedCommand(captureJob.ChaosAddressId, message.Date),
+                        new RecordChaosAddressReceivedCommand(captureJob.ChaosAddressId, DateTimeOffset.UtcNow, messageId),
                         cancellationToken);
                     if (chaosResult.Status != CommandResultStatus.Succeeded)
                     {

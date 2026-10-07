@@ -109,7 +109,9 @@ public class SpammaMessageStore : MessageStore
                     memoryStream,
                     chaosAddress.Value.DomainId,
                     chaosAddress.Value.SubdomainId,
-                    chaosAddress.Value.ChaosAddressId), logger))
+                    chaosAddress.Value.ChaosAddressId,
+                    SmtpCode: (int)code,
+                    Recipient: recipient.Address), logger))
                 {
                     return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
                 }

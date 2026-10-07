@@ -28,7 +28,7 @@ public class BackgroundTaskQueue(ICapPublisher publisher) : IBackgroundTaskQueue
             ChaosEmailCaptureJob chaos => new EmailCaptureEnvelope(
                 chaos.MessageId == Guid.Empty ? Guid.NewGuid() : chaos.MessageId,
                 EmailCaptureKind.Chaos, content, chaos.DomainId, chaos.SubdomainId,
-                ChaosAddressId: chaos.ChaosAddressId),
+                ChaosAddressId: chaos.ChaosAddressId, SmtpCode: chaos.SmtpCode, Recipient: chaos.Recipient),
             SpamReportCaptureJob spamReport => new EmailCaptureEnvelope(
                 spamReport.MessageId, EmailCaptureKind.SpamReport, content,
                 spamReport.DomainId, spamReport.SubdomainId,

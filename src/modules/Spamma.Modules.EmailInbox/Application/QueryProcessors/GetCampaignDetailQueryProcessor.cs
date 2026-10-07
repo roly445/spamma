@@ -72,7 +72,10 @@ internal class GetCampaignDetailQueryProcessor(IDocumentSession session) : IQuer
             campaign.LastReceivedAt,
             campaign.TotalCaptured,
             timeBuckets.OrderBy(t => t.StartTime).ToList(),
-            sampleData);
+            sampleData,
+            campaign.TemporaryFailureMessages,
+            campaign.PermanentFailureMessages,
+            campaign.FailureDeliveryAttempts);
 
         return QueryResult<GetCampaignDetailQueryResult>.Succeeded(result);
     }

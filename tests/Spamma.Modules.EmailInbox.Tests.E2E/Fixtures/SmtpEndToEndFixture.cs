@@ -348,6 +348,18 @@ public class SmtpEndToEndFixture : IAsyncLifetime
                 now),
             new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressEnabled(now));
 
+        var permanentChaosId = Guid.NewGuid();
+        session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(
+            permanentChaosId,
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressCreated(
+                permanentChaosId,
+                domainId,
+                subdomainId,
+                "permanent",
+                Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailablePermanent,
+                now),
+            new Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressEnabled(now));
+
         // Create disabled chaos address
         var chaosAddressDisabledId = Guid.NewGuid();
         session.Events.StartStream<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.ChaosAddress>(

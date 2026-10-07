@@ -166,13 +166,13 @@ internal sealed class DomainScenarioFixture : IAsyncDisposable
     }
 
     public async Task<Guid> SeedChaosAddressAsync(Guid domainId, Guid subdomainId, string localPart,
-        bool enabled = false, bool reportsSpam = false)
+        bool enabled = false, bool reportsSpam = false, SmtpResponseCode smtpCode = SmtpResponseCode.MailboxUnavailablePermanent)
     {
         var id = Guid.NewGuid();
         var events = new List<object>
         {
             new ChaosAddressCreated(id, domainId, subdomainId, localPart,
-                SmtpResponseCode.MailboxUnavailablePermanent, DateTime.UtcNow),
+                smtpCode, DateTime.UtcNow),
         };
         if (reportsSpam) events.Add(new ChaosSpamReportingSelected(DateTime.UtcNow));
         if (enabled) events.Add(new ChaosAddressEnabled(DateTime.UtcNow));

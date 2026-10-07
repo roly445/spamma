@@ -27,6 +27,50 @@ public partial class CampaignSummaryProjection : EventProjection
     }
 
     [UsedImplicitly]
+    public CampaignSummary Create(CampaignObservedViaFailure @event) => new()
+    {
+        CampaignId = @event.CampaignId,
+        DomainId = @event.DomainId,
+        SubdomainId = @event.SubdomainId,
+        CampaignValue = @event.CampaignValue,
+        FirstReceivedAt = @event.ObservedAt,
+        LastReceivedAt = @event.ObservedAt,
+    };
+
+    [UsedImplicitly]
+    public void Project(IEvent<CampaignFirstCaptured> @event, IDocumentOperations ops)
+    {
+        ops.Patch<CampaignSummary>(@event.StreamId)
+            .Increment(x => x.TotalCaptured)
+            .Set(x => x.SampleMessageId, @event.Data.MessageId)
+            .Set(x => x.LastReceivedAt, @event.Data.CapturedAt);
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<CampaignDeliveryFailureRecorded> @event, IDocumentOperations ops)
+    {
+        var patch = ops.Patch<CampaignSummary>(@event.StreamId)
+            .Increment(x => x.FailureDeliveryAttempts)
+            .Set(x => x.LastReceivedAt, @event.Data.ObservedAt);
+        if (@event.Data.SmtpCode < 500)
+        {
+            patch.Increment(x => x.TemporaryFailureMessages);
+        }
+        else
+        {
+            patch.Increment(x => x.PermanentFailureMessages);
+        }
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<CampaignDeliveryFailureRetried> @event, IDocumentOperations ops)
+    {
+        ops.Patch<CampaignSummary>(@event.StreamId)
+            .Increment(x => x.FailureDeliveryAttempts)
+            .Set(x => x.LastReceivedAt, @event.Data.ObservedAt);
+    }
+
+    [UsedImplicitly]
     public void Project(IEvent<CampaignCaptured> @event, IDocumentOperations ops)
     {
         ops.Patch<CampaignSummary>(@event.StreamId)

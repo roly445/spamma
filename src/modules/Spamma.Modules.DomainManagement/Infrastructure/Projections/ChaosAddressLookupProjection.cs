@@ -58,6 +58,14 @@ internal partial class ChaosAddressLookupProjection : EventProjection
     }
 
     [UsedImplicitly]
+    public void Project(IEvent<ChaosAddressReceivedV2> @event, IDocumentOperations ops)
+    {
+        ops.Patch<ChaosAddressLookup>(@event.StreamId)
+            .Increment(x => x.TotalReceived)
+            .Set(x => x.LastReceivedAt, @event.Data.ReceivedAt);
+    }
+
+    [UsedImplicitly]
     public void Project(IEvent<ChaosAddressDeleted> @event, IDocumentOperations ops)
     {
         ops.Delete<ChaosAddressLookup>(@event.StreamId);

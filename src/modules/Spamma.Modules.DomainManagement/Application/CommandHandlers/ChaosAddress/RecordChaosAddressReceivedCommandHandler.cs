@@ -21,7 +21,7 @@ internal class RecordChaosAddressReceivedCommandHandler(
         }
 
         var chaos = chaosMaybe.Value;
-        var result = chaos.RecordReceive(request.ReceivedAt);
+        var result = chaos.RecordReceive(request.ReceivedAt, request.AttemptId);
         if (result.IsFailure)
         {
             return CommandResult.Failed(result.Error);

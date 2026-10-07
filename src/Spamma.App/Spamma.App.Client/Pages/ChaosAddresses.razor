@@ -63,7 +63,7 @@
                             <option value="CreatedAt">Created Date</option>
                             <option value="LocalPart">Email Address</option>
                             <option value="Enabled">Status</option>
-                            <option value="TotalReceived">Received Count</option>
+                            <option value="TotalReceived">SMTP attempts</option>
                             <option value="LastReceivedAt">Last Received</option>
                         </InputSelect>
                     </div>
@@ -126,8 +126,8 @@
                                 <th class="text-left py-2 px-3 font-medium">Email Address</th>
                                 <th class="text-left py-2 px-3 font-medium">Status</th>
                                 <th class="text-left py-2 px-3 font-medium">SMTP Code</th>
-                                <th class="text-left py-2 px-3 font-medium">Received</th>
-                                <th class="text-left py-2 px-3 font-medium">Last Received</th>
+                                <th class="text-left py-2 px-3 font-medium">SMTP attempts</th>
+                                <th class="text-left py-2 px-3 font-medium">Last attempt</th>
                                 <th class="text-left py-2 px-3 font-medium">Created</th>
                                 <th class="text-center py-2 px-3 font-medium">Actions</th>
                             </tr>
@@ -158,7 +158,7 @@
                                         }
                                         else
                                         {
-                                            <span class="text-gray-400">Never received</span>
+                                            <span class="text-gray-400">No attempts</span>
                                         }
                                     </td>
                                     <td class="py-3 px-3 text-xs">@chaos.CreatedAt.ToString("yyyy-MM-dd")</td>
@@ -450,7 +450,7 @@
                         <h3 class="text-sm font-medium text-red-800">This action:</h3>
                         <ul class="mt-2 text-sm text-red-700 list-disc list-inside space-y-1">
                             <li>Removes this address from chaos routing and the list</li>
-                            <li>Its received count will no longer be shown</li>
+                            <li>Its SMTP attempt count will no longer be shown</li>
                             <li>Cannot be undone here</li>
                         </ul>
                     </div>

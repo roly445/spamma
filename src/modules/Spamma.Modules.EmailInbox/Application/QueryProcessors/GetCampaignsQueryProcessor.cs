@@ -45,7 +45,10 @@ internal class GetCampaignsQueryProcessor(IDocumentSession session) : IQueryProc
                     c.CampaignValue,
                     c.FirstReceivedAt,
                     c.LastReceivedAt,
-                    c.TotalCaptured))
+                    c.TotalCaptured,
+                    c.TemporaryFailureMessages,
+                    c.PermanentFailureMessages,
+                    c.FailureDeliveryAttempts))
                 .ToList(),
             TotalCount: totalCount,
             Page: request.Page,

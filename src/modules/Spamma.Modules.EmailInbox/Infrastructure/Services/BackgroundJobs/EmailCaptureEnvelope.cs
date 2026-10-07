@@ -17,7 +17,9 @@ public record EmailCaptureEnvelope(
     Guid SubdomainId,
     Guid? ChaosAddressId = null,
     Guid? CatchAllSenderAddressId = null,
-    string? CampaignValue = null)
+    string? CampaignValue = null,
+    int SmtpCode = 0,
+    string Recipient = "")
 {
     public IBaseEmailCaptureJob ToJob()
     {
@@ -27,7 +29,7 @@ public record EmailCaptureEnvelope(
             EmailCaptureKind.Standard => new StandardEmailCaptureJob(stream, this.DomainId, this.SubdomainId, this.MessageId),
             EmailCaptureKind.Campaign => new CampaignCaptureJob(stream, this.DomainId, this.SubdomainId, this.MessageId),
             EmailCaptureKind.CatchAll => new CatchAllEmailCaptureJob(stream, this.DomainId, this.SubdomainId, this.MessageId, this.CatchAllSenderAddressId, this.CampaignValue),
-            EmailCaptureKind.Chaos when this.ChaosAddressId.HasValue => new ChaosEmailCaptureJob(stream, this.DomainId, this.SubdomainId, this.ChaosAddressId.Value, this.MessageId),
+            EmailCaptureKind.Chaos when this.ChaosAddressId.HasValue => new ChaosEmailCaptureJob(stream, this.DomainId, this.SubdomainId, this.ChaosAddressId.Value, this.MessageId, this.SmtpCode, this.Recipient),
             EmailCaptureKind.SpamReport when this.ChaosAddressId.HasValue => new SpamReportCaptureJob(stream, this.DomainId, this.SubdomainId, this.ChaosAddressId.Value, this.MessageId),
             _ => throw new InvalidOperationException($"Invalid email capture job {this.MessageId} ({this.Kind})."),
         };

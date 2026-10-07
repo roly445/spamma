@@ -19,4 +19,10 @@ public class CampaignSummary
     public DateTimeOffset LastReceivedAt { get; init; }
 
     public int TotalCaptured { get; init; }
+
+    public int TemporaryFailureMessages { get; init; }
+
+    public int PermanentFailureMessages { get; init; }
+
+    public int FailureDeliveryAttempts { get; init; }
 }

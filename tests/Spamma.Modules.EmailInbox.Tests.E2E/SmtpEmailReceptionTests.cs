@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
+using MimeKit;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Tests.E2E.Fixtures;
@@ -101,6 +102,111 @@ public class SmtpEmailReceptionTests : IClassFixture<SmtpEndToEndFixture>
             .FirstOrDefaultAsync();
 
         email.Should().BeNull("Chaos address emails should not be stored");
+    }
+
+    [Fact]
+    public async Task RetrySameCampaignMessage_ToTemporaryChaosAddress_CountsOneFailureAndTwoAttempts()
+    {
+        var campaignValue = $"bounce-{Guid.NewGuid()}";
+        var subject = $"Bounce retry {Guid.NewGuid()}";
+        var message = new MimeMessage
+        {
+            From = { MailboxAddress.Parse("sender@external.com") },
+            To = { MailboxAddress.Parse("chaos@spamma.example.com") },
+            Subject = subject,
+            Body = new TextPart("plain") { Text = "retry this identical message" },
+        };
+        message.Headers.Add("X-Spamma-Camp", campaignValue);
+
+        var first = await this._smtpClient.TrySendMessageAsync(message);
+        var second = await this._smtpClient.TrySendMessageAsync(message);
+
+        first.Message.Should().Contain("450");
+        second.Message.Should().Contain("450");
+
+        CampaignSummary? campaign = null;
+        var deadline = DateTime.UtcNow.AddSeconds(40);
+        while (DateTime.UtcNow < deadline)
+        {
+            await using var query = this._fixture.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+            campaign = await query.Query<CampaignSummary>().FirstOrDefaultAsync(x => x.CampaignValue == campaignValue);
+            if (campaign?.FailureDeliveryAttempts == 2)
+            {
+                break;
+            }
+
+            await Task.Delay(200);
+        }
+
+        campaign.Should().NotBeNull();
+        campaign!.TemporaryFailureMessages.Should().Be(1);
+        campaign.PermanentFailureMessages.Should().Be(0);
+        campaign.FailureDeliveryAttempts.Should().Be(2);
+        campaign.TotalCaptured.Should().Be(0);
+        campaign.SampleMessageId.Should().BeNull();
+
+        await using var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+        (await session.Query<EmailLookup>().AnyAsync(x => x.Subject == subject)).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CampaignFailures_SeparateTemporaryAndPermanentMessages_FromCapturedMail()
+    {
+        var campaignValue = $"mixed-bounce-{Guid.NewGuid()}";
+        var softSubject = $"soft-{Guid.NewGuid()}";
+        var distinctSoftSubject = $"another-soft-{Guid.NewGuid()}";
+        var hardSubject = $"hard-{Guid.NewGuid()}";
+        var acceptedSubject = $"accepted-{Guid.NewGuid()}";
+
+        static MimeMessage Create(string to, string subject, string campaign)
+        {
+            var message = new MimeMessage
+            {
+                From = { MailboxAddress.Parse("sender@external.com") },
+                To = { MailboxAddress.Parse(to) },
+                Subject = subject,
+                Body = new TextPart("plain") { Text = $"body for {subject}" },
+            };
+            message.Headers.Add("X-Spamma-Camp", campaign);
+            return message;
+        }
+
+        var soft = await this._smtpClient.TrySendMessageAsync(Create("chaos@spamma.example.com", softSubject, campaignValue));
+        soft.Message.Should().Contain("450");
+        var distinctSoft = await this._smtpClient.TrySendMessageAsync(Create("chaos@spamma.example.com", distinctSoftSubject, campaignValue));
+        distinctSoft.Message.Should().Contain("450");
+        var hard = await this._smtpClient.TrySendMessageAsync(Create("permanent@spamma.example.com", hardSubject, campaignValue));
+        hard.Message.Should().Contain("550");
+
+        var deadline = DateTime.UtcNow.AddSeconds(40);
+        CampaignSummary? campaign = null;
+        while (DateTime.UtcNow < deadline)
+        {
+            await using var query = this._fixture.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+            campaign = await query.Query<CampaignSummary>().FirstOrDefaultAsync(x => x.CampaignValue == campaignValue);
+            if (campaign is { TemporaryFailureMessages: 2, PermanentFailureMessages: 1 })
+            {
+                break;
+            }
+
+            await Task.Delay(200);
+        }
+
+        campaign.Should().NotBeNull();
+        campaign!.TotalCaptured.Should().Be(0);
+        campaign.FailureDeliveryAttempts.Should().Be(3);
+
+        (await this._smtpClient.TrySendMessageAsync(Create("test@spamma.example.com", acceptedSubject, campaignValue)))
+            .Success.Should().BeTrue();
+        var captured = await this._fixture.WaitForEmailAsync(acceptedSubject);
+        captured.CampaignId.Should().Be(campaign.CampaignId);
+
+        await using var session = this._fixture.ServiceProvider.GetRequiredService<IDocumentStore>().QuerySession();
+        campaign = await session.Query<CampaignSummary>().FirstOrDefaultAsync(x => x.CampaignValue == campaignValue);
+        campaign!.TotalCaptured.Should().Be(1);
+        campaign.SampleMessageId.Should().Be(captured.Id);
+        (await session.Query<EmailLookup>().CountAsync(x => x.Subject == softSubject || x.Subject == distinctSoftSubject || x.Subject == hardSubject))
+            .Should().Be(0);
     }
 
     [Fact]

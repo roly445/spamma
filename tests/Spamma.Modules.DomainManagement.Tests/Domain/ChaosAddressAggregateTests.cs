@@ -39,6 +39,22 @@ public class ChaosAddressAggregateTests
     }
 
     [Fact]
+    public void RecordReceive_ReplayedJob_DoesNotCountAnotherSmtpAttempt()
+    {
+        var when = DateTimeOffset.UtcNow;
+        var attemptId = Guid.NewGuid();
+        var aggregate = ChaosAddress.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "soft",
+            SmtpResponseCode.MailboxUnavailable, when.UtcDateTime).ShouldBeOk();
+
+        aggregate.RecordReceive(when, attemptId).ShouldBeOk();
+        aggregate.RecordReceive(when.AddSeconds(1), attemptId).ShouldBeOk();
+
+        aggregate.TotalReceived.Should().Be(1);
+        aggregate.GetUncommittedEvents().OfType<Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate.Events.ChaosAddressReceivedV2>()
+            .Should().ContainSingle();
+    }
+
+    [Fact]
     public void Enable_Disable_Works()
     {
         var id = Guid.NewGuid();

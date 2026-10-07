@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using MimeKit;
 using Microsoft.Playwright;
 using Reqnroll;
 using Xunit;
@@ -13,6 +14,7 @@ public sealed partial class AnonymousAccessSteps
     private (bool Accepted, int Code, string Response) smtpResult;
     private (bool Accepted, int Code, string Response)[] concurrentSmtpResults = [];
     private string[] concurrentSubjects = [];
+    private string bounceSubject = string.Empty;
 
     private SmtpScenarioFixture SmtpFixture => this.smtpFixture
         ?? throw new InvalidOperationException("The SMTP fixture has not been created.");
@@ -66,6 +68,89 @@ public sealed partial class AnonymousAccessSteps
 
     [Given("I am signed in with access to an active chaos address")]
     public Task GivenActiveSmtpChaosAddressAsync() => this.PrepareSmtpAsync(chaos: true);
+
+    [When("I retry the same campaign message twice against a temporary chaos address")]
+    public async Task WhenIRetryTemporaryCampaignMessageAsync()
+    {
+        this.smtpCampaignValue = $"SMTP bounce {Guid.NewGuid():N}";
+        this.bounceSubject = $"Retry {Guid.NewGuid():N}";
+        var message = new MimeMessage
+        {
+            From = { MailboxAddress.Parse("sender@external.example") },
+            To = { MailboxAddress.Parse(this.SmtpFixture.TemporaryChaosRecipient!) },
+            Subject = this.bounceSubject,
+            Body = new TextPart("plain") { Text = "The same message is sent twice." },
+        };
+        message.Headers.Add("X-Spamma-Camp", this.smtpCampaignValue);
+        var first = await this.SmtpFixture.SendMessageAsync(message);
+        var second = await this.SmtpFixture.SendMessageAsync(message);
+        Assert.Equal(450, first.Code);
+        Assert.Equal(450, second.Code);
+    }
+
+    [When("I send a campaign message to a permanent chaos address")]
+    public async Task WhenISendPermanentCampaignMessageAsync()
+    {
+        this.smtpCampaignValue = $"SMTP hard bounce {Guid.NewGuid():N}";
+        this.bounceSubject = $"Rejected {Guid.NewGuid():N}";
+        this.smtpResult = await this.SmtpFixture.SendAsync(this.SmtpFixture.ChaosRecipient!, this.bounceSubject, this.smtpCampaignValue);
+        Assert.Equal(550, this.smtpResult.Code);
+    }
+
+    [When("a temporary campaign failure is followed by accepted mail")]
+    public async Task WhenBounceFollowedByAcceptedMailAsync()
+    {
+        this.smtpCampaignValue = $"SMTP recovered {Guid.NewGuid():N}";
+        this.bounceSubject = $"Initially rejected {Guid.NewGuid():N}";
+        var rejected = await this.SmtpFixture.SendAsync(this.SmtpFixture.TemporaryChaosRecipient!, this.bounceSubject, this.smtpCampaignValue);
+        Assert.Equal(450, rejected.Code);
+        await this.SmtpFixture.WaitForCampaignCountsAsync(this.smtpCampaignValue, 0, 1, 0, 1);
+        this.smtpSubject = $"Accepted after bounce {Guid.NewGuid():N}";
+        var accepted = await this.SmtpFixture.SendAsync(this.SmtpFixture.Recipient, this.smtpSubject, this.smtpCampaignValue);
+        Assert.True(accepted.Accepted);
+    }
+
+    [Then("the campaign shows one temporary failure and two SMTP attempts without an inbox message")]
+    public Task ThenTemporaryRetryCountsAsync() => this.ShowBounceCampaignAsync(0, 1, 0, 2, false);
+
+    [Then("the campaign shows one permanent rejection without an inbox message")]
+    public Task ThenPermanentRejectionCountsAsync() => this.ShowBounceCampaignAsync(0, 0, 1, 1, false);
+
+    [Then("the campaign shows the failure separately from its captured sample")]
+    public Task ThenRecoveredCampaignCountsAsync() => this.ShowBounceCampaignAsync(1, 1, 0, 1, true);
+
+    private async Task ShowBounceCampaignAsync(int captured, int temporary, int permanent, int attempts, bool hasSample)
+    {
+        var campaign = await this.SmtpFixture.WaitForCampaignCountsAsync(
+            this.smtpCampaignValue, captured, temporary, permanent, attempts);
+        Assert.Equal(0, await this.SmtpFixture.CountMessagesAsync(this.bounceSubject));
+        await this.Page.GotoAsync("/m/campaigns");
+        await this.Page.Locator("#campaign-subdomain").SelectOptionAsync(this.SmtpFixture.SubdomainId.ToString());
+        var row = this.Page.GetByTestId("campaign-row").Filter(new() { HasText = this.smtpCampaignValue });
+        await Assertions.Expect(row).ToContainTextAsync($"{temporary} temporary failures");
+        await Assertions.Expect(row).ToContainTextAsync($"{permanent} permanent rejections");
+        await Assertions.Expect(row).ToContainTextAsync($"{attempts} failed SMTP attempts");
+        await row.ClickAsync();
+        var detail = this.Page.GetByTestId("campaign-detail");
+        await Assertions.Expect(detail.Locator("div.rounded-md").Filter(new() { HasText = "Temporary SMTP failures" })
+            .GetByText(temporary.ToString(), new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(detail.Locator("div.rounded-md").Filter(new() { HasText = "Permanent SMTP rejections" })
+            .GetByText(permanent.ToString(), new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(detail.Locator("div.rounded-md").Filter(new() { HasText = "Failed SMTP attempts" })
+            .GetByText(attempts.ToString(), new() { Exact = true })).ToBeVisibleAsync();
+        if (hasSample)
+        {
+            Assert.NotNull(campaign.SampleMessageId);
+            await Assertions.Expect(detail.GetByText(this.smtpSubject, new() { Exact = true })).ToBeVisibleAsync();
+        }
+        else
+        {
+            Assert.Null(campaign.SampleMessageId);
+            await Assertions.Expect(detail.GetByText("No sample message available.")).ToBeVisibleAsync();
+        }
+
+        await this.ShowSmtpObservationAsync($"Campaign: {captured} captured, {temporary} temporary failures, {permanent} permanent rejections, {attempts} failed SMTP attempts.");
+    }
 
     [When("I deliver a standard message to that subdomain over SMTP")]
     public async Task WhenIDeliverStandardSmtpMessageAsync()

@@ -9,7 +9,10 @@ public record GetCampaignDetailQueryResult(
     DateTimeOffset LastReceivedAt,
     int TotalCaptured,
     IReadOnlyList<GetCampaignDetailQueryResult.TimeBucket> TimeBuckets,
-    GetCampaignDetailQueryResult.SampleMessage? Sample) : IQueryResult
+    GetCampaignDetailQueryResult.SampleMessage? Sample,
+    int TemporaryFailureMessages = 0,
+    int PermanentFailureMessages = 0,
+    int FailureDeliveryAttempts = 0) : IQueryResult
 {
     public record TimeBucket(
         DateTimeOffset StartTime,

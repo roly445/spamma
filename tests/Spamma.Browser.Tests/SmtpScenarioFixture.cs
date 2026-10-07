@@ -13,7 +13,8 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
     private readonly bool originalCatchAllMode;
 
     private SmtpScenarioFixture(DomainScenarioFixture domainFixture, IDocumentStore store,
-        bool originalCatchAllMode, Guid subdomainId, string domainName, string recipient, string? chaosRecipient)
+        bool originalCatchAllMode, Guid subdomainId, string domainName, string recipient, string? chaosRecipient,
+        string? temporaryChaosRecipient)
     {
         this.DomainFixture = domainFixture;
         this.store = store;
@@ -22,6 +23,7 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
         this.DomainName = domainName;
         this.Recipient = recipient;
         this.ChaosRecipient = chaosRecipient;
+        this.TemporaryChaosRecipient = temporaryChaosRecipient;
     }
 
     public DomainScenarioFixture DomainFixture { get; }
@@ -29,6 +31,7 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
     public Guid SubdomainId { get; }
     public string DomainName { get; }
     public string? ChaosRecipient { get; }
+    public string? TemporaryChaosRecipient { get; }
 
     public static async Task<SmtpScenarioFixture> CreateAsync(bool suspendDomain = false,
         bool suspendSubdomain = false, bool chaos = false, bool reportSpam = false)
@@ -38,7 +41,12 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
         var domain = await domainFixture.SeedDomainAsync(name, verified: true, suspended: suspendDomain);
         var subdomainId = await domainFixture.SeedSubdomainAsync(domain.Id, "inbound", suspended: suspendSubdomain);
         await domainFixture.AssignCurrentUserToViewSubdomainAsync(subdomainId);
-        if (chaos) await domainFixture.SeedChaosAddressAsync(domain.Id, subdomainId, "chaos", enabled: true, reportsSpam: reportSpam);
+        if (chaos)
+        {
+            await domainFixture.SeedChaosAddressAsync(domain.Id, subdomainId, "chaos", enabled: true, reportsSpam: reportSpam);
+            await domainFixture.SeedChaosAddressAsync(domain.Id, subdomainId, "temporary", enabled: true,
+                smtpCode: Spamma.Modules.Common.Client.SmtpResponseCode.MailboxUnavailable);
+        }
 
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
             ?? throw new InvalidOperationException("SMTP browser tests require a disposable PostgreSQL database.");
@@ -61,7 +69,8 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
 
         var fullName = $"inbound.{name}";
         return new SmtpScenarioFixture(domainFixture, store, originalCatchAllMode, subdomainId, name,
-            $"receiver@{fullName}", chaos ? $"chaos@{fullName}" : null);
+            $"receiver@{fullName}", chaos ? $"chaos@{fullName}" : null,
+            chaos ? $"temporary@{fullName}" : null);
     }
 
     public async Task ConfigureArfAsync()
@@ -97,6 +106,11 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
         };
         if (campaignValue is not null) message.Headers.Add("X-Spamma-Camp", campaignValue);
 
+        return await this.SendMessageAsync(message);
+    }
+
+    public async Task<(bool Accepted, int Code, string Response)> SendMessageAsync(MimeMessage message)
+    {
         using var client = new SmtpClient();
         var port = int.TryParse(Environment.GetEnvironmentVariable("SmtpServer__Port"), out var configuredPort)
             ? configuredPort : 2526;
@@ -146,6 +160,26 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
             await Task.Delay(250);
         }
         throw new TimeoutException($"Campaign '{value}' was not captured within 40 seconds.");
+    }
+
+    public async Task<CampaignSummary> WaitForCampaignCountsAsync(string value, int captured, int temporary, int permanent, int attempts)
+    {
+        var timeout = DateTime.UtcNow.AddSeconds(40);
+        while (DateTime.UtcNow < timeout)
+        {
+            await using var session = this.store.QuerySession();
+            var campaign = await session.Query<CampaignSummary>().FirstOrDefaultAsync(x => x.CampaignValue == value);
+            if (campaign is not null && campaign.TotalCaptured == captured &&
+                campaign.TemporaryFailureMessages == temporary && campaign.PermanentFailureMessages == permanent &&
+                campaign.FailureDeliveryAttempts == attempts)
+            {
+                return campaign;
+            }
+
+            await Task.Delay(250);
+        }
+
+        throw new TimeoutException($"Campaign '{value}' did not reach the expected capture and failure counts.");
     }
 
     public async ValueTask DisposeAsync()

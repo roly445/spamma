@@ -103,4 +103,22 @@ public class SmtpClientHelper
             return (false, ex.Message);
         }
     }
+
+    public async Task<(bool Success, string Message)> TrySendMessageAsync(MimeMessage message, CancellationToken cancellationToken = default)
+    {
+        using var client = new SmtpClient();
+        await client.ConnectAsync(this._smtpHost, this._smtpPort, SecureSocketOptions.None, cancellationToken);
+        try
+        {
+            return (true, await client.SendAsync(message, cancellationToken));
+        }
+        catch (SmtpCommandException ex)
+        {
+            return (false, $"{(int)ex.StatusCode} {ex.Message}");
+        }
+        finally
+        {
+            await client.DisconnectAsync(true, cancellationToken);
+        }
+    }
 }

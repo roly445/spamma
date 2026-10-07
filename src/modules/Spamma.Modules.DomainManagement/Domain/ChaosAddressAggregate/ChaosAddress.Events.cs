@@ -38,6 +38,11 @@ public partial class ChaosAddress
             case ChaosAddressReceived e:
                 this.ApplyRecorded(e);
                 break;
+            case ChaosAddressReceivedV2 e:
+                this.TotalReceived += 1;
+                this._lastReceivedAt = e.ReceivedAt;
+                this._receivedAttemptIds.Add(e.AttemptId);
+                break;
             case ChaosAddressDeleted e:
                 ApplyRecorded(e);
                 break;

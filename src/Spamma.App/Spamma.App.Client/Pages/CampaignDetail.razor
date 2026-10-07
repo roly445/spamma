@@ -43,6 +43,18 @@
                     <p class="text-2xl font-bold text-gray-900">@_campaignDetail.TotalCaptured</p>
                 </div>
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Temporary SMTP failures</p>
+                    <p class="text-2xl font-bold text-gray-900">@_campaignDetail.TemporaryFailureMessages</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Permanent SMTP rejections</p>
+                    <p class="text-2xl font-bold text-gray-900">@_campaignDetail.PermanentFailureMessages</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <p class="text-sm text-gray-500 mb-1">Failed SMTP attempts</p>
+                    <p class="text-2xl font-bold text-gray-900">@_campaignDetail.FailureDeliveryAttempts</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                     <p class="text-sm text-gray-500 mb-1">First Received</p>
                     <p class="text-sm font-mono text-gray-600">@_campaignDetail.FirstReceivedAt.ToString("g")</p>
                 </div>
