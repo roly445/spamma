@@ -149,7 +149,7 @@
                                             @(chaos.Enabled ? "Enabled" : "Disabled")
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 font-mono text-xs">@chaos.ConfiguredSmtpCode</td>
+                                    <td class="py-3 px-3 font-mono text-xs">@(chaos.ReportsSpam ? "Report spam (250)" : chaos.ConfiguredSmtpCode.ToString())</td>
                                     <td class="py-3 px-3">@chaos.TotalReceived</td>
                                     <td class="py-3 px-3">
                                         @if (chaos.LastReceivedAt.HasValue)
@@ -259,7 +259,20 @@
                             <p class="mt-1 text-xs text-gray-500">Enter the local part (prefix) of the email address</p>
                         </div>
 
+                        <div class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" @bind="model.ReportsSpam"
+                                       class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                <span>
+                                    <span class="block text-sm font-medium text-gray-900">Report spam after accepting the message</span>
+                                    <span class="mt-1 block text-xs text-gray-500">Capture the message and send feedback through this subdomain's configured channels.</span>
+                                </span>
+                            </label>
+                        </div>
+
                         <!-- SMTP Code Dropdown -->
+                        @if (!model.ReportsSpam)
+                        {
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 SMTP Error Code <span class="text-red-500">*</span>
@@ -277,6 +290,7 @@
                             }
                             <p class="mt-1 text-xs text-gray-500">The SMTP error code returned when this address receives mail</p>
                         </div>
+                        }
 
                         <!-- Description (Optional) -->
                         <div>

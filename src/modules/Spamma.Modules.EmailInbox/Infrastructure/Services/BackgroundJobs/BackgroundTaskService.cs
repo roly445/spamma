@@ -9,6 +9,7 @@ using Spamma.Modules.EmailInbox.Application.Repositories;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Campaign;
 using Spamma.Modules.EmailInbox.Client.Application.Commands.Email;
 using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Infrastructure.SpamFeedback;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 
@@ -24,10 +25,11 @@ public class BackgroundTaskService(
         var commander = scope.ServiceProvider.GetRequiredService<ICommandRunner>();
         var messageStoreProvider = scope.ServiceProvider.GetRequiredService<IMessageStoreProvider>();
         var emailRepository = scope.ServiceProvider.GetRequiredService<IEmailRepository>();
+        var spamReports = scope.ServiceProvider.GetRequiredService<SpamReportService>();
 
         await ProcessWorkItemAsync(
             envelope.ToJob(), commander, messageStoreProvider, cancellationToken,
-            pushNotificationManager, logger, emailRepository);
+            pushNotificationManager, logger, emailRepository, spamReports);
     }
 
     internal static async Task ProcessWorkItemAsync(
@@ -37,7 +39,8 @@ public class BackgroundTaskService(
         CancellationToken cancellationToken,
         PushNotificationManager? pushNotificationManager = null,
         ILogger<BackgroundTaskService>? logger = null,
-        IEmailRepository? emailRepository = null)
+        IEmailRepository? emailRepository = null,
+        SpamReportService? spamReports = null)
     {
         var messageId = workItem switch
         {
@@ -45,6 +48,7 @@ public class BackgroundTaskService(
             CatchAllEmailCaptureJob catchAll => catchAll.MessageId,
             CampaignCaptureJob campaign when campaign.MessageId != Guid.Empty => campaign.MessageId,
             ChaosEmailCaptureJob chaos when chaos.MessageId != Guid.Empty => chaos.MessageId,
+            SpamReportCaptureJob spamReport => spamReport.MessageId,
             _ => Guid.NewGuid(),
         };
 
@@ -70,6 +74,57 @@ public class BackgroundTaskService(
 
             switch (workItem)
             {
+                case SpamReportCaptureJob spamJob:
+                {
+                    var alreadyCaptured = emailRepository is not null &&
+                        (await emailRepository.GetByIdAsync(spamJob.MessageId, cancellationToken)).HasValue;
+                    if (!alreadyCaptured)
+                    {
+                        Guid? spamCampaignId = null;
+                        var spamCampaignValue = message.Headers["x-spamma-camp"];
+                        if (!string.IsNullOrWhiteSpace(spamCampaignValue))
+                        {
+                            var capture = await commander.Send(
+                                new RecordCampaignCaptureCommand(
+                                    spamJob.DomainId,
+                                    spamJob.SubdomainId,
+                                    spamJob.MessageId,
+                                    spamCampaignValue,
+                                    message.Date), cancellationToken);
+                            if (capture.Status != CommandResultStatus.Succeeded)
+                            {
+                                throw new InvalidOperationException($"Could not attribute spam report {spamJob.MessageId} to its campaign.");
+                            }
+
+                            spamCampaignId = capture.Data.CampaignId;
+                        }
+
+                        var stored = await ExtractEmailAddressesAndSendCommand(
+                            spamJob.MessageId, message, commander, messageStoreProvider, spamJob,
+                            spamCampaignId, cancellationToken: cancellationToken);
+                        if (!stored)
+                        {
+                            throw new InvalidOperationException($"Could not persist spam report message {spamJob.MessageId}.");
+                        }
+
+                        var received = await commander.Send(
+                            new RecordChaosAddressReceivedCommand(spamJob.ChaosAddressId, message.Date),
+                            cancellationToken);
+                        if (received.Status != CommandResultStatus.Succeeded)
+                        {
+                            throw new InvalidOperationException($"Could not record spam-report chaos address receive {spamJob.ChaosAddressId}.");
+                        }
+                    }
+
+                    if (spamReports is null ||
+                        await spamReports.CreateAsync(spamJob.MessageId, SpamReportTrigger.ChaosAddress, cancellationToken) is null)
+                    {
+                        throw new InvalidOperationException($"Could not create spam report for {spamJob.MessageId}.");
+                    }
+
+                    break;
+                }
+
                 case CampaignCaptureJob:
                 {
                     var campaignValue = message.Headers["x-spamma-camp"] ?? string.Empty;

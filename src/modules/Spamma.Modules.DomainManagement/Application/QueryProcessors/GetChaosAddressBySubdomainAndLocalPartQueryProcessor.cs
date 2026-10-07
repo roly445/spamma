@@ -23,7 +23,8 @@ internal class GetChaosAddressBySubdomainAndLocalPartQueryProcessor(IDocumentSes
             match.DomainId,
             match.LocalPart,
             match.ConfiguredSmtpCode,
-            match.Enabled);
+            match.Enabled,
+            match.ReportsSpam);
         return QueryResult<GetChaosAddressBySubdomainAndLocalPartQueryResult>.Succeeded(summary);
     }
 }

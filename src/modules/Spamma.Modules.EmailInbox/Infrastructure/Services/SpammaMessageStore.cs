@@ -89,6 +89,21 @@ public class SpammaMessageStore : MessageStore
 
             if (chaosAddress.HasValue)
             {
+                if (chaosAddress.Value.ReportsSpam)
+                {
+                    if (!TryQueue(backgroundTaskQueue, new SpamReportCaptureJob(
+                        memoryStream,
+                        chaosAddress.Value.DomainId,
+                        chaosAddress.Value.SubdomainId,
+                        chaosAddress.Value.ChaosAddressId,
+                        Guid.NewGuid()), logger))
+                    {
+                        return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
+                    }
+
+                    return SmtpResponse.Ok;
+                }
+
                 var code = chaosAddress.Value.ConfiguredSmtpCode;
                 if (!TryQueue(backgroundTaskQueue, new ChaosEmailCaptureJob(
                     memoryStream,

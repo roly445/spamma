@@ -3,6 +3,7 @@ using MailKit.Security;
 using Marten;
 using MimeKit;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
+using Spamma.Modules.EmailInbox.Infrastructure.SpamFeedback;
 
 namespace Spamma.Browser.Tests;
 
@@ -12,12 +13,13 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
     private readonly bool originalCatchAllMode;
 
     private SmtpScenarioFixture(DomainScenarioFixture domainFixture, IDocumentStore store,
-        bool originalCatchAllMode, Guid subdomainId, string recipient, string? chaosRecipient)
+        bool originalCatchAllMode, Guid subdomainId, string domainName, string recipient, string? chaosRecipient)
     {
         this.DomainFixture = domainFixture;
         this.store = store;
         this.originalCatchAllMode = originalCatchAllMode;
         this.SubdomainId = subdomainId;
+        this.DomainName = domainName;
         this.Recipient = recipient;
         this.ChaosRecipient = chaosRecipient;
     }
@@ -25,17 +27,18 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
     public DomainScenarioFixture DomainFixture { get; }
     public string Recipient { get; }
     public Guid SubdomainId { get; }
+    public string DomainName { get; }
     public string? ChaosRecipient { get; }
 
     public static async Task<SmtpScenarioFixture> CreateAsync(bool suspendDomain = false,
-        bool suspendSubdomain = false, bool chaos = false)
+        bool suspendSubdomain = false, bool chaos = false, bool reportSpam = false)
     {
         var domainFixture = await DomainScenarioFixture.CreateAsync();
         var name = $"smtp-{Guid.NewGuid():N}.example.test";
         var domain = await domainFixture.SeedDomainAsync(name, verified: true, suspended: suspendDomain);
         var subdomainId = await domainFixture.SeedSubdomainAsync(domain.Id, "inbound", suspended: suspendSubdomain);
         await domainFixture.AssignCurrentUserToViewSubdomainAsync(subdomainId);
-        if (chaos) await domainFixture.SeedChaosAddressAsync(domain.Id, subdomainId, "chaos", enabled: true);
+        if (chaos) await domainFixture.SeedChaosAddressAsync(domain.Id, subdomainId, "chaos", enabled: true, reportsSpam: reportSpam);
 
         var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
             ?? throw new InvalidOperationException("SMTP browser tests require a disposable PostgreSQL database.");
@@ -57,8 +60,29 @@ internal sealed class SmtpScenarioFixture : IAsyncDisposable
         }
 
         var fullName = $"inbound.{name}";
-        return new SmtpScenarioFixture(domainFixture, store, originalCatchAllMode, subdomainId,
+        return new SmtpScenarioFixture(domainFixture, store, originalCatchAllMode, subdomainId, name,
             $"receiver@{fullName}", chaos ? $"chaos@{fullName}" : null);
+    }
+
+    public async Task ConfigureArfAsync()
+    {
+        await using var session = this.store.LightweightSession();
+        session.Store(new SpamFeedbackConfiguration(this.SubdomainId, $"abuse@{this.DomainName}", null, null));
+        await session.SaveChangesAsync();
+    }
+
+    public async Task<SpamReport> WaitForReportAsync(Guid emailId)
+    {
+        var timeout = DateTime.UtcNow.AddSeconds(45);
+        while (DateTime.UtcNow < timeout)
+        {
+            await using var session = this.store.QuerySession();
+            var report = await session.LoadAsync<SpamReport>(emailId);
+            if (report is not null) return report;
+            await Task.Delay(250);
+        }
+
+        throw new TimeoutException($"Spam report for {emailId} was not persisted.");
     }
 
     public async Task<(bool Accepted, int Code, string Response)> SendAsync(string recipient,

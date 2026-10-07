@@ -33,7 +33,8 @@ internal class SearchChaosAddressesQueryProcessor(IDocumentSession session, IHtt
             x.Enabled,
             x.TotalReceived,
             x.LastReceivedAt,
-            x.CreatedAt)).ToList();
+            x.CreatedAt,
+            x.ReportsSpam)).ToList();
 
         var result = new SearchChaosAddressesQueryResult(summaries, totalCount, request.PageNumber, request.PageSize);
         return QueryResult<SearchChaosAddressesQueryResult>.Succeeded(result);

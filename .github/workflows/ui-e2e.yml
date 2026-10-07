@@ -120,7 +120,7 @@ jobs:
             exit 1
           fi
 
-          dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "(Category=smoke|Category=inbox|Category=campaign|Category=domain|Category=subdomain|Category=user|Category=catch-all|Category=chaos|Category=credential|Category=settings|Category=smtp|Category=authentication)&Category!=settings-finalize" --logger "trx;LogFileName=browser-tests.trx" --results-directory browser-test-results
+          dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "(Category=smoke|Category=inbox|Category=campaign|Category=domain|Category=subdomain|Category=user|Category=catch-all|Category=chaos|Category=credential|Category=settings|Category=smtp|Category=authentication|Category=spam-feedback)&Category!=settings-finalize" --logger "trx;LogFileName=browser-tests.trx" --results-directory browser-test-results
           dotnet test tests/Spamma.Browser.Tests/Spamma.Browser.Tests.csproj --configuration Release --no-build --filter "Category=settings-finalize" --logger "trx;LogFileName=settings-finalize-browser-tests.trx" --results-directory browser-test-results
         env:
           ASPNETCORE_URLS: http://127.0.0.1:5188

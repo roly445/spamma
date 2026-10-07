@@ -280,7 +280,8 @@ public partial class ChaosAddresses(IQueryRunner querier,
             domainId, // DomainId (looked up from subdomain)
             this.model.SubdomainId, // SubdomainId
             this.model.LocalPart,
-            (SmtpResponseCode)this.model.SmtpCode);
+            (SmtpResponseCode)this.model.SmtpCode,
+            this.model.ReportsSpam);
 
         var result = await commander.Send(command);
 
@@ -322,6 +323,8 @@ public partial class ChaosAddresses(IQueryRunner querier,
         public string LocalPart { get; set; } = string.Empty;
 
         public int SmtpCode { get; set; }
+
+        public bool ReportsSpam { get; set; }
 
         public string? Description { get; set; }
 

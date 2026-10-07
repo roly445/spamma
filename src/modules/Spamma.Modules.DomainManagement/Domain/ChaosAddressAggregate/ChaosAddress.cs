@@ -29,6 +29,8 @@ public partial class ChaosAddress : AggregateRoot
 
     internal SmtpResponseCode ConfiguredSmtpCode { get; private set; }
 
+    internal bool ReportsSpam { get; private set; }
+
     internal bool Enabled { get; private set; }
 
     internal int TotalReceived { get; private set; }
@@ -45,11 +47,17 @@ public partial class ChaosAddress : AggregateRoot
         Guid subdomainId,
         string localPart,
         SmtpResponseCode smtpCode,
-        DateTime createdAt)
+        DateTime createdAt,
+        bool reportsSpam = false)
     {
         var @event = new ChaosAddressCreated(id, domainId, subdomainId, localPart, smtpCode, createdAt);
         var aggregate = new ChaosAddress();
         aggregate.RaiseEvent(@event);
+        if (reportsSpam)
+        {
+            aggregate.RaiseEvent(new ChaosSpamReportingSelected(createdAt));
+        }
+
         return Result.Ok<ChaosAddress, BluQubeErrorData>(aggregate);
     }
 

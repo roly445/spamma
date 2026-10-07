@@ -26,6 +26,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
 using Spamma.Modules.EmailInbox.Infrastructure.Settings;
+using Spamma.Modules.EmailInbox.Infrastructure.SpamFeedback;
 
 namespace Spamma.Modules.EmailInbox;
 
@@ -39,6 +40,12 @@ public static class Module
         services.AddBluQube(typeof(Module).Assembly);
         services.AddBluQubeAuthorization(typeof(Module).Assembly);
         services.AddScoped<IEmailRepository, EmailRepository>();
+        services.AddScoped<SpamReportService>();
+        services.AddScoped<IArfFeedbackSender, ArfFeedbackSender>();
+        services.AddHttpClient<WebhookFeedbackSender>()
+            .ConfigurePrimaryHttpMessageHandler(WebhookFeedbackSender.CreateSafeHandler)
+            .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromSeconds(10));
+        services.AddHostedService<SpamFeedbackDeliveryWorker>();
         services.AddScoped<ICampaignRepository, CampaignRepository>();
         services.AddScoped<ICatchAllSenderAddressRepository, CatchAllSenderAddressRepository>();
         services.AddSingleton<PushNotificationManager>();
@@ -110,6 +117,7 @@ public static class Module
     public static IEndpointRouteBuilder AddEmailInboxApi(this IEndpointRouteBuilder endpointRouteBuilder)
     {
         endpointRouteBuilder.AddBluQubeApi();
+        endpointRouteBuilder.MapSpamFeedbackApi();
         endpointRouteBuilder.MapGet(
             "email-inbox/get-email-mime-message-by-id",
             async (IQueryRunner queryRunner, HttpContext httpContext, Guid emailId) =>
@@ -167,6 +175,8 @@ public static class Module
         options.Schema.For<CatchAllSenderAddressLookup>().Identity(x => x.Id);
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
         options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
+        options.Schema.For<SpamFeedbackConfiguration>().Identity(x => x.Id);
+        options.Schema.For<SpamReport>().Identity(x => x.Id);
 
         return options;
     }

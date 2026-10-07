@@ -368,6 +368,11 @@ public class CatchAllInboxTests : BunitContext
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
+            if (request.RequestUri!.AbsolutePath == $"/api/email-inbox/emails/{emailId}/spam-report")
+            {
+                return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound));
+            }
+
             request.RequestUri!.ToString().Should().Be($"http://localhost/api/email-inbox/emails/{emailId}/mime-content");
 
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK)

@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using BluQube.Commands;
 using BluQube.Constants;
 using Microsoft.AspNetCore.Components;
@@ -26,6 +28,8 @@ public partial class EmailViewer(
     private bool _showSaveDropdown;
     private bool _isDeleting;
     private bool _isTogglingFavorite;
+    private bool _isReportingSpam;
+    private SpamReportStatus? _spamReport;
 
     private int? _currentViewportWidth = null;
     private string _currentViewportName = "Full Width";
@@ -108,6 +112,7 @@ public partial class EmailViewer(
                 this._mimeMessage = await parser.ParseMessageAsync();
 
                 this.ProcessMimeMessage();
+                await this.LoadSpamReportAsync();
                 await clientSessionContext.TrackBreadcrumbAsync(
                     "email-viewer.load.succeeded",
                     new Dictionary<string, string?>
@@ -263,14 +268,91 @@ public partial class EmailViewer(
         return baseTag + htmlContent;
     }
 
+    private static string DeliveryText(FeedbackChannelStatus channel) => channel.Status switch
+    {
+        0 => "Not configured",
+        1 => "Pending",
+        2 => "Delivered",
+        3 => "Failed",
+        _ => "Unknown",
+    };
+
     private void ResetLoadedMessageState()
     {
+        this._spamReport = null;
         this._mimeMessage = null;
         this._tabs.Clear();
         this._activeTab = null;
         this._attachments.Clear();
         this._rawSource = string.Empty;
         this._loadErrorMessage = null;
+    }
+
+    private async Task LoadSpamReportAsync()
+    {
+        if (this.Email is null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var response = await httpClient.GetAsync($"api/email-inbox/emails/{this.Email.EmailId}/spam-report");
+            if (response.IsSuccessStatusCode)
+            {
+                this._spamReport = await response.Content.ReadFromJsonAsync<SpamReportStatus>();
+            }
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or TaskCanceledException)
+        {
+            // The message remains readable if its optional feedback status cannot be loaded.
+            this._spamReport = null;
+        }
+    }
+
+    private async Task ReportSpamAsync()
+    {
+        if (this.Email is null || this._isReportingSpam || this._spamReport is not null)
+        {
+            return;
+        }
+
+        this._isReportingSpam = true;
+        using var response = await httpClient.PostAsync($"api/email-inbox/emails/{this.Email.EmailId}/spam-report", null);
+        if (response.IsSuccessStatusCode)
+        {
+            this._spamReport = await response.Content.ReadFromJsonAsync<SpamReportStatus>();
+            notificationService.ShowSuccess("Spam report recorded.");
+        }
+        else
+        {
+            notificationService.ShowError("This message could not be reported as spam.");
+        }
+
+        this._isReportingSpam = false;
+    }
+
+    private async Task RetrySpamFeedbackAsync(string channel)
+    {
+        if (this.Email is null || this._isReportingSpam)
+        {
+            return;
+        }
+
+        this._isReportingSpam = true;
+        using var response = await httpClient.PostAsync(
+            $"api/email-inbox/emails/{this.Email.EmailId}/spam-report/{channel}/retry", null);
+        if (response.IsSuccessStatusCode)
+        {
+            this._spamReport = await response.Content.ReadFromJsonAsync<SpamReportStatus>();
+            notificationService.ShowSuccess($"{channel} delivery queued for retry.");
+        }
+        else
+        {
+            notificationService.ShowError("Delivery could not be retried.");
+        }
+
+        this._isReportingSpam = false;
     }
 
     private void SetLoadError(string message)
@@ -722,4 +804,8 @@ public partial class EmailViewer(
 
         public string Content { get; set; } = string.Empty;
     }
+
+    private sealed record FeedbackChannelStatus(int Status, int Attempts, string? LastError, DateTimeOffset? DeliveredAt, DateTimeOffset? NextAttemptAt);
+
+    private sealed record SpamReportStatus(Guid ReportId, int Trigger, DateTimeOffset CreatedAt, FeedbackChannelStatus Email, FeedbackChannelStatus Webhook);
 }
