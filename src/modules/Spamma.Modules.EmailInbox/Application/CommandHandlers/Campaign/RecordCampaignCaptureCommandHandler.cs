@@ -16,11 +16,11 @@ internal class RecordCampaignCaptureCommandHandler(
 {
     protected override async Task<CommandResult<RecordCampaignCaptureCommandResult>> HandleInternal(RecordCampaignCaptureCommand request, CancellationToken cancellationToken)
     {
-        var campaignId = GuidFromCampaignValue(request.SubdomainId, request.CampaignValue);
+        var campaignId = CampaignIdentity.FromValue(request.SubdomainId, request.CampaignValue);
 
         var campaignMaybe = await campaignRepository.GetByIdAsync(campaignId, cancellationToken);
 
-        var isFirstEmail = campaignMaybe.HasNoValue || campaignMaybe.Value.SampleMessageId == request.MessageId;
+        var isFirstEmail = campaignMaybe.HasNoValue || campaignMaybe.Value.SampleMessageId is null || campaignMaybe.Value.SampleMessageId == request.MessageId;
         Domain.CampaignAggregate.Campaign campaign;
         if (campaignMaybe.HasNoValue)
         {
@@ -52,7 +52,7 @@ internal class RecordCampaignCaptureCommandHandler(
             }
         }
 
-            // Save campaign aggregate
+        // Save campaign aggregate
         var saveResult = await campaignRepository.SaveAsync(campaign, cancellationToken);
         if (!saveResult.IsSuccess)
         {
@@ -60,13 +60,5 @@ internal class RecordCampaignCaptureCommandHandler(
         }
 
         return CommandResult<RecordCampaignCaptureCommandResult>.Succeeded(new RecordCampaignCaptureCommandResult(campaignId, isFirstEmail));
-    }
-
-    private static Guid GuidFromCampaignValue(Guid subdomainId, string campaignValue)
-    {
-        // Create deterministic GUID from subdomain ID + campaign value
-        var combined = subdomainId.ToString() + ":" + campaignValue;
-        var hash = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(combined));
-        return new Guid(hash.Take(16).ToArray());
     }
 }

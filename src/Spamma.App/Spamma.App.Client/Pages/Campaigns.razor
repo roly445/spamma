@@ -85,6 +85,9 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Captured</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temporary failures</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permanent rejections</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Failed SMTP attempts</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Received</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Received</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -110,6 +113,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                     @campaign.TotalCaptured
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@campaign.TemporaryFailureMessages</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@campaign.PermanentFailureMessages</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@campaign.FailureDeliveryAttempts</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                     @campaign.FirstReceivedAt.ToString("g")
                                 </td>

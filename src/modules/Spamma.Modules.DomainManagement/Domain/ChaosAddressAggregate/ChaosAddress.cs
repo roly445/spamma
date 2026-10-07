@@ -13,6 +13,7 @@ namespace Spamma.Modules.DomainManagement.Domain.ChaosAddressAggregate;
 public partial class ChaosAddress : AggregateRoot
 {
     private readonly List<ChaosAddressSuspensionAudit> _suspensionAudits = new();
+    private readonly HashSet<Guid> _receivedAttemptIds = [];
     private DateTimeOffset? _lastReceivedAt;
 
     private ChaosAddress()
@@ -89,9 +90,16 @@ public partial class ChaosAddress : AggregateRoot
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 
-    internal ResultWithError<BluQubeErrorData> RecordReceive(DateTimeOffset receivedAt)
+    internal ResultWithError<BluQubeErrorData> RecordReceive(DateTimeOffset receivedAt, Guid attemptId = default)
     {
-        var @event = new ChaosAddressReceived(receivedAt);
+        if (attemptId != Guid.Empty && this._receivedAttemptIds.Contains(attemptId))
+        {
+            return ResultWithError.Ok<BluQubeErrorData>();
+        }
+
+        object @event = attemptId == Guid.Empty
+            ? new ChaosAddressReceived(receivedAt)
+            : new ChaosAddressReceivedV2(receivedAt, attemptId);
         this.RaiseEvent(@event);
         return ResultWithError.Ok<BluQubeErrorData>();
     }

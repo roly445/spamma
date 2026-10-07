@@ -20,5 +20,8 @@ public record GetCampaignsQueryResult(
         string CampaignValue,
         DateTimeOffset FirstReceivedAt,
         DateTimeOffset LastReceivedAt,
-        int TotalCaptured);
+        int TotalCaptured,
+        int TemporaryFailureMessages = 0,
+        int PermanentFailureMessages = 0,
+        int FailureDeliveryAttempts = 0);
 }

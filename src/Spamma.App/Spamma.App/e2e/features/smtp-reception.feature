@@ -43,3 +43,18 @@ Feature: SMTP reception and processing
     When I deliver a message to the chaos address over SMTP
     Then SMTP returns the configured failure code
     And the sender can see the rejected response
+
+  Scenario: Retrying the same temporarily rejected campaign message counts one affected message
+    Given I am signed in with access to an active chaos address
+    When I retry the same campaign message twice against a temporary chaos address
+    Then the campaign shows one temporary failure and two SMTP attempts without an inbox message
+
+  Scenario: A permanently rejected campaign message remains separate from captured mail
+    Given I am signed in with access to an active chaos address
+    When I send a campaign message to a permanent chaos address
+    Then the campaign shows one permanent rejection without an inbox message
+
+  Scenario: Accepted mail after a campaign bounce becomes the sample
+    Given I am signed in with access to an active chaos address
+    When a temporary campaign failure is followed by accepted mail
+    Then the campaign shows the failure separately from its captured sample
