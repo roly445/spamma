@@ -74,6 +74,12 @@ public class AppConfigurationService(IConfiguration configuration, ILogger<AppCo
         await this.SetValueAsync("setup.version", "1.0");
     }
 
+    public Task<string?> GetAuthenticationSessionVersionAsync() =>
+        this.GetValueAsync("auth.sessionVersion");
+
+    public Task RotateAuthenticationSessionVersionAsync() =>
+        this.SetValueAsync("auth.sessionVersion", Guid.NewGuid().ToString("N"));
+
     public async Task SaveApplicationSettingsAsync(IAppConfigurationService.ApplicationSettings applicationSettings)
     {
         await this.SetValueAsync("application.baseUrl", applicationSettings.BaseUrl);

@@ -14,6 +14,8 @@ public sealed partial class AnonymousAccessSteps
     private string requestedAdminPage = string.Empty;
     private int maintenanceResponseStatus;
     private string maintenanceRedirect = string.Empty;
+    private IBrowserContext? secondSettingsContext;
+    private IPage? secondSettingsPage;
 
     [AfterScenario("settings")]
     public async Task DisposeSettingsFixturesAsync()
@@ -86,6 +88,30 @@ public sealed partial class AnonymousAccessSteps
     [Given("I can administer application settings")]
     public Task GivenICanAdministerSettingsAsync() => this.PrepareSettingsDomainUserAsync(administrator: true);
 
+    [Given("another user is signed in in a separate browser")]
+    public async Task GivenAnotherUserIsSignedInAsync()
+    {
+        var fixture = this.settingsDomainFixture ?? throw new InvalidOperationException("Settings fixture is missing.");
+        var (_, email) = await fixture.SeedUserAsync("Maintenance viewer");
+        var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
+        this.secondSettingsContext = await this.browser!.NewContextAsync(new BrowserNewContextOptions
+        {
+            BaseURL = Environment.GetEnvironmentVariable("SPAMMA_E2E_BASE_URL") ?? "http://127.0.0.1:5188",
+            RecordVideoDir = videoDirectory,
+            RecordVideoSize = string.IsNullOrWhiteSpace(videoDirectory)
+                ? null
+                : new RecordVideoSize { Width = 1280, Height = 720 },
+        });
+        this.secondSettingsPage = await this.secondSettingsContext.NewPageAsync();
+        await this.secondSettingsPage.GotoAsync("/login");
+        await this.secondSettingsPage.GetByLabel("Email address").FillAsync(email);
+        await this.secondSettingsPage.GetByRole(AriaRole.Button, new() { Name = "Send Magic Link" }).ClickAsync();
+        await this.secondSettingsPage.GotoAsync(await fixture.WaitForLoginPathAsync());
+        await this.secondSettingsPage.GetByRole(AriaRole.Button, new() { Name = "Continue to Spamma" }).ClickAsync();
+        await Assertions.Expect(this.secondSettingsPage).ToHaveURLAsync(new Regex(@"/m/inbox$"));
+        Assert.Contains(await this.secondSettingsContext.CookiesAsync(), cookie => cookie.Name == "SpammaAuth");
+    }
+
     [When("I choose to enter maintenance mode")]
     public async Task WhenIChooseMaintenanceAsync()
     {
@@ -97,7 +123,8 @@ public sealed partial class AnonymousAccessSteps
     public async Task ThenMaintenanceWarningAsync()
     {
         var dialog = this.Page.GetByRole(AriaRole.Dialog, new() { Name = "Enter Maintenance Mode?" });
-        await Assertions.Expect(dialog).ToContainTextAsync("all users will lose access until setup is complete");
+        await Assertions.Expect(dialog).ToContainTextAsync("sign out all users");
+        await Assertions.Expect(dialog).ToContainTextAsync("Everyone must sign in again");
         await Assertions.Expect(dialog).ToContainTextAsync("server logs");
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Cancel" }).ClickAsync();
         await Assertions.Expect(dialog).ToHaveCountAsync(0);
@@ -112,6 +139,37 @@ public sealed partial class AnonymousAccessSteps
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Enter Maintenance Mode" }).ClickAsync();
         await Assertions.Expect(this.Page).ToHaveURLAsync(new Regex(@"/setup-login$"));
         await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "Spamma Setup Access" })).ToBeVisibleAsync();
+    }
+
+    [Then("the other user cannot access the application during maintenance")]
+    public async Task ThenOtherUserCannotAccessDuringMaintenanceAsync()
+    {
+        var otherPage = this.secondSettingsPage ?? throw new InvalidOperationException("Second user is missing.");
+        await otherPage.GotoAsync("/m/inbox");
+        await Assertions.Expect(otherPage).ToHaveURLAsync(new Regex(@"/setup-login$"));
+        Assert.DoesNotContain(await this.secondSettingsContext!.CookiesAsync(), cookie => cookie.Name == "SpammaAuth");
+    }
+
+    [When("I complete maintenance setup")]
+    public async Task WhenICompleteMaintenanceSetupAsync()
+    {
+        var password = Environment.GetEnvironmentVariable("SPAMMA_SETUP_PASSWORD")
+            ?? throw new InvalidOperationException("SPAMMA_SETUP_PASSWORD must be set for this scenario.");
+        await this.Page.GetByLabel("Setup Password").FillAsync(password);
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Access Setup Wizard" }).ClickAsync();
+        await this.Page.GotoAsync("/setup/complete");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Complete Setup & Go to Login" }).ClickAsync();
+        await Assertions.Expect(this.Page).ToHaveURLAsync(new Regex(@"/login$"));
+    }
+
+    [Then("the other user must sign in again")]
+    public async Task ThenOtherUserMustSignInAgainAsync()
+    {
+        var otherPage = this.secondSettingsPage ?? throw new InvalidOperationException("Second user is missing.");
+        await otherPage.GotoAsync("/m/inbox");
+        await Assertions.Expect(otherPage).ToHaveURLAsync(new Regex(@"/login"));
+        await Assertions.Expect(otherPage.GetByLabel("Email address")).ToBeVisibleAsync();
+        Assert.DoesNotContain(await this.secondSettingsContext!.CookiesAsync(), cookie => cookie.Name == "SpammaAuth");
     }
 
     [Given("I moderate a subdomain without global administration")]

@@ -283,19 +283,39 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "SpammaAuth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Events.OnSigningIn = async context =>
+        {
+            var configuration = context.HttpContext.RequestServices.GetRequiredService<IAppConfigurationService>();
+            var version = await configuration.GetAuthenticationSessionVersionAsync();
+            if (version is not null)
+            {
+                ((ClaimsIdentity)context.Principal!.Identity!).AddClaim(new Claim("spamma:session-version", version));
+            }
+        };
         options.Events.OnValidatePrincipal = async context =>
         {
+            var configuration = context.HttpContext.RequestServices.GetRequiredService<IAppConfigurationService>();
+            var version = await configuration.GetAuthenticationSessionVersionAsync();
+            if (version != context.Principal?.FindFirst("spamma:session-version")?.Value)
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync();
+                return;
+            }
+
             var userIdRaw = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdRaw == null)
             {
                 context.RejectPrincipal();
                 await context.HttpContext.SignOutAsync();
+                return;
             }
 
             if (!Guid.TryParse(userIdRaw, out var userId))
             {
                 context.RejectPrincipal();
                 await context.HttpContext.SignOutAsync();
+                return;
             }
 
             var userStatusCache = context.HttpContext.RequestServices.GetRequiredService<UserStatusCache>();

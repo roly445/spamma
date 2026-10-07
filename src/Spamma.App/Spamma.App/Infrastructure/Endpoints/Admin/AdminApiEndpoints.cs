@@ -19,11 +19,13 @@ internal static class AdminApiEndpoints
     private static async Task<IResult> EnableMaintenanceMode(
         HttpContext httpContext,
         IInMemorySetupAuthService setupAuth,
+        IAppConfigurationService configuration,
         ILogger<Program> logger)
     {
         var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         logger.LogWarning("Maintenance mode requested by user {UserId}", userId);
 
+        await configuration.RotateAuthenticationSessionVersionAsync();
         setupAuth.EnableMaintenanceMode($"Maintenance mode requested by user {userId}");
 
         await httpContext.SignOutAsync();

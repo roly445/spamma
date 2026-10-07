@@ -127,6 +127,7 @@ jobs:
           ASPNETCORE_ENVIRONMENT: Production
           CertificateRenewal__Disabled: 'true'
           Setup__Completed: '2026-01-01T00:00:00Z'
+          SPAMMA_SETUP_PASSWORD: ci-only-setup-password
           SmtpServer__Port: '2526'
           SPAMMA_E2E_BASE_URL: http://localhost:5188
           SPAMMA_BROWSER_RESULTS_DIR: ${{ github.workspace }}/browser-test-results

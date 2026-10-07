@@ -14,11 +14,15 @@ Feature: Application settings and administrative access
       | disabled |
 
   @settings-finalize
-  Scenario: Entering maintenance mode requires confirmation
+  Scenario: Entering maintenance mode invalidates every signed-in user
     Given I can administer application settings
+    And another user is signed in in a separate browser
     When I choose to enter maintenance mode
     Then I see a warning before the mode changes
     And maintenance mode is enabled only after I confirm
+    And the other user cannot access the application during maintenance
+    When I complete maintenance setup
+    Then the other user must sign in again
 
   Scenario: A subdomain moderator sees only relevant administration links
     Given I moderate a subdomain without global administration
