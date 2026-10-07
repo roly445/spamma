@@ -72,6 +72,20 @@ public sealed partial class AnonymousAccessSteps
             await this.setupSmtpCapture.DisposeAsync();
         }
 
+        if (this.secondSettingsContext is not null)
+        {
+            var secondVideo = this.secondSettingsPage?.Video;
+            await this.secondSettingsContext.CloseAsync();
+            var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
+            if (secondVideo is not null && !string.IsNullOrWhiteSpace(videoDirectory))
+            {
+                Directory.CreateDirectory(videoDirectory);
+                await secondVideo.SaveAsAsync(Path.Combine(videoDirectory,
+                    $"{GetScenarioArtifactName(scenarioContext)}-second-user.webm"));
+                await secondVideo.DeleteAsync();
+            }
+        }
+
         if (this.context is not null)
         {
             if (scenarioContext.TestError is not null)

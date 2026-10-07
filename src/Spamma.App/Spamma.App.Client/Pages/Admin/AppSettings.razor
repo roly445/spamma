@@ -109,7 +109,7 @@
                         <div class="ml-3">
                             <h3 class="text-sm font-medium text-red-800">Warning</h3>
                             <p class="mt-1 text-sm text-red-700">
-                                Enabling maintenance mode will immediately lock the application and block access for all users until setup is complete. Your current session will be signed out. A new setup password will be printed to the server logs.
+                                Enabling maintenance mode will immediately lock the application and sign out all users. Everyone must sign in again after setup is complete. A new setup password will be printed to the server logs.
                             </p>
                         </div>
                     </div>
@@ -141,6 +141,6 @@
     Variant="danger"
     ConfirmLabel="Enter Maintenance Mode"
     AriaLabelledBy="maintenance-mode-confirm-title">
-    <p class="text-sm text-gray-700">The application will be locked immediately and all users will lose access until setup is complete. Your current session will be signed out. A new setup password will appear in the server logs.</p>
+    <p class="text-sm text-gray-700">The application will be locked immediately and sign out all users. Everyone must sign in again after setup is complete. A new setup password will appear in the server logs.</p>
     <p class="mt-2 text-sm font-medium text-gray-900">Are you sure you want to continue?</p>
 </ConfirmModal>

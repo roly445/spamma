@@ -16,6 +16,10 @@ public interface IAppConfigurationService
 
     Task MarkSetupCompleteAsync();
 
+    Task<string?> GetAuthenticationSessionVersionAsync();
+
+    Task RotateAuthenticationSessionVersionAsync();
+
     Task SaveApplicationSettingsAsync(ApplicationSettings applicationSettings);
 
     Task<ApplicationSettings> GetApplicationSettingsAsync();
