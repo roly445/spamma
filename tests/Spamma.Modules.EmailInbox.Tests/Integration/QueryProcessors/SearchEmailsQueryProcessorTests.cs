@@ -10,6 +10,17 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
 public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
+    [Theory]
+    [InlineData("subject:")]
+    [InlineData("after:tomorrow")]
+    [InlineData("body:\"unclosed")]
+    public async Task Handle_InvalidSearch_ReturnsFailure(string searchText)
+    {
+        var result = await this.Sender.Send(new SearchEmailsQuery(SearchText: searchText), CancellationToken.None);
+
+        result.Status.Should().Be(BluQube.Constants.QueryResultStatus.Failed);
+    }
+
     [Fact]
     public async Task Handle_WithAttachmentFilter_CombinesSearchPaginationAndSubdomainScope()
     {

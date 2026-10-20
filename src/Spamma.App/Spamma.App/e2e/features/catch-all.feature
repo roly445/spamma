@@ -47,6 +47,13 @@ Feature: Catch-all email routing
     When I search for one catch-all message
     Then only the matching catch-all message is shown
 
+  Scenario: Catch-all inbox explains an invalid date filter
+    Given I can view catch-all messages with different subjects
+    When I search the catch-all inbox with an invalid date filter
+    Then I see date guidance without a no-results message
+    When I correct the catch-all inbox search
+    Then only the matching catch-all message is shown
+
   Scenario: A user cannot inspect another user's catch-all messages
     Given another user's catch-all sender has a captured message
     When I search the catch-all inbox for that message

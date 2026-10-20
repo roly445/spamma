@@ -14,6 +14,12 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
 {
     public async ValueTask<QueryResult<GetCatchAllEmailsQueryResult>> Handle(GetCatchAllEmailsQuery request, CancellationToken cancellationToken)
     {
+        var parsedSearch = EmailSearchSyntax.Parse(request.SearchText);
+        if (!parsedSearch.IsValid)
+        {
+            return QueryResult<GetCatchAllEmailsQueryResult>.Failed();
+        }
+
         var catchAllSubdomainId = EmailInboxSettingsDocument.CatchAllSubdomainId;
         var user = accessor.HttpContext.ToUserAuthInfo();
         var isDomainAdmin = user.SystemRole.HasFlag(SystemRole.DomainManagement);
@@ -38,7 +44,7 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
                 x.CatchAllSenderAddressId != null && allowedIds.Contains(x.CatchAllSenderAddressId.Value));
         }
 
-        baseQuery = EmailSearchFilters.Apply(baseQuery, request.SearchText);
+        baseQuery = EmailSearchFilters.Apply(baseQuery, parsedSearch);
 
         var totalCount = await baseQuery.CountAsync(cancellationToken);
 

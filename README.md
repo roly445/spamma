@@ -289,6 +289,8 @@ Supported fields are `from:`, `to:`, `subject:`, `body:`, `has:attachment`, `aft
 
 Existing stored messages are indexed in small background batches after the update. Missing or unreadable EML files are reported in the application logs and marked on the email read model so the backfill can continue.
 
+Both inboxes explain incomplete filters, unsupported `has:` values, unmatched quotes, and invalid dates beside the search field. Correct the text and search again. Other words containing a colon, such as `ref:42`, remain ordinary search terms.
+
 ### SMTP TLS Support (Port 587)
 
 Spamma supports SMTP over TLS on port 587 for secure email transmission when a valid SSL/TLS certificate is provided.

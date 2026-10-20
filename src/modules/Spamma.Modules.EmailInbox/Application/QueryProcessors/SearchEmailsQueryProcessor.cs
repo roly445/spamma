@@ -13,6 +13,12 @@ internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHtt
 {
     public async ValueTask<QueryResult<SearchEmailsQueryResult>> Handle(SearchEmailsQuery request, CancellationToken cancellationToken)
     {
+        var parsedSearch = EmailSearchSyntax.Parse(request.SearchText);
+        if (!parsedSearch.IsValid)
+        {
+            return QueryResult<SearchEmailsQueryResult>.Failed();
+        }
+
         var user = accessor.HttpContext.ToUserAuthInfo();
         var catchAllSubdomainId = EmailInboxSettingsDocument.CatchAllSubdomainId;
 
@@ -27,7 +33,7 @@ internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHtt
             query = query.Where(x => x.CampaignId == null);
         }
 
-        query = EmailSearchFilters.Apply(query, request.SearchText);
+        query = EmailSearchFilters.Apply(query, parsedSearch);
 
         // Get total count before pagination
         var totalCount = await query.CountAsync(cancellationToken);

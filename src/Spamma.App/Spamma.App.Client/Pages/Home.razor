@@ -314,6 +314,7 @@
 
                     <div class="p-3 border-b border-gray-200 flex-shrink-0">
                         <EmailSearchBox @bind-Value="_searchText"
+                                        Error="@_searchError"
                                         OnKeyPress="HandleSearchKeyPress"
                                         OnClear="ClearSearch" />
 
@@ -327,7 +328,7 @@
                             </label>
                         </div>
 
-                        @if (!string.IsNullOrWhiteSpace(_searchText) || _searchResult != null)
+                        @if (_searchError is null && (!string.IsNullOrWhiteSpace(_searchText) || _searchResult != null))
                         {
                             <div class="mt-2 text-xs text-gray-500">
                                 @if (_isSearching)
@@ -352,7 +353,11 @@
 
                     <div class="flex-1 flex flex-col min-h-0">
                         <div class="flex-1 overflow-y-auto min-h-0">
-                            @if (_isSearching)
+                            @if (_searchError is not null)
+                            {
+                                <div class="p-8 text-center text-sm text-gray-500">Correct the search filter to see results.</div>
+                            }
+                            else if (_isSearching)
                             {
                                 <div class="flex items-center justify-center p-8">
                                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -428,7 +433,7 @@
                             }
                         </div>
 
-                        @if (_searchResult != null && _searchResult.TotalPages > 1)
+                        @if (_searchError is null && _searchResult != null && _searchResult.TotalPages > 1)
                         {
                             <div class="border-t border-gray-200 px-4 py-3 bg-gray-50 flex-shrink-0 overflow-x-auto">
                                 <div class="flex flex-col gap-3">

@@ -4,6 +4,8 @@
                type="text"
                role="searchbox"
                aria-label="Search emails"
+               aria-invalid="@(!string.IsNullOrEmpty(Error))"
+               aria-describedby="@(string.IsNullOrEmpty(Error) ? null : "email-search-error")"
                placeholder="Search messages"
                value="@Value"
                class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -26,6 +28,11 @@
             </button>
         }
     </div>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <p id="email-search-error" role="alert" class="mt-2 text-sm text-red-700">@Error</p>
+    }
 
     <details class="mt-2 text-xs text-gray-600" data-testid="email-search-tips">
         <summary class="cursor-pointer font-medium text-blue-700 hover:text-blue-800">Search tips and filters</summary>
