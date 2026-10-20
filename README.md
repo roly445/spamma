@@ -297,8 +297,15 @@ Spamma supports SMTP over TLS on port 587 for secure email transmission when a v
 
 #### Port Configuration
 
-- **Port 25** - Plain SMTP (always available)
-- **Port 587** - SMTP with TLS/STARTTLS (available only when certificate is present)
+- **Port 25** - Plain SMTP for anonymous MX delivery (always available)
+- **Port 465** - Implicit TLS submission (available only when a certificate is present)
+- **Port 587** - SMTP submission with STARTTLS (available only when a certificate is present)
+
+#### Submission authentication
+
+Domain and subdomain administrators can manage submission credentials from **SMTP Submission** on each details page. A domain can require a credential; subdomains inherit that setting unless they explicitly disable authentication or replace it with their own credential. A subdomain can also require a credential when its parent domain does not. The page shows the effective policy and SMTP username. The password is displayed once when generated. Saving a required-credential policy rotates the username and password and revokes the old pair.
+
+Submission on ports 465 and 587 requires TLS. A credential grants access only to the domain or subdomains where it is the effective credential; each SMTP envelope recipient is checked. Port 25 remains anonymous for MX delivery and still applies configured recipient routing. New installations allow unauthenticated TLS submission until an administrator enables a policy.
 
 #### Setting Up TLS Certificates
 
@@ -411,7 +418,7 @@ Then mount the certificate directory in your Docker container or Kubernetes volu
 ```text
 SMTP Host: mail.example.com
 SMTP Port: 587
-Authentication: Not required (Spamma accepts all emails)
+Authentication: Use the username and one-time password from SMTP Submission if required for the recipient domain
 Encryption: STARTTLS
 ```
 
@@ -885,7 +892,7 @@ A: Yes! The REST API allows you to programmatically check for test emails, delet
 
 **Q: Does Spamma support TLS/SSL on SMTP?**
 
-A: Currently, Spamma accepts unencrypted SMTP. For secure scenarios, run it behind a reverse proxy or use a firewall to restrict access.
+A: Yes. With a certificate in `certs/`, Spamma offers implicit TLS on port 465 and STARTTLS on port 587. Port 25 remains available for MX delivery.
 
 **Q: How do I contribute to Spamma?**
 

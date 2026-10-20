@@ -8,6 +8,7 @@ using Spamma.Modules.Common.Caching;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Submission;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -40,18 +41,38 @@ public class SpammaMessageStore : MessageStore
         var headers = message.Headers;
 
         var campaignHeader = headers["x-spamma-camp"];
-        var recipients = new List<MimeKit.MailboxAddress>();
-        if (headers[MimeKit.HeaderId.To] != null && MimeKit.InternetAddressList.TryParse(headers[MimeKit.HeaderId.To], out var toList))
+
+        // SMTP envelope recipients determine routing. MIME To/Cc headers are untrusted
+        // presentation data and can differ from RCPT TO (including for Bcc mail).
+        var recipients = transaction.To?.ToArray() ?? [];
+        if (recipients.Length == 0)
         {
-            recipients.AddRange(toList.Mailboxes);
+            return SmtpResponse.MailboxNameNotAllowed;
+        }
+
+        if (SmtpSubmissionMailboxFilter.IsSubmission(context))
+        {
+            if (SmtpSubmissionMailboxFilter.HadRejectedRecipient(context))
+            {
+                return SmtpResponse.MailboxNameNotAllowed;
+            }
+
+            var filter = scope.ServiceProvider.GetRequiredService<SmtpSubmissionMailboxFilter>();
+            foreach (var recipient in recipients)
+            {
+                if (!await filter.CanDeliverToAsync(context, recipient, transaction.From, cancellationToken))
+                {
+                    return SmtpResponse.MailboxNameNotAllowed;
+                }
+            }
         }
 
         ISubdomainCache.CachedSubdomain? foundValidSubdomain = null;
 
         foreach (var recipient in recipients)
         {
-            var domain = recipient.Domain.ToLowerInvariant();
-            var localPart = recipient.Address.Split('@')[0].ToLowerInvariant();
+            var domain = recipient.Host.ToLowerInvariant();
+            var localPart = recipient.User.ToLowerInvariant();
             ISubdomainCache.CachedSubdomain? resolvedSubdomain;
             try
             {
@@ -111,7 +132,7 @@ public class SpammaMessageStore : MessageStore
                     chaosAddress.Value.SubdomainId,
                     chaosAddress.Value.ChaosAddressId,
                     SmtpCode: (int)code,
-                    Recipient: recipient.Address), logger))
+                    Recipient: $"{recipient.User}@{recipient.Host}"), logger))
                 {
                     return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
                 }

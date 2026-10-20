@@ -1,0 +1,73 @@
+@page "/admin/domains/{DomainId:guid}/smtp-submission"
+@page "/admin/subdomains/{SubdomainId:guid}/smtp-submission"
+@using Spamma.App.Client.Layout
+@using Spamma.Modules.EmailInbox.Client.Contracts
+@layout AppLayout
+@attribute [Authorize]
+<PageTitle>SMTP Submission - Spamma</PageTitle>
+
+<AdminHeader Title="SMTP Submission" Subtitle="Control who may submit mail on the TLS listeners">
+    <Controls><a href="@BackUrl" class="p-2 text-sm text-blue-700 hover:underline">Back to @(IsSubdomain ? "Subdomain" : "Domain")</a></Controls>
+</AdminHeader>
+
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        @if (error is not null)
+        {
+            <div role="alert" class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">@error</div>
+        }
+        @if (loading)
+        {
+            <p role="status">Loading SMTP submission settings...</p>
+        }
+        else if (canConfigure && policy is not null)
+        {
+            <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-5">
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900">Authentication policy</h2>
+                    <p class="mt-1 text-sm text-gray-600">Applies to port 465 and STARTTLS on port 587. External MX delivery on port 25 remains anonymous.</p>
+                </div>
+                <div>
+                    <label for="smtp-policy-mode" class="block text-sm font-medium text-gray-700 mb-2">Setting</label>
+                    <select id="smtp-policy-mode" @bind="selectedMode" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        @if (IsSubdomain)
+                        {
+                            <option value="@SmtpSubmissionMode.Inherit">Inherit from domain</option>
+                        }
+                        <option value="@SmtpSubmissionMode.Disabled">No authentication required</option>
+                        <option value="@SmtpSubmissionMode.RequireAuthentication">Require a credential</option>
+                    </select>
+                    @if (IsSubdomain)
+                    {
+                        <p class="mt-2 text-sm text-gray-600">An override replaces the parent domain credential for this subdomain. Disabled permits anonymous submission here.</p>
+                    }
+                </div>
+                <div class="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
+                    <strong>Effective policy:</strong> @(policy.EffectiveMode == SmtpSubmissionMode.RequireAuthentication ? "Credential required" : "No authentication required")
+                    @if (IsSubdomain && policy.Mode == SmtpSubmissionMode.Inherit)
+                    {
+                        <span>(inherited from domain)</span>
+                    }
+                    else if (IsSubdomain)
+                    {
+                        <span>(subdomain override)</span>
+                    }
+                </div>
+                @if (policy.Username is not null)
+                {
+                    <div><div class="text-sm font-medium text-gray-700">SMTP username</div><code class="mt-1 block break-all rounded-md border bg-gray-50 p-3 text-sm">@policy.Username</code></div>
+                }
+                <p class="text-sm text-amber-800">Saving “Require a credential” generates a new password and immediately revokes the previous credential, including on existing SMTP sessions.</p>
+                <button @onclick="SaveAsync" disabled="@saving" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">@(saving ? "Saving..." : "Save policy")</button>
+            </div>
+            @if (newSecret is not null)
+            {
+                <div role="status" class="rounded-md border border-amber-200 bg-amber-50 p-4">
+                    <h2 class="text-sm font-medium text-amber-900">Copy the new SMTP password now</h2>
+                    <p class="mt-1 text-sm text-amber-800">It will not be shown again.</p>
+                    <code id="smtp-submission-secret" class="mt-3 block break-all rounded-md border bg-white p-3 text-sm">@newSecret</code>
+                </div>
+            }
+        }
+    </div>
+</div>
