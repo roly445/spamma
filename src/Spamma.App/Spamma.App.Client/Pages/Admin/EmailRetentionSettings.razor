@@ -1,0 +1,109 @@
+@page "/admin/domains/{DomainId:guid}/retention"
+@page "/admin/subdomains/{SubdomainId:guid}/retention"
+@using Spamma.App.Client.Layout
+@using Spamma.Modules.EmailInbox.Client.Contracts
+@layout AppLayout
+@attribute [Authorize]
+<PageTitle>Email Retention - Spamma</PageTitle>
+
+<AdminHeader Title="Email Retention" Subtitle="Choose how long captured mail stays in each inbox">
+    <Controls>
+        <a href="@BackUrl" class="inline-flex items-center gap-1.5 p-2 text-sm text-gray-500 hover:text-gray-700 rounded-md hover:bg-gray-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to @(IsSubdomain ? "Subdomain" : "Domain")
+        </a>
+    </Controls>
+</AdminHeader>
+
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        @if (error is not null)
+        {
+            <div role="alert" class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">@error</div>
+        }
+        @if (loading)
+        {
+            <div class="flex items-center justify-center py-16" role="status" aria-label="Loading retention settings">
+                <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="sr-only">Loading retention settings...</span>
+            </div>
+        }
+        else if (canConfigure && policy is not null)
+        {
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm px-6 py-5">
+                <div class="text-xs font-medium uppercase tracking-wide text-gray-500">@(IsSubdomain ? "Subdomain" : "Domain")</div>
+                <h2 class="mt-1 text-xl font-semibold text-gray-900 break-all">@policy.ScopeName</h2>
+                @if (IsSubdomain && policy.ParentDomainName is not null)
+                {
+                    <p class="mt-1 text-sm text-gray-500">Parent domain: @policy.ParentDomainName</p>
+                }
+            </div>
+            <form @onsubmit="SaveAsync" @onsubmit:preventDefault class="space-y-6">
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div class="px-6 py-5 border-b border-gray-200">
+                        <h2 class="text-lg font-medium text-gray-900">Retention policy</h2>
+                        <p class="mt-1 text-sm text-gray-500">The first enabled limit reached removes the oldest ordinary messages. Favorites are exempt; campaign history follows its own lifecycle.</p>
+                    </div>
+                    <div class="px-6 py-5 space-y-5">
+                        @if (IsSubdomain)
+                        {
+                            <div>
+                                <label for="retention-mode" class="block text-sm font-medium text-gray-700 mb-2">Subdomain policy</label>
+                                <select id="retention-mode" @bind="selectedMode" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                                    <option value="@EmailRetentionMode.Inherit">Inherit from domain</option>
+                                    <option value="@EmailRetentionMode.Override">Override for this subdomain</option>
+                                </select>
+                            </div>
+                        }
+                        <div id="retention-effective-policy" class="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
+                            <strong>Current effective policy:</strong>
+                            Age: @(policy.EffectiveMaxAgeHours is int age ? $"{age} hours" : "disabled");
+                            count: @(policy.EffectiveMaxMessages is int count ? count.ToString("N0") : "disabled").
+                            @if (IsSubdomain && policy.Mode == EmailRetentionMode.Inherit)
+                            {
+                                <span>Inherited from @policy.ParentDomainName.</span>
+                            }
+                        </div>
+                        <fieldset disabled="@(!IsOverride)" class="space-y-4 disabled:opacity-60">
+                            <legend class="sr-only">Retention limits</legend>
+                            <div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <input type="checkbox" @bind="ageEnabled" /> Limit by age
+                                </label>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <input id="retention-age" type="number" min="1" max="87600" required="@ageEnabled" disabled="@(!ageEnabled)" @bind="maxAgeHours"
+                                           class="w-40 rounded-md border border-gray-300 px-3 py-2 text-sm" />
+                                    <label for="retention-age" class="text-sm text-gray-600">hours</label>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">24 hours is the default. Clear the checkbox to disable the age limit.</p>
+                            </div>
+                            <div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                    <input type="checkbox" @bind="countEnabled" /> Limit by message count
+                                </label>
+                                <div class="mt-2 flex items-center gap-2">
+                                    <input id="retention-count" type="number" min="1" max="1000000" required="@countEnabled" disabled="@(!countEnabled)" @bind="maxMessages"
+                                           class="w-40 rounded-md border border-gray-300 px-3 py-2 text-sm" />
+                                    <label for="retention-count" class="text-sm text-gray-600">messages per subdomain inbox</label>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Clear the checkbox to disable the count limit.</p>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                    <button type="submit" disabled="@(saving || !HasPendingChange)" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">@(saving ? "Saving..." : "Save retention settings")</button>
+                    @if (saved)
+                    {
+                        <p role="status" class="text-sm font-medium text-green-700">Retention settings saved.</p>
+                    }
+                </div>
+            </form>
+        }
+    </div>
+</div>

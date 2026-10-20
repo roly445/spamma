@@ -1,0 +1,9 @@
+# Email retention
+
+Domain moderators can open **Email Retention** from a domain details page. A domain policy supplies the default for each of its subdomain inboxes. Subdomain moderators can open the same page from subdomain details and either inherit that domain policy or replace both limits for their inbox.
+
+The initial domain policy keeps ordinary captured messages for 24 hours and has no message-count limit. The age and count limits can be enabled independently; clearing either checkbox disables that limit. Clearing both keeps ordinary messages until someone deletes them manually. A count limit applies separately to each subdomain inbox, not to the combined domain total. The newest eligible messages count toward the limit, and the oldest excess messages are removed. When both limits are enabled, either one can cause deletion.
+
+Favorites are exempt from both limits and do not consume the count quota. Campaign messages use their separate lifecycle and are not pruned by ordinary-inbox retention. Cleanup runs hourly and processes at most 100 messages per cycle, rotating the starting inbox between cycles. Deletion marks the email as deleted, clears its searchable body from the index, and emits the existing deletion event that removes its stored EML file. The event may be processed shortly after the database deletion.
+
+The management endpoints are `GET` and `PUT` on `api/email-inbox/domains/{domainId}/retention` or `api/email-inbox/subdomains/{subdomainId}/retention`. Only authorized, active domain or subdomain moderators may use them. PUT accepts `mode` (`Override` for domains; `Inherit` or `Override` for subdomains), `maxAgeHours`, and `maxMessages`. A null limit disables it. Enabled age limits must be 1–87,600 hours; enabled count limits must be 1–1,000,000 messages. The response includes the configured and effective limits and the scope name.

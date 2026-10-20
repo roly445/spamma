@@ -9,6 +9,7 @@
 - **🔍 Web Interface** - Beautiful Blazor WebAssembly UI for browsing, searching, and inspecting captured emails
 - **👥 Multi-User Support** - Built-in user authentication and authorization with role-based access control
 - **🏢 Multi-Domain Management** - Manage and organize multiple email domains within a single Spamma instance
+- **🕒 Configurable Email Retention** - Set age and message-count limits per domain, with optional subdomain overrides ([policy details](docs/email-retention.md))
 - **📧 Full Email Inspection** - View complete email details including headers, body (HTML/plain text), attachments, and metadata
 - **🗂️ Email Organization** *(WIP)* - Organize emails by domain, search by sender/recipient, subject, and content
 - **📊 Event Sourcing** - Complete audit trail of all email operations with full event history
