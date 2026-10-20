@@ -162,6 +162,7 @@ public sealed partial class AnonymousAccessSteps
         if (!string.IsNullOrWhiteSpace(screenshotDirectory))
         {
             Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.WaitForTimeoutAsync(800);
             await this.Page.ScreenshotAsync(new PageScreenshotOptions
             {
                 Path = Path.Combine(screenshotDirectory, "advanced-search-from-filter.png"),
