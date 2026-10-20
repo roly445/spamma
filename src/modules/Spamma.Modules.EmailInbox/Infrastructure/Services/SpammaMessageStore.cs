@@ -68,11 +68,11 @@ public class SpammaMessageStore : MessageStore
         }
 
         ISubdomainCache.CachedSubdomain? foundValidSubdomain = null;
+        var routedRecipients = new List<(SmtpServer.Mail.IMailbox Recipient, ISubdomainCache.CachedSubdomain? Subdomain)>();
 
         foreach (var recipient in recipients)
         {
             var domain = recipient.Host.ToLowerInvariant();
-            var localPart = recipient.User.ToLowerInvariant();
             ISubdomainCache.CachedSubdomain? resolvedSubdomain;
             try
             {
@@ -85,12 +85,30 @@ public class SpammaMessageStore : MessageStore
                 return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
             }
 
+            routedRecipients.Add((recipient, resolvedSubdomain));
+        }
+
+        var knownSubdomainIds = routedRecipients
+            .Where(x => x.Subdomain is not null)
+            .Select(x => x.Subdomain!.SubdomainId)
+            .Distinct()
+            .ToArray();
+        if (knownSubdomainIds.Length > 1 ||
+            (knownSubdomainIds.Length == 1 && routedRecipients.Any(x => x.Subdomain is null)))
+        {
+            logger.LogWarning("SMTP transaction rejected because recipients span multiple or unknown inboxes");
+            return SmtpResponse.MailboxNameNotAllowed;
+        }
+
+        foreach (var (recipient, resolvedSubdomain) in routedRecipients)
+        {
             if (resolvedSubdomain is null)
             {
                 continue;
             }
 
             foundValidSubdomain = resolvedSubdomain;
+            var localPart = recipient.User.ToLowerInvariant();
 
             MaybeMonad.Maybe<IChaosAddressCache.CachedChaosAddress> chaosAddress;
             try

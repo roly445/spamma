@@ -91,6 +91,7 @@ public sealed partial class AnonymousAccessSteps
         {
             Directory.CreateDirectory(screenshotDirectory);
             await this.Page.SetViewportSizeAsync(1280, 900);
+            await Assertions.Expect(this.Page.Locator("#blazor-wasm-loading")).ToBeHiddenAsync();
             await this.Page.ScreenshotAsync(new PageScreenshotOptions
             {
                 Path = Path.Combine(screenshotDirectory, "smtp-submission-policy.png"),

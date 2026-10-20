@@ -515,7 +515,7 @@ public class SpammaMessageStoreTests
     }
 
     [Fact]
-    public async Task SaveAsync_MultipleRecipients_UsesFirstMatchingSubdomain()
+    public async Task SaveAsync_MixedKnownAndUnknownEnvelopeRecipients_RejectsWholeTransaction()
     {
         // Arrange
         var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
@@ -579,8 +579,40 @@ public class SpammaMessageStoreTests
             CancellationToken.None);
 
         // Assert
-        result.Should().Be(SmtpResponse.Ok);
-        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Once);
+        result.Should().Be(SmtpResponse.MailboxNameNotAllowed);
+        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RecipientsInDifferentSubdomains_RejectsWholeTransaction()
+    {
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
+        var subdomains = new Mock<ISubdomainCache>();
+        subdomains.Setup(x => x.GetSubdomainAsync("first.example", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(new ISubdomainCache.CachedSubdomain(first, domainId)));
+        subdomains.Setup(x => x.GetSubdomainAsync("second.example", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(new ISubdomainCache.CachedSubdomain(second, domainId)));
+        var queue = new Mock<IBackgroundTaskQueue>();
+        var provider = CreateServiceProvider(
+            subdomains.Object, Mock.Of<IChaosAddressCache>(), queue.Object,
+            Mock.Of<IEmailInboxSettingsService>(), Mock.Of<ICatchAllSenderAddressCache>(),
+            new PushNotificationManager());
+        var context = new Mock<ISessionContext>();
+        context.Setup(x => x.ServiceProvider).Returns(provider);
+        var message = new MimeMessage
+        {
+            From = { MailboxAddress.Parse("sender@external.example") },
+            To = { MailboxAddress.Parse("a@first.example"), MailboxAddress.Parse("b@second.example") },
+        };
+
+        var response = await new SpammaMessageStore().SaveAsync(
+            context.Object, CreateTransaction("a@first.example", "b@second.example"),
+            CreateBuffer(message), CancellationToken.None);
+
+        response.Should().Be(SmtpResponse.MailboxNameNotAllowed);
+        queue.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<IBaseEmailCaptureJob>()), Times.Never);
     }
 
     private static IServiceProvider CreateServiceProvider(
