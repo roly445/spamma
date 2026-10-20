@@ -302,7 +302,7 @@ internal sealed class InboxScenarioFixture : IAsyncDisposable
         [
             new EmailReceived.EmailAddress(sender, "Fixture Sender", EmailAddressType.From),
             new EmailReceived.EmailAddress("recipient@example.test", "Fixture Recipient", EmailAddressType.To),
-        ], catchAllSenderAddressId, $"Plain body for {subject}");
+        ], catchAllSenderAddressId, $"Plain body for {subject}", includeAttachment);
         if (campaignId.HasValue)
         {
             session.Events.StartStream<Spamma.Modules.EmailInbox.Domain.EmailAggregate.Email>(

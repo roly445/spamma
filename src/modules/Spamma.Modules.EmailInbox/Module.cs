@@ -102,7 +102,7 @@ public static class Module
 
         services.AddHostedService<SmtpHostedService>();
         services.AddHostedService<EmailCleanupBackgroundService>();
-        services.AddHostedService<MessageBodySearchBackfillService>();
+        services.AddHostedService<MessageSearchMetadataBackfillService>();
         services.AddSingleton<IMessageStoreProvider, LocalMessageStoreProvider>();
         services.AddScoped<IEmailInboxSettingsService, EmailInboxSettingsService>();
         services.AddScoped<ICatchAllSenderAddressCache, CatchAllSenderAddressCache>();

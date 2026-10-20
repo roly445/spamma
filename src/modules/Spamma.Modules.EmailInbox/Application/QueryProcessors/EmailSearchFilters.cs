@@ -28,6 +28,9 @@ internal static class EmailSearchFilters
             var term = value.ToLowerInvariant();
             switch (field)
             {
+                case "has" when value.Equals("attachment", StringComparison.OrdinalIgnoreCase):
+                    query = query.Where(x => x.HasAttachment == true);
+                    break;
                 case "from":
                     query = query.Where(x => x.EmailAddresses.Any(a =>
                         a.EmailAddressType == EmailAddressType.From &&

@@ -80,6 +80,15 @@ public sealed partial class AnonymousAccessSteps
         await fixture.SeedMessageAsync(this.unrelatedSubject, "other-sender@example.test");
     });
 
+    [Given("my inbox contains messages with and without attachments")]
+    public Task GivenMessagesWithAndWithoutAttachmentsAsync() => this.PrepareInboxAsync(async fixture =>
+    {
+        this.inboxSubject = "Attached report " + Guid.NewGuid().ToString("N");
+        this.unrelatedSubject = "Inline report " + Guid.NewGuid().ToString("N");
+        this.inboxMessageId = await fixture.SeedMessageAsync(this.inboxSubject, includeAttachment: true);
+        await fixture.SeedMessageAsync(this.unrelatedSubject);
+    });
+
     [Given("my inbox contains messages")]
     public Task GivenInboxContainsMessagesAsync() => this.PrepareInboxAsync(f => this.SeedOneMessageAsync(f));
 
@@ -200,6 +209,34 @@ public sealed partial class AnonymousAccessSteps
                 FullPage = true,
             });
         }
+    }
+
+    [When("I filter my inbox to messages with attachments")]
+    public async Task WhenIFilterToAttachmentsAsync()
+    {
+        await this.Page.GetByText("Search tips and filters").ClickAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add attachment filter" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("has:attachment");
+        await this.SearchAsync("has:attachment");
+        await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
+
+        var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
+        if (!string.IsNullOrWhiteSpace(screenshotDirectory))
+        {
+            Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(screenshotDirectory, "attachment-search-filter.png"),
+                FullPage = true,
+            });
+        }
+    }
+
+    [Then("only the message with an attachment is shown")]
+    public async Task ThenOnlyAttachmentMessageShownAsync()
+    {
+        await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText(this.unrelatedSubject, new() { Exact = true })).Not.ToBeVisibleAsync();
     }
 
     [Then("unrelated messages are not shown")]

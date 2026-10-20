@@ -285,7 +285,7 @@ Inbox and catch-all search support plain words and field filters. Separate terms
 from:alice@example.com subject:"billing invoice" after:2026-01-01 before:2026-02-01
 ```
 
-Supported fields are `from:`, `to:`, `subject:`, `body:`, `after:`, and `before:`. Dates use `YYYY-MM-DD` in UTC; `after:` includes that date and `before:` excludes that date. Plain words match subjects, sender/recipient names and addresses, and indexed body text. Body search uses PostgreSQL full-text matching; `body:"billing invoice"` requires that phrase. The original EML remains available for viewing and download. Search tips in the inbox list these filters and can insert them into the search field.
+Supported fields are `from:`, `to:`, `subject:`, `body:`, `has:attachment`, `after:`, and `before:`. Dates use `YYYY-MM-DD` in UTC; `after:` includes that date and `before:` excludes that date. Plain words match subjects, sender/recipient names and addresses, and indexed body text. Body search uses PostgreSQL full-text matching; `body:"billing invoice"` requires that phrase. `has:attachment` finds messages with MIME parts marked as attachments and can be combined with other filters. Existing stored messages gain this metadata through the background backfill. The original EML remains available for viewing and download. Search tips in the inbox list these filters and can insert them into the search field.
 
 Existing stored messages are indexed in small background batches after the update. Missing or unreadable EML files are reported in the application logs and marked on the email read model so the backfill can continue.
 

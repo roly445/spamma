@@ -17,6 +17,11 @@ public class EmailLookup
 
     public string? BodyIndexError { get; init; }
 
+    // Null marks messages whose stored MIME has not yet been inspected for attachments.
+    public bool? HasAttachment { get; init; }
+
+    public string? AttachmentIndexError { get; init; }
+
     public DateTimeOffset SentAt { get; init; }
 
     public DateTime? DeletedAt { get; init; }

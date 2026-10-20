@@ -11,4 +11,5 @@ public record CampaignEmailReceivedCommand(
     Guid CampaignId,
     IReadOnlyList<EmailAddress> EmailAddresses,
     Guid? CatchAllSenderAddressId = null,
-    string SearchableBody = "") : ICommand;
+    string SearchableBody = "",
+    bool? HasAttachment = null) : ICommand;

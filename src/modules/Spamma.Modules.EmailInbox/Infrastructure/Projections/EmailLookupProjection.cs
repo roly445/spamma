@@ -24,6 +24,7 @@ public partial class EmailLookupProjection : EventProjection
             SubdomainId = @event.Data.SubdomainId,
             Subject = @event.Data.Subject,
             SearchableBody = @event.Data.SearchableBody,
+            HasAttachment = @event.Data.HasAttachment,
             SentAt = @event.Data.SentAt,
             CatchAllSenderAddressId = @event.Data.CatchAllSenderAddressId,
         });
