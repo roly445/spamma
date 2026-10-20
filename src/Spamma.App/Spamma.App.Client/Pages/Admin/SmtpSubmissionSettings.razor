@@ -42,7 +42,7 @@
                         <p class="mt-2 text-sm text-gray-600">An override replaces the parent domain credential for this subdomain. Disabled permits anonymous submission here.</p>
                     }
                 </div>
-                <div class="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
+                <div id="smtp-effective-policy" class="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
                     <strong>Effective policy:</strong> @(policy.EffectiveMode == SmtpSubmissionMode.RequireAuthentication ? "Credential required" : "No authentication required")
                     @if (IsSubdomain && policy.Mode == SmtpSubmissionMode.Inherit)
                     {

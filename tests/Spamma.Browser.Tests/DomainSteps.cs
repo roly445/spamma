@@ -122,7 +122,7 @@ public sealed partial class AnonymousAccessSteps
     [Then("the subdomain permits anonymous TLS submission")]
     public async Task ThenSubdomainPermitsAnonymousSubmissionAsync()
     {
-        await Assertions.Expect(this.Page.GetByText("No authentication required", new() { Exact = false })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("#smtp-effective-policy")).ToContainTextAsync("No authentication required");
         await Assertions.Expect(this.Page.GetByText("(subdomain override)")).ToBeVisibleAsync();
     }
 
