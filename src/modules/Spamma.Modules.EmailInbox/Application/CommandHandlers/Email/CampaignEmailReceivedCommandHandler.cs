@@ -21,7 +21,8 @@ internal class CampaignEmailReceivedCommandHandler(
                 .ToList(),
             request.CampaignId,
             request.CatchAllSenderAddressId,
-            request.SearchableBody);
+            request.SearchableBody,
+            request.HasAttachment);
 
         if (emailResult.IsFailure)
         {

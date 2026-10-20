@@ -11,6 +11,36 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     [Fact]
+    public async Task Handle_WithAttachmentFilter_CombinesSearchPaginationAndSubdomainScope()
+    {
+        var visibleSubdomain = Guid.NewGuid();
+        var hiddenSubdomain = Guid.NewGuid();
+        this.HttpContextAccessor.AddSubdomainClaim(visibleSubdomain);
+        var now = DateTime.UtcNow;
+        foreach (var (subdomain, subject, hasAttachment, offset) in new[]
+                 {
+                     (visibleSubdomain, "Invoice one", (bool?)true, 0),
+                     (visibleSubdomain, "Invoice two", (bool?)true, -1),
+                     (visibleSubdomain, "Invoice no file", (bool?)false, -2),
+                     (hiddenSubdomain, "Invoice hidden", (bool?)true, -3),
+                 })
+        {
+            this.Session.Store(EmailLookupTestFactory.Create(
+                Guid.NewGuid(), subdomain, Guid.NewGuid(), subject, now.AddMinutes(offset), false,
+                [new("sender@example.com", "Sender", EmailAddressType.From)],
+                hasAttachment: hasAttachment));
+        }
+
+        await this.Session.SaveChangesAsync();
+
+        var result = await this.Sender.Send(new SearchEmailsQuery(SearchText: "has:attachment subject:invoice", Page: 2, PageSize: 1), CancellationToken.None);
+
+        result.Data.TotalCount.Should().Be(2);
+        result.Data.TotalPages.Should().Be(2);
+        result.Data.Items.Should().ContainSingle().Which.Subject.Should().Be("Invoice two");
+    }
+
+    [Fact]
     public async Task Handle_ProjectedBody_IsRemovedFromSearchAfterDeletion()
     {
         var emailId = Guid.NewGuid();

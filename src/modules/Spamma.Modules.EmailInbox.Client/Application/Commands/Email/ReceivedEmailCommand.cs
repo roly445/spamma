@@ -12,4 +12,5 @@ public record ReceivedEmailCommand(
     bool IsCatchAll = false,
     Guid? CatchAllDomainId = null,
     Guid? CatchAllSenderAddressId = null,
-    string SearchableBody = "") : ICommand;
+    string SearchableBody = "",
+    bool? HasAttachment = null) : ICommand;

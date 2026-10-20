@@ -39,6 +39,35 @@ public class BackgroundTaskServiceTests
 
         captured.Should().NotBeNull();
         captured!.SearchableBody.Should().Be("Visible receipt");
+        captured.HasAttachment.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ProcessWorkItemAsync_Attachment_PassesAttachmentFlagToCommand()
+    {
+        var messageId = Guid.NewGuid();
+        var builder = new BodyBuilder { TextBody = "See attached" };
+        builder.Attachments.Add("report.txt", System.Text.Encoding.UTF8.GetBytes("report"));
+        var message = new MimeMessage
+        {
+            From = { new MailboxAddress("Sender", "sender@test.com") },
+            To = { new MailboxAddress("Recipient", "recipient@test.com") },
+            Body = builder.ToMessageBody(),
+        };
+        var provider = new Mock<IMessageStoreProvider>();
+        provider.Setup(x => x.StoreMessageContentAsync(messageId, It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        ReceivedEmailCommand? captured = null;
+        var commander = new Mock<ICommandRunner>();
+        commander.Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
+            .Callback<ReceivedEmailCommand, CancellationToken>((command, _) => captured = command)
+            .ReturnsAsync(CommandResult.Succeeded());
+
+        await BackgroundTaskService.ProcessWorkItemAsync(
+            new StandardEmailCaptureJob(CreateStream(message), Guid.NewGuid(), Guid.NewGuid(), messageId),
+            commander.Object, provider.Object, CancellationToken.None);
+
+        captured!.HasAttachment.Should().BeTrue();
     }
 
     [Fact]

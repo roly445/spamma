@@ -9,6 +9,36 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 public class GetCatchAllEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     [Fact]
+    public async Task Handle_WithAttachmentFilter_ReturnsOnlyMatchingCatchAllMessages()
+    {
+        foreach (var (subject, hasAttachment) in new[]
+                 {
+                     ("Catch-all attached", (bool?)true),
+                     ("Catch-all inline", (bool?)false),
+                 })
+        {
+            this.Session.Store(new EmailLookup
+            {
+                Id = Guid.NewGuid(),
+                DomainId = CatchAllConstants.DomainId,
+                SubdomainId = CatchAllConstants.SubdomainId,
+                Subject = subject,
+                HasAttachment = hasAttachment,
+                SentAt = DateTimeOffset.UtcNow,
+                EmailAddresses = [new("sender@example.com", "Sender", EmailAddressType.From)],
+            });
+        }
+
+        await this.Session.SaveChangesAsync();
+
+        var result = await this.Sender.Send(new GetCatchAllEmailsQuery(SearchText: "has:attachment"), CancellationToken.None);
+
+        result.Data.TotalCount.Should().Be(1);
+        result.Data.Groups.Should().ContainSingle();
+        result.Data.Groups[0].Emails.Should().ContainSingle().Which.Subject.Should().Be("Catch-all attached");
+    }
+
+    [Fact]
     public async Task Handle_WithBodyFilter_ReturnsMatchingCatchAllEmail()
     {
         this.Session.Store(new EmailLookup

@@ -25,6 +25,11 @@ Feature: Personal inbox and message inspection
     When I search for words in the message body
     Then matching messages are shown
 
+  Scenario: Inbox search finds messages with attachments
+    Given my inbox contains messages with and without attachments
+    When I filter my inbox to messages with attachments
+    Then only the message with an attachment is shown
+
   Scenario: An inbox search with no matches explains the result
     Given my inbox contains messages
     When I search for a term that matches none of them

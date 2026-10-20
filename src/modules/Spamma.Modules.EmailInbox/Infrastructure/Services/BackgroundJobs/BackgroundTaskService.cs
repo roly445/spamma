@@ -364,7 +364,8 @@ public class BackgroundTaskService(
                     isCatchAll,
                     isCatchAll ? workItem.DomainId : null,
                     catchAllSenderAddressId,
-                    searchableBody), cancellationToken);
+                    searchableBody,
+                    message.Attachments.Any()), cancellationToken);
         }
         else
         {
@@ -378,7 +379,8 @@ public class BackgroundTaskService(
                     campaignId.Value,
                     addresses,
                     catchAllSenderAddressId,
-                    searchableBody), cancellationToken);
+                    searchableBody,
+                    message.Attachments.Any()), cancellationToken);
         }
 
         if (commandResult.Status != CommandResultStatus.Succeeded)

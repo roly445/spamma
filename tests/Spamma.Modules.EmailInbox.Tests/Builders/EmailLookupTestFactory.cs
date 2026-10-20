@@ -15,7 +15,8 @@ public static class EmailLookupTestFactory
         DateTime? deletedAt = null,
         Guid? campaignId = null,
         string? campaignValue = null,
-        string? searchableBody = null)
+        string? searchableBody = null,
+        bool? hasAttachment = null)
     {
         return new EmailLookup
         {
@@ -24,6 +25,7 @@ public static class EmailLookupTestFactory
             DomainId = domainId,
             Subject = subject,
             SearchableBody = searchableBody,
+            HasAttachment = hasAttachment,
             SentAt = new DateTimeOffset(sentAt),
             IsFavorite = isFavorite,
             DeletedAt = deletedAt,

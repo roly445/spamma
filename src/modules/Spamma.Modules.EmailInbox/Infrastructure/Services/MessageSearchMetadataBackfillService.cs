@@ -7,10 +7,10 @@ using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
-public sealed class MessageBodySearchBackfillService(
+public sealed class MessageSearchMetadataBackfillService(
     IServiceScopeFactory scopeFactory,
     IHostEnvironment hostEnvironment,
-    ILogger<MessageBodySearchBackfillService> logger) : BackgroundService
+    ILogger<MessageSearchMetadataBackfillService> logger) : BackgroundService
 {
     private const int BatchSize = 50;
 
@@ -21,19 +21,20 @@ public sealed class MessageBodySearchBackfillService(
         ILogger logger,
         CancellationToken cancellationToken)
     {
-        var emailIds = await session.Query<EmailLookup>()
-            .Where(email => email.SearchableBody == null && email.DeletedAt == null)
+        var emails = await session.Query<EmailLookup>()
+            .Where(email => (email.SearchableBody == null || email.HasAttachment == null) && email.DeletedAt == null)
             .OrderBy(email => email.SentAt)
             .Take(BatchSize)
-            .Select(email => email.Id)
             .ToListAsync(cancellationToken);
 
         var failed = 0;
-        foreach (var emailId in emailIds)
+        foreach (var email in emails)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var emailId = email.Id;
             var filePath = Path.Combine(hostEnvironment.ContentRootPath, "messages", $"{emailId}.eml");
-            var searchableBody = string.Empty;
+            var searchableBody = email.SearchableBody ?? string.Empty;
+            var hasAttachment = email.HasAttachment ?? false;
             string? error = null;
 
             if (!File.Exists(filePath))
@@ -47,7 +48,15 @@ public sealed class MessageBodySearchBackfillService(
                     var message = await messageStore.LoadMessageContentAsync(emailId, cancellationToken);
                     if (message.HasValue)
                     {
-                        searchableBody = MessageBodyTextExtractor.Extract(message.Value);
+                        if (email.SearchableBody is null)
+                        {
+                            searchableBody = MessageBodyTextExtractor.Extract(message.Value);
+                        }
+
+                        if (email.HasAttachment is null)
+                        {
+                            hasAttachment = message.Value.Attachments.Any();
+                        }
                     }
                     else
                     {
@@ -64,23 +73,25 @@ public sealed class MessageBodySearchBackfillService(
             if (error is not null)
             {
                 failed++;
-                logger.LogWarning("Email {EmailId} body search backfill: {Error}", emailId, error);
+                logger.LogWarning("Email {EmailId} search metadata backfill: {Error}", emailId, error);
             }
 
             session.Patch<EmailLookup>(emailId)
                 .Set(email => email.SearchableBody, searchableBody)
-                .Set(email => email.BodyIndexError, error);
+                .Set(email => email.BodyIndexError, email.SearchableBody is null ? error : email.BodyIndexError)
+                .Set(email => email.HasAttachment, hasAttachment)
+                .Set(email => email.AttachmentIndexError, email.HasAttachment is null ? error : email.AttachmentIndexError);
         }
 
-        if (emailIds.Count > 0)
+        if (emails.Count > 0)
         {
             await session.SaveChangesAsync(cancellationToken);
             logger.LogInformation(
-                "Body search backfilled {ProcessedCount} messages; {FailedCount} had missing or unreadable content",
-                emailIds.Count, failed);
+                "Search metadata backfilled {ProcessedCount} messages; {FailedCount} had missing or unreadable content",
+                emails.Count, failed);
         }
 
-        return emailIds.Count;
+        return emails.Count;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -101,7 +112,7 @@ public sealed class MessageBodySearchBackfillService(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Message body search backfill failed; retrying later");
+                logger.LogError(exception, "Message search metadata backfill failed; retrying later");
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
