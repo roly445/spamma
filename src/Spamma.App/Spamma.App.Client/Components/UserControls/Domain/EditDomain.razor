@@ -83,6 +83,18 @@
                                                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                                     <ValidationMessage For="@(() => model.Description)" class="mt-1 text-sm text-red-600" />
                                 </div>
+                                <div>
+                                    <label for="edit-domain-dns-integration" class="block text-sm font-medium text-gray-700">DNS setup</label>
+                                    <InputSelect id="edit-domain-dns-integration" @bind-Value="model.DnsIntegrationId"
+                                                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                        <option value="">Manual DNS setup</option>
+                                        @foreach (var integration in dnsIntegrations)
+                                        {
+                                            <option value="@integration.Id">@integration.Name (@integration.Provider)</option>
+                                        }
+                                    </InputSelect>
+                                    <p class="mt-1 text-xs text-gray-500">Choose an integration for this domain’s zone. Existing DNS records are not changed until you run DNS setup.</p>
+                                </div>
                             </div>
                         </div>
 

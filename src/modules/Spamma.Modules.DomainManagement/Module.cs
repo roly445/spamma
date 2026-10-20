@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Spamma.Modules.Common.Caching;
 using Spamma.Modules.Common.Infrastructure;
 using Spamma.Modules.DomainManagement.Application.Repositories;
+using Spamma.Modules.DomainManagement.Infrastructure.Dns;
 using Spamma.Modules.DomainManagement.Infrastructure.IntegrationEventHandlers;
 using Spamma.Modules.DomainManagement.Infrastructure.Projections;
 using Spamma.Modules.DomainManagement.Infrastructure.Repositories;
@@ -31,6 +32,14 @@ public static class Module
         services.AddScoped<ISubdomainRepository, SubdomainRepository>();
         services.AddScoped<IChaosAddressRepository, ChaosAddressRepository>();
         services.AddScoped<ILookupClient, LookupClient>();
+        services.AddHttpClient<CloudflareDnsRecordProvider>((serviceProvider, client) =>
+        {
+            var configuration = serviceProvider.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+            client.BaseAddress = new Uri(configuration["DnsAutomation:CloudflareApiBaseUrl"]!);
+            client.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddTransient<IDnsRecordProvider>(serviceProvider => serviceProvider.GetRequiredService<CloudflareDnsRecordProvider>());
+        services.AddScoped<DnsSetupService>();
 
         services.AddScoped<ISubdomainCache, SubdomainCache>();
         services.AddScoped<IChaosAddressCache, ChaosAddressCache>();

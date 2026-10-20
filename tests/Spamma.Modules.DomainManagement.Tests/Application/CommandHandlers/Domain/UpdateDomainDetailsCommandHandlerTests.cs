@@ -1,11 +1,13 @@
 using FluentAssertions;
 using FluentValidation;
+using Marten;
 using MaybeMonad;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
+using Spamma.Modules.DomainManagement.Infrastructure.Dns;
 using Spamma.Modules.DomainManagement.Tests.Builders;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Domain;
@@ -14,17 +16,20 @@ public class UpdateDomainDetailsCommandHandlerTests
 {
     private readonly Mock<IDomainRepository> _repositoryMock;
     private readonly Mock<ILogger<UpdateDomainDetailsCommandHandler>> _loggerMock;
+    private readonly Mock<IDocumentSession> _sessionMock;
     private readonly UpdateDomainDetailsCommandHandler _handler;
 
     public UpdateDomainDetailsCommandHandlerTests()
     {
         this._repositoryMock = new Mock<IDomainRepository>(MockBehavior.Strict);
         this._loggerMock = new Mock<ILogger<UpdateDomainDetailsCommandHandler>>();
+        this._sessionMock = new Mock<IDocumentSession>();
 
         var validators = Array.Empty<IValidator<UpdateDomainDetailsCommand>>();
 
         this._handler = new UpdateDomainDetailsCommandHandler(
             this._repositoryMock.Object,
+            this._sessionMock.Object,
             validators,
             this._loggerMock.Object);
     }
@@ -164,5 +169,38 @@ public class UpdateDomainDetailsCommandHandlerTests
         this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithMatchingDnsIntegration_AssignsItToExistingDomain()
+    {
+        var domainId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+        var domain = new DomainBuilder().WithId(domainId).WithName("example.com").Build();
+        this._repositoryMock.Setup(x => x.GetByIdAsync(domainId, CancellationToken.None)).ReturnsAsync(Maybe.From(domain));
+        this._repositoryMock.Setup(x => x.SaveAsync(domain, CancellationToken.None)).ReturnsAsync(Result.Ok());
+        this._sessionMock.Setup(x => x.LoadAsync<DnsIntegration>(integrationId, CancellationToken.None))
+            .ReturnsAsync(new DnsIntegration { Id = integrationId, ZoneName = "example.com" });
+
+        await this._handler.Handle(new UpdateDomainDetailsCommand(domainId, null, null, integrationId), CancellationToken.None);
+
+        domain.DnsIntegrationId.Should().Be(integrationId);
+        this._repositoryMock.Verify(x => x.SaveAsync(domain, CancellationToken.None), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithDifferentDnsZone_RejectsAssignment()
+    {
+        var domainId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+        var domain = new DomainBuilder().WithId(domainId).WithName("example.com").Build();
+        this._repositoryMock.Setup(x => x.GetByIdAsync(domainId, CancellationToken.None)).ReturnsAsync(Maybe.From(domain));
+        this._sessionMock.Setup(x => x.LoadAsync<DnsIntegration>(integrationId, CancellationToken.None))
+            .ReturnsAsync(new DnsIntegration { Id = integrationId, ZoneName = "other.com" });
+
+        await this._handler.Handle(new UpdateDomainDetailsCommand(domainId, null, null, integrationId), CancellationToken.None);
+
+        domain.DnsIntegrationId.Should().BeNull();
+        this._repositoryMock.Verify(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None), Times.Never);
     }
 }

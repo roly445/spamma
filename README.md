@@ -257,6 +257,8 @@ with smtplib.SMTP('localhost', 1025) as server:
 
 #### MX Record Configuration
 
+DNS records can also be submitted automatically with a configured provider. See [DNS automation](docs/dns-automation.md) for Cloudflare setup and the provider extension point.
+
 To capture emails sent to your domain:
 
 1. **Create a domain in Spamma** via the web interface

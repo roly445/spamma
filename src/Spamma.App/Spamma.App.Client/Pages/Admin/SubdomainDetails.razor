@@ -137,10 +137,20 @@
                                 </div>
                                 
                                 <div class="mt-4">
+                                    @if (hasDnsIntegration)
+                                    {
+                                        <button @onclick="SetupSubdomainDns" disabled="@isSettingUpDns" class="mr-3 text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50">
+                                            @(isSettingUpDns ? "Setting up DNS..." : "Set up DNS automatically")
+                                        </button>
+                                    }
                                     <button @onclick="CheckMxRecords" disabled="@isCheckingMx" 
                                             class="text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50">
                                         @(isCheckingMx ? "Checking..." : "Re-check MX Records")
                                     </button>
+                                    @if (dnsSetupMessage is not null)
+                                    {
+                                        <p role="status" class="mt-2 text-sm text-gray-700">@dnsSetupMessage</p>
+                                    }
                                 </div>
                             </div>
                         }

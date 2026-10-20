@@ -9,9 +9,9 @@ public partial class Domain
 {
     internal static Domain Replay(Domain? aggregate, object @event)
     {
-        if (aggregate is null && @event is not DomainCreated)
+        if (aggregate is null && @event is not DomainCreated and not DomainCreatedV2)
         {
-            throw new ArgumentException("The first event must be DomainCreated.", nameof(@event));
+            throw new ArgumentException("The first event must be DomainCreated or DomainCreatedV2.", nameof(@event));
         }
 
         aggregate ??= new Domain();
@@ -26,11 +26,17 @@ public partial class Domain
             case DomainCreated domainCreated:
                 this.ApplyRecorded(domainCreated);
                 break;
+            case DomainCreatedV2 domainCreatedV2:
+                this.ApplyRecorded(domainCreatedV2);
+                break;
             case DomainVerified domainVerified:
                 this.ApplyRecorded(domainVerified);
                 break;
             case DetailsUpdated detailsUpdated:
                 this.ApplyRecorded(detailsUpdated);
+                break;
+            case DomainDnsIntegrationChanged dnsIntegrationChanged:
+                this.ApplyRecorded(dnsIntegrationChanged);
                 break;
             case DomainSuspended domainSuspended:
                 this.ApplyRecorded(domainSuspended);
@@ -67,6 +73,18 @@ public partial class Domain
         this.PrimaryContactEmail = @event.PrimaryContactEmail;
         this.Description = @event.Description;
         this.VerificationToken = @event.VerificationToken;
+        this.DnsIntegrationId = null;
+        this.CreatedAt = @event.CreatedAt;
+    }
+
+    private void ApplyRecorded(DomainCreatedV2 @event)
+    {
+        this.Id = @event.DomainId;
+        this.Name = @event.Name;
+        this.PrimaryContactEmail = @event.PrimaryContactEmail;
+        this.Description = @event.Description;
+        this.VerificationToken = @event.VerificationToken;
+        this.DnsIntegrationId = @event.DnsIntegrationId;
         this.CreatedAt = @event.CreatedAt;
     }
 
@@ -79,6 +97,11 @@ public partial class Domain
     {
         this.Description = @event.Description;
         this.PrimaryContactEmail = @event.PrimaryContactEmail;
+    }
+
+    private void ApplyRecorded(DomainDnsIntegrationChanged @event)
+    {
+        this.DnsIntegrationId = @event.DnsIntegrationId;
     }
 
     private void ApplyRecorded(DomainSuspended @event)

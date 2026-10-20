@@ -13,6 +13,8 @@ public sealed partial class AnonymousAccessSteps
     private string verificationToken = string.Empty;
     private string moderatorEmail = string.Empty;
     private string moderatorName = string.Empty;
+    private const string ScreenshotZoneName = "example.com";
+    private readonly string screenshotIntegrationName = $"Screenshot Cloudflare {Guid.NewGuid().ToString("N")[..6]}";
 
     private DomainScenarioFixture DomainFixture => this.domainFixture
         ?? throw new InvalidOperationException("The domain fixture has not been created.");
@@ -99,6 +101,111 @@ public sealed partial class AnonymousAccessSteps
 
     [Given("I have domain administration permission")]
     public Task GivenIAmDomainAdminAsync() => this.PrepareDomainAsync(seed: false);
+
+    [When("I configure a Cloudflare DNS integration")]
+    public async Task WhenIConfigureCloudflareDnsIntegrationAsync()
+    {
+        await this.Page.GotoAsync("/admin/dns-integrations");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add Integration" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Dialog, new() { Name = "Add DNS Integration" })).ToBeVisibleAsync();
+        await this.SaveDnsScreenshotAsync("add-dns-integration.png");
+        await this.Page.Locator("#dns-connection-name").FillAsync(this.screenshotIntegrationName);
+        await this.Page.Locator("#dns-zone-name").FillAsync(ScreenshotZoneName);
+        await this.Page.Locator("#dns-zone-id").FillAsync(Guid.NewGuid().ToString("N"));
+        await this.Page.Locator("#dns-api-token").FillAsync("fixture-token-do-not-use");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save Integration" }).ClickAsync();
+    }
+
+    [Then("the DNS integration appears without its token")]
+    public async Task ThenDnsIntegrationAppearsWithoutTokenAsync()
+    {
+        await Assertions.Expect(this.Page.GetByText("Integration saved. Select it when adding a matching domain.")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText(this.screenshotIntegrationName, new() { Exact = true })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("#dns-api-token")).ToHaveCountAsync(0);
+        await this.SaveDnsScreenshotAsync("dns-integrations.png");
+    }
+
+    [When("I edit the DNS integration in the slide out")]
+    public async Task WhenIEditDnsIntegrationAsync()
+    {
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = $"Edit {this.screenshotIntegrationName}" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Dialog, new() { Name = "Edit DNS Integration" })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("#edit-dns-api-token")).ToBeEmptyAsync();
+        await this.SaveDnsScreenshotAsync("edit-dns-integration.png");
+        await this.Page.Locator("#edit-dns-zone-id").FillAsync(new string('b', 32));
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save Changes" }).ClickAsync();
+    }
+
+    [Then("the updated DNS integration appears")]
+    public async Task ThenUpdatedDnsIntegrationAppearsAsync()
+    {
+        await Assertions.Expect(this.Page.GetByText("Integration updated.")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("tbody tr").Filter(new() { HasText = this.screenshotIntegrationName }))
+            .ToContainTextAsync(new string('b', 32));
+    }
+
+    [When("I open the add-domain form")]
+    public async Task WhenIOpenAddDomainFormAsync()
+    {
+        await this.Page.GotoAsync("/admin/domains");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add Domain", Exact = true }).ClickAsync();
+        await Assertions.Expect(this.Page.Locator("#domain-dns-integration")).ToBeVisibleAsync();
+    }
+
+    [Then("I can choose manual DNS or the Cloudflare integration")]
+    public async Task ThenCanChooseDnsSetupAsync()
+    {
+        var selector = this.Page.Locator("#domain-dns-integration");
+        await Assertions.Expect(selector).ToHaveValueAsync(string.Empty);
+        await Assertions.Expect(selector.Locator("option").Filter(new() { HasText = this.screenshotIntegrationName })).ToHaveCountAsync(1);
+        await selector.SelectOptionAsync(new SelectOptionValue { Label = $"{this.screenshotIntegrationName} (Cloudflare · {ScreenshotZoneName})" });
+        await Assertions.Expect(selector).Not.ToHaveValueAsync(string.Empty);
+        await this.SaveDnsScreenshotAsync("add-domain-dns-selection.png");
+    }
+
+    private async Task SaveDnsScreenshotAsync(string fileName)
+    {
+        var directory = Environment.GetEnvironmentVariable("SPAMMA_DNS_SCREENSHOT_DIR");
+        if (string.IsNullOrWhiteSpace(directory)) return;
+        Directory.CreateDirectory(directory);
+        await this.Page.SetViewportSizeAsync(1280, 1000);
+        await this.Page.ScreenshotAsync(new PageScreenshotOptions
+        {
+            Path = Path.Combine(directory, fileName),
+            FullPage = true,
+        });
+    }
+
+    [When("I configure a Cloudflare integration for that domain")]
+    public async Task WhenIConfigureCloudflareForExistingDomainAsync()
+    {
+        await this.Page.GotoAsync("/admin/dns-integrations");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add Integration" }).ClickAsync();
+        await this.Page.Locator("#dns-connection-name").FillAsync(this.screenshotIntegrationName);
+        await this.Page.Locator("#dns-zone-name").FillAsync(this.reviewDomainName);
+        await this.Page.Locator("#dns-zone-id").FillAsync(Guid.NewGuid().ToString("N"));
+        await this.Page.Locator("#dns-api-token").FillAsync("fixture-token-do-not-use");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save Integration" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByText(this.screenshotIntegrationName, new() { Exact = true })).ToBeVisibleAsync();
+    }
+
+    [When("I assign it in the domain edit panel")]
+    public async Task WhenIAssignDnsIntegrationToExistingDomainAsync()
+    {
+        await this.OpenDomainDetailsAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Edit Domain" }).ClickAsync();
+        var selector = this.Page.Locator("#edit-domain-dns-integration");
+        await Assertions.Expect(selector).ToBeVisibleAsync();
+        await selector.SelectOptionAsync(new SelectOptionValue { Label = $"{this.screenshotIntegrationName} (Cloudflare)" });
+        await this.SaveDnsScreenshotAsync("existing-domain-dns-selection.png");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save Changes" }).ClickAsync();
+    }
+
+    [Then("automatic DNS setup is available for the existing domain")]
+    public async Task ThenExistingDomainCanSetUpDnsAsync()
+    {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Set up DNS automatically" })).ToBeVisibleAsync();
+    }
 
     [When("I add a valid domain with no contact email")]
     public async Task WhenIAddDomainAsync()

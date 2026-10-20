@@ -17,5 +17,7 @@ public class UpdateDomainDetailsCommandValidator : AbstractValidator<UpdateDomai
             .EmailAddress()
             .WithErrorCode(CommonValidationCodes.InvalidFormat)
             .WithMessage("Primary contact email must be a valid email address.");
+
+        this.RuleFor(x => x.DnsIntegrationId).NotEqual(Guid.Empty).When(x => x.DnsIntegrationId.HasValue);
     }
 }

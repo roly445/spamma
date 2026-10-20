@@ -30,6 +30,9 @@ public partial class SubdomainDetails(ICommandRunner commander, IQueryRunner que
 
     private bool isLoading = true;
     private bool isCheckingMx;
+    private bool isSettingUpDns;
+    private bool hasDnsIntegration;
+    private string? dnsSetupMessage;
     private Settings settings = settings.Value;
 
     [Parameter]
@@ -139,6 +142,7 @@ public partial class SubdomainDetails(ICommandRunner commander, IQueryRunner que
             if (result.Status == QueryResultStatus.Succeeded)
             {
                 this.subdomain = result.Data;
+                this.hasDnsIntegration = this.subdomain.CanSetupDns;
             }
         }
         catch (Exception ex)
@@ -177,6 +181,27 @@ public partial class SubdomainDetails(ICommandRunner commander, IQueryRunner que
 
         this.isCheckingMx = false;
         this.StateHasChanged();
+    }
+
+    private async Task SetupSubdomainDns()
+    {
+        if (this.subdomain is null)
+        {
+            return;
+        }
+
+        this.isSettingUpDns = true;
+        try
+        {
+            var result = await commander.Send(new SetupSubdomainDnsCommand(this.subdomain.SubdomainId));
+            this.dnsSetupMessage = result.Status == CommandResultStatus.Succeeded
+                ? result.Data.Message
+                : "DNS setup could not be completed. Add the record manually or retry.";
+        }
+        finally
+        {
+            this.isSettingUpDns = false;
+        }
     }
 
     private void GoBack() => navigation.NavigateTo("/admin/subdomains");

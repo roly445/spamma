@@ -93,7 +93,7 @@ internal class SearchDomainsQueryProcessor(IDocumentSession session, IHttpContex
             d.IsVerified,
             d.CreatedAt,
             d.VerifiedAt,
-            d.SubdomainCount, d.AssignedModeratorCount, d.PrimaryContact, d.Description, d.VerificationToken)).ToList();
+            d.SubdomainCount, d.AssignedModeratorCount, d.PrimaryContact, d.Description, d.VerificationToken, d.DnsIntegrationId)).ToList();
 
         var totalPages = (int)Math.Ceiling((double)totalCount / request.PageSize);
 

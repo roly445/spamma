@@ -13,4 +13,5 @@ public record GetDetailedSubdomainByIdQueryResult(
     string FullName,
     Guid DomainId,
     MxStatus MxStatus,
-    DateTime? MxCheckedAt) : IQueryResult;
+    DateTime? MxCheckedAt,
+    bool CanSetupDns = false) : IQueryResult;
