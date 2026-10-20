@@ -43,20 +43,20 @@ public partial class Email : AggregateRoot
     internal IReadOnlyList<EmailAddress> EmailAddresses => this._emailAddresses;
 
     internal static Result<Email, BluQubeErrorData> Create(
-        Guid emailId, Guid domainId, Guid subdomainId, string subject, DateTimeOffset whenSent, IReadOnlyList<EmailReceived.EmailAddress> emailAddresses, Guid? catchAllSenderAddressId = null)
+        Guid emailId, Guid domainId, Guid subdomainId, string subject, DateTimeOffset whenSent, IReadOnlyList<EmailReceived.EmailAddress> emailAddresses, Guid? catchAllSenderAddressId = null, string? searchableBody = null)
     {
         var email = new Email();
-        var @event = new EmailReceived(emailId, domainId, subdomainId, subject, whenSent, emailAddresses, catchAllSenderAddressId);
+        var @event = new EmailReceived(emailId, domainId, subdomainId, subject, whenSent, emailAddresses, catchAllSenderAddressId, searchableBody);
         email.RaiseEvent(@event);
 
         return Result.Ok<Email, BluQubeErrorData>(email);
     }
 
     internal static Result<Email, BluQubeErrorData> Create(
-        Guid emailId, Guid domainId, Guid subdomainId, string subject, DateTimeOffset whenSent, IReadOnlyList<EmailReceived.EmailAddress> emailAddresses, Guid campaignId, Guid? catchAllSenderAddressId = null)
+        Guid emailId, Guid domainId, Guid subdomainId, string subject, DateTimeOffset whenSent, IReadOnlyList<EmailReceived.EmailAddress> emailAddresses, Guid campaignId, Guid? catchAllSenderAddressId = null, string? searchableBody = null)
     {
         var email = new Email();
-        var @event = new EmailReceived(emailId, domainId, subdomainId, subject, whenSent, emailAddresses, catchAllSenderAddressId);
+        var @event = new EmailReceived(emailId, domainId, subdomainId, subject, whenSent, emailAddresses, catchAllSenderAddressId, searchableBody);
         email.RaiseEvent(@event);
         email.RaiseEvent(new CampaignCaptured(campaignId));
 

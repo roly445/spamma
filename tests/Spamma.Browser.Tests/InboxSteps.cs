@@ -180,6 +180,28 @@ public sealed partial class AnonymousAccessSteps
     public Task ThenMatchingMessagesShownAsync() =>
         Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
 
+    [When("I search for words in the message body")]
+    public async Task WhenISearchForBodyWordsAsync()
+    {
+        await this.Page.GetByText("Search tips and filters").ClickAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add body filter" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("body:");
+        await this.SearchAsync("body:\"Plain body\"");
+        await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
+
+        var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
+        if (!string.IsNullOrWhiteSpace(screenshotDirectory))
+        {
+            Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.WaitForTimeoutAsync(800);
+            await this.Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(screenshotDirectory, "body-search-filter.png"),
+                FullPage = true,
+            });
+        }
+    }
+
     [Then("unrelated messages are not shown")]
     public Task ThenUnrelatedMessagesHiddenAsync() =>
         Assertions.Expect(this.Page.GetByText(this.unrelatedSubject, new() { Exact = true })).ToHaveCountAsync(0);

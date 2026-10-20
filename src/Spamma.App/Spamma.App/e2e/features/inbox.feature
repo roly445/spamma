@@ -20,6 +20,11 @@ Feature: Personal inbox and message inspection
     Then matching messages are shown
     And unrelated messages are not shown
 
+  Scenario: Inbox search finds words in the message body
+    Given a non-campaign message has been received for a subdomain I can view
+    When I search for words in the message body
+    Then matching messages are shown
+
   Scenario: An inbox search with no matches explains the result
     Given my inbox contains messages
     When I search for a term that matches none of them

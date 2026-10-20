@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
+using Spamma.Modules.EmailInbox.Domain.EmailAggregate.Events;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 using Spamma.Modules.EmailInbox.Tests.Builders;
@@ -9,6 +10,96 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 
 public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
+    [Fact]
+    public async Task Handle_ProjectedBody_IsRemovedFromSearchAfterDeletion()
+    {
+        var emailId = Guid.NewGuid();
+        var subdomainId = Guid.NewGuid();
+        this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
+        this.Session.Events.StartStream<Spamma.Modules.EmailInbox.Domain.EmailAggregate.Email>(
+            emailId,
+            new EmailReceived(
+                emailId, Guid.NewGuid(), subdomainId, "Other subject", DateTimeOffset.UtcNow,
+                [new("sender@example.com", "Sender", EmailAddressType.From)],
+                SearchableBody: "Projectedbackfill nebula"));
+        await this.Session.SaveChangesAsync();
+
+        var query = new SearchEmailsQuery(SearchText: "body:projectedbackfill");
+        (await this.Sender.Send(query, CancellationToken.None)).Data.Items.Should().ContainSingle();
+
+        this.Session.Events.Append(emailId, new EmailDeleted(DateTime.UtcNow));
+        await this.Session.SaveChangesAsync();
+
+        (await this.Sender.Send(query, CancellationToken.None)).Data.Items.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("body:quasarbilling")]
+    [InlineData("quasarbilling")]
+    public async Task Handle_WithBodySearch_KeepsSubdomainScope(string searchText)
+    {
+        var visibleSubdomain = Guid.NewGuid();
+        var hiddenSubdomain = Guid.NewGuid();
+        this.HttpContextAccessor.AddSubdomainClaim(visibleSubdomain);
+
+        foreach (var subdomainId in new[] { visibleSubdomain, hiddenSubdomain })
+        {
+            this.Session.Store(EmailLookupTestFactory.Create(
+                Guid.NewGuid(), subdomainId, Guid.NewGuid(), "Unrelated subject",
+                DateTime.UtcNow, false,
+                [new("sender@example.com", "Sender", EmailAddressType.From)],
+                searchableBody: "The quasarbilling report is ready"));
+        }
+
+        await this.Session.SaveChangesAsync();
+
+        var result = await this.Sender.Send(new SearchEmailsQuery(SearchText: searchText), CancellationToken.None);
+
+        result.Data.Items.Should().ContainSingle();
+        result.Data.TotalCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Handle_WithQuotedBodyPhrase_CombinesSubjectAndBody()
+    {
+        var subdomainId = Guid.NewGuid();
+        this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
+        this.Session.Store(EmailLookupTestFactory.Create(
+            Guid.NewGuid(), subdomainId, Guid.NewGuid(), "Invoice",
+            DateTime.UtcNow, false,
+            [new("sender@example.com", "Sender", EmailAddressType.From)],
+            searchableBody: "A cobalt invoice arrived"));
+        this.Session.Store(EmailLookupTestFactory.Create(
+            Guid.NewGuid(), subdomainId, Guid.NewGuid(), "Invoice",
+            DateTime.UtcNow.AddMinutes(-1), false,
+            [new("sender@example.com", "Sender", EmailAddressType.From)],
+            searchableBody: "An invoice for cobalt arrived"));
+        await this.Session.SaveChangesAsync();
+
+        var result = await this.Sender.Send(
+            new SearchEmailsQuery(SearchText: "subject:invoice body:\"cobalt invoice\""), CancellationToken.None);
+
+        result.Data.Items.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Handle_WithBodyFilter_DoesNotMatchSubjectAlone()
+    {
+        var subdomainId = Guid.NewGuid();
+        this.HttpContextAccessor.AddSubdomainClaim(subdomainId);
+        this.Session.Store(EmailLookupTestFactory.Create(
+            Guid.NewGuid(), subdomainId, Guid.NewGuid(), "Quasarbilling notice",
+            DateTime.UtcNow, false,
+            [new("sender@example.com", "Sender", EmailAddressType.From)],
+            searchableBody: "Only unrelated body words"));
+        await this.Session.SaveChangesAsync();
+
+        var result = await this.Sender.Send(
+            new SearchEmailsQuery(SearchText: "body:quasarbilling"), CancellationToken.None);
+
+        result.Data.Items.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task Handle_WithCombinedFilters_KeepsSubdomainScope()
     {

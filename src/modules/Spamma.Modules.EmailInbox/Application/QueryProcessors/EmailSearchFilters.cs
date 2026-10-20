@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Marten;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
@@ -40,6 +41,11 @@ internal static class EmailSearchFilters
                 case "subject":
                     query = query.Where(x => x.Subject.ToLowerInvariant().Contains(term));
                     break;
+                case "body":
+                    query = value.Contains(' ')
+                        ? query.Where(x => x.PhraseSearch(value))
+                        : query.Where(x => x.PlainTextSearch(value));
+                    break;
                 case "before" when TryDate(value, out var before):
                     query = query.Where(x => x.SentAt < before);
                     break;
@@ -49,9 +55,15 @@ internal static class EmailSearchFilters
                 default:
                     // Preserve ordinary text search, including text containing a colon.
                     var plainTerm = token.ToLowerInvariant();
-                    query = query.Where(x => x.Subject.ToLowerInvariant().Contains(plainTerm) ||
-                        x.EmailAddresses.Any(a => a.Address.ToLowerInvariant().Contains(plainTerm) ||
-                                                  a.Name.ToLowerInvariant().Contains(plainTerm)));
+                    query = token.Contains(' ')
+                        ? query.Where(x => x.Subject.ToLowerInvariant().Contains(plainTerm) ||
+                            x.EmailAddresses.Any(a => a.Address.ToLowerInvariant().Contains(plainTerm) ||
+                                                      a.Name.ToLowerInvariant().Contains(plainTerm)) ||
+                            x.PhraseSearch(token))
+                        : query.Where(x => x.Subject.ToLowerInvariant().Contains(plainTerm) ||
+                            x.EmailAddresses.Any(a => a.Address.ToLowerInvariant().Contains(plainTerm) ||
+                                                      a.Name.ToLowerInvariant().Contains(plainTerm)) ||
+                            x.PlainTextSearch(token));
                     break;
             }
         }

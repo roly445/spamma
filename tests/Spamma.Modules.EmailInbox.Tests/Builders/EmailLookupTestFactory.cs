@@ -14,7 +14,8 @@ public static class EmailLookupTestFactory
         List<EmailAddress> emailAddresses,
         DateTime? deletedAt = null,
         Guid? campaignId = null,
-        string? campaignValue = null)
+        string? campaignValue = null,
+        string? searchableBody = null)
     {
         return new EmailLookup
         {
@@ -22,6 +23,7 @@ public static class EmailLookupTestFactory
             SubdomainId = subdomainId,
             DomainId = domainId,
             Subject = subject,
+            SearchableBody = searchableBody,
             SentAt = new DateTimeOffset(sentAt),
             IsFavorite = isFavorite,
             DeletedAt = deletedAt,

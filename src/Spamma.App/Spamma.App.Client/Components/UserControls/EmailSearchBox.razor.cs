@@ -10,6 +10,7 @@ public partial class EmailSearchBox
         new("sender", "from:", "Sender name or address"),
         new("recipient", "to:", "Recipient name or address"),
         new("subject", "subject:", "Words in the subject"),
+        new("body", "body:", "Words in the message"),
         new("after", "after:", "Sent on or after a date"),
         new("before", "before:", "Sent before a date"),
     ];

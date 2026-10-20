@@ -149,12 +149,12 @@ jobs:
             spamma-setup.log
           retention-days: 14
 
-      - name: Upload search screenshot
+      - name: Upload inbox search screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: advanced-search-screenshot
-          path: browser-test-screenshots/advanced-search-from-filter.png
+          name: inbox-search-screenshots
+          path: browser-test-screenshots/*.png
           if-no-files-found: ignore
           retention-days: 14
 
