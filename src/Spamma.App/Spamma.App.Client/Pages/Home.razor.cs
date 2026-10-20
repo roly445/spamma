@@ -31,6 +31,7 @@ public partial class Home(
     private IReadOnlyList<SearchEmailsQueryResult.EmailSummary> emails = new List<SearchEmailsQueryResult.EmailSummary>();
     private SearchEmailsQueryResult.EmailSummary? selectedEmail;
     private string _searchText = string.Empty;
+    private string? _searchError;
     private bool _isLoading = false;
     private bool _isSearching = false;
     private bool _showCampaignEmails = false;
@@ -238,6 +239,15 @@ public partial class Home(
 
     private async Task LoadEmails(string? searchText = null, int page = 1)
     {
+        searchText ??= this._searchText;
+        this._searchError = EmailSearchSyntax.Parse(searchText).Error;
+        if (this._searchError is not null)
+        {
+            this._isSearching = false;
+            this.StateHasChanged();
+            return;
+        }
+
         this._isLoading = true;
         this.StateHasChanged();
 

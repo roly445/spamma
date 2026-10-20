@@ -189,6 +189,31 @@ public sealed partial class AnonymousAccessSteps
     public Task ThenMatchingMessagesShownAsync() =>
         Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
 
+    [When("I search with an incomplete subject filter")]
+    public Task WhenISearchWithIncompleteFilterAsync() => this.SearchAsync("subject:");
+
+    [Then("I see how to correct the filter without a no-results message")]
+    public async Task ThenIncompleteFilterExplainedAsync()
+    {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Alert)).ToHaveTextAsync("Add a value after subject:.");
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("subject:");
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "No emails found" })).ToHaveCountAsync(0);
+
+        var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
+        if (!string.IsNullOrWhiteSpace(screenshotDirectory))
+        {
+            Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(screenshotDirectory, "invalid-search-filter.png"),
+                FullPage = true,
+            });
+        }
+    }
+
+    [When("I complete the subject filter")]
+    public Task WhenICompleteSubjectFilterAsync() => this.SearchAsync("subject:Needle");
+
     [When("I search for words in the message body")]
     public async Task WhenISearchForBodyWordsAsync()
     {

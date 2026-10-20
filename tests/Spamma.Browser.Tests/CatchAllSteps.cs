@@ -255,6 +255,29 @@ public sealed partial class AnonymousAccessSteps
         await Assertions.Expect(this.Page.GetByText(this.unrelatedCatchAllSubject, new() { Exact = true })).ToHaveCountAsync(0);
     }
 
+    [When("I search the catch-all inbox with an invalid date filter")]
+    public async Task WhenISearchCatchAllWithInvalidDateAsync()
+    {
+        await this.OpenCatchAllInboxAsync();
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).FillAsync("after:tomorrow");
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).PressAsync("Enter");
+    }
+
+    [Then("I see date guidance without a no-results message")]
+    public async Task ThenInvalidCatchAllDateExplainedAsync()
+    {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Alert)).ToContainTextAsync("Use YYYY-MM-DD for after:");
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("after:tomorrow");
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = "No catch-all emails found" })).ToHaveCountAsync(0);
+    }
+
+    [When("I correct the catch-all inbox search")]
+    public async Task WhenICorrectCatchAllSearchAsync()
+    {
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).FillAsync("subject:Needle");
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).PressAsync("Enter");
+    }
+
     [Given("another user's catch-all sender has a captured message")]
     public Task GivenOtherCatchAllMessageAsync() => this.PrepareCatchAllAsync(enabled: true, seed: async fixture =>
     {

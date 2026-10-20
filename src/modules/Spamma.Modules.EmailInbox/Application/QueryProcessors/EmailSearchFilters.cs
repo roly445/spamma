@@ -1,6 +1,5 @@
-using System.Globalization;
-using System.Text;
 using Marten;
+using Spamma.Modules.EmailInbox.Client.Application.Queries;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 using Spamma.Modules.EmailInbox.Infrastructure.ReadModels;
 
@@ -10,21 +9,21 @@ internal static class EmailSearchFilters
 {
     public static IQueryable<EmailLookup> Apply(IQueryable<EmailLookup> query, string? searchText)
     {
-        if (string.IsNullOrWhiteSpace(searchText))
+        var parsed = EmailSearchSyntax.Parse(searchText);
+        if (!parsed.IsValid)
         {
-            return query;
+            throw new ArgumentException(parsed.Error, nameof(searchText));
         }
 
-        foreach (var token in Tokenize(searchText))
-        {
-            var separator = token.IndexOf(':');
-            var field = separator > 0 ? token[..separator].ToLowerInvariant() : string.Empty;
-            var value = separator > 0 ? token[(separator + 1)..] : token;
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                continue;
-            }
+        return Apply(query, parsed);
+    }
 
+    public static IQueryable<EmailLookup> Apply(IQueryable<EmailLookup> query, EmailSearchParseResult parsed)
+    {
+        foreach (var token in parsed.Tokens)
+        {
+            var field = token.Field;
+            var value = token.Value;
             var term = value.ToLowerInvariant();
             switch (field)
             {
@@ -49,64 +48,28 @@ internal static class EmailSearchFilters
                         ? query.Where(x => x.PhraseSearch(value))
                         : query.Where(x => x.PlainTextSearch(value));
                     break;
-                case "before" when TryDate(value, out var before):
+                case "before" when EmailSearchSyntax.TryDate(value, out var before):
                     query = query.Where(x => x.SentAt < before);
                     break;
-                case "after" when TryDate(value, out var after):
+                case "after" when EmailSearchSyntax.TryDate(value, out var after):
                     query = query.Where(x => x.SentAt >= after);
                     break;
                 default:
                     // Preserve ordinary text search, including text containing a colon.
-                    var plainTerm = token.ToLowerInvariant();
-                    query = token.Contains(' ')
+                    var plainTerm = token.Raw.ToLowerInvariant();
+                    query = token.Raw.Contains(' ')
                         ? query.Where(x => x.Subject.ToLowerInvariant().Contains(plainTerm) ||
                             x.EmailAddresses.Any(a => a.Address.ToLowerInvariant().Contains(plainTerm) ||
                                                       a.Name.ToLowerInvariant().Contains(plainTerm)) ||
-                            x.PhraseSearch(token))
+                            x.PhraseSearch(token.Raw))
                         : query.Where(x => x.Subject.ToLowerInvariant().Contains(plainTerm) ||
                             x.EmailAddresses.Any(a => a.Address.ToLowerInvariant().Contains(plainTerm) ||
                                                       a.Name.ToLowerInvariant().Contains(plainTerm)) ||
-                            x.PlainTextSearch(token));
+                            x.PlainTextSearch(token.Raw));
                     break;
             }
         }
 
         return query;
-    }
-
-    private static bool TryDate(string value, out DateTimeOffset date) =>
-        DateTimeOffset.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out date);
-
-    private static IEnumerable<string> Tokenize(string input)
-    {
-        var token = new StringBuilder();
-        var inQuotes = false;
-        foreach (var character in input)
-        {
-            if (character == '"')
-            {
-                inQuotes = !inQuotes;
-                continue;
-            }
-
-            if (char.IsWhiteSpace(character) && !inQuotes)
-            {
-                if (token.Length > 0)
-                {
-                    yield return token.ToString();
-                    token.Clear();
-                }
-
-                continue;
-            }
-
-            token.Append(character);
-        }
-
-        if (token.Length > 0)
-        {
-            yield return token.ToString();
-        }
     }
 }

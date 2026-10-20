@@ -9,6 +9,14 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 public class GetCatchAllEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     [Fact]
+    public async Task Handle_InvalidSearch_ReturnsFailure()
+    {
+        var result = await this.Sender.Send(new GetCatchAllEmailsQuery(SearchText: "has:image"), CancellationToken.None);
+
+        result.Status.Should().Be(BluQube.Constants.QueryResultStatus.Failed);
+    }
+
+    [Fact]
     public async Task Handle_WithAttachmentFilter_ReturnsOnlyMatchingCatchAllMessages()
     {
         foreach (var (subject, hasAttachment) in new[]

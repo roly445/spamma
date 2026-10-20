@@ -17,6 +17,7 @@ public partial class CatchAllInbox(
     private IReadOnlyList<GetCatchAllEmailsQueryResult.SenderGroup> _groups = [];
     private SearchEmailsQueryResult.EmailSummary? _selectedEmail;
     private string _searchText = string.Empty;
+    private string? _searchError;
     private bool _isLoading;
     private bool _isSearching;
     private bool _catchAllEnabled;
@@ -78,6 +79,14 @@ public partial class CatchAllInbox(
 
     private async Task LoadEmails()
     {
+        this._searchError = EmailSearchSyntax.Parse(this._searchText).Error;
+        if (this._searchError is not null)
+        {
+            this._isSearching = false;
+            this.StateHasChanged();
+            return;
+        }
+
         this._isLoading = true;
         this.StateHasChanged();
 

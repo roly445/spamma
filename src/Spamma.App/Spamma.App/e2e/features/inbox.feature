@@ -20,6 +20,13 @@ Feature: Personal inbox and message inspection
     Then matching messages are shown
     And unrelated messages are not shown
 
+  Scenario: Inbox search explains an incomplete filter
+    Given my inbox contains messages with different subjects and email addresses
+    When I search with an incomplete subject filter
+    Then I see how to correct the filter without a no-results message
+    When I complete the subject filter
+    Then matching messages are shown
+
   Scenario: Inbox search finds words in the message body
     Given a non-campaign message has been received for a subdomain I can view
     When I search for words in the message body

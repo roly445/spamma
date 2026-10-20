@@ -30,6 +30,9 @@ public partial class EmailSearchBox
     [Parameter]
     public EventCallback OnClear { get; set; }
 
+    [Parameter]
+    public string? Error { get; set; }
+
     private Task HandleInput(ChangeEventArgs args) =>
         this.ValueChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
