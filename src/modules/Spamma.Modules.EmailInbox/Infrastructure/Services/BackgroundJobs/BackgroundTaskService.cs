@@ -101,7 +101,7 @@ public class BackgroundTaskService(
 
                         var stored = await ExtractEmailAddressesAndSendCommand(
                             spamJob.MessageId, message, commander, messageStoreProvider, spamJob,
-                            spamCampaignId, cancellationToken: cancellationToken);
+                            spamCampaignId, cancellationToken: cancellationToken, logger: logger);
                         if (!stored)
                         {
                             throw new InvalidOperationException($"Could not persist spam report message {spamJob.MessageId}.");
@@ -143,7 +143,7 @@ public class BackgroundTaskService(
                         {
                             var sampleSaved = await ExtractEmailAddressesAndSendCommand(campaignMessageId, message, commander,
                                 messageStoreProvider, workItem, result.Data.CampaignId,
-                                cancellationToken: cancellationToken);
+                                cancellationToken: cancellationToken, logger: logger);
                             if (!sampleSaved)
                             {
                                 throw new InvalidOperationException($"Could not persist campaign sample email {campaignMessageId}.");
@@ -231,7 +231,7 @@ public class BackgroundTaskService(
                         messageStoreProvider, workItem, campaignId,
                         isCatchAll: true,
                         catchAllSenderAddressId: catchAllJob.CatchAllSenderAddressId,
-                        cancellationToken: cancellationToken);
+                        cancellationToken: cancellationToken, logger: logger);
                     if (!saved)
                     {
                         throw new InvalidOperationException($"Could not persist catch-all email {catchAllJob.MessageId}.");
@@ -260,7 +260,7 @@ public class BackgroundTaskService(
                     break;
                 case StandardEmailCaptureJob standardJob:
                     var standardSaved = await ExtractEmailAddressesAndSendCommand(standardJob.MessageId, message, commander,
-                        messageStoreProvider, workItem, cancellationToken: cancellationToken);
+                        messageStoreProvider, workItem, cancellationToken: cancellationToken, logger: logger);
                     if (!standardSaved)
                     {
                         throw new InvalidOperationException($"Could not persist email {standardJob.MessageId}.");
@@ -319,7 +319,8 @@ public class BackgroundTaskService(
         Guid messageId, MimeMessage message, ICommandRunner commander,
         IMessageStoreProvider messageStoreProvider,
         IBaseEmailCaptureJob workItem, Guid? campaignId = null, bool isCatchAll = false,
-        Guid? catchAllSenderAddressId = null, CancellationToken cancellationToken = default)
+        Guid? catchAllSenderAddressId = null, CancellationToken cancellationToken = default,
+        ILogger<BackgroundTaskService>? logger = null)
     {
         var storeResult = await messageStoreProvider.StoreMessageContentAsync(messageId, message, cancellationToken);
         if (!storeResult.IsSuccess)
@@ -337,6 +338,18 @@ public class BackgroundTaskService(
         addresses.AddRange(message.From.Mailboxes
             .Select(x => new EmailAddress(x.Address, x.Name ?? string.Empty, EmailAddressType.From)));
 
+        string searchableBody;
+        try
+        {
+            searchableBody = MessageBodyTextExtractor.Extract(message);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // Search indexing must never prevent an otherwise valid message from being captured.
+            searchableBody = string.Empty;
+            logger?.LogWarning(exception, "Could not extract searchable text for email {EmailId}", messageId);
+        }
+
         CommandResult commandResult;
         if (campaignId == null)
         {
@@ -350,7 +363,8 @@ public class BackgroundTaskService(
                     addresses,
                     isCatchAll,
                     isCatchAll ? workItem.DomainId : null,
-                    catchAllSenderAddressId), cancellationToken);
+                    catchAllSenderAddressId,
+                    searchableBody), cancellationToken);
         }
         else
         {
@@ -363,7 +377,8 @@ public class BackgroundTaskService(
                     message.Date,
                     campaignId.Value,
                     addresses,
-                    catchAllSenderAddressId), cancellationToken);
+                    catchAllSenderAddressId,
+                    searchableBody), cancellationToken);
         }
 
         if (commandResult.Status != CommandResultStatus.Succeeded)

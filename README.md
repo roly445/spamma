@@ -274,7 +274,7 @@ To capture emails sent to your domain:
 
 - **Web UI:** Navigate to `https://localhost:7181` (or your Spamma instance URL)
 - **Browse by domain** in the sidebar
-- **Search emails** by sender, recipient, subject, or sent date
+- **Search emails** by sender, recipient, subject, body text, or sent date
 - **View full email details** including headers, body, and attachments
 
 #### Inbox search
@@ -285,7 +285,9 @@ Inbox and catch-all search support plain words and field filters. Separate terms
 from:alice@example.com subject:"billing invoice" after:2026-01-01 before:2026-02-01
 ```
 
-Supported fields are `from:`, `to:`, `subject:`, `after:`, and `before:`. Dates use `YYYY-MM-DD` in UTC; `after:` includes that date and `before:` excludes that date. Plain words continue to match subjects and sender/recipient names and addresses. Body-content search is planned separately because it requires extracting and indexing the message text.
+Supported fields are `from:`, `to:`, `subject:`, `body:`, `after:`, and `before:`. Dates use `YYYY-MM-DD` in UTC; `after:` includes that date and `before:` excludes that date. Plain words match subjects, sender/recipient names and addresses, and indexed body text. Body search uses PostgreSQL full-text matching; `body:"billing invoice"` requires that phrase. The original EML remains available for viewing and download. Search tips in the inbox list these filters and can insert them into the search field.
+
+Existing stored messages are indexed in small background batches after the update. Missing or unreadable EML files are reported in the application logs and marked on the email read model so the backfill can continue.
 
 ### SMTP TLS Support (Port 587)
 

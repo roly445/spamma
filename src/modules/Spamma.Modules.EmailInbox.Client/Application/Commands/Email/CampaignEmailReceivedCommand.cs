@@ -10,4 +10,5 @@ public record CampaignEmailReceivedCommand(
     DateTimeOffset WhenSent,
     Guid CampaignId,
     IReadOnlyList<EmailAddress> EmailAddresses,
-    Guid? CatchAllSenderAddressId = null) : ICommand;
+    Guid? CatchAllSenderAddressId = null,
+    string SearchableBody = "") : ICommand;

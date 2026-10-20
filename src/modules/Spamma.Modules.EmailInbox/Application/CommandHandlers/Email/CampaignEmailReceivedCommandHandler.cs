@@ -20,7 +20,8 @@ internal class CampaignEmailReceivedCommandHandler(
                 .Select(x => new EmailReceived.EmailAddress(x.Address, x.Name, x.EmailAddressType))
                 .ToList(),
             request.CampaignId,
-            request.CatchAllSenderAddressId);
+            request.CatchAllSenderAddressId,
+            request.SearchableBody);
 
         if (emailResult.IsFailure)
         {

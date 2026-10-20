@@ -12,6 +12,11 @@ public class EmailLookup
 
     public string Subject { get; init; } = string.Empty;
 
+    // Null marks an older message that still needs its stored EML backfilled.
+    public string? SearchableBody { get; init; }
+
+    public string? BodyIndexError { get; init; }
+
     public DateTimeOffset SentAt { get; init; }
 
     public DateTime? DeletedAt { get; init; }

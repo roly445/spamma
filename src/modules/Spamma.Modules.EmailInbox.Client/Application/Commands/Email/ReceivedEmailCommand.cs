@@ -11,4 +11,5 @@ public record ReceivedEmailCommand(
     IReadOnlyList<EmailAddress> EmailAddresses,
     bool IsCatchAll = false,
     Guid? CatchAllDomainId = null,
-    Guid? CatchAllSenderAddressId = null) : ICommand;
+    Guid? CatchAllSenderAddressId = null,
+    string SearchableBody = "") : ICommand;

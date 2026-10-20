@@ -23,6 +23,7 @@ public partial class EmailLookupProjection : EventProjection
             DomainId = @event.Data.DomainId,
             SubdomainId = @event.Data.SubdomainId,
             Subject = @event.Data.Subject,
+            SearchableBody = @event.Data.SearchableBody,
             SentAt = @event.Data.SentAt,
             CatchAllSenderAddressId = @event.Data.CatchAllSenderAddressId,
         });
@@ -38,7 +39,8 @@ public partial class EmailLookupProjection : EventProjection
     public void Project(IEvent<EmailDeleted> @event, IDocumentOperations ops)
     {
         ops.Patch<EmailLookup>(@event.StreamId)
-            .Set(x => x.DeletedAt, @event.Data.DeletedAt);
+            .Set(x => x.DeletedAt, @event.Data.DeletedAt)
+            .Set(x => x.SearchableBody, string.Empty);
     }
 
     [UsedImplicitly]

@@ -15,6 +15,33 @@ namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 public class BackgroundTaskServiceTests
 {
     [Fact]
+    public async Task ProcessWorkItemAsync_StandardEmail_PassesExtractedBodyToCommand()
+    {
+        var messageId = Guid.NewGuid();
+        var message = new MimeMessage
+        {
+            From = { new MailboxAddress("Sender", "sender@test.com") },
+            To = { new MailboxAddress("Recipient", "recipient@test.com") },
+            Body = new TextPart("html") { Text = "<p>Visible <b>receipt</b></p><script>hidden()</script>" },
+        };
+        var provider = new Mock<IMessageStoreProvider>();
+        provider.Setup(x => x.StoreMessageContentAsync(messageId, It.IsAny<MimeMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Ok());
+        ReceivedEmailCommand? captured = null;
+        var commander = new Mock<ICommandRunner>();
+        commander.Setup(x => x.Send(It.IsAny<ReceivedEmailCommand>(), It.IsAny<CancellationToken>()))
+            .Callback<ReceivedEmailCommand, CancellationToken>((command, _) => captured = command)
+            .ReturnsAsync(CommandResult.Succeeded());
+        var job = new StandardEmailCaptureJob(CreateStream(message), Guid.NewGuid(), Guid.NewGuid(), messageId);
+
+        await BackgroundTaskService.ProcessWorkItemAsync(
+            job, commander.Object, provider.Object, CancellationToken.None);
+
+        captured.Should().NotBeNull();
+        captured!.SearchableBody.Should().Be("Visible receipt");
+    }
+
+    [Fact]
     public async Task ProcessWorkItemAsync_WhenMessageStorageFails_ThrowsForRetry()
     {
         var messageId = Guid.NewGuid();

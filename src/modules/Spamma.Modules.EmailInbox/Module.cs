@@ -102,6 +102,7 @@ public static class Module
 
         services.AddHostedService<SmtpHostedService>();
         services.AddHostedService<EmailCleanupBackgroundService>();
+        services.AddHostedService<MessageBodySearchBackfillService>();
         services.AddSingleton<IMessageStoreProvider, LocalMessageStoreProvider>();
         services.AddScoped<IEmailInboxSettingsService, EmailInboxSettingsService>();
         services.AddScoped<ICatchAllSenderAddressCache, CatchAllSenderAddressCache>();
@@ -171,7 +172,7 @@ public static class Module
         options.Projections.Add<CampaignSummaryProjection>(ProjectionLifecycle.Inline);
         options.Projections.Add<CatchAllSenderAddressLookupProjection>(ProjectionLifecycle.Inline);
 
-        options.Schema.For<EmailLookup>().Identity(x => x.Id);
+        options.Schema.For<EmailLookup>().Identity(x => x.Id).FullTextIndex(x => x.SearchableBody!);
         options.Schema.For<CatchAllSenderAddressLookup>().Identity(x => x.Id);
         options.Schema.For<CampaignSummary>().Identity(x => x.CampaignId);
         options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
