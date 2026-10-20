@@ -158,9 +158,19 @@
                                     </div>
                                 </div>
                                 <div class="mt-4">
+                                    @if (domain.DnsIntegrationId.HasValue)
+                                    {
+                                        <button @onclick="SetupDomainDns" disabled="@(_isSettingUpDns || domain.Status == DomainStatus.Suspended)" class="mr-2 px-3 py-2 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+                                            @(_isSettingUpDns ? "Setting up DNS..." : "Set up DNS automatically")
+                                        </button>
+                                    }
                                     <button @onclick="CheckVerification" disabled="@(_isCheckingVerification || domain.Status == DomainStatus.Suspended)" class="px-3 py-2 text-sm rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50">
                                         @(_isCheckingVerification ? "Checking..." : "Check Verification")
                                     </button>
+                                    @if (_dnsSetupMessage is not null)
+                                    {
+                                        <p role="status" class="mt-2 text-sm text-gray-700">@_dnsSetupMessage</p>
+                                    }
                                 </div>
                             </div>
                         }

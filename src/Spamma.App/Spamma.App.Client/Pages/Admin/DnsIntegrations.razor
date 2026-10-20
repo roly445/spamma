@@ -1,0 +1,353 @@
+@page "/admin/dns-integrations"
+@using System.ComponentModel.DataAnnotations
+@using BluQube.Commands
+@using BluQube.Constants
+@using BluQube.Queries
+@using Spamma.App.Client.Layout
+@using Spamma.Modules.DomainManagement.Client.Application.Commands.Dns
+@using Spamma.Modules.DomainManagement.Client.Application.Queries
+@layout AppLayout
+@attribute [Authorize(Policy = "DomainAdministration")]
+@inject ICommandRunner Commander
+@inject IQueryRunner Querier
+
+<PageTitle>DNS Integrations - Spamma Admin</PageTitle>
+
+<div class="min-h-screen bg-gray-50">
+    <AdminHeader Title="DNS Integrations" Subtitle="Manage DNS providers for automatic record setup">
+        <Controls>
+            <button type="button" @onclick="OpenAddModal" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Integration
+            </button>
+        </Controls>
+    </AdminHeader>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @if (message is not null)
+        {
+            <p role="status" class="mb-6 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">@message</p>
+        }
+
+        <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Configured integrations</h3>
+            </div>
+            @if (isLoading)
+            {
+                <p class="px-6 py-12 text-center text-sm text-gray-500">Loading integrations...</p>
+            }
+            else if (loadError is not null)
+            {
+                <p role="alert" class="px-6 py-12 text-center text-sm text-red-600">@loadError</p>
+            }
+            else if (integrations.Count == 0)
+            {
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v18m-9-9h18M4 7h4m8 0h4M4 17h4m8 0h4" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No DNS integrations found</h3>
+                    <p class="mt-1 text-sm text-gray-500">Add an integration to set up DNS automatically, or continue using manual DNS setup.</p>
+                </div>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Connection</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone ID</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var integration in integrations)
+                            {
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">@integration.Name</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@integration.Provider</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@integration.ZoneName</td>
+                                    <td class="px-6 py-4 text-xs font-mono text-gray-500 break-all">@integration.ZoneId</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                        <button type="button" @onclick="() => OpenEditPanel(integration)" aria-label="Edit @integration.Name" class="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (showEditPanel && selectedIntegration is not null)
+{
+    <SlideoutBase IsVisible="@showEditPanel" OnClose="CloseEditPanel" AllowBackdropClose="true" WidthClass="max-w-md" AriaLabelledBy="editDnsIntegrationPanelLabel">
+        <div class="px-4 sm:px-6 pt-6 flex-shrink-0">
+            <div class="flex items-center justify-between">
+                <h2 id="editDnsIntegrationPanelLabel" class="text-lg font-medium text-gray-900">Edit DNS Integration</h2>
+                <button type="button" @onclick="CloseEditPanel" aria-label="Close" class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <p class="mt-1 text-sm text-gray-500">@selectedIntegration.Name</p>
+        </div>
+        <EditForm Model="editModel" OnValidSubmit="SaveEditAsync" FormName="EditDnsIntegrationForm" class="flex flex-1 flex-col">
+            <DataAnnotationsValidator />
+            <div class="flex-1 px-4 sm:px-6 py-6 space-y-5">
+                <div>
+                    <label for="edit-dns-provider" class="block text-sm font-medium text-gray-700 mb-1">Provider</label>
+                    <InputSelect id="edit-dns-provider" @bind-Value="editModel.Provider" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                        <option value="Cloudflare">Cloudflare</option>
+                    </InputSelect>
+                </div>
+                <div>
+                    <label for="edit-dns-connection-name" class="block text-sm font-medium text-gray-700 mb-1">Connection name</label>
+                    <InputText id="edit-dns-connection-name" @bind-Value="editModel.Name" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+                    <ValidationMessage For="@(() => editModel.Name)" class="text-sm text-red-600" />
+                </div>
+                <div>
+                    <label for="edit-dns-zone-name" class="block text-sm font-medium text-gray-700 mb-1">Zone name</label>
+                    <InputText id="edit-dns-zone-name" @bind-Value="editModel.ZoneName" class="w-full border border-gray-300 rounded-md px-3 py-2" />
+                    <ValidationMessage For="@(() => editModel.ZoneName)" class="text-sm text-red-600" />
+                </div>
+                <div>
+                    <label for="edit-dns-zone-id" class="block text-sm font-medium text-gray-700 mb-1">Cloudflare zone ID</label>
+                    <InputText id="edit-dns-zone-id" @bind-Value="editModel.ZoneId" class="w-full border border-gray-300 rounded-md px-3 py-2 font-mono" />
+                    <ValidationMessage For="@(() => editModel.ZoneId)" class="text-sm text-red-600" />
+                </div>
+                <div>
+                    <label for="edit-dns-api-token" class="block text-sm font-medium text-gray-700 mb-1">New Cloudflare API token</label>
+                    <InputText id="edit-dns-api-token" @bind-Value="editModel.Credential" type="password" autocomplete="new-password" class="w-full border border-gray-300 rounded-md px-3 py-2 font-mono" />
+                    <ValidationMessage For="@(() => editModel.Credential)" class="text-sm text-red-600" />
+                    <p class="mt-1 text-sm text-gray-500">Leave blank to keep the current token.</p>
+                </div>
+                @if (editError is not null)
+                {
+                    <p role="alert" class="text-sm text-red-600">@editError</p>
+                }
+            </div>
+            <div class="flex justify-end gap-3 border-t border-gray-200 px-4 sm:px-6 py-4">
+                <button type="button" @onclick="CloseEditPanel" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+                <button type="submit" disabled="@isSaving" class="px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">@(isSaving ? "Saving..." : "Save Changes")</button>
+            </div>
+        </EditForm>
+    </SlideoutBase>
+}
+
+@if (showAddModal)
+{
+    <ModalBase IsVisible="@showAddModal" OnClose="CloseAddModal" AllowBackdropClose="true" WidthClass="@ModalBase.ModalSizes.ExtraLarge" AriaLabelledBy="addDnsIntegrationModalLabel">
+        <div class="max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 id="addDnsIntegrationModalLabel" class="text-lg font-medium text-gray-900">Add DNS Integration</h3>
+                <button type="button" @onclick="CloseAddModal" aria-label="Close" class="text-gray-400 hover:text-gray-500">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <EditForm Model="model" OnValidSubmit="SaveAsync" FormName="CreateDnsIntegrationForm">
+                <DataAnnotationsValidator />
+                <div class="px-6 py-5 space-y-4">
+                    <div>
+                        <label for="dns-provider" class="block text-sm font-medium text-gray-700 mb-1">Provider</label>
+                        <InputSelect id="dns-provider" @bind-Value="model.Provider" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="Cloudflare">Cloudflare</option>
+                        </InputSelect>
+                    </div>
+                    <div>
+                        <label for="dns-connection-name" class="block text-sm font-medium text-gray-700 mb-1">Connection name</label>
+                        <InputText id="dns-connection-name" @bind-Value="model.Name" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Production Cloudflare" />
+                        <ValidationMessage For="@(() => model.Name)" class="text-sm text-red-600" />
+                    </div>
+                    <div>
+                        <label for="dns-zone-name" class="block text-sm font-medium text-gray-700 mb-1">Zone name</label>
+                        <InputText id="dns-zone-name" @bind-Value="model.ZoneName" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="example.com" />
+                        <ValidationMessage For="@(() => model.ZoneName)" class="text-sm text-red-600" />
+                    </div>
+                    <div>
+                        <label for="dns-zone-id" class="block text-sm font-medium text-gray-700 mb-1">Cloudflare zone ID</label>
+                        <InputText id="dns-zone-id" @bind-Value="model.ZoneId" class="w-full border border-gray-300 rounded-md px-3 py-2 font-mono" />
+                        <ValidationMessage For="@(() => model.ZoneId)" class="text-sm text-red-600" />
+                    </div>
+                    <div>
+                        <label for="dns-api-token" class="block text-sm font-medium text-gray-700 mb-1">Cloudflare API token</label>
+                        <InputText id="dns-api-token" @bind-Value="model.Credential" type="password" autocomplete="new-password" class="w-full border border-gray-300 rounded-md px-3 py-2 font-mono" />
+                        <ValidationMessage For="@(() => model.Credential)" class="text-sm text-red-600" />
+                        <p class="mt-1 text-sm text-gray-500">Use a token scoped to this zone with Zone Read, DNS Read, and DNS Write permissions. The token is encrypted on the server and is not shown again.</p>
+                    </div>
+                    @if (formError is not null)
+                    {
+                        <p role="alert" class="text-sm text-red-600">@formError</p>
+                    }
+                </div>
+                <div class="flex justify-end gap-3 px-6 pb-6">
+                    <button type="button" @onclick="CloseAddModal" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+                    <button type="submit" disabled="@isSaving" class="px-4 py-2 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+                        @(isSaving ? "Saving..." : "Save Integration")
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </ModalBase>
+}
+
+@code {
+    private readonly List<DnsIntegrationSummary> integrations = [];
+    private NewIntegrationModel model = new();
+    private EditIntegrationModel editModel = new();
+    private DnsIntegrationSummary? selectedIntegration;
+    private bool isSaving;
+    private bool isLoading;
+    private bool showAddModal;
+    private bool showEditPanel;
+    private string? message;
+    private string? formError;
+    private string? editError;
+    private string? loadError;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        var result = await Querier.Send(new ListDnsIntegrationsQuery());
+        integrations.Clear();
+        if (result.Status == QueryResultStatus.Succeeded)
+        {
+            integrations.AddRange(result.Data.Integrations);
+            loadError = null;
+        }
+        else
+        {
+            loadError = "DNS integrations could not be loaded. Try refreshing the page.";
+        }
+        isLoading = false;
+    }
+
+    private void OpenAddModal()
+    {
+        model = new();
+        formError = null;
+        showAddModal = true;
+    }
+
+    private void CloseAddModal()
+    {
+        showAddModal = false;
+        formError = null;
+    }
+
+    private void OpenEditPanel(DnsIntegrationSummary integration)
+    {
+        selectedIntegration = integration;
+        editModel = new EditIntegrationModel
+        {
+            Name = integration.Name,
+            Provider = integration.Provider,
+            ZoneName = integration.ZoneName,
+            ZoneId = integration.ZoneId,
+        };
+        editError = null;
+        showEditPanel = true;
+    }
+
+    private void CloseEditPanel()
+    {
+        showEditPanel = false;
+        selectedIntegration = null;
+        editError = null;
+    }
+
+    private async Task SaveEditAsync()
+    {
+        if (selectedIntegration is null) return;
+
+        isSaving = true;
+        try
+        {
+            var result = await Commander.Send(new UpdateDnsIntegrationCommand(
+                selectedIntegration.Id, editModel.Name, editModel.Provider, editModel.ZoneName, editModel.ZoneId, editModel.Credential));
+            if (result.Status == CommandResultStatus.Succeeded)
+            {
+                message = "Integration updated.";
+                await LoadAsync();
+                CloseEditPanel();
+            }
+            else
+            {
+                editError = "The integration could not be updated. Check the entered details and try again.";
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        isSaving = true;
+        try
+        {
+            var result = await Commander.Send(new CreateDnsIntegrationCommand(
+                Guid.NewGuid(), model.Name, model.Provider, model.ZoneName, model.ZoneId, model.Credential));
+            if (result.Status == CommandResultStatus.Succeeded)
+            {
+                model = new();
+                message = "Integration saved. Select it when adding a matching domain.";
+                await LoadAsync();
+                CloseAddModal();
+            }
+            else
+            {
+                formError = "The integration could not be saved. Check the entered details and try again.";
+            }
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private sealed class NewIntegrationModel
+    {
+        public string Provider { get; set; } = "Cloudflare";
+
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public string ZoneName { get; set; } = string.Empty;
+
+        [Required]
+        public string ZoneId { get; set; } = string.Empty;
+
+        [Required]
+        public string Credential { get; set; } = string.Empty;
+    }
+
+    private sealed class EditIntegrationModel
+    {
+        public string Provider { get; set; } = "Cloudflare";
+
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public string ZoneName { get; set; } = string.Empty;
+
+        [Required]
+        public string ZoneId { get; set; } = string.Empty;
+
+        public string Credential { get; set; } = string.Empty;
+    }
+}

@@ -16,6 +16,8 @@ public partial class DomainDetails(ICommandRunner commander, IQueryRunner querie
     private GetDetailedDomainByIdQueryResult? domain;
     private bool _isLoading = true;
     private bool _isCheckingVerification;
+    private bool _isSettingUpDns;
+    private string? _dnsSetupMessage;
     private int _activeTab;
 
     [Parameter]

@@ -15,6 +15,15 @@ Feature: Domain management
     Then it appears as pending and unverified
     And I can open its details
 
+  Scenario: An administrator can select a DNS integration or manual setup
+    Given I have domain administration permission
+    When I configure a Cloudflare DNS integration
+    Then the DNS integration appears without its token
+    When I edit the DNS integration in the slide out
+    Then the updated DNS integration appears
+    When I open the add-domain form
+    Then I can choose manual DNS or the Cloudflare integration
+
   Scenario: A domain moderator cannot add a domain
     Given I moderate a domain without system domain administration permission
     When I open the domain list
@@ -39,6 +48,12 @@ Feature: Domain management
     Given I administer a verified domain
     When I change its contact and description
     Then the updated details are shown
+
+  Scenario: An existing domain can be assigned a DNS integration
+    Given I administer an unverified domain
+    When I configure a Cloudflare integration for that domain
+    And I assign it in the domain edit panel
+    Then automatic DNS setup is available for the existing domain
 
   Scenario: A domain can be suspended and restored
     Given I administer a verified domain

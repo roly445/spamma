@@ -29,6 +29,8 @@ public class CreateDomainCommandValidator : AbstractValidator<CreateDomainComman
             .WithErrorCode(CommonValidationCodes.Required)
             .WithMessage("Domain ID is required.");
 
+        this.RuleFor(x => x.DnsIntegrationId).NotEqual(Guid.Empty).When(x => x.DnsIntegrationId.HasValue);
+
         this.RuleFor(x => x.PrimaryContactEmail)
             .EmailAddress()
             .WithErrorCode(CommonValidationCodes.InvalidFormat)

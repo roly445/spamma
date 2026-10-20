@@ -17,7 +17,8 @@ public record GetDetailedDomainByIdQueryResult(
     bool IsSuspended,
     string VerificationToken,
     IReadOnlyList<GetDetailedDomainByIdQueryResult.BasicSubdomainListItem> Subdomains,
-    IReadOnlyList<GetDetailedDomainByIdQueryResult.DomainUserAssignment> AssignedUsers) : IQueryResult
+    IReadOnlyList<GetDetailedDomainByIdQueryResult.DomainUserAssignment> AssignedUsers,
+    Guid? DnsIntegrationId = null) : IQueryResult
 {
     public record BasicSubdomainListItem(
         Guid Id,

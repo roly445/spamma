@@ -1,10 +1,12 @@
 using FluentAssertions;
 using FluentValidation;
+using Marten;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Spamma.Modules.DomainManagement.Application.CommandHandlers.Domain;
 using Spamma.Modules.DomainManagement.Application.Repositories;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
+using Spamma.Modules.DomainManagement.Infrastructure.Dns;
 using Spamma.Modules.DomainManagement.Tests.Fixtures;
 
 namespace Spamma.Modules.DomainManagement.Tests.Application.CommandHandlers.Domain;
@@ -27,6 +29,7 @@ public class CreateDomainCommandHandlerTests
 
         this._handler = new CreateDomainCommandHandler(
             this._repositoryMock.Object,
+            new Mock<IDocumentSession>().Object,
             validators,
             this._loggerMock.Object,
             this._timeProvider);
@@ -119,5 +122,19 @@ public class CreateDomainCommandHandlerTests
         this._repositoryMock.Verify(
             x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None),
             Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Handle_WithIntegrationForAnotherZone_DoesNotSaveDomain()
+    {
+        var integrationId = Guid.NewGuid();
+        var session = new Mock<IDocumentSession>();
+        session.Setup(x => x.LoadAsync<DnsIntegration>(integrationId, CancellationToken.None))
+            .ReturnsAsync(new DnsIntegration { Id = integrationId, ZoneName = "another.com" });
+        var handler = new CreateDomainCommandHandler(this._repositoryMock.Object, session.Object, [], this._loggerMock.Object, this._timeProvider);
+
+        await handler.Handle(new CreateDomainCommand(Guid.NewGuid(), "example.com", null, null, integrationId), CancellationToken.None);
+
+        this._repositoryMock.Verify(x => x.SaveAsync(It.IsAny<Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain>(), CancellationToken.None), Times.Never);
     }
 }

@@ -32,6 +32,9 @@ public partial class Domain
             case DetailsUpdated detailsUpdated:
                 this.ApplyRecorded(detailsUpdated);
                 break;
+            case DomainDnsIntegrationChanged dnsIntegrationChanged:
+                this.ApplyRecorded(dnsIntegrationChanged);
+                break;
             case DomainSuspended domainSuspended:
                 this.ApplyRecorded(domainSuspended);
                 break;
@@ -67,6 +70,7 @@ public partial class Domain
         this.PrimaryContactEmail = @event.PrimaryContactEmail;
         this.Description = @event.Description;
         this.VerificationToken = @event.VerificationToken;
+        this.DnsIntegrationId = @event.DnsIntegrationId;
         this.CreatedAt = @event.CreatedAt;
     }
 
@@ -79,6 +83,11 @@ public partial class Domain
     {
         this.Description = @event.Description;
         this.PrimaryContactEmail = @event.PrimaryContactEmail;
+    }
+
+    private void ApplyRecorded(DomainDnsIntegrationChanged @event)
+    {
+        this.DnsIntegrationId = @event.DnsIntegrationId;
     }
 
     private void ApplyRecorded(DomainSuspended @event)

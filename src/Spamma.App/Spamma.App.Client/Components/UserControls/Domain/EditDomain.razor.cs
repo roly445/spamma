@@ -1,34 +1,42 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BluQube.Commands;
 using BluQube.Constants;
+using BluQube.Queries;
 using Microsoft.AspNetCore.Components;
 using Spamma.App.Client.Infrastructure.Contracts.Services;
 using Spamma.Modules.DomainManagement.Client.Application.Commands.Domain;
+using Spamma.Modules.DomainManagement.Client.Application.Queries;
 
 namespace Spamma.App.Client.Components.UserControls.Domain;
 
 /// <summary>
 /// Code-behind for the Edit Domain user control.
 /// </summary>
-public partial class EditDomain(ICommandRunner commander, INotificationService notificationService) : ComponentBase
+public partial class EditDomain(ICommandRunner commander, IQueryRunner querier, INotificationService notificationService) : ComponentBase
 {
     private Model model = new();
     private bool isVisible;
     private bool isProcessing;
     private DataModel? _dataModel;
+    private IReadOnlyList<DnsIntegrationSummary> dnsIntegrations = [];
 
     [Parameter]
     public EventCallback OnSaved { get; set; }
 
-    public void Open(DataModel dataModel)
+    public async Task Open(DataModel dataModel)
     {
         this._dataModel = dataModel;
         this.model = new Model
         {
             PrimaryContact = this._dataModel.PrimaryContact,
             Description = this._dataModel.Description ?? string.Empty,
+            DnsIntegrationId = this._dataModel.DnsIntegrationId,
         };
         this.isVisible = true;
+        var result = await querier.Send(new ListDnsIntegrationsQuery());
+        this.dnsIntegrations = result.Status == QueryResultStatus.Succeeded
+            ? result.Data.Integrations.Where(x => string.Equals(x.ZoneName, dataModel.DomainName, StringComparison.OrdinalIgnoreCase) || x.Id == dataModel.DnsIntegrationId).ToList()
+            : [];
         this.StateHasChanged();
     }
 
@@ -49,7 +57,7 @@ public partial class EditDomain(ICommandRunner commander, INotificationService n
         this.isProcessing = true;
         this.StateHasChanged();
 
-        var result = await commander.Send(new UpdateDomainDetailsCommand(this._dataModel.Id, this.model.PrimaryContact, this.model.Description));
+        var result = await commander.Send(new UpdateDomainDetailsCommand(this._dataModel.Id, this.model.PrimaryContact, this.model.Description, this.model.DnsIntegrationId));
 
         if (result.Status == CommandResultStatus.Succeeded)
         {
@@ -75,7 +83,8 @@ public partial class EditDomain(ICommandRunner commander, INotificationService n
         bool IsVerified,
         DateTime? VerifiedAt,
         int SubdomainCount,
-        int AssignedUserCount);
+        int AssignedUserCount,
+        Guid? DnsIntegrationId);
 
     private sealed class Model
     {
@@ -90,5 +99,7 @@ public partial class EditDomain(ICommandRunner commander, INotificationService n
 
         [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
         public string? Description { get; set; }
+
+        public Guid? DnsIntegrationId { get; set; }
     }
 }

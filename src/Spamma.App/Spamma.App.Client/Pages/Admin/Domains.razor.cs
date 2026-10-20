@@ -89,14 +89,14 @@ public partial class Domains(
         navigationManager.NavigateTo($"/admin/domains/{id}");
     }
 
-    private void OpenEditDomain(SearchDomainsQueryResult.DomainSummary domain)
+    private async Task OpenEditDomain(SearchDomainsQueryResult.DomainSummary domain)
     {
         if (this._editDomain == null)
         {
             return;
         }
 
-        this._editDomain.Open(new EditDomain.DataModel(
+        await this._editDomain.Open(new EditDomain.DataModel(
             domain.DomainId,
             domain.DomainName,
             domain.PrimaryContact,
@@ -105,7 +105,8 @@ public partial class Domains(
             domain.IsVerified,
             domain.VerifiedAt,
             domain.SubdomainCount,
-            domain.AssignedUserCount));
+            domain.AssignedUserCount,
+            domain.DnsIntegrationId));
     }
 
     private Task HandleEditSaved()

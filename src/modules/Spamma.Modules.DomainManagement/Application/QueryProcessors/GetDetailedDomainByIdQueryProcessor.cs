@@ -30,7 +30,7 @@ internal class GetDetailedDomainByIdQueryProcessor(IDocumentSession session) : I
             result.PrimaryContact,
             result.Description,
             result.IsSuspended,
-            result.VerificationToken, new List<GetDetailedDomainByIdQueryResult.BasicSubdomainListItem>(), new List<GetDetailedDomainByIdQueryResult.DomainUserAssignment>());
+            result.VerificationToken, new List<GetDetailedDomainByIdQueryResult.BasicSubdomainListItem>(), new List<GetDetailedDomainByIdQueryResult.DomainUserAssignment>(), result.DnsIntegrationId);
 
         return QueryResult<GetDetailedDomainByIdQueryResult>.Succeeded(detailedResult);
     }

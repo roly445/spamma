@@ -94,6 +94,9 @@
                                         </AuthorizeView>
                                         <AuthorizeView Policy="DomainAdministration">
                                             <Authorized>
+                                                <a href="/admin/dns-integrations" @onclick="() => CloseDropdown()" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
+                                                    DNS Integrations
+                                                </a>
                                                 <a href="/admin/catch-all-senders" @onclick="() => CloseDropdown()" class="group flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900" role="menuitem">
                                                     <svg class="mr-3 h-5 w-5 text-amber-400 group-hover:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />

@@ -32,14 +32,16 @@ public partial class Domain : AggregateRoot
 
     internal string VerificationToken { get; private set; } = string.Empty;
 
+    internal Guid? DnsIntegrationId { get; private set; }
+
     internal bool IsSuspended { get; private set; }
 
     internal IReadOnlyList<DomainSuspensionAudit> SuspensionAudits => this._suspensionAudits;
 
-    internal static Result<Domain, BluQubeErrorData> Create(Guid domainId, string name, string? primaryContactEmail, string? description, DateTime createdAt)
+    internal static Result<Domain, BluQubeErrorData> Create(Guid domainId, string name, string? primaryContactEmail, string? description, DateTime createdAt, Guid? dnsIntegrationId = null)
     {
         var domain = new Domain();
-        var @event = new DomainCreated(domainId, name, primaryContactEmail, description, $"{Guid.NewGuid():N}", createdAt);
+        var @event = new DomainCreated(domainId, name, primaryContactEmail, description, $"{Guid.NewGuid():N}", createdAt, dnsIntegrationId);
         domain.RaiseEvent(@event);
 
         return Result.Ok<Domain, BluQubeErrorData>(domain);
@@ -54,6 +56,21 @@ public partial class Domain : AggregateRoot
 
         var @event = new DetailsUpdated(primaryContactEmail, description);
         this.RaiseEvent(@event);
+        return ResultWithError.Ok<BluQubeErrorData>();
+    }
+
+    internal ResultWithError<BluQubeErrorData> ChangeDnsIntegration(Guid? dnsIntegrationId)
+    {
+        if (this.IsSuspended)
+        {
+            return ResultWithError.Fail(new BluQubeErrorData(DomainManagementErrorCodes.DomainSuspended, "Suspended domains cannot be edited."));
+        }
+
+        if (this.DnsIntegrationId != dnsIntegrationId)
+        {
+            this.RaiseEvent(new DomainDnsIntegrationChanged(dnsIntegrationId));
+        }
+
         return ResultWithError.Ok<BluQubeErrorData>();
     }
 

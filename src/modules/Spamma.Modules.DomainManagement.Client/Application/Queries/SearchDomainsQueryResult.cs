@@ -25,5 +25,6 @@ public record SearchDomainsQueryResult(
         int AssignedUserCount,
         string? PrimaryContact,
         string? Description,
-        string? VerificationToken);
+        string? VerificationToken,
+        Guid? DnsIntegrationId = null);
 }

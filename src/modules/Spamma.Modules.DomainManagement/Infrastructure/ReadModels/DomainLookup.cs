@@ -10,6 +10,8 @@ public class DomainLookup
 
     public string VerificationToken { get; init; } = string.Empty;
 
+    public Guid? DnsIntegrationId { get; init; }
+
     public bool IsVerified { get; init; }
 
     public DateTime CreatedAt { get; init; }

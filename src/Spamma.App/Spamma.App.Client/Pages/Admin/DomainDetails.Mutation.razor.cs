@@ -43,14 +43,14 @@ public partial class DomainDetails
         return this.LoadAsync();
     }
 
-    private void OpenEditPanel()
+    private async Task OpenEditPanel()
     {
         if (this._editDomain == null || this.domain == null)
         {
             return;
         }
 
-        this._editDomain.Open(new EditDomain.DataModel(
+        await this._editDomain.Open(new EditDomain.DataModel(
             this.domain.DomainId,
             this.domain.DomainName,
             this.domain.PrimaryContact,
@@ -59,7 +59,8 @@ public partial class DomainDetails
             this.domain.IsVerified,
             this.domain.VerifiedAt,
             this.domain.SubdomainCount,
-            this.domain.AssignedUserCount));
+            this.domain.AssignedUserCount,
+            this.domain.DnsIntegrationId));
     }
 
     private Task HandleDomainSaved()
@@ -84,5 +85,26 @@ public partial class DomainDetails
 
         this._isCheckingVerification = false;
         this.StateHasChanged();
+    }
+
+    private async Task SetupDomainDns()
+    {
+        if (this.domain is null)
+        {
+            return;
+        }
+
+        this._isSettingUpDns = true;
+        try
+        {
+            var result = await commander.Send(new SetupDomainDnsCommand(this.domain.DomainId));
+            this._dnsSetupMessage = result.Status == CommandResultStatus.Succeeded
+                ? result.Data.Message
+                : "DNS setup could not be completed. Add the record manually or retry.";
+        }
+        finally
+        {
+            this._isSettingUpDns = false;
+        }
     }
 }

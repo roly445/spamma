@@ -22,6 +22,7 @@ internal partial class DomainLookupProjection : EventProjection
             DomainName = @event.Name,
             PrimaryContact = @event.PrimaryContactEmail,
             VerificationToken = @event.VerificationToken,
+            DnsIntegrationId = @event.DnsIntegrationId,
             Description = @event.Description,
             IsVerified = false,
             SubdomainCount = 0,
@@ -52,6 +53,13 @@ internal partial class DomainLookupProjection : EventProjection
         ops.Patch<DomainLookup>(@event.StreamId)
             .Set(x => x.Description, @event.Data.Description)
             .Set(x => x.PrimaryContact, @event.Data.PrimaryContactEmail);
+    }
+
+    [UsedImplicitly]
+    public void Project(IEvent<DomainDnsIntegrationChanged> @event, IDocumentOperations ops)
+    {
+        ops.Patch<DomainLookup>(@event.StreamId)
+            .Set(x => x.DnsIntegrationId, @event.Data.DnsIntegrationId);
     }
 
     [UsedImplicitly]
