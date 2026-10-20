@@ -22,6 +22,24 @@ internal partial class DomainLookupProjection : EventProjection
             DomainName = @event.Name,
             PrimaryContact = @event.PrimaryContactEmail,
             VerificationToken = @event.VerificationToken,
+            DnsIntegrationId = null,
+            Description = @event.Description,
+            IsVerified = false,
+            SubdomainCount = 0,
+            AssignedModeratorCount = 0,
+            CreatedAt = @event.CreatedAt,
+        };
+    }
+
+    [UsedImplicitly]
+    public DomainLookup Create(DomainCreatedV2 @event)
+    {
+        return new DomainLookup
+        {
+            Id = @event.DomainId,
+            DomainName = @event.Name,
+            PrimaryContact = @event.PrimaryContactEmail,
+            VerificationToken = @event.VerificationToken,
             DnsIntegrationId = @event.DnsIntegrationId,
             Description = @event.Description,
             IsVerified = false,

@@ -1,11 +1,41 @@
 using FluentAssertions;
 using Spamma.Modules.DomainManagement.Client.Contracts;
 using Spamma.Modules.DomainManagement.Domain.DomainAggregate.Events;
+using Spamma.Modules.DomainManagement.Infrastructure.Projections;
 
 namespace Spamma.Modules.DomainManagement.Tests.Domain;
 
 public class DomainAggregateTests
 {
+    [Fact]
+    public void LegacyDomainCreated_ReplaysWithoutDnsIntegration_AndCanReceiveOneLater()
+    {
+        var domainId = Guid.NewGuid();
+        var integrationId = Guid.NewGuid();
+        var created = new DomainCreated(domainId, "example.com", null, null, "test-token", DateTime.UtcNow);
+        var domain = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain.Replay(null, created);
+
+        domain.DnsIntegrationId.Should().BeNull();
+        new DomainLookupProjection().Create(created).DnsIntegrationId.Should().BeNull();
+
+        domain = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain.Replay(domain, new DomainDnsIntegrationChanged(integrationId));
+        domain.DnsIntegrationId.Should().Be(integrationId);
+    }
+
+    [Fact]
+    public void NewDomainCreation_EmitsVersionTwoEvent_WithSelectedIntegration()
+    {
+        var integrationId = Guid.NewGuid();
+        var domain = Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain.Create(
+            Guid.NewGuid(), "example.com", null, null, DateTime.UtcNow, integrationId).Value;
+        var created = domain.GetUncommittedEvents().Single().Should().BeOfType<DomainCreatedV2>().Subject;
+
+        created.DnsIntegrationId.Should().Be(integrationId);
+        new DomainLookupProjection().Create(created).DnsIntegrationId.Should().Be(integrationId);
+        Spamma.Modules.DomainManagement.Domain.DomainAggregate.Domain.Replay(null, created)
+            .DnsIntegrationId.Should().Be(integrationId);
+    }
+
     [Fact]
     public void UnverifiedDomain_CannotGainModerator()
     {

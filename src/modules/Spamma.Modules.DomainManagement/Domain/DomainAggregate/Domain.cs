@@ -41,7 +41,7 @@ public partial class Domain : AggregateRoot
     internal static Result<Domain, BluQubeErrorData> Create(Guid domainId, string name, string? primaryContactEmail, string? description, DateTime createdAt, Guid? dnsIntegrationId = null)
     {
         var domain = new Domain();
-        var @event = new DomainCreated(domainId, name, primaryContactEmail, description, $"{Guid.NewGuid():N}", createdAt, dnsIntegrationId);
+        var @event = new DomainCreatedV2(domainId, name, primaryContactEmail, description, $"{Guid.NewGuid():N}", createdAt, dnsIntegrationId);
         domain.RaiseEvent(@event);
 
         return Result.Ok<Domain, BluQubeErrorData>(domain);

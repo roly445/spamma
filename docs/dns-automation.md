@@ -12,6 +12,8 @@ The API token is encrypted with ASP.NET Core Data Protection before it is stored
 
 When adding a domain, choose **Manual DNS setup** or a named integration. The integration's zone name must match the domain exactly. Spamma saves the selected integration ID with the domain so that its verification TXT record and future subdomain MX records use the same connection. Existing domains created before this selection was added remain on manual DNS setup.
 
+New domain streams start with `DomainCreatedV2` so the selected integration is recorded without changing the stored `DomainCreated` event schema. Existing streams still replay their original creation event and can receive a later `DomainDnsIntegrationChanged` event when an integration is assigned.
+
 For an existing domain, open its details and choose **Edit Domain**. Select a DNS integration in the **DNS setup** field and save. You can also switch back to manual setup. Changing the selection does not publish or remove DNS records; use **Set up DNS automatically** afterward to create the verification record through the selected provider.
 
 After creating a domain with an integration, click **Set up DNS automatically** to submit the `spamma-verification=<token>` TXT record at the apex. On a subdomain details page, the same action submits its MX record using the configured mail server hostname and MX priority. Click the existing verification or MX check action once public DNS reflects the change.
