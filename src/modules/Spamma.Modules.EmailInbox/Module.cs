@@ -26,6 +26,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Retention;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.Submission;
 using Spamma.Modules.EmailInbox.Infrastructure.Settings;
 using Spamma.Modules.EmailInbox.Infrastructure.SpamFeedback;
@@ -58,6 +59,7 @@ public static class Module
         services.AddTransient<IMailboxFilter, SmtpSubmissionMailboxFilter>();
         services.AddTransient<SmtpSubmissionMailboxFilter>();
         services.AddScoped<SmtpSubmissionPolicyService>();
+        services.AddScoped<EmailRetentionPolicyService>();
 
         // Background job queues
         services.AddScoped<BackgroundTaskService>();
@@ -128,6 +130,7 @@ public static class Module
         endpointRouteBuilder.AddBluQubeApi();
         endpointRouteBuilder.MapSpamFeedbackApi();
         endpointRouteBuilder.MapSmtpSubmissionApi();
+        endpointRouteBuilder.MapEmailRetentionApi();
         endpointRouteBuilder.MapGet(
             "email-inbox/get-email-mime-message-by-id",
             async (IQueryRunner queryRunner, HttpContext httpContext, Guid emailId) =>
@@ -188,6 +191,7 @@ public static class Module
         options.Schema.For<SpamFeedbackConfiguration>().Identity(x => x.Id);
         options.Schema.For<SpamReport>().Identity(x => x.Id);
         options.Schema.For<SmtpSubmissionPolicy>().Identity(x => x.Id);
+        options.Schema.For<EmailRetentionPolicy>().Identity(x => x.Id);
 
         return options;
     }

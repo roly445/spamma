@@ -36,6 +36,7 @@
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/authentication.feature" Link="Features/authentication.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/smtp-reception.feature" Link="Features/smtp-reception.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/smtp-submission.feature" Link="Features/smtp-submission.feature" />
+    <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/email-retention.feature" Link="Features/email-retention.feature" />
     <ReqnrollFeatureFile Include="../../src/Spamma.App/Spamma.App/e2e/features/spam-feedback.feature" Link="Features/spam-feedback.feature" />
   </ItemGroup>
 
