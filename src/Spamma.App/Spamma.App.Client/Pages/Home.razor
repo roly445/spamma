@@ -314,7 +314,7 @@
 
                     <div class="p-3 border-b border-gray-200 flex-shrink-0">
                         <EmailSearchBox @bind-Value="_searchText"
-                                        Error="_searchError"
+                                        Error="@_searchError"
                                         OnKeyPress="HandleSearchKeyPress"
                                         OnClear="ClearSearch" />
 
