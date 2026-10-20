@@ -8,6 +8,7 @@ using Spamma.Modules.Common.Caching;
 using Spamma.Modules.EmailInbox.Infrastructure.Constants;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Submission;
 
 namespace Spamma.Modules.EmailInbox.Infrastructure.Services;
 
@@ -40,18 +41,38 @@ public class SpammaMessageStore : MessageStore
         var headers = message.Headers;
 
         var campaignHeader = headers["x-spamma-camp"];
-        var recipients = new List<MimeKit.MailboxAddress>();
-        if (headers[MimeKit.HeaderId.To] != null && MimeKit.InternetAddressList.TryParse(headers[MimeKit.HeaderId.To], out var toList))
+
+        // SMTP envelope recipients determine routing. MIME To/Cc headers are untrusted
+        // presentation data and can differ from RCPT TO (including for Bcc mail).
+        var recipients = transaction.To?.ToArray() ?? [];
+        if (recipients.Length == 0)
         {
-            recipients.AddRange(toList.Mailboxes);
+            return SmtpResponse.MailboxNameNotAllowed;
+        }
+
+        if (SmtpSubmissionMailboxFilter.IsSubmission(context))
+        {
+            if (SmtpSubmissionMailboxFilter.HadRejectedRecipient(context))
+            {
+                return SmtpResponse.MailboxNameNotAllowed;
+            }
+
+            var filter = scope.ServiceProvider.GetRequiredService<SmtpSubmissionMailboxFilter>();
+            foreach (var recipient in recipients)
+            {
+                if (!await filter.CanDeliverToAsync(context, recipient, transaction.From, cancellationToken))
+                {
+                    return SmtpResponse.MailboxNameNotAllowed;
+                }
+            }
         }
 
         ISubdomainCache.CachedSubdomain? foundValidSubdomain = null;
+        var routedRecipients = new List<(SmtpServer.Mail.IMailbox Recipient, ISubdomainCache.CachedSubdomain? Subdomain)>();
 
         foreach (var recipient in recipients)
         {
-            var domain = recipient.Domain.ToLowerInvariant();
-            var localPart = recipient.Address.Split('@')[0].ToLowerInvariant();
+            var domain = recipient.Host.ToLowerInvariant();
             ISubdomainCache.CachedSubdomain? resolvedSubdomain;
             try
             {
@@ -64,12 +85,30 @@ public class SpammaMessageStore : MessageStore
                 return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
             }
 
+            routedRecipients.Add((recipient, resolvedSubdomain));
+        }
+
+        var knownSubdomainIds = routedRecipients
+            .Where(x => x.Subdomain is not null)
+            .Select(x => x.Subdomain!.SubdomainId)
+            .Distinct()
+            .ToArray();
+        if (knownSubdomainIds.Length > 1 ||
+            (knownSubdomainIds.Length == 1 && routedRecipients.Any(x => x.Subdomain is null)))
+        {
+            logger.LogWarning("SMTP transaction rejected because recipients span multiple or unknown inboxes");
+            return SmtpResponse.MailboxNameNotAllowed;
+        }
+
+        foreach (var (recipient, resolvedSubdomain) in routedRecipients)
+        {
             if (resolvedSubdomain is null)
             {
                 continue;
             }
 
             foundValidSubdomain = resolvedSubdomain;
+            var localPart = recipient.User.ToLowerInvariant();
 
             MaybeMonad.Maybe<IChaosAddressCache.CachedChaosAddress> chaosAddress;
             try
@@ -111,7 +150,7 @@ public class SpammaMessageStore : MessageStore
                     chaosAddress.Value.SubdomainId,
                     chaosAddress.Value.ChaosAddressId,
                     SmtpCode: (int)code,
-                    Recipient: recipient.Address), logger))
+                    Recipient: $"{recipient.User}@{recipient.Host}"), logger))
                 {
                     return new SmtpResponse(SmtpReplyCode.Aborted, TemporaryStorageFailureMessage);
                 }

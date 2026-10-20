@@ -1,0 +1,127 @@
+@page "/admin/domains/{DomainId:guid}/smtp-submission"
+@page "/admin/subdomains/{SubdomainId:guid}/smtp-submission"
+@using Spamma.App.Client.Layout
+@using Spamma.Modules.EmailInbox.Client.Contracts
+@layout AppLayout
+@attribute [Authorize]
+<PageTitle>SMTP Submission - Spamma</PageTitle>
+
+<AdminHeader Title="SMTP Submission" Subtitle="Control who may submit mail on the TLS listeners">
+    <Controls>
+        <a href="@BackUrl" class="inline-flex items-center gap-1.5 p-2 text-sm text-gray-500 hover:text-gray-700 rounded-md hover:bg-gray-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to @(IsSubdomain ? "Subdomain" : "Domain")
+        </a>
+    </Controls>
+</AdminHeader>
+
+<div class="min-h-screen bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        @if (error is not null)
+        {
+            <div role="alert" class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">@error</div>
+        }
+        @if (loading)
+        {
+            <div class="flex items-center justify-center py-16" role="status" aria-label="Loading SMTP submission settings">
+                <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="sr-only">Loading SMTP submission settings...</span>
+            </div>
+        }
+        else if (canConfigure && policy is not null)
+        {
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div class="px-6 py-5">
+                    <div class="text-xs font-medium uppercase tracking-wide text-gray-500">@(IsSubdomain ? "Subdomain" : "Domain")</div>
+                    <h2 class="mt-1 text-xl font-semibold text-gray-900 break-all">@policy.ScopeName</h2>
+                    @if (IsSubdomain && policy.ParentDomainName is not null)
+                    {
+                        <p class="mt-1 text-sm text-gray-500">Parent domain: @policy.ParentDomainName</p>
+                    }
+                </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-5">
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900">Authentication policy</h2>
+                    <p class="mt-1 text-sm text-gray-600">Applies to port 465 and STARTTLS on port 587. External MX delivery on port 25 remains anonymous.</p>
+                </div>
+                <div>
+                    <label for="smtp-policy-mode" class="block text-sm font-medium text-gray-700 mb-2">@(IsSubdomain ? "Subdomain policy" : "Domain policy")</label>
+                    <select id="smtp-policy-mode" @bind="selectedMode" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+                        @if (IsSubdomain)
+                        {
+                            <option value="@SmtpSubmissionMode.Inherit">Inherit from domain</option>
+                        }
+                        <option value="@SmtpSubmissionMode.Disabled">No authentication required</option>
+                        <option value="@SmtpSubmissionMode.RequireAuthentication">Require a credential</option>
+                    </select>
+                    @if (IsSubdomain)
+                    {
+                        <p class="mt-2 text-sm text-gray-600">An override replaces the parent domain credential for this subdomain. Disabled permits anonymous submission here.</p>
+                    }
+                </div>
+                <div id="smtp-effective-policy" class="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
+                    <strong>Current effective policy:</strong> @(policy.EffectiveMode == SmtpSubmissionMode.RequireAuthentication ? "Credential required" : "No authentication required")
+                    @if (IsSubdomain && policy.Mode == SmtpSubmissionMode.Inherit)
+                    {
+                        <span>(inherited from @policy.ParentDomainName)</span>
+                    }
+                    else if (IsSubdomain)
+                    {
+                        <span>(subdomain override)</span>
+                    }
+                </div>
+                @if (HasPendingChange)
+                {
+                    <p class="text-sm text-blue-800">Your selection is not active until you save it.
+                        @if (selectedMode == SmtpSubmissionMode.RequireAuthentication)
+                        {
+                            <span>Saving will create a new username and password.</span>
+                        }
+                        else if (selectedMode == SmtpSubmissionMode.Inherit)
+                        {
+                            <span>The subdomain will use the domain policy and its credential, if required.</span>
+                        }
+                        else
+                        {
+                            <span>SMTP clients will no longer need a credential for this scope.</span>
+                        }
+                    </p>
+                }
+                @if (policy.Username is not null)
+                {
+                    <div>
+                        <div class="text-sm font-medium text-gray-700">Current SMTP username</div>
+                        <code class="mt-1 block break-all rounded-md border bg-gray-50 p-3 text-sm">@policy.Username</code>
+                        <button @onclick="@(() => CopyAsync(policy.Username))" class="mt-2 text-sm font-medium text-blue-700 hover:underline">Copy username</button>
+                    </div>
+                }
+                <div class="flex flex-wrap items-center gap-3">
+                    <button @onclick="SaveAsync" disabled="@(saving || !HasPendingChange)" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">@(saving ? "Saving..." : "Save policy")</button>
+                    @if (CanRotate && !HasPendingChange)
+                    {
+                        <button @onclick="RotateAsync" disabled="@saving" class="rounded-md border border-amber-400 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-50">Rotate credential</button>
+                    }
+                </div>
+                @if (CanRotate && !HasPendingChange)
+                {
+                    <p class="text-sm text-amber-800">Rotating creates a new username and password and immediately revokes the current credential, including on existing SMTP sessions.</p>
+                }
+            </div>
+            @if (newSecret is not null)
+            {
+                <div role="status" class="rounded-md border border-amber-200 bg-amber-50 p-4">
+                    <h2 class="text-sm font-medium text-amber-900">Copy the new SMTP password now</h2>
+                    <p class="mt-1 text-sm text-amber-800">It will not be shown again.</p>
+                    <code id="smtp-submission-secret" class="mt-3 block break-all rounded-md border bg-white p-3 text-sm">@newSecret</code>
+                    <button @onclick="@(() => CopyAsync(newSecret))" class="mt-2 text-sm font-medium text-blue-700 hover:underline">Copy password</button>
+                </div>
+            }
+        }
+    </div>
+</div>

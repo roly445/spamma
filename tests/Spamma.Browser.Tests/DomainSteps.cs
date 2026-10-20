@@ -9,6 +9,8 @@ public sealed partial class AnonymousAccessSteps
 {
     private DomainScenarioFixture? domainFixture;
     private Guid reviewDomainId;
+    private Guid submissionSubdomainId;
+    private string previousSubmissionUsername = string.Empty;
     private string reviewDomainName = string.Empty;
     private string verificationToken = string.Empty;
     private string moderatorEmail = string.Empty;
@@ -51,6 +53,115 @@ public sealed partial class AnonymousAccessSteps
         await Assertions.Expect(this.Page.GetByText(this.reviewDomainName, new() { Exact = true })).ToBeVisibleAsync();
         // Server-rendered controls become interactive after the Blazor circuit connects.
         await this.Page.WaitForTimeoutAsync(750);
+    }
+
+    [Given("I administer a verified domain with a subdomain for SMTP submission")]
+    public async Task GivenSubmissionDomainAsync()
+    {
+        await this.PrepareDomainAsync(verified: true);
+        this.submissionSubdomainId = await this.DomainFixture.SeedSubdomainAsync(this.reviewDomainId, "team");
+    }
+
+    [When("I require an SMTP credential for the domain")]
+    public async Task WhenIRequireDomainSmtpCredentialAsync()
+    {
+        await this.Page.GotoAsync($"/admin/domains/{this.reviewDomainId}/smtp-submission");
+        await this.Page.Locator("#smtp-policy-mode").SelectOptionAsync("RequireAuthentication");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" }).ClickAsync();
+    }
+
+    [Then("I receive the new SMTP credential once")]
+    public async Task ThenIReceiveSmtpCredentialAsync()
+    {
+        await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText("Credential required", new() { Exact = false })).ToBeVisibleAsync();
+    }
+
+    [When("I reopen the SMTP submission settings")]
+    public Task WhenIReopenSmtpSettingsAsync() =>
+        this.Page.GotoAsync($"/admin/domains/{this.reviewDomainId}/smtp-submission");
+
+    [Then("the effective domain policy requires authentication without showing the password")]
+    public async Task ThenDomainSmtpPolicyIsPersistedAsync()
+    {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = this.reviewDomainName })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText("Credential required", new() { Exact = false })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToHaveCountAsync(0);
+        await Assertions.Expect(this.Page.GetByText("SMTP username")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" })).ToBeDisabledAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Rotate credential" })).ToBeVisibleAsync();
+        var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
+        if (!string.IsNullOrWhiteSpace(screenshotDirectory))
+        {
+            Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.SetViewportSizeAsync(1280, 900);
+            await Assertions.Expect(this.Page.Locator("#blazor-wasm-loading")).ToBeHiddenAsync();
+            await this.Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(screenshotDirectory, "smtp-submission-policy.png"),
+                FullPage = true,
+            });
+        }
+    }
+
+    [When("I open SMTP submission settings for the subdomain")]
+    public Task WhenIOpenSubdomainSmtpSettingsAsync() =>
+        this.Page.GotoAsync($"/admin/subdomains/{this.submissionSubdomainId}/smtp-submission");
+
+    [Then("the subdomain inherits the domain policy")]
+    public async Task ThenSubdomainInheritsSmtpPolicyAsync()
+    {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = $"team.{this.reviewDomainName}" })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText($"Parent domain: {this.reviewDomainName}")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("#smtp-policy-mode")).ToHaveValueAsync("Inherit");
+        await Assertions.Expect(this.Page.GetByText($"(inherited from {this.reviewDomainName})")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText("Credential required", new() { Exact = false })).ToBeVisibleAsync();
+    }
+
+    [When("I disable SMTP authentication on the subdomain")]
+    public async Task WhenIDisableSubdomainSmtpAuthenticationAsync()
+    {
+        await this.Page.Locator("#smtp-policy-mode").SelectOptionAsync("Disabled");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" }).ClickAsync();
+    }
+
+    [Then("the subdomain permits anonymous TLS submission")]
+    public async Task ThenSubdomainPermitsAnonymousSubmissionAsync()
+    {
+        await Assertions.Expect(this.Page.Locator("#smtp-effective-policy")).ToContainTextAsync("No authentication required");
+        await Assertions.Expect(this.Page.GetByText("(subdomain override)")).ToBeVisibleAsync();
+    }
+
+    [When("I require a separate SMTP credential on the subdomain")]
+    public async Task WhenIRequireSubdomainSmtpCredentialAsync()
+    {
+        await this.Page.Locator("#smtp-policy-mode").SelectOptionAsync("RequireAuthentication");
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" }).ClickAsync();
+    }
+
+    [Then("the subdomain shows its own credential and effective override")]
+    public async Task ThenSubdomainSmtpCredentialOverridesAsync()
+    {
+        await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText("(subdomain override)")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("code").Filter(new() { HasText = $"subdomain:{this.submissionSubdomainId:N}" }))
+            .ToBeVisibleAsync();
+    }
+
+    [When("I rotate the subdomain SMTP credential")]
+    public async Task WhenIRotateSubdomainSmtpCredentialAsync()
+    {
+        this.previousSubmissionUsername = await this.Page.Locator("code").Filter(new() { HasText = $"subdomain:{this.submissionSubdomainId:N}" }).InnerTextAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Rotate credential" }).ClickAsync();
+    }
+
+    [Then("its username changes and the new password is shown once")]
+    public async Task ThenRotatedSubdomainSmtpCredentialIsShownAsync()
+    {
+        await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("code").Filter(new() { HasText = $"subdomain:{this.submissionSubdomainId:N}" }))
+            .Not.ToHaveTextAsync(this.previousSubmissionUsername);
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" })).ToBeDisabledAsync();
     }
 
     [Given("I administer several domains with different states")]

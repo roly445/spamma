@@ -22,6 +22,68 @@ namespace Spamma.Modules.EmailInbox.Tests.Infrastructure.Services;
 public class SpammaMessageStoreTests
 {
     [Fact]
+    public async Task SaveAsync_UsesEnvelopeRecipientWhenMimeToDisagrees()
+    {
+        var subdomainId = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
+        var subdomainCache = new Mock<ISubdomainCache>();
+        subdomainCache.Setup(x => x.GetSubdomainAsync("example.com", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(new ISubdomainCache.CachedSubdomain(subdomainId, domainId)));
+        var chaosAddressCache = new Mock<IChaosAddressCache>();
+        chaosAddressCache.Setup(x => x.GetChaosAddressAsync(subdomainId, "bcc", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe<IChaosAddressCache.CachedChaosAddress>.Nothing);
+        var queue = new Mock<IBackgroundTaskQueue>();
+        var provider = CreateServiceProvider(
+            subdomainCache.Object, chaosAddressCache.Object, queue.Object,
+            Mock.Of<IEmailInboxSettingsService>(), Mock.Of<ICatchAllSenderAddressCache>(),
+            new PushNotificationManager());
+        var context = new Mock<ISessionContext>();
+        context.Setup(x => x.ServiceProvider).Returns(provider);
+        var message = new MimeMessage
+        {
+            From = { MailboxAddress.Parse("sender@test.com") },
+            To = { MailboxAddress.Parse("decoy@unowned.example") },
+        };
+
+        var response = await new SpammaMessageStore().SaveAsync(
+            context.Object, CreateTransaction("bcc@example.com"), CreateBuffer(message), CancellationToken.None);
+
+        response.Should().Be(SmtpResponse.Ok);
+        queue.Verify(
+            x => x.QueueBackgroundWorkItem(It.Is<StandardEmailCaptureJob>(
+                job => job.DomainId == domainId && job.SubdomainId == subdomainId)),
+            Times.Once);
+        subdomainCache.Verify(x => x.GetSubdomainAsync("unowned.example", false, It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RejectsUnknownEnvelopeEvenWhenMimeToNamesKnownInbox()
+    {
+        var subdomainCache = new Mock<ISubdomainCache>();
+        subdomainCache.Setup(x => x.GetSubdomainAsync("unowned.example", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe<ISubdomainCache.CachedSubdomain>.Nothing);
+        var settings = new Mock<IEmailInboxSettingsService>();
+        settings.Setup(x => x.GetCatchAllModeEnabledAsync(It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        var queue = new Mock<IBackgroundTaskQueue>();
+        var provider = CreateServiceProvider(
+            subdomainCache.Object, Mock.Of<IChaosAddressCache>(), queue.Object,
+            settings.Object, Mock.Of<ICatchAllSenderAddressCache>(), new PushNotificationManager());
+        var context = new Mock<ISessionContext>();
+        context.Setup(x => x.ServiceProvider).Returns(provider);
+        var message = new MimeMessage
+        {
+            From = { MailboxAddress.Parse("sender@test.com") },
+            To = { MailboxAddress.Parse("someone@example.com") },
+        };
+
+        var response = await new SpammaMessageStore().SaveAsync(
+            context.Object, CreateTransaction("decoy@unowned.example"), CreateBuffer(message), CancellationToken.None);
+
+        response.Should().Be(SmtpResponse.MailboxNameNotAllowed);
+        queue.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<IBaseEmailCaptureJob>()), Times.Never);
+    }
+
+    [Fact]
     public async Task SaveAsync_WhenDurableQueueFails_ReturnsTemporarySmtpFailure()
     {
         var subdomainId = Guid.NewGuid();
@@ -48,7 +110,7 @@ public class SpammaMessageStoreTests
         };
 
         var response = await new SpammaMessageStore().SaveAsync(
-            session.Object, Mock.Of<IMessageTransaction>(), CreateBuffer(message), CancellationToken.None);
+            session.Object, CreateTransaction(message.To.Mailboxes.Select(x => x.Address).ToArray()), CreateBuffer(message), CancellationToken.None);
 
         response.ReplyCode.Should().Be(SmtpReplyCode.Aborted);
         queue.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Once);
@@ -108,7 +170,7 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
@@ -175,7 +237,7 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
@@ -233,7 +295,7 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
@@ -297,7 +359,7 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
@@ -365,7 +427,7 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
@@ -439,7 +501,7 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
@@ -453,7 +515,7 @@ public class SpammaMessageStoreTests
     }
 
     [Fact]
-    public async Task SaveAsync_MultipleRecipients_UsesFirstMatchingSubdomain()
+    public async Task SaveAsync_MixedKnownAndUnknownEnvelopeRecipients_RejectsWholeTransaction()
     {
         // Arrange
         var subdomainCacheMock = new Mock<ISubdomainCache>(MockBehavior.Strict);
@@ -512,13 +574,45 @@ public class SpammaMessageStoreTests
         // Act
         var result = await store.SaveAsync(
             sessionContextMock.Object,
-            Mock.Of<IMessageTransaction>(),
+            CreateTransaction(mimeMessage.To.Mailboxes.Select(x => x.Address).ToArray()),
             buffer,
             CancellationToken.None);
 
         // Assert
-        result.Should().Be(SmtpResponse.Ok);
-        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Once);
+        result.Should().Be(SmtpResponse.MailboxNameNotAllowed);
+        backgroundTaskQueueMock.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<StandardEmailCaptureJob>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveAsync_RecipientsInDifferentSubdomains_RejectsWholeTransaction()
+    {
+        var first = Guid.NewGuid();
+        var second = Guid.NewGuid();
+        var domainId = Guid.NewGuid();
+        var subdomains = new Mock<ISubdomainCache>();
+        subdomains.Setup(x => x.GetSubdomainAsync("first.example", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(new ISubdomainCache.CachedSubdomain(first, domainId)));
+        subdomains.Setup(x => x.GetSubdomainAsync("second.example", false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Maybe.From(new ISubdomainCache.CachedSubdomain(second, domainId)));
+        var queue = new Mock<IBackgroundTaskQueue>();
+        var provider = CreateServiceProvider(
+            subdomains.Object, Mock.Of<IChaosAddressCache>(), queue.Object,
+            Mock.Of<IEmailInboxSettingsService>(), Mock.Of<ICatchAllSenderAddressCache>(),
+            new PushNotificationManager());
+        var context = new Mock<ISessionContext>();
+        context.Setup(x => x.ServiceProvider).Returns(provider);
+        var message = new MimeMessage
+        {
+            From = { MailboxAddress.Parse("sender@external.example") },
+            To = { MailboxAddress.Parse("a@first.example"), MailboxAddress.Parse("b@second.example") },
+        };
+
+        var response = await new SpammaMessageStore().SaveAsync(
+            context.Object, CreateTransaction("a@first.example", "b@second.example"),
+            CreateBuffer(message), CancellationToken.None);
+
+        response.Should().Be(SmtpResponse.MailboxNameNotAllowed);
+        queue.Verify(x => x.QueueBackgroundWorkItem(It.IsAny<IBaseEmailCaptureJob>()), Times.Never);
     }
 
     private static IServiceProvider CreateServiceProvider(
@@ -545,6 +639,13 @@ public class SpammaMessageStoreTests
         var endpointMock = new Mock<IEndpointDefinition>();
         endpointMock.Setup(x => x.Endpoint).Returns(new IPEndPoint(IPAddress.Loopback, port));
         return endpointMock.Object;
+    }
+
+    private static IMessageTransaction CreateTransaction(params string[] addresses)
+    {
+        var transaction = new Mock<IMessageTransaction>();
+        transaction.Setup(x => x.To).Returns(addresses.Select(x => (SmtpServer.Mail.IMailbox)new SmtpServer.Mail.Mailbox(x)).ToList());
+        return transaction.Object;
     }
 
     private static ReadOnlySequence<byte> CreateBuffer(MimeMessage message)

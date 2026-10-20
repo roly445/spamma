@@ -214,6 +214,7 @@
                                     class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
                                 Edit Domain
                             </button>
+                            <a href="@($"/admin/domains/{Id}/smtp-submission")" class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">SMTP Submission</a>
                             <button @onclick="OpenAddSubdomainModal" disabled="@(!domain.IsVerified || domain.Status == DomainStatus.Suspended)" class="block w-full text-left px-3 py-2 text-sm rounded-md border text-gray-700 bg-white hover:bg-gray-50">
                                 Add Subdomain
                             </button>

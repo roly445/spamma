@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SmtpServer;
+using SmtpServer.Authentication;
 using SmtpServer.Storage;
 using Spamma.Modules.Common;
 using Spamma.Modules.Common.Client;
@@ -25,6 +26,7 @@ using Spamma.Modules.EmailInbox.Infrastructure.Repositories;
 using Spamma.Modules.EmailInbox.Infrastructure.Services;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.BackgroundJobs;
 using Spamma.Modules.EmailInbox.Infrastructure.Services.Caching;
+using Spamma.Modules.EmailInbox.Infrastructure.Services.Submission;
 using Spamma.Modules.EmailInbox.Infrastructure.Settings;
 using Spamma.Modules.EmailInbox.Infrastructure.SpamFeedback;
 
@@ -52,6 +54,10 @@ public static class Module
         services.AddScoped<IEmailNotificationAccessService, EmailNotificationAccessService>();
         services.AddScoped<EmailPushGrpcService>();
         services.AddTransient<IMessageStore, SpammaMessageStore>();
+        services.AddTransient<IUserAuthenticator, SpammaUserAuthenticator>();
+        services.AddTransient<IMailboxFilter, SmtpSubmissionMailboxFilter>();
+        services.AddTransient<SmtpSubmissionMailboxFilter>();
+        services.AddScoped<SmtpSubmissionPolicyService>();
 
         // Background job queues
         services.AddScoped<BackgroundTaskService>();
@@ -85,15 +91,17 @@ public static class Module
                 optionsBuilder.Endpoint(builder =>
                 {
                     builder
-                        .Port(465, true)
-                        .Certificate(certificate.Value);
+                        .Port(smtpSettings.ImplicitTlsPort, true)
+                        .Certificate(certificate.Value)
+                        .AllowUnsecureAuthentication(false);
                 });
 
                 optionsBuilder.Endpoint(builder =>
                 {
                     builder
-                        .Port(587, false)
-                        .Certificate(certificate.Value);
+                        .Port(smtpSettings.StartTlsPort, false)
+                        .Certificate(certificate.Value)
+                        .AllowUnsecureAuthentication(false);
                 });
             }
 
@@ -119,6 +127,7 @@ public static class Module
     {
         endpointRouteBuilder.AddBluQubeApi();
         endpointRouteBuilder.MapSpamFeedbackApi();
+        endpointRouteBuilder.MapSmtpSubmissionApi();
         endpointRouteBuilder.MapGet(
             "email-inbox/get-email-mime-message-by-id",
             async (IQueryRunner queryRunner, HttpContext httpContext, Guid emailId) =>
@@ -178,6 +187,7 @@ public static class Module
         options.Schema.For<EmailInboxSettingsDocument>().Identity(x => x.Id);
         options.Schema.For<SpamFeedbackConfiguration>().Identity(x => x.Id);
         options.Schema.For<SpamReport>().Identity(x => x.Id);
+        options.Schema.For<SmtpSubmissionPolicy>().Identity(x => x.Id);
 
         return options;
     }
