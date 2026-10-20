@@ -10,6 +10,7 @@ public sealed partial class AnonymousAccessSteps
     private DomainScenarioFixture? domainFixture;
     private Guid reviewDomainId;
     private Guid submissionSubdomainId;
+    private string previousSubmissionUsername = string.Empty;
     private string reviewDomainName = string.Empty;
     private string verificationToken = string.Empty;
     private string moderatorEmail = string.Empty;
@@ -86,6 +87,8 @@ public sealed partial class AnonymousAccessSteps
         await Assertions.Expect(this.Page.GetByText("Credential required", new() { Exact = false })).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToHaveCountAsync(0);
         await Assertions.Expect(this.Page.GetByText("SMTP username")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" })).ToBeDisabledAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Rotate credential" })).ToBeVisibleAsync();
         var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
         if (!string.IsNullOrWhiteSpace(screenshotDirectory))
         {
@@ -140,6 +143,22 @@ public sealed partial class AnonymousAccessSteps
         await Assertions.Expect(this.Page.GetByText("(subdomain override)")).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.Locator("code").Filter(new() { HasText = $"subdomain:{this.submissionSubdomainId:N}" }))
             .ToBeVisibleAsync();
+    }
+
+    [When("I rotate the subdomain SMTP credential")]
+    public async Task WhenIRotateSubdomainSmtpCredentialAsync()
+    {
+        this.previousSubmissionUsername = await this.Page.Locator("code").Filter(new() { HasText = $"subdomain:{this.submissionSubdomainId:N}" }).InnerTextAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Rotate credential" }).ClickAsync();
+    }
+
+    [Then("its username changes and the new password is shown once")]
+    public async Task ThenRotatedSubdomainSmtpCredentialIsShownAsync()
+    {
+        await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.Locator("code").Filter(new() { HasText = $"subdomain:{this.submissionSubdomainId:N}" }))
+            .Not.ToHaveTextAsync(this.previousSubmissionUsername);
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Button, new() { Name = "Save policy" })).ToBeDisabledAsync();
     }
 
     [Given("I administer several domains with different states")]

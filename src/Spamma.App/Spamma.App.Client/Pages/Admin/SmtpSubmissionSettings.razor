@@ -28,7 +28,7 @@
                     <p class="mt-1 text-sm text-gray-600">Applies to port 465 and STARTTLS on port 587. External MX delivery on port 25 remains anonymous.</p>
                 </div>
                 <div>
-                    <label for="smtp-policy-mode" class="block text-sm font-medium text-gray-700 mb-2">Setting</label>
+                    <label for="smtp-policy-mode" class="block text-sm font-medium text-gray-700 mb-2">@(IsSubdomain ? "Subdomain policy" : "Domain policy")</label>
                     <select id="smtp-policy-mode" @bind="selectedMode" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
                         @if (IsSubdomain)
                         {
@@ -43,7 +43,7 @@
                     }
                 </div>
                 <div id="smtp-effective-policy" class="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
-                    <strong>Effective policy:</strong> @(policy.EffectiveMode == SmtpSubmissionMode.RequireAuthentication ? "Credential required" : "No authentication required")
+                    <strong>Current effective policy:</strong> @(policy.EffectiveMode == SmtpSubmissionMode.RequireAuthentication ? "Credential required" : "No authentication required")
                     @if (IsSubdomain && policy.Mode == SmtpSubmissionMode.Inherit)
                     {
                         <span>(inherited from domain)</span>
@@ -53,12 +53,42 @@
                         <span>(subdomain override)</span>
                     }
                 </div>
+                @if (HasPendingChange)
+                {
+                    <p class="text-sm text-blue-800">Your selection is not active until you save it.
+                        @if (selectedMode == SmtpSubmissionMode.RequireAuthentication)
+                        {
+                            <span>Saving will create a new username and password.</span>
+                        }
+                        else if (selectedMode == SmtpSubmissionMode.Inherit)
+                        {
+                            <span>The subdomain will use the domain policy and its credential, if required.</span>
+                        }
+                        else
+                        {
+                            <span>SMTP clients will no longer need a credential for this scope.</span>
+                        }
+                    </p>
+                }
                 @if (policy.Username is not null)
                 {
-                    <div><div class="text-sm font-medium text-gray-700">SMTP username</div><code class="mt-1 block break-all rounded-md border bg-gray-50 p-3 text-sm">@policy.Username</code></div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-700">Current SMTP username</div>
+                        <code class="mt-1 block break-all rounded-md border bg-gray-50 p-3 text-sm">@policy.Username</code>
+                        <button @onclick="@(() => CopyAsync(policy.Username))" class="mt-2 text-sm font-medium text-blue-700 hover:underline">Copy username</button>
+                    </div>
                 }
-                <p class="text-sm text-amber-800">Saving “Require a credential” generates a new password and immediately revokes the previous credential, including on existing SMTP sessions.</p>
-                <button @onclick="SaveAsync" disabled="@saving" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">@(saving ? "Saving..." : "Save policy")</button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button @onclick="SaveAsync" disabled="@(saving || !HasPendingChange)" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">@(saving ? "Saving..." : "Save policy")</button>
+                    @if (CanRotate && !HasPendingChange)
+                    {
+                        <button @onclick="RotateAsync" disabled="@saving" class="rounded-md border border-amber-400 px-4 py-2 text-sm font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-50">Rotate credential</button>
+                    }
+                </div>
+                @if (CanRotate && !HasPendingChange)
+                {
+                    <p class="text-sm text-amber-800">Rotating creates a new username and password and immediately revokes the current credential, including on existing SMTP sessions.</p>
+                }
             </div>
             @if (newSecret is not null)
             {
@@ -66,6 +96,7 @@
                     <h2 class="text-sm font-medium text-amber-900">Copy the new SMTP password now</h2>
                     <p class="mt-1 text-sm text-amber-800">It will not be shown again.</p>
                     <code id="smtp-submission-secret" class="mt-3 block break-all rounded-md border bg-white p-3 text-sm">@newSecret</code>
+                    <button @onclick="@(() => CopyAsync(newSecret))" class="mt-2 text-sm font-medium text-blue-700 hover:underline">Copy password</button>
                 </div>
             }
         }

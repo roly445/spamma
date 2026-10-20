@@ -14,3 +14,5 @@ Feature: SMTP submission policy
     Then the subdomain permits anonymous TLS submission
     When I require a separate SMTP credential on the subdomain
     Then the subdomain shows its own credential and effective override
+    When I rotate the subdomain SMTP credential
+    Then its username changes and the new password is shown once

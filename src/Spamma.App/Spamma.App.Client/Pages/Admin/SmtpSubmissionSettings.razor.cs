@@ -1,11 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Spamma.Modules.EmailInbox.Client.Contracts;
 
 namespace Spamma.App.Client.Pages.Admin;
 
-public partial class SmtpSubmissionSettings(HttpClient httpClient) : ComponentBase
+public partial class SmtpSubmissionSettings(HttpClient httpClient, IJSRuntime jsRuntime) : ComponentBase
 {
     private bool loading = true;
     private bool saving;
@@ -22,6 +23,10 @@ public partial class SmtpSubmissionSettings(HttpClient httpClient) : ComponentBa
     public Guid SubdomainId { get; set; }
 
     private bool IsSubdomain => this.SubdomainId != Guid.Empty;
+
+    private bool HasPendingChange => this.policy is not null && this.selectedMode != this.policy.Mode;
+
+    private bool CanRotate => this.policy?.Mode == SmtpSubmissionMode.RequireAuthentication;
 
     private string Endpoint => this.IsSubdomain
         ? $"api/email-inbox/subdomains/{this.SubdomainId}/smtp-submission"
@@ -57,6 +62,31 @@ public partial class SmtpSubmissionSettings(HttpClient httpClient) : ComponentBa
     }
 
     private async Task SaveAsync()
+    {
+        if (!this.HasPendingChange)
+        {
+            return;
+        }
+
+        await this.ApplyAsync();
+    }
+
+    private async Task RotateAsync()
+    {
+        if (!this.CanRotate || this.HasPendingChange)
+        {
+            return;
+        }
+
+        await this.ApplyAsync();
+    }
+
+    private async Task CopyAsync(string value)
+    {
+        await jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", value);
+    }
+
+    private async Task ApplyAsync()
     {
         this.saving = true;
         this.error = null;
