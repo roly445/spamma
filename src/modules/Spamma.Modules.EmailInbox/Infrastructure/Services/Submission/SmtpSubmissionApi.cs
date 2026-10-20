@@ -24,13 +24,14 @@ internal static class SmtpSubmissionApi
         Guid domainId, HttpContext context, IQueryRunner queries,
         SmtpSubmissionPolicyService policies, CancellationToken cancellationToken)
     {
-        if (!await CanManageDomainAsync(domainId, context, queries, cancellationToken))
+        var domain = await GetManagedDomainAsync(domainId, context, queries, cancellationToken);
+        if (domain is null)
         {
             return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
 
         var policy = await policies.GetDomainAsync(domainId, cancellationToken);
-        return Results.Ok(View(policy, SmtpSubmissionMode.Disabled, policy, null));
+        return Results.Ok(View(policy, SmtpSubmissionMode.Disabled, policy, null, domain.DomainName));
     }
 
     private static async Task<IResult> SetDomainAsync(
@@ -38,7 +39,8 @@ internal static class SmtpSubmissionApi
         SmtpSubmissionPolicyService policies, CancellationToken cancellationToken)
     {
         context.Response.Headers.CacheControl = "no-store";
-        if (!await CanManageDomainAsync(domainId, context, queries, cancellationToken))
+        var domain = await GetManagedDomainAsync(domainId, context, queries, cancellationToken);
+        if (domain is null)
         {
             return Results.StatusCode(StatusCodes.Status403Forbidden);
         }
@@ -49,7 +51,7 @@ internal static class SmtpSubmissionApi
         }
 
         var (policy, secret) = await policies.SetAsync(SmtpSubmissionPolicy.DomainKey(domainId), request.Mode, cancellationToken);
-        return Results.Ok(View(policy, SmtpSubmissionMode.Disabled, policy, secret));
+        return Results.Ok(View(policy, SmtpSubmissionMode.Disabled, policy, secret, domain.DomainName));
     }
 
     private static async Task<IResult> GetSubdomainAsync(
@@ -64,7 +66,7 @@ internal static class SmtpSubmissionApi
 
         var configured = await policies.GetSubdomainAsync(subdomainId, cancellationToken);
         var effective = await policies.GetEffectiveAsync(subdomain.DomainId, subdomainId, cancellationToken);
-        return Results.Ok(View(configured, SmtpSubmissionMode.Inherit, effective, null));
+        return Results.Ok(View(configured, SmtpSubmissionMode.Inherit, effective, null, subdomain.FullName, subdomain.DomainName));
     }
 
     private static async Task<IResult> SetSubdomainAsync(
@@ -85,19 +87,21 @@ internal static class SmtpSubmissionApi
 
         var (configured, secret) = await policies.SetAsync(SmtpSubmissionPolicy.SubdomainKey(subdomainId), request.Mode, cancellationToken);
         var effective = await policies.GetEffectiveAsync(subdomain.DomainId, subdomainId, cancellationToken);
-        return Results.Ok(View(configured, SmtpSubmissionMode.Inherit, effective, secret));
+        return Results.Ok(View(configured, SmtpSubmissionMode.Inherit, effective, secret, subdomain.FullName, subdomain.DomainName));
     }
 
-    private static async Task<bool> CanManageDomainAsync(
+    private static async Task<GetDetailedDomainByIdQueryResult?> GetManagedDomainAsync(
         Guid domainId, HttpContext context, IQueryRunner queries, CancellationToken cancellationToken)
     {
         if (!context.ToUserAuthInfo().IsAuthenticated)
         {
-            return false;
+            return null;
         }
 
         var result = await queries.Send(new GetDetailedDomainByIdQuery(domainId), cancellationToken);
-        return result.Status == QueryResultStatus.Succeeded && !result.Data.IsSuspended;
+        return result.Status == QueryResultStatus.Succeeded && !result.Data.IsSuspended
+            ? result.Data
+            : null;
     }
 
     private static async Task<GetDetailedSubdomainByIdQueryResult?> GetManagedSubdomainAsync(
@@ -116,10 +120,12 @@ internal static class SmtpSubmissionApi
 
     private static SmtpSubmissionPolicyView View(
         SmtpSubmissionPolicy? configured, SmtpSubmissionMode defaultMode,
-        SmtpSubmissionPolicy? effective, string? secret) => new(
+        SmtpSubmissionPolicy? effective, string? secret, string scopeName, string? parentDomainName = null) => new(
             configured?.Mode ?? defaultMode,
             effective?.Mode ?? SmtpSubmissionMode.Disabled,
             effective?.Id,
             effective?.Username,
-            secret);
+            secret,
+            scopeName,
+            parentDomainName);
 }

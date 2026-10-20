@@ -84,6 +84,7 @@ public sealed partial class AnonymousAccessSteps
     [Then("the effective domain policy requires authentication without showing the password")]
     public async Task ThenDomainSmtpPolicyIsPersistedAsync()
     {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = this.reviewDomainName })).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.GetByText("Credential required", new() { Exact = false })).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.Locator("#smtp-submission-secret")).ToHaveCountAsync(0);
         await Assertions.Expect(this.Page.GetByText("SMTP username")).ToBeVisibleAsync();
@@ -110,8 +111,10 @@ public sealed partial class AnonymousAccessSteps
     [Then("the subdomain inherits the domain policy")]
     public async Task ThenSubdomainInheritsSmtpPolicyAsync()
     {
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Heading, new() { Name = $"team.{this.reviewDomainName}" })).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText($"Parent domain: {this.reviewDomainName}")).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.Locator("#smtp-policy-mode")).ToHaveValueAsync("Inherit");
-        await Assertions.Expect(this.Page.GetByText("(inherited from domain)")).ToBeVisibleAsync();
+        await Assertions.Expect(this.Page.GetByText($"(inherited from {this.reviewDomainName})")).ToBeVisibleAsync();
         await Assertions.Expect(this.Page.GetByText("Credential required", new() { Exact = false })).ToBeVisibleAsync();
     }
 

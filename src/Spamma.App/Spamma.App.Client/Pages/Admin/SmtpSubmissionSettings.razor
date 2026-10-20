@@ -7,21 +7,44 @@
 <PageTitle>SMTP Submission - Spamma</PageTitle>
 
 <AdminHeader Title="SMTP Submission" Subtitle="Control who may submit mail on the TLS listeners">
-    <Controls><a href="@BackUrl" class="p-2 text-sm text-blue-700 hover:underline">Back to @(IsSubdomain ? "Subdomain" : "Domain")</a></Controls>
+    <Controls>
+        <a href="@BackUrl" class="inline-flex items-center gap-1.5 p-2 text-sm text-gray-500 hover:text-gray-700 rounded-md hover:bg-gray-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to @(IsSubdomain ? "Subdomain" : "Domain")
+        </a>
+    </Controls>
 </AdminHeader>
 
 <div class="min-h-screen bg-gray-50">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         @if (error is not null)
         {
             <div role="alert" class="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">@error</div>
         }
         @if (loading)
         {
-            <p role="status">Loading SMTP submission settings...</p>
+            <div class="flex items-center justify-center py-16" role="status" aria-label="Loading SMTP submission settings">
+                <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="sr-only">Loading SMTP submission settings...</span>
+            </div>
         }
         else if (canConfigure && policy is not null)
         {
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div class="px-6 py-5">
+                    <div class="text-xs font-medium uppercase tracking-wide text-gray-500">@(IsSubdomain ? "Subdomain" : "Domain")</div>
+                    <h2 class="mt-1 text-xl font-semibold text-gray-900 break-all">@policy.ScopeName</h2>
+                    @if (IsSubdomain && policy.ParentDomainName is not null)
+                    {
+                        <p class="mt-1 text-sm text-gray-500">Parent domain: @policy.ParentDomainName</p>
+                    }
+                </div>
+            </div>
             <div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm space-y-5">
                 <div>
                     <h2 class="text-lg font-medium text-gray-900">Authentication policy</h2>
@@ -46,7 +69,7 @@
                     <strong>Current effective policy:</strong> @(policy.EffectiveMode == SmtpSubmissionMode.RequireAuthentication ? "Credential required" : "No authentication required")
                     @if (IsSubdomain && policy.Mode == SmtpSubmissionMode.Inherit)
                     {
-                        <span>(inherited from domain)</span>
+                        <span>(inherited from @policy.ParentDomainName)</span>
                     }
                     else if (IsSubdomain)
                     {

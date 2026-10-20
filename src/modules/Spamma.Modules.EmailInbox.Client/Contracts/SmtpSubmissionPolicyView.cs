@@ -5,4 +5,6 @@ public sealed record SmtpSubmissionPolicyView(
     SmtpSubmissionMode EffectiveMode,
     string? EffectiveSource,
     string? Username,
-    string? Secret);
+    string? Secret,
+    string ScopeName,
+    string? ParentDomainName);
