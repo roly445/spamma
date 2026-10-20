@@ -313,28 +313,9 @@
                     </div>
 
                     <div class="p-3 border-b border-gray-200 flex-shrink-0">
-                        <div class="relative">
-                            <input type="text"
-                                   placeholder="Search or use from:, to:, subject:, after:, before:"
-                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                   @bind="_searchText"
-                                   @bind:event="oninput"
-                                   @onkeypress="HandleSearchKeyPress">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                            @if (!string.IsNullOrWhiteSpace(_searchText))
-                            {
-                                <button class="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                        @onclick="ClearSearch">
-                                    <svg class="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </button>
-                            }
-                        </div>
+                        <EmailSearchBox @bind-Value="_searchText"
+                                        OnKeyPress="HandleSearchKeyPress"
+                                        OnClear="ClearSearch" />
 
                         <div class="mt-2 flex items-center">
                             <label class="flex items-center cursor-pointer text-sm text-gray-700 hover:text-gray-900">

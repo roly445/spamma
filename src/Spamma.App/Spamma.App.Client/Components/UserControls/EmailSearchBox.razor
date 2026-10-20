@@ -1,0 +1,50 @@
+<div>
+    <div class="relative">
+        <input @ref="searchInput"
+               type="text"
+               role="searchbox"
+               aria-label="Search emails"
+               placeholder="Search messages"
+               value="@Value"
+               class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+               @oninput="HandleInput"
+               @onkeypress="OnKeyPress">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Value))
+        {
+            <button type="button"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    aria-label="Clear search"
+                    @onclick="OnClear">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        }
+    </div>
+
+    <details class="mt-2 text-xs text-gray-600" data-testid="email-search-tips">
+        <summary class="cursor-pointer font-medium text-blue-700 hover:text-blue-800">Search tips and filters</summary>
+        <div class="mt-2 rounded-md border border-gray-200 bg-gray-50 p-3 space-y-2">
+            <p>Search words match subjects and email addresses. Choose a filter below to add it to your search.</p>
+            <div class="space-y-1">
+                @foreach (var filter in Filters)
+                {
+                    <div class="flex items-center gap-2">
+                        <button type="button"
+                                class="shrink-0 rounded border border-blue-200 bg-white px-1.5 py-0.5 font-mono text-blue-700 hover:bg-blue-50"
+                                aria-label="Add @filter.Name filter"
+                                @onclick="() => InsertFilter(filter.Operator)">@filter.Operator</button>
+                        <span>@filter.Description</span>
+                    </div>
+                }
+            </div>
+            <p>Use <code class="font-mono">YYYY-MM-DD</code> for dates in UTC. After includes the date; before excludes it.</p>
+            <p>Combine filters with words. Put quotes around a phrase, for example <code class="font-mono">subject:"billing invoice"</code>.</p>
+        </div>
+    </details>
+</div>

@@ -61,8 +61,8 @@ public sealed partial class AnonymousAccessSteps
 
     private async Task SearchAsync(string term)
     {
-        await this.Page.GetByPlaceholder("Search or use from:").FillAsync(term);
-        await this.Page.GetByPlaceholder("Search or use from:").PressAsync("Enter");
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).FillAsync(term);
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).PressAsync("Enter");
     }
 
     [Given("I am signed in with access to a subdomain without messages")]
@@ -153,6 +153,11 @@ public sealed partial class AnonymousAccessSteps
     [When("I search by part of a subject or email address")]
     public async Task WhenISearchForSubjectOrAddressAsync()
     {
+        await this.Page.GetByText("Search tips and filters").ClickAsync();
+        await Assertions.Expect(this.Page.GetByText("Use YYYY-MM-DD for dates in UTC.", new() { Exact = false })).ToBeVisibleAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add sender filter" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("from:");
+
         await this.SearchAsync("Needle subject");
         await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
         await this.SearchAsync("from:needle-sender@example.test");
@@ -194,7 +199,7 @@ public sealed partial class AnonymousAccessSteps
     {
         var revisedTerm = "still-no-matches-" + Guid.NewGuid().ToString("N");
         await this.SearchAsync(revisedTerm);
-        await Assertions.Expect(this.Page.GetByPlaceholder("Search or use from:")).ToHaveValueAsync(revisedTerm);
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync(revisedTerm);
         await this.ThenISeeNoSearchResultsAsync();
     }
 
@@ -210,7 +215,7 @@ public sealed partial class AnonymousAccessSteps
 
     [Then("the search remains applied")]
     public Task ThenSearchRemainsAppliedAsync() =>
-        Assertions.Expect(this.Page.GetByPlaceholder("Search or use from:")).ToHaveValueAsync("Page match");
+        Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("Page match");
 
     [When("I mark it as a favorite")]
     public Task WhenIMarkFavoriteAsync() => this.Page.Locator("button[title='Add to favorites']").ClickAsync();

@@ -255,7 +255,7 @@ public class CatchAllInboxTests : BunitContext
         await cut.InvokeAsync(() => Task.CompletedTask);
 
         // Act
-        var searchInput = cut.Find("input[placeholder^='Search or use from:']");
+        var searchInput = cut.Find("input[aria-label='Search emails']");
         await searchInput.InputAsync("github");
         await searchInput.KeyPressAsync("Enter");
 

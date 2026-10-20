@@ -243,8 +243,8 @@ public sealed partial class AnonymousAccessSteps
     public async Task WhenISearchCatchAllAsync()
     {
         await this.OpenCatchAllInboxAsync();
-        await this.Page.GetByPlaceholder("Search or use from:").FillAsync(this.catchAllSubject);
-        await this.Page.GetByPlaceholder("Search or use from:").PressAsync("Enter");
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).FillAsync(this.catchAllSubject);
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).PressAsync("Enter");
     }
 
     [Then("only the matching catch-all message is shown")]
@@ -269,8 +269,8 @@ public sealed partial class AnonymousAccessSteps
     public async Task WhenISearchOtherCatchAllAsync()
     {
         await this.OpenCatchAllInboxAsync();
-        await this.Page.GetByPlaceholder("Search or use from:").FillAsync(this.catchAllSubject);
-        await this.Page.GetByPlaceholder("Search or use from:").PressAsync("Enter");
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).FillAsync(this.catchAllSubject);
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).PressAsync("Enter");
     }
 
     [Then("it is not shown in my catch-all inbox")]
