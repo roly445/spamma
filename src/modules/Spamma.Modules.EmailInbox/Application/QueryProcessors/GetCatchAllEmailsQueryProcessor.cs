@@ -38,16 +38,7 @@ internal class GetCatchAllEmailsQueryProcessor(IDocumentSession documentSession,
                 x.CatchAllSenderAddressId != null && allowedIds.Contains(x.CatchAllSenderAddressId.Value));
         }
 
-        if (!string.IsNullOrWhiteSpace(request.SearchText))
-        {
-            var searchText = request.SearchText.Trim().ToLowerInvariant();
-
-            baseQuery = baseQuery.Where(x =>
-                x.Subject.ToLowerInvariant().Contains(searchText) ||
-                x.EmailAddresses.Any(a =>
-                    a.Address.ToLowerInvariant().Contains(searchText) ||
-                    a.Name.ToLowerInvariant().Contains(searchText)));
-        }
+        baseQuery = EmailSearchFilters.Apply(baseQuery, request.SearchText);
 
         var totalCount = await baseQuery.CountAsync(cancellationToken);
 

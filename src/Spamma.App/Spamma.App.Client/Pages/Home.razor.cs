@@ -121,17 +121,31 @@ public partial class Home(
 
     private static MarkupString HighlightSearchTerm(string text, string searchTerm)
     {
-        if (string.IsNullOrWhiteSpace(searchTerm) || string.IsNullOrWhiteSpace(text))
+        if (string.IsNullOrWhiteSpace(searchTerm) || string.IsNullOrWhiteSpace(text) ||
+            searchTerm.Contains(':') || searchTerm.Any(char.IsWhiteSpace))
         {
             return new MarkupString(System.Web.HttpUtility.HtmlEncode(text));
         }
 
-        var highlightedText = text.Replace(
-            searchTerm,
-            $"<mark class=\"bg-yellow-200 text-yellow-900\">{searchTerm}</mark>",
-            StringComparison.OrdinalIgnoreCase);
+        var highlightedText = new System.Text.StringBuilder();
+        var start = 0;
+        while (start < text.Length)
+        {
+            var match = text.IndexOf(searchTerm, start, StringComparison.OrdinalIgnoreCase);
+            if (match < 0)
+            {
+                highlightedText.Append(System.Web.HttpUtility.HtmlEncode(text[start..]));
+                break;
+            }
 
-        return new MarkupString(highlightedText);
+            highlightedText.Append(System.Web.HttpUtility.HtmlEncode(text[start..match]));
+            highlightedText.Append("<mark class=\"bg-yellow-200 text-yellow-900\">");
+            highlightedText.Append(System.Web.HttpUtility.HtmlEncode(text.Substring(match, searchTerm.Length)));
+            highlightedText.Append("</mark>");
+            start = match + searchTerm.Length;
+        }
+
+        return new MarkupString(highlightedText.ToString());
     }
 
     private static IEnumerable<int> GetVisiblePageNumbers(int currentPage, int totalPages)

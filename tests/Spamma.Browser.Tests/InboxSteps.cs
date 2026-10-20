@@ -61,8 +61,8 @@ public sealed partial class AnonymousAccessSteps
 
     private async Task SearchAsync(string term)
     {
-        await this.Page.GetByPlaceholder("Search emails...").FillAsync(term);
-        await this.Page.GetByPlaceholder("Search emails...").PressAsync("Enter");
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).FillAsync(term);
+        await this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" }).PressAsync("Enter");
     }
 
     [Given("I am signed in with access to a subdomain without messages")]
@@ -153,10 +153,27 @@ public sealed partial class AnonymousAccessSteps
     [When("I search by part of a subject or email address")]
     public async Task WhenISearchForSubjectOrAddressAsync()
     {
+        await this.Page.GetByText("Search tips and filters").ClickAsync();
+        await Assertions.Expect(this.Page.GetByText("Use YYYY-MM-DD for dates in UTC.", new() { Exact = false })).ToBeVisibleAsync();
+        await this.Page.GetByRole(AriaRole.Button, new() { Name = "Add sender filter" }).ClickAsync();
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("from:");
+
         await this.SearchAsync("Needle subject");
         await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
-        await this.SearchAsync("needle-sender@example.test");
+        await this.SearchAsync("from:needle-sender@example.test");
         await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
+
+        var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
+        if (!string.IsNullOrWhiteSpace(screenshotDirectory))
+        {
+            Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.WaitForTimeoutAsync(800);
+            await this.Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(screenshotDirectory, "advanced-search-from-filter.png"),
+                FullPage = true,
+            });
+        }
     }
 
     [Then("matching messages are shown")]
@@ -182,7 +199,7 @@ public sealed partial class AnonymousAccessSteps
     {
         var revisedTerm = "still-no-matches-" + Guid.NewGuid().ToString("N");
         await this.SearchAsync(revisedTerm);
-        await Assertions.Expect(this.Page.GetByPlaceholder("Search emails...")).ToHaveValueAsync(revisedTerm);
+        await Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync(revisedTerm);
         await this.ThenISeeNoSearchResultsAsync();
     }
 
@@ -198,7 +215,7 @@ public sealed partial class AnonymousAccessSteps
 
     [Then("the search remains applied")]
     public Task ThenSearchRemainsAppliedAsync() =>
-        Assertions.Expect(this.Page.GetByPlaceholder("Search emails...")).ToHaveValueAsync("Page match");
+        Assertions.Expect(this.Page.GetByRole(AriaRole.Searchbox, new() { Name = "Search emails" })).ToHaveValueAsync("Page match");
 
     [When("I mark it as a favorite")]
     public Task WhenIMarkFavoriteAsync() => this.Page.Locator("button[title='Add to favorites']").ClickAsync();

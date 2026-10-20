@@ -27,16 +27,7 @@ internal class SearchEmailsQueryProcessor(IDocumentSession documentSession, IHtt
             query = query.Where(x => x.CampaignId == null);
         }
 
-        // Apply search filtering if search text is provided
-        if (!string.IsNullOrWhiteSpace(request.SearchText))
-        {
-            var searchText = request.SearchText.Trim().ToLowerInvariant();
-
-            query = query.Where(x =>
-                x.Subject.ToLowerInvariant().Contains(searchText) ||
-                x.EmailAddresses.Any(ea => ea.Address.ToLowerInvariant().Contains(searchText) ||
-                                          ea.Name.ToLowerInvariant().Contains(searchText)));
-        }
+        query = EmailSearchFilters.Apply(query, request.SearchText);
 
         // Get total count before pagination
         var totalCount = await query.CountAsync(cancellationToken);
