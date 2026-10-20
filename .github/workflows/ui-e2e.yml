@@ -133,6 +133,7 @@ jobs:
           SPAMMA_BROWSER_RESULTS_DIR: ${{ github.workspace }}/browser-test-results
           SPAMMA_BROWSER_VIDEO_DIR: ${{ github.workspace }}/browser-test-videos
           SPAMMA_E2E_APP_CONTENT_ROOT: ${{ github.workspace }}/browser-app
+          SPAMMA_BROWSER_SCREENSHOT_DIR: ${{ github.workspace }}/browser-test-screenshots
           SPAMMA_E2E_DNS_PORT: '53535'
           ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=5432;Database=spamma_ui_e2e;Username=spamma;Password=spamma
           ConnectionStrings__Redis: 127.0.0.1:6379
@@ -146,6 +147,15 @@ jobs:
             browser-test-results/
             spamma-app.log
             spamma-setup.log
+          retention-days: 14
+
+      - name: Upload search screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: advanced-search-screenshot
+          path: browser-test-screenshots/advanced-search-from-filter.png
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Upload browser scenario videos

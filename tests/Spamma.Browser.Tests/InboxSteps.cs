@@ -157,6 +157,17 @@ public sealed partial class AnonymousAccessSteps
         await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
         await this.SearchAsync("from:needle-sender@example.test");
         await Assertions.Expect(this.Page.GetByText(this.inboxSubject, new() { Exact = true })).ToBeVisibleAsync();
+
+        var screenshotDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_SCREENSHOT_DIR");
+        if (!string.IsNullOrWhiteSpace(screenshotDirectory))
+        {
+            Directory.CreateDirectory(screenshotDirectory);
+            await this.Page.ScreenshotAsync(new PageScreenshotOptions
+            {
+                Path = Path.Combine(screenshotDirectory, "advanced-search-from-filter.png"),
+                FullPage = true,
+            });
+        }
     }
 
     [Then("matching messages are shown")]
