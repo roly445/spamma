@@ -272,8 +272,18 @@ To capture emails sent to your domain:
 
 - **Web UI:** Navigate to `https://localhost:7181` (or your Spamma instance URL)
 - **Browse by domain** in the sidebar
-- **Search emails** by sender, recipient, subject, or content
+- **Search emails** by sender, recipient, subject, or sent date
 - **View full email details** including headers, body, and attachments
+
+#### Inbox search
+
+Inbox and catch-all search support plain words and field filters. Separate terms are combined, and use quotes for a phrase containing spaces. For example:
+
+```text
+from:alice@example.com subject:"billing invoice" after:2026-01-01 before:2026-02-01
+```
+
+Supported fields are `from:`, `to:`, `subject:`, `after:`, and `before:`. Dates use `YYYY-MM-DD` in UTC; `after:` includes that date and `before:` excludes that date. Plain words continue to match subjects and sender/recipient names and addresses. Body-content search is planned separately because it requires extracting and indexing the message text.
 
 ### SMTP TLS Support (Port 587)
 

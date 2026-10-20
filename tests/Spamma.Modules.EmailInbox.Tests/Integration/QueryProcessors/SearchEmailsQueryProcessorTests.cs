@@ -10,6 +10,34 @@ namespace Spamma.Modules.EmailInbox.Tests.Integration.QueryProcessors;
 public class SearchEmailsQueryProcessorTests : QueryProcessorIntegrationTestBase
 {
     [Fact]
+    public async Task Handle_WithCombinedFilters_KeepsSubdomainScope()
+    {
+        var visibleSubdomain = Guid.NewGuid();
+        var hiddenSubdomain = Guid.NewGuid();
+        this.HttpContextAccessor.AddSubdomainClaim(visibleSubdomain);
+
+        foreach (var subdomainId in new[] { visibleSubdomain, hiddenSubdomain })
+        {
+            this.Session.Store(EmailLookupTestFactory.Create(
+                Guid.NewGuid(), subdomainId, Guid.NewGuid(), "Billing invoice",
+                new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc), false,
+                [
+                    new("alice@example.com", "Alice", EmailAddressType.From),
+                    new("bob@example.com", "Bob", EmailAddressType.To),
+                ]));
+        }
+
+        await this.Session.SaveChangesAsync();
+
+        var query = new SearchEmailsQuery(
+            SearchText: "from:alice to:bob subject:\"billing invoice\" after:2026-01-01 before:2026-02-01");
+        var result = await this.Sender.Send(query, CancellationToken.None);
+
+        result.Data.Items.Should().ContainSingle();
+        result.Data.TotalCount.Should().Be(1);
+    }
+
+    [Fact]
     public async Task Handle_WithNoSearchText_ReturnsAllEmails()
     {
         // Arrange
