@@ -203,6 +203,8 @@ public sealed partial class AnonymousAccessSteps
         if (!string.IsNullOrWhiteSpace(screenshotDirectory))
         {
             Directory.CreateDirectory(screenshotDirectory);
+            await Assertions.Expect(this.Page.Locator("#blazor-wasm-loading")).ToBeHiddenAsync();
+            await this.Page.GetByText("Search tips and filters").ClickAsync();
             await this.Page.ScreenshotAsync(new PageScreenshotOptions
             {
                 Path = Path.Combine(screenshotDirectory, "invalid-search-filter.png"),
