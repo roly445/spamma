@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using Microsoft.Playwright;
 using Npgsql;
 using Reqnroll;
@@ -27,7 +28,7 @@ public sealed partial class AnonymousAccessSteps
     }
 
     [BeforeScenario]
-    public async Task StartBrowserAsync()
+    public async Task StartBrowserAsync(ScenarioContext scenarioContext)
     {
         if (Environment.GetEnvironmentVariable("SPAMMA_E2E_RESET_SETUP_CONFIG") == "true")
         {
@@ -35,15 +36,17 @@ public sealed partial class AnonymousAccessSteps
         }
 
         this.playwright = await Playwright.CreateAsync();
-        this.browser = await this.playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
-        {
-            ExecutablePath = Environment.GetEnvironmentVariable("SPAMMA_E2E_CHROMIUM_PATH"),
-        });
+        this.browser = Environment.GetEnvironmentVariable("SPAMMA_BROWSERSTACK_ENABLED") == "true"
+            ? await this.ConnectToBrowserStackAsync(scenarioContext)
+            : await this.playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
+            {
+                ExecutablePath = Environment.GetEnvironmentVariable("SPAMMA_E2E_CHROMIUM_PATH"),
+            });
         var videoDirectory = Environment.GetEnvironmentVariable("SPAMMA_BROWSER_VIDEO_DIR");
         this.context = await this.browser.NewContextAsync(new BrowserNewContextOptions
         {
             BaseURL = Environment.GetEnvironmentVariable("SPAMMA_E2E_BASE_URL") ?? "http://127.0.0.1:5188",
-            RecordVideoDir = videoDirectory,
+            RecordVideoDir = string.IsNullOrWhiteSpace(videoDirectory) ? null : videoDirectory,
             RecordVideoSize = string.IsNullOrWhiteSpace(videoDirectory)
                 ? null
                 : new RecordVideoSize { Width = 1280, Height = 720 },
@@ -67,6 +70,18 @@ public sealed partial class AnonymousAccessSteps
     [AfterScenario]
     public async Task StopBrowserAsync(ScenarioContext scenarioContext)
     {
+        if (Environment.GetEnvironmentVariable("SPAMMA_BROWSERSTACK_ENABLED") == "true" && this.page is not null)
+        {
+            var status = scenarioContext.TestError is null ? "passed" : "failed";
+            var reason = scenarioContext.TestError?.Message ?? "Scenario passed";
+            var command = JsonSerializer.Serialize(new
+            {
+                action = "setSessionStatus",
+                arguments = new { status, reason },
+            });
+            await this.page.EvaluateAsync("_ => {}", $"browserstack_executor: {command}");
+        }
+
         if (this.setupSmtpCapture is not null)
         {
             await this.setupSmtpCapture.DisposeAsync();
@@ -139,6 +154,45 @@ public sealed partial class AnonymousAccessSteps
         }
 
         this.playwright?.Dispose();
+    }
+
+    private async Task<IBrowser> ConnectToBrowserStackAsync(ScenarioContext scenarioContext)
+    {
+        static string RequiredEnvironmentVariable(string name) =>
+            Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
+                ? value
+                : throw new InvalidOperationException($"{name} must be set for BrowserStack tests.");
+
+        var playwrightVersion = typeof(IPlaywright).Assembly.GetName().Version?.ToString(3)
+            ?? throw new InvalidOperationException("Could not determine the Playwright client version.");
+        var capabilities = new Dictionary<string, string>
+        {
+            ["os"] = "Windows",
+            ["os_version"] = "11",
+            ["browser"] = "chrome",
+            ["browser_version"] = "latest",
+            ["browserstack.username"] = RequiredEnvironmentVariable("BROWSERSTACK_USERNAME"),
+            ["browserstack.accessKey"] = RequiredEnvironmentVariable("BROWSERSTACK_ACCESS_KEY"),
+            ["browserstack.local"] = "true",
+            ["browserstack.localIdentifier"] = RequiredEnvironmentVariable("BROWSERSTACK_LOCAL_IDENTIFIER"),
+            ["browserstack.video"] = "true",
+            ["browserstack.playwrightVersion"] = playwrightVersion,
+            ["client.playwrightVersion"] = playwrightVersion,
+            ["project"] = Environment.GetEnvironmentVariable("BROWSERSTACK_PROJECT_NAME") ?? "Spamma",
+            ["build"] = Environment.GetEnvironmentVariable("BROWSERSTACK_BUILD_NAME") ?? "Spamma browser tests",
+            ["name"] = scenarioContext.ScenarioInfo.Title,
+        };
+        var endpoint = "wss://cdp.browserstack.com/playwright?caps=" +
+            Uri.EscapeDataString(JsonSerializer.Serialize(capabilities));
+        try
+        {
+            return await this.playwright!.Chromium.ConnectAsync(endpoint);
+        }
+        catch (PlaywrightException)
+        {
+            // Playwright errors can include the endpoint, which contains the access key.
+            throw new InvalidOperationException("Could not connect to BrowserStack. Check the credentials and Local tunnel.");
+        }
     }
 
     [Given("I am visiting Spamma anonymously")]
